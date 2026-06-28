@@ -21,10 +21,12 @@ Legend: ✅ done · 🔼 in progress · ⬜ todo
 
 Goal: an on-brand component kit so every later feature is consistent from day one.
 
+- ✅ **Typography system** (`src/components/ui/typography.tsx`) — cva-based, derived from the landing comp: `Display`, `H1`, `H2`, `H3`, `Eyebrow`, `Lead`, `Body`, `BodySm`, `Quote`, `Caption`. Cormorant italic enabled in the font loader (roman+italic heading signature).
+- ✅ `/styleguide` page (noindex) previewing the type scale against real landing copy.
 - ⬜ Add core shadcn components: `button`, `card`, `input`, `label`, `select`, `dialog`, `sheet`, `dropdown-menu`, `badge`, `skeleton`, `sonner` (toasts), `tabs`, `separator`, `avatar`.
 - ⬜ Verify each picks up Onyx/Alabaster tokens + Cormorant/Jakarta fonts (override variants where needed).
-- ⬜ Build brand primitives: `Eyebrow` (widest-lux tracking), `SectionHeading` (editorial serif), `PriceTag` (cents→formatted, locale-aware currency), `Container`/layout shells, header + footer.
-- ⬜ A `/styleguide` (dev-only) page rendering every primitive for visual QA.
+- ⬜ Remaining brand primitives: `PriceTag` (cents→formatted, locale-aware currency), `Container`/layout shells, header + footer. (`Eyebrow`/section headings now covered by typography variants.)
+- ⬜ Extend `/styleguide` with the components above as they land.
 
 ## Phase 2 — i18n + route structure
 
