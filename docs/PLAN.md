@@ -8,13 +8,14 @@ Legend: ✅ done · 🔼 in progress · ⬜ todo
 
 ---
 
-## Phase 0 — Scaffold & repo hygiene ✅ (mostly)
+## Phase 0 — Scaffold & repo hygiene ✅
 
 - ✅ Next 16 + React 19 + Tailwind v4 + shadcn `base-luma` scaffolded; pnpm via corepack.
 - ✅ Brand tokens + fonts wired (`globals.css`, `layout.tsx`).
-- ⬜ Replace default `page.tsx` boilerplate and root `metadata`.
-- ⬜ Add `.env.example` (all keys, no secrets) — committed; real `.env.local` git-ignored.
-- ⬜ Confirm `pnpm dev` / `pnpm build` green before adding deps.
+- ✅ Replaced default `page.tsx` boilerplate with on-brand placeholder; real root `metadata` (title template + `metadataBase`).
+- ✅ Added `.env.example` (all keys, no secrets); `.gitignore` exempts it (`!.env.example`) so it commits while `.env.local` stays ignored.
+- ✅ `pnpm lint` and `pnpm build` green (TypeScript passes; `/` prerenders static).
+- ⬜ *(optional)* Remove leftover `public/next.svg`, `public/vercel.svg` from create-next-app — no longer referenced.
 
 ## Phase 1 — Design system primitives (FIRST) 🔼
 
