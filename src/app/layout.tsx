@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-// font-editorial — Figma "Collection 1"
+// font-editorial — Figma "Collection 1". Italic is part of the brand:
+// section headings pair a roman line with an italic second line.
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
