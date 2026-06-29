@@ -25,7 +25,7 @@ Goal: an on-brand component kit so every later feature is consistent from day on
 - ✅ `/styleguide` page (noindex) previewing the type scale against real landing copy.
 - ✅ **Button** (`button.tsx`) — re-themed base-luma/base-ui: squared corners, uppercase + `tracking-ui-button`, `default` (Onyx) + `inverse` (light-on-dark hero) variants, sizes sm/default/lg.
 - ✅ **PriceTag** (`price-tag.tsx`) — cents→amount, editorial face, `Intl.NumberFormat` (locale prop), `sign` for add-on deltas.
-- ⬜ Add remaining shadcn components: `input`, `textarea`, `label`, `checkbox`, `separator` (form set, underline-restyled); later `card`, `dialog`, `sheet`, `dropdown-menu`, `badge`, `skeleton`, `sonner`, `tabs`, `select`, `avatar` as needed.
+- ✅ **Form set** — `input`, `textarea`, `label`, `checkbox`, `separator` re-themed to the comp: underline-only inputs (`border-b`), uppercase muted `Label` (= `Caption`), squared Onyx `Checkbox`. Later: `card`, `dialog`, `sheet`, `dropdown-menu`, `badge`, `skeleton`, `sonner`, `tabs`, `select`, `avatar` as needed.
 - ⬜ Verify each picks up Onyx/Alabaster tokens + Cormorant/Jakarta fonts (override variants where needed).
 - ⬜ Remaining brand primitives: `Container`/`Section` shells, `SiteHeader` + `SiteFooter`, `LanguageToggle`.
 - ✅ `/styleguide` now sectioned (Typography · Buttons · Prices); extend as components land.
