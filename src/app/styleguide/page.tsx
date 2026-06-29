@@ -17,6 +17,11 @@ import {
 } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/ui/price-tag";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -165,6 +170,40 @@ export default function StyleguidePage() {
           <PriceTag cents={65000} className="text-xl" />
           <PriceTag cents={5000} sign className="text-xl" />
           <PriceTag cents={82000} className="text-3xl" />
+        </div>
+      </Row>
+
+      <GroupTitle>Forms</GroupTitle>
+
+      <Row name="Input" spec="label + underline field">
+        <div className="flex max-w-sm flex-col gap-2">
+          <Label htmlFor="sg-name">Full name</Label>
+          <Input id="sg-name" placeholder="E.g. Raul Octavian" />
+        </div>
+      </Row>
+
+      <Row name="Textarea" spec="session notes">
+        <div className="flex max-w-sm flex-col gap-2">
+          <Label htmlFor="sg-notes">Session notes (optional)</Label>
+          <Textarea id="sg-notes" placeholder="Anything we should know?" />
+        </div>
+      </Row>
+
+      <Row name="Checkbox" spec="add-on row">
+        <label className="flex max-w-sm items-center justify-between gap-4">
+          <span className="flex items-center gap-3">
+            <Checkbox defaultChecked />
+            <Body>French tips</Body>
+          </span>
+          <PriceTag cents={5000} sign />
+        </label>
+      </Row>
+
+      <Row name="Separator" spec="hairline divider">
+        <div className="max-w-sm">
+          <Body>Classic Gel Extension</Body>
+          <Separator className="my-4" />
+          <BodySm>90 min · private session</BodySm>
         </div>
       </Row>
     </main>
