@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Bella Nails">
+  <defs><style><![CDATA[
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&display=swap');
+  .box{fill:none;stroke:#121212;stroke-width:1.5}
+  .bn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;fill:#121212}
+  @media (prefers-color-scheme:dark){.box{stroke:#FBFBFA}.bn{fill:#FBFBFA}}
+  ]]></style></defs>
+  <rect class="box" x="9" y="9" width="102" height="102" rx="4"/>
+  <text class="bn" x="60" y="79" text-anchor="middle" font-size="60">BN</text>
+</svg>

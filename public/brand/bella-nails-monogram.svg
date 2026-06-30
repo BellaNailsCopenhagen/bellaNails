@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Bella Nails monogram">
+  <defs><style><![CDATA[
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&display=swap');
+  .m{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500}
+  ]]></style></defs>
+  <rect x="9" y="9" width="102" height="102" rx="4" fill="none" stroke="#121212" stroke-width="1.5"/>
+  <text class="m" x="60" y="79" text-anchor="middle" font-size="60" fill="#121212">BN</text>
+</svg>

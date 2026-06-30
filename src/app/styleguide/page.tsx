@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 
 import {
@@ -68,6 +69,59 @@ export default function StyleguidePage() {
         The Bella Nails primitives — Cormorant Garamond for editorial voice, Plus
         Jakarta Sans for everything functional.
       </Lead>
+
+      <GroupTitle>Logo</GroupTitle>
+
+      <Row name="Primary" spec="masthead · hero · footer · stamp">
+        <img
+          src="/brand/bella-nails-primary.svg"
+          alt="Bella Nails primary logo"
+          className="h-40 w-auto"
+        />
+      </Row>
+
+      <Row name="Horizontal" spec="nav · tight spaces">
+        <img
+          src="/brand/bella-nails-horizontal.svg"
+          alt="Bella Nails horizontal logo"
+          className="h-16 w-auto"
+        />
+      </Row>
+
+      <Row name="Monogram" spec="favicon · app · avatar">
+        <div className="flex items-end gap-6">
+          <img
+            src="/brand/bella-nails-monogram.svg"
+            alt="Bella Nails monogram"
+            className="h-20 w-20"
+          />
+          <img
+            src="/favicon.svg"
+            alt="Bella Nails favicon at 32px"
+            className="h-8 w-8"
+          />
+          <img
+            src="/favicon.svg"
+            alt="Bella Nails favicon at 16px"
+            className="h-4 w-4"
+          />
+        </div>
+      </Row>
+
+      <Row name="Reverse" spec="alabaster · on Onyx">
+        <div className="flex flex-wrap items-center gap-10 rounded-sm bg-foreground p-10">
+          <img
+            src="/brand/bella-nails-primary-reverse.svg"
+            alt="Bella Nails primary logo, reversed"
+            className="h-32 w-auto"
+          />
+          <img
+            src="/brand/bella-nails-monogram-reverse.svg"
+            alt="Bella Nails monogram, reversed"
+            className="h-16 w-16"
+          />
+        </div>
+      </Row>
 
       <GroupTitle>Typography</GroupTitle>
 

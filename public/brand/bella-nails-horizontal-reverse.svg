@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 92" role="img" aria-label="Bella Nails — Ørestad, Copenhagen">
+  <defs><style><![CDATA[
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
+  .s3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:300}
+  .s4{font-family:'Plus Jakarta Sans',sans-serif;font-weight:400}
+  ]]></style></defs>
+  <text class="s3" x="210" y="44" text-anchor="middle" font-size="26" letter-spacing="6" fill="#FBFBFA">BELLA · NAILS</text>
+  <text class="s4" x="210" y="70" text-anchor="middle" font-size="10" letter-spacing="3.6" fill="#FBFBFA">ØRESTAD · COPENHAGEN</text>
+</svg>
