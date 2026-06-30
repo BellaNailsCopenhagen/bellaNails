@@ -50,6 +50,8 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 
+import { ToastDemo } from "./toast-demo";
+
 export const metadata: Metadata = {
   title: "Styleguide",
   robots: { index: false, follow: false },
@@ -365,6 +367,12 @@ export default function StyleguidePage() {
             </MenubarContent>
           </MenubarMenu>
         </Menubar>
+      </Row>
+
+      <GroupTitle>Feedback</GroupTitle>
+
+      <Row name="Toast" spec="sonner · booking feedback">
+        <ToastDemo />
       </Row>
     </main>
   );
