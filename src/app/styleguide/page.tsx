@@ -23,6 +23,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -259,6 +267,24 @@ export default function StyleguidePage() {
           <Separator className="my-4" />
           <BodySm>90 min · private session</BodySm>
         </div>
+      </Row>
+
+      <GroupTitle>Menus</GroupTitle>
+
+      <Row name="DropdownMenu" spec="account · language · click-triggered">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline">Account</Button>}
+          />
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Signed in as Ashley</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>My bookings</DropdownMenuItem>
+            <DropdownMenuItem>Account settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Sign out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </Row>
     </main>
   );
