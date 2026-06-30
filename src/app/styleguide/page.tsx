@@ -39,18 +39,6 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import {
-  Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
-
-import { ToastDemo } from "./toast-demo";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -340,39 +328,6 @@ export default function StyleguidePage() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-      </Row>
-
-      <Row name="Menubar" spec="admin · persistent command bar">
-        <Menubar>
-          <MenubarMenu>
-            <MenubarTrigger>Booking</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem>
-                New appointment <MenubarShortcut>⌘N</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem>
-                Find client <MenubarShortcut>⌘F</MenubarShortcut>
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem variant="destructive">Cancel booking</MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>View</MenubarTrigger>
-            <MenubarContent>
-              <MenubarCheckboxItem defaultChecked>
-                Show past bookings
-              </MenubarCheckboxItem>
-              <MenubarCheckboxItem>Compact rows</MenubarCheckboxItem>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-      </Row>
-
-      <GroupTitle>Feedback</GroupTitle>
-
-      <Row name="Toast" spec="sonner · booking feedback">
-        <ToastDemo />
       </Row>
     </main>
   );
