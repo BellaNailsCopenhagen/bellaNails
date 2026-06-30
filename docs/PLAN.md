@@ -30,16 +30,18 @@ Goal: an on-brand component kit so every later feature is consistent from day on
 - ⬜ Remaining brand primitives: `Container`/`Section` shells, `SiteHeader` + `SiteFooter`, `LanguageToggle`.
 - ✅ `/styleguide` now sectioned (Typography · Buttons · Prices); extend as components land.
 
-## Phase 2 — i18n + route structure
+## Phase 2 — i18n + route structure ✅
 
 Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses `proxy.ts`, not `middleware.ts`.
 
-- ⬜ Install `next-intl`; confirm version compatible with Next 16 `proxy` convention.
-- ⬜ Restructure routes under `src/app/[locale]/` (move `layout.tsx` + `page.tsx`).
-- ⬜ `src/proxy.ts` exporting `proxy()` for locale negotiation/redirect (Danish default).
-- ⬜ `src/i18n/` config (locales `['da','en']`, request config) + `messages/da.json`, `messages/en.json` with short keys (`services.gel.title`).
-- ⬜ Wrap `[locale]/layout.tsx` with `NextIntlClientProvider`; set `<html lang={locale}>`.
-- ⬜ Locale switcher component; verify SSR (no client flash) and that `params` is awaited.
+- ✅ Installed `next-intl@4.13` (peer-deps list `next ^16.0.0`). `next.config.ts` wrapped with `createNextIntlPlugin('./src/i18n/request.ts')`.
+- ✅ Routes restructured under `src/app/[locale]/` (`layout.tsx` is now the root layout with `<html lang={locale}>`; `page.tsx` + `styleguide/` moved). Old root `layout.tsx`/`page.tsx` removed; `globals.css` stays at `src/app/`.
+- ✅ `src/proxy.ts` re-exports next-intl's middleware as `proxy` (Node runtime per Next 16) with a matcher excluding `api`/`_next`/assets. `/` → `/da`; unknown paths (`/fr`) prefix to `/da/fr` → 404.
+- ✅ `src/i18n/` config: `routing.ts` (locales `['da','en']`, default `da`, `localePrefix: 'always'`), `navigation.ts` (locale-aware `Link`/`redirect`/etc.), `request.ts`. `messages/da.json` + `messages/en.json` with short keys; typed via `src/global.d.ts` (`AppConfig` augmentation) so keys are checked at build.
+- ✅ `[locale]/layout.tsx` wraps children in `NextIntlClientProvider`, sets `<html lang={locale}>`, validates locale (`hasLocale` → `notFound`), `setRequestLocale` for static rendering, `generateStaticParams` (both locales prerender SSG), locale-aware `generateMetadata`.
+- ✅ `LocaleToggle` (`src/components/locale-toggle.tsx`) using next-intl navigation `Link` + `locale` prop — pure-link switch, works without JS. Verified: `params` awaited, SSR ships localized copy + `<html lang>` (no client flash), `/da` Danish + `/en` English confirmed via prod server.
+
+> Note: this also delivers the `LanguageToggle` left open in Phase 1's "remaining brand primitives". `Container`/`Section` shells + `SiteHeader`/`SiteFooter` are still outstanding from Phase 1.
 
 ## Phase 3 — Data layer & Supabase schema
 
