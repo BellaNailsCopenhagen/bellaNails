@@ -23,6 +23,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+
+import { ToastDemo } from "./toast-demo";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -259,6 +287,92 @@ export default function StyleguidePage() {
           <Separator className="my-4" />
           <BodySm>90 min · private session</BodySm>
         </div>
+      </Row>
+
+      <GroupTitle>Menus</GroupTitle>
+
+      <Row name="DropdownMenu" spec="account · language · click-triggered">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline">Account</Button>}
+          />
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Signed in as Ashley</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>My bookings</DropdownMenuItem>
+            <DropdownMenuItem>Account settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive">Sign out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </Row>
+
+      <Row name="NavigationMenu" spec="site nav · hover panel">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Services</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-64 gap-1">
+                  <li>
+                    <NavigationMenuLink href="#">
+                      Classic Gel Extension
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink href="#">
+                      The Atelier Edit
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink href="#">
+                      Nail Art &amp; Detailing
+                    </NavigationMenuLink>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="#">Gallery</NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="#">About</NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </Row>
+
+      <Row name="Menubar" spec="admin · persistent command bar">
+        <Menubar>
+          <MenubarMenu>
+            <MenubarTrigger>Booking</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem>
+                New appointment <MenubarShortcut>⌘N</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem>
+                Find client <MenubarShortcut>⌘F</MenubarShortcut>
+              </MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem variant="destructive">Cancel booking</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>View</MenubarTrigger>
+            <MenubarContent>
+              <MenubarCheckboxItem defaultChecked>
+                Show past bookings
+              </MenubarCheckboxItem>
+              <MenubarCheckboxItem>Compact rows</MenubarCheckboxItem>
+            </MenubarContent>
+          </MenubarMenu>
+        </Menubar>
+      </Row>
+
+      <GroupTitle>Feedback</GroupTitle>
+
+      <Row name="Toast" spec="sonner · booking feedback">
+        <ToastDemo />
       </Row>
     </main>
   );
