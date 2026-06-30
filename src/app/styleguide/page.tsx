@@ -72,7 +72,7 @@ export default function StyleguidePage() {
 
       <GroupTitle>Logo</GroupTitle>
 
-      <Row name="Primary" spec="masthead · hero · footer · stamp">
+      <Row name="Primary" spec="wordmark · rule · city">
         <img
           src="/brand/bella-nails-primary.svg"
           alt="Bella Nails primary logo"

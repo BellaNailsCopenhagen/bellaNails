@@ -11,8 +11,8 @@ Monochrome identity system. **No gold** — Onyx and Alabaster only, matching th
 
 ## Type
 
-- **Cormorant Garamond** — serif voice. Masthead at weight 500; monogram at italic 500.
-- **Plus Jakarta Sans** — functional voice. Wordmark/locality at weight 300–400, wide tracking.
+- **Plus Jakarta Sans** — the wordmark and all text. Wordmark at weight 300 with wide tracking; "Copenhagen" / labels at weight 400.
+- **Cormorant Garamond** — serif voice, used **only** in the BN monogram (italic 500).
 
 SVGs embed these via Google Fonts `@import`, so they render correctly in browsers and on the site (which already loads both families).
 
@@ -20,7 +20,7 @@ SVGs embed these via Google Fonts `@import`, so they render correctly in browser
 
 | File | Role | Min size |
 |---|---|---|
-| `bella-nails-primary.svg` | Masthead — hero, footer, stamp, packaging | ≥ 120px wide |
+| `bella-nails-primary.svg` | Primary lockup (wordmark · rule · city) — hero, footer, stamp | ≥ 140px wide |
 | `bella-nails-horizontal.svg` | Nav / tight horizontal spaces | ≥ 160px wide |
 | `bella-nails-monogram.svg` | Mark — favicon, app icon, avatar | ≥ 24px |
 | `*-reverse.svg` | Same, in Alabaster for dark backgrounds | — |

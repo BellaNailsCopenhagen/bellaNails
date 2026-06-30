@@ -1,12 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 206" role="img" aria-label="Bella Nails — Copenhagen, Ørestad">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 116" role="img" aria-label="Bella Nails — Copenhagen">
   <defs><style><![CDATA[
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Plus+Jakarta+Sans:wght@400&display=swap');
-  .serif{font-family:'Cormorant Garamond',serif;font-weight:500}
-  .sans{font-family:'Plus Jakarta Sans',sans-serif;font-weight:400}
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
+  .s3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:300}
+  .s4{font-family:'Plus Jakarta Sans',sans-serif;font-weight:400}
   ]]></style></defs>
-  <line x1="110" y1="48" x2="250" y2="48" stroke="#121212" stroke-width="1"/>
-  <text class="serif" x="180" y="104" text-anchor="middle" font-size="52" fill="#121212">Bella</text>
-  <text class="serif" x="180" y="152" text-anchor="middle" font-size="52" fill="#121212">Nails</text>
-  <line x1="110" y1="170" x2="250" y2="170" stroke="#121212" stroke-width="1"/>
-  <text class="sans" x="180" y="190" text-anchor="middle" font-size="11" letter-spacing="3.4" fill="#121212">COPENHAGEN · ØRESTAD</text>
+  <text class="s3" x="210" y="52" text-anchor="middle" font-size="30" letter-spacing="7" fill="#121212">BELLA NAILS</text>
+  <line x1="183" y1="74" x2="237" y2="74" stroke="#121212" stroke-width="1"/>
+  <text class="s4" x="210" y="98" text-anchor="middle" font-size="11" letter-spacing="4.2" fill="#121212">COPENHAGEN</text>
 </svg>
