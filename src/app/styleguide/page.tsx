@@ -31,6 +31,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 export const metadata: Metadata = {
   title: "Styleguide",
@@ -285,6 +293,41 @@ export default function StyleguidePage() {
             <DropdownMenuItem variant="destructive">Sign out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </Row>
+
+      <Row name="NavigationMenu" spec="site nav · hover panel">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Services</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-64 gap-1">
+                  <li>
+                    <NavigationMenuLink href="#">
+                      Classic Gel Extension
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink href="#">
+                      The Atelier Edit
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink href="#">
+                      Nail Art &amp; Detailing
+                    </NavigationMenuLink>
+                  </li>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="#">Gallery</NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="#">About</NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
       </Row>
     </main>
   );
