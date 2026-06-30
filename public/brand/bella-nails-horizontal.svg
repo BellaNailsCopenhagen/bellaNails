@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 56" role="img" aria-label="Bella Nails">
+  <defs><style><![CDATA[
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300&display=swap');
+  .s3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:300}
+  ]]></style></defs>
+  <text class="s3" x="180" y="37" text-anchor="middle" font-size="24" letter-spacing="6" fill="#121212">BELLA NAILS</text>
+</svg>

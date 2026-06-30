@@ -15,6 +15,7 @@
   --bn-text-secondary: #66635f;
   --bn-divider: #e4e0d9;
   --bn-cta: #121212;
+  --bn-destructive: #8e2c2c; /* muted error red — not in the Figma palette */
 
   /* shadcn semantic mapping */
   --background: var(--bn-background);
@@ -34,6 +35,8 @@
   --border: var(--bn-divider);
   --input: var(--bn-divider);
   --ring: var(--bn-text-secondary);
+  --destructive: var(--bn-destructive);
+  --destructive-foreground: var(--bn-background);
 
   --radius: 8px;
 }
@@ -57,6 +60,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
   /* Fonts → font-editorial / font-functional utilities.
      Variables are registered via next/font in app/layout.tsx. */

@@ -26,7 +26,7 @@ Goal: an on-brand component kit so every later feature is consistent from day on
 - ✅ **Button** (`button.tsx`) — re-themed base-luma/base-ui: squared corners, uppercase + `tracking-ui-button`, `default` (Onyx) + `inverse` (light-on-dark hero) variants, sizes sm/default/lg.
 - ✅ **PriceTag** (`price-tag.tsx`) — cents→amount, editorial face, `Intl.NumberFormat` (locale prop), `sign` for add-on deltas.
 - ✅ **Form set** — `input`, `textarea`, `label`, `checkbox`, `separator` re-themed to the comp: underline-only inputs (`border-b`), uppercase muted `Label` (= `Caption`), squared Onyx `Checkbox`. Later: `card`, `dialog`, `sheet`, `dropdown-menu`, `badge`, `skeleton`, `sonner`, `tabs`, `select`, `avatar` as needed.
-- ⬜ Verify each picks up Onyx/Alabaster tokens + Cormorant/Jakarta fonts (override variants where needed).
+- ✅ Verified tokens + fonts: every component token class resolves in `@theme`; brand hexes + self-hosted Cormorant/Jakarta `.woff2` confirmed in compiled output. Added missing `--destructive` (muted `#8e2c2c`) that the destructive variant + all `aria-invalid` states reference.
 - ⬜ Remaining brand primitives: `Container`/`Section` shells, `SiteHeader` + `SiteFooter`, `LanguageToggle`.
 - ✅ `/styleguide` now sectioned (Typography · Buttons · Prices); extend as components land.
 
@@ -89,11 +89,40 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 ## Phase 9 — Hardening & launch
 
-- ⬜ SEO/metadata per locale, sitemap, OG images.
+- ⬜ SEO/metadata per locale, sitemap, OG images. → see Phase 10 (Local SEO).
 - ⬜ Error/loading boundaries, empty states, toasts.
 - ⬜ Lighthouse / a11y pass; verify no booking-UI flicker.
 - ⬜ Env wiring on host (Vercel free tier), webhook URLs pointed at prod, secrets set.
 - ⬜ Smoke test full booking → webhook → DB → admin live update.
+
+## Phase 10 — Local SEO (Ørestad / Bella Kvarter)
+
+Goal: own **"neglesalon Ørestad"** + **"neglesalon Bella Kvarter"** and win the local pack.
+Full strategy, keyword map, copy and schema snippets in [seo-plan.md](./seo-plan.md).
+
+**On-page** (lands with Phases 7 & 9):
+
+- ⬜ "Bella Nails" text wordmark replacing the placeholder logo.
+- ⬜ Per-locale `<title>`/description (da/en): neglesalon + Ørestad + services.
+- ⬜ Keyworded `<h1>` + small "Neglesalon i Ørestad · København" hero kicker (poetic line kept).
+- ⬜ Danish service names via `messages` (Geleforlængelse, Klassisk Manicure, Shellac / BIAB).
+- ⬜ Crawlable footer NAP + areas served (Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup).
+- ⬜ Descriptive image `alt` on all gallery media.
+- ⬜ FAQ section (long-tail) + `FAQPage` schema.
+- ⬜ `NailSalon`/`LocalBusiness` JSON-LD (NAP, geo, openingHours, areaServed, sameAs).
+- ⬜ hreflang `da`/`en` + `x-default`, self-referencing canonical; sitemap w/ hreflang + robots.txt.
+- ⬜ Hero image perf (Cloudinary `f_auto,q_auto`, `next/image` `priority`) — Core Web Vitals.
+
+**Off-page** (parallel — highest leverage):
+
+- ⬜ Google Business Profile: claim, primary category "Nail salon", exact NAP, photos, services+prices, Cal.com link, regular posts.
+- ⬜ Review engine: QR at checkout + post-visit SMS/email via Cal.com; respond to ≥80%.
+- ⬜ Citations w/ consistent NAP: Krak, De Gule Sider, Trustpilot, Facebook, Instagram, Apple Maps, Bing Places, Booksy.
+- ⬜ Danish blog (1/mo) targeting long-tail → internal links to booking.
+- ⬜ Local backlinks (Ørestad / Bella Center / Amager groups) + Instagram geotags & hashtags.
+
+⚠️ Blocked on: public phone, final domain, geo coordinates, social URLs (for NAP + schema).
+Measure: Search Console (Tier-1 query positions), GBP insights, local-pack rank for "neglesalon Ørestad".
 
 ---
 
