@@ -43,14 +43,14 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 > Note: this also delivers the `LanguageToggle` left open in Phase 1's "remaining brand primitives". `Container`/`Section` shells + `SiteHeader`/`SiteFooter` are still outstanding from Phase 1.
 
-## Phase 3 — Data layer & Supabase schema
+## Phase 3 — Data layer & Supabase schema 🔼
 
-- ⬜ Apply schema (services, addons, addon_incompatibilities, gallery_items, bookings) — DDL in [INFRASTRUCTURE.md](./INFRASTRUCTURE.md#supabase). Apply the `_da` rename.
-- ⬜ Add indices + enable Realtime publication on `bookings` (and any other live table).
-- ⬜ `@supabase/supabase-js` clients: browser client + server client (RSC/route handlers) in `src/lib/supabase/`.
-- ⬜ Generate TS types from the DB (`supabase gen types`) into `src/lib/supabase/types.ts`.
-- ⬜ Seed a few services/addons/gallery rows for development.
-- ⬜ Write baseline RLS policies (public read of active services/gallery; owner-only writes).
+- ✅ Schema applied directly in Supabase (owner). Tables: `categories`, `services`, `addons`, `addon_incompatibilities`, `assets`, `gallery_items`, `bookings`. ⚠️ Localized columns use the **`_dk`** suffix (not `_da`) for Danish + `_en` for English — the `da` locale maps to `_dk`.
+- ✅ `@supabase/supabase-js` clients in `src/lib/supabase/`: `client.ts` (browser singleton, anon), `server.ts` (RSC/route-handler anon client **+** `server-only` service-role client that bypasses RLS), shared `env.ts` guard. Clerk-token `accessToken` wiring is marked as a Phase 4 TODO in each.
+- ✅ TS types in `src/lib/supabase/types.ts` — hand-authored from the live schema (`Database` + `Tables`/`TablesInsert`/`TablesUpdate` helpers, FK relationships). Regenerate with `supabase gen types` once a project ref/token is on hand.
+- ⬜ **Apply-yourself SQL under `supabase/`** (I have no DB access): `rls.sql` (enable RLS + public reads of active catalog; writes via service-role), `realtime.sql` (add `bookings` to `supabase_realtime`), `seed.sql` (category→service→add-on + one gallery item). Run these in the Supabase SQL editor.
+- ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
+- ⬜ Owner-only / authed-read RLS keyed off Clerk claims → Phase 4.
 
 ## Phase 4 — Auth (Clerk + Supabase native)
 
