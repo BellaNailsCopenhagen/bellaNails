@@ -1,7 +1,12 @@
--- Development seed (Phase 3). Safe to run on a dev database; inserts one
--- category → service → add-on chain plus one gallery item. Not idempotent —
--- re-running adds duplicates (cal_event_id is unique, so a second run errors
--- on the service, which is the intended guard against double-seeding prod).
+-- Development seed (Phase 3). NOT applied to the live project (it already has
+-- sample rows) — kept for fresh/dev databases.
+--
+-- Wrapped in a single transaction so it's atomic: on a re-run the featured
+-- service's unique `cal_event_id` (1001) raises, the whole transaction rolls
+-- back, and no partial/orphan rows (category, asset, gallery item) are left
+-- behind. That's the intended guard against double-seeding.
+
+begin;
 
 -- Category → featured service → add-on.
 with cat as (
@@ -31,3 +36,5 @@ with a as (
 )
 insert into public.gallery_items (display_mode, primary_asset_id, title_en, title_dk, sort_order)
 select 'single', a.id, 'Studio work', 'Studiearbejde', 1 from a;
+
+commit;

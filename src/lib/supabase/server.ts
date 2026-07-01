@@ -34,6 +34,8 @@ export function createSupabaseServerClient(): SupabaseClient<Database> {
  */
 export function createSupabaseServiceRoleClient(): SupabaseClient<Database> {
   return createClient<Database>(
+    // The URL is the public project URL (same for every key); only the paired
+    // SERVICE_ROLE key below is secret. Do not swap in any other NEXT_PUBLIC_ var.
     assertEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
     assertEnv(
       process.env.SUPABASE_SERVICE_ROLE_KEY,

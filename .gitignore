@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
+# claude code skills — re-materialized from skills-lock.json (npx skills add).
+# The lockfile is committed; the vendored skill docs are not.
+.agents/skills/
+.claude/skills/
+
 # vercel
 .vercel
 
