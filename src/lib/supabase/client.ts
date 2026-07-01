@@ -22,6 +22,17 @@ export function getSupabaseBrowserClient(): SupabaseClient<Database> {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ),
+    {
+      // We don't use Supabase Auth — Clerk owns sessions (Phase 4 wires the
+      // Clerk token via `accessToken`). Turn off the GoTrue browser machinery
+      // so it doesn't parse/strip OAuth-shaped URL params (detectSessionInUrl)
+      // or spin up needless localStorage writes + refresh timers.
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    },
   );
   return browserClient;
 }
