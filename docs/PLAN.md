@@ -78,6 +78,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 ## Phase 7 — Public site features
 
 - ⬜ Home / hero (Quiet Luxury landing).
+- ⬜ "The Formula" section — powered by Didier Lab (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium); durability + "difficult nails" positioning. Story framing: **personal, first-person, no medical diagnosis** (chosen). Placement TBD (dedicated band vs upgrade "Premium Formulas"). Copy drafted; see also Phase 10 keywords.
 - ⬜ Services menu (from `services` + `addons`, localized, prices formatted).
 - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`).
 - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.

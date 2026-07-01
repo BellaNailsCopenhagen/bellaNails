@@ -33,6 +33,10 @@ We don't fix this by cluttering the design. We put keywords where **crawlers rea
 
 `nail salon Ørestad` · `nail salon Copenhagen` · `gel nails Copenhagen` · `shellac Copenhagen` · `luxury nail salon Copenhagen`
 
+### Tier 5 — Product / trust differentiators (rivals rarely rank for these)
+
+`HEMA-free neglesalon` · `vegansk neglesalon København` · `fiberglas negle København` · `gel til tynde/skøre negle` · `neglestyrkende behandling` · `Didier Lab København` · EN: `HEMA-free nails Copenhagen`, `vegan nail salon Copenhagen`, `nails for weak/brittle nails`
+
 ### Tier 4 — Long-tail (low volume, high conversion → great for FAQ + blog)
 
 `neglesalon nær Bella Center` · `bedste neglesalon Amager` · `tidsbestilling neglesalon Ørestad` · `hvad koster shellac København` · `forskel på shellac og gellak`
@@ -58,7 +62,8 @@ Mapped to the page as it exists today. (Code snippets in §4 are proposals to ap
 5. **About ("Nails as a medium")** — add one grounded sentence: *"…en intim neglesalon i hjertet af Ørestad, ved Bella Kvarter på Amager."*
 6. **Contact / footer** — full **NAP** (Name, Address, Phone) as crawlable text, identical everywhere, plus an "areas served" line: *Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup.*
 7. **Image alt text** — every gallery image: e.g. `alt="Geleforlængelse hos Bella Nails – neglesalon i Ørestad"`. Free, relevant, currently empty.
-8. **New: FAQ section** — 5–6 Q&As targeting long-tail + powering FAQ schema. E.g. *"Hvor ligger Bella Nails?"*, *"Hvad koster shellac?"*, *"Kan jeg bestille tid online?"*, *"Hvad er forskellen på shellac og BIAB?"*
+8. **New: FAQ section** — 5–6 Q&As targeting long-tail + powering FAQ schema. E.g. *"Hvor ligger Bella Nails?"*, *"Hvad koster shellac?"*, *"Kan jeg bestille tid online?"*, *"Hvad er forskellen på shellac og BIAB?"*, *"Er jeres gel HEMA-fri / vegansk?"*
+9. **"The Formula" section (Didier Lab)** — names the product brand + trust chips (HEMA-free, vegan, cruelty-free, fiberglass, Vitamin E + calcium) in crawlable text; targets the Tier-5 differentiator terms rivals don't have. Good candidate for a `Product`/`Brand` mention and an FAQ entry on HEMA-free/vegan.
 
 ---
 
