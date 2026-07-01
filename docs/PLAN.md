@@ -43,14 +43,16 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 > Note: this also delivers the `LanguageToggle` left open in Phase 1's "remaining brand primitives". `Container`/`Section` shells + `SiteHeader`/`SiteFooter` are still outstanding from Phase 1.
 
-## Phase 3 — Data layer & Supabase schema
+## Phase 3 — Data layer & Supabase schema ✅
 
-- ⬜ Apply schema (services, addons, addon_incompatibilities, gallery_items, bookings) — DDL in [INFRASTRUCTURE.md](./INFRASTRUCTURE.md#supabase). Apply the `_da` rename.
-- ⬜ Add indices + enable Realtime publication on `bookings` (and any other live table).
-- ⬜ `@supabase/supabase-js` clients: browser client + server client (RSC/route handlers) in `src/lib/supabase/`.
-- ⬜ Generate TS types from the DB (`supabase gen types`) into `src/lib/supabase/types.ts`.
-- ⬜ Seed a few services/addons/gallery rows for development.
-- ⬜ Write baseline RLS policies (public read of active services/gallery; owner-only writes).
+- ✅ Schema applied directly in Supabase (owner). Tables: `categories`, `services`, `addons`, `addon_incompatibilities`, `assets`, `gallery_items`, `bookings`. ⚠️ Localized columns use the **`_dk`** suffix (not `_da`) for Danish + `_en` for English — the `da` locale maps to `_dk`.
+- ✅ `@supabase/supabase-js` clients in `src/lib/supabase/`: `client.ts` (browser singleton, anon), `server.ts` (RSC/route-handler anon client **+** `server-only` service-role client that bypasses RLS), shared `env.ts` guard. Clerk-token `accessToken` wiring is marked as a Phase 4 TODO in each.
+- ✅ TS types in `src/lib/supabase/types.ts` — **generated from the live schema via the Supabase MCP** (`Database` + full generics + `Constants`). Regenerate with `supabase gen types typescript --project-id <ref>`.
+- ✅ **RLS applied + verified via MCP** ([supabase/rls.sql](../supabase/rls.sql)): all tables had RLS enabled but **zero policies** (catalog was unreadable by anon). Added public `select` for active catalog (`to anon, authenticated`); verified anon sees services/categories/gallery and **cannot** see `bookings`. Also hardened a pre-existing `rls_auto_enable()` `SECURITY DEFINER` function the advisors flagged (revoked `execute` from PUBLIC).
+- ✅ **Realtime applied** ([supabase/realtime.sql](../supabase/realtime.sql)): `bookings` added to `supabase_realtime` (verified).
+- ✅ Seed **not needed** — the project already contains sample rows; [supabase/seed.sql](../supabase/seed.sql) kept for fresh/dev DBs only.
+- ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
+- ⬜ `bookings` RLS (owner-reads-all + user-reads-own keyed off Clerk `sub`) → Phase 4. Advisors correctly still flag `bookings` as RLS-enabled-no-policy (intentional deny-all until then).
 
 ## Phase 4 — Auth (Clerk + Supabase native)
 
