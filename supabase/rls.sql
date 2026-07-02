@@ -42,9 +42,15 @@ create policy "Public reads assets"
 create policy "Public reads gallery items"
   on public.gallery_items for select to anon, authenticated using (true);
 
--- 3. bookings: no anon/authenticated policy at all → all access denied here.
---    Reads/writes go through the service-role client until Phase 4 adds the
---    Clerk-claim SELECT policy. (No policy = deny, so nothing to declare.)
+-- 3. bookings: a signed-in user reads only their own rows. Clerk's session
+--    token (via Supabase third-party auth) carries `sub` = the Clerk user id,
+--    matched against clerk_user_id. Writes still go through the service-role
+--    client (Cal.com webhook). Owner-reads-all lands with the admin shell
+--    (Phase 8), keyed off the owner role claim.
+create policy "Users read own bookings"
+  on public.bookings for select
+  to authenticated
+  using ((select auth.jwt() ->> 'sub') = clerk_user_id);
 
 -- 4. Harden a pre-existing SECURITY DEFINER helper flagged by the advisors.
 --    Postgres grants EXECUTE to PUBLIC by default, which anon/authenticated

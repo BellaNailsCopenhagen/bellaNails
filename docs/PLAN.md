@@ -54,15 +54,15 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
 - ⬜ `bookings` RLS (owner-reads-all + user-reads-own keyed off Clerk `sub`) → Phase 4. Advisors correctly still flag `bookings` as RLS-enabled-no-policy (intentional deny-all until then).
 
-## Phase 4 — Auth (Clerk + Supabase native) 🔼
+## Phase 4 — Auth (Clerk + Supabase native) ✅
 
 - ✅ Installed `@clerk/nextjs@7.5` (peer-supports Next 16). `ClerkProvider` added inside `[locale]/layout.tsx` (`<body>`), composed with `NextIntlClientProvider`, with locale-aware `signInUrl`/`signUpUrl`.
 - ✅ `clerkMiddleware` merged into `src/proxy.ts` alongside next-intl (Next 16 supports `clerkMiddleware` from `proxy.ts` on the Node runtime — verified in the SDK). `/[locale]/admin` matcher present with `auth.protect()` (owner-role refinement deferred to the admin shell, Phase 8).
-- ✅ Locale-aware `sign-in`/`sign-up` catch-all pages under `[locale]/`; auth controls (`Show`/`SignInButton`/`SignUpButton`/`UserButton`, brand-styled) on the home page. Build + tsc green (home page is now dynamic — auth state per request).
-- ⬜ **YOUR STEP:** add Clerk publishable + secret keys to `.env.local` (dashboard → app `app_3Fvs…CfuO`), then Clerk's **Connect with Supabase** + add the **Supabase Third-Party Auth** integration (NOT the deprecated JWT template).
-- ⬜ After the trust link: wire the Clerk token into the Supabase clients via `accessToken` (browser + server), so authed reads/Realtime key off Clerk claims. (Deferred — wiring it before the link would 401 signed-in requests.)
-- ⬜ Write `bookings` RLS against Clerk claims (`clerk_user_id = auth.jwt()->>'sub'`; owner reads-all) once the integration is live.
-- ⬜ ⚠️ If using a Clerk **custom domain**, test authed Realtime early (JWKS `/.well-known/jwks.json` vs `/jwks` 404 bug).
+- ✅ Locale-aware `sign-in`/`sign-up` catch-all pages under `[locale]/`; auth controls (`Show`/`SignInButton`/`SignUpButton`/`UserButton`, brand-styled) on the home page. Home page is now dynamic (auth state per request).
+- ✅ Clerk keys in `.env.local` (dev instance) + Clerk **Connect with Supabase** + **Supabase Third-Party Auth** (Clerk) configured (not the deprecated JWT template). ⚠️ Production is a **separate** Clerk instance (new `pk_live`/`sk_live` keys, custom domain) needing its **own** Supabase Third-Party Auth entry — set up in Phase 9.
+- ✅ Clerk token wired into the Supabase clients: browser `useSupabaseBrowserClient()` (Clerk session via `accessToken`, anon fallback) + server `createAuthedSupabaseServerClient()`. The plain anon `createSupabaseServerClient()` stays for static-friendly public reads.
+- ✅ `bookings` RLS: `Users read own bookings` (`(select auth.jwt()->>'sub') = clerk_user_id`), applied + **verified** (simulated Alice sees only her row; anon sees none). Security advisors clean. Writes remain service-role (webhook). Owner-reads-all → Phase 8.
+- ⬜ ⚠️ If using a Clerk **custom domain** (production), test authed Realtime early (JWKS `/.well-known/jwks.json` vs `/jwks` 404 bug) → Phase 9.
 
 ## Phase 5 — TanStack Query + Realtime wiring
 

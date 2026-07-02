@@ -1,5 +1,6 @@
 import "server-only";
 
+import { auth } from "@clerk/nextjs/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { assertEnv } from "./env";
@@ -10,10 +11,10 @@ import type { Database } from "./types";
 const SERVER_AUTH = { persistSession: false, autoRefreshToken: false } as const;
 
 /**
- * Server (RSC / route handler) Supabase client using the public anon key.
- * Reads are governed by RLS; use this for public content (services, gallery).
- * Phase 4 (Clerk) will pass the request's Clerk token via `accessToken` so
- * authed queries key off Clerk claims.
+ * Anonymous server (RSC / route handler) client using the public anon key —
+ * no user identity attached. Use for public content (services, gallery) where
+ * RLS's `to anon` policies apply; it carries no Clerk token, so it stays
+ * static-rendering friendly. For user-scoped reads use the authed client below.
  */
 export function createSupabaseServerClient(): SupabaseClient<Database> {
   return createClient<Database>(
@@ -23,6 +24,30 @@ export function createSupabaseServerClient(): SupabaseClient<Database> {
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ),
     { auth: SERVER_AUTH },
+  );
+}
+
+/**
+ * Server client bound to the current Clerk session — attaches the Clerk token
+ * via `accessToken`, so RLS sees `auth.jwt()` claims (`sub` = the Clerk user
+ * id) and a user reads only their own rows (e.g. bookings). Falls back to anon
+ * when signed out. Must run inside a request scope (RSC / route handler /
+ * server action) since `auth()` reads request context — which makes any page
+ * using it dynamic, hence it's separate from the anon client above.
+ */
+export function createAuthedSupabaseServerClient(): SupabaseClient<Database> {
+  return createClient<Database>(
+    assertEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
+    assertEnv(
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    ),
+    {
+      accessToken: async () => {
+        const { getToken } = await auth();
+        return (await getToken()) ?? null;
+      },
+    },
   );
 }
 
