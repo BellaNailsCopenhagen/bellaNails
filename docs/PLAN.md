@@ -54,12 +54,14 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
 - ⬜ `bookings` RLS (owner-reads-all + user-reads-own keyed off Clerk `sub`) → Phase 4. Advisors correctly still flag `bookings` as RLS-enabled-no-policy (intentional deny-all until then).
 
-## Phase 4 — Auth (Clerk + Supabase native)
+## Phase 4 — Auth (Clerk + Supabase native) 🔼
 
-- ⬜ Install `@clerk/nextjs`; add `ClerkProvider` (inside `[locale]/layout.tsx`).
-- ⬜ Wire locale-aware sign-in/up routes; gate `/[locale]/admin` on metadata `{"role":"owner"}`.
-- ⬜ Configure **Supabase native third-party auth** for Clerk (NOT the deprecated JWT template).
-- ⬜ Write RLS against Clerk claims; pass the Clerk token to the Realtime client.
+- ✅ Installed `@clerk/nextjs@7.5` (peer-supports Next 16). `ClerkProvider` added inside `[locale]/layout.tsx` (`<body>`), composed with `NextIntlClientProvider`, with locale-aware `signInUrl`/`signUpUrl`.
+- ✅ `clerkMiddleware` merged into `src/proxy.ts` alongside next-intl (Next 16 supports `clerkMiddleware` from `proxy.ts` on the Node runtime — verified in the SDK). `/[locale]/admin` matcher present with `auth.protect()` (owner-role refinement deferred to the admin shell, Phase 8).
+- ✅ Locale-aware `sign-in`/`sign-up` catch-all pages under `[locale]/`; auth controls (`Show`/`SignInButton`/`SignUpButton`/`UserButton`, brand-styled) on the home page. Build + tsc green (home page is now dynamic — auth state per request).
+- ⬜ **YOUR STEP:** add Clerk publishable + secret keys to `.env.local` (dashboard → app `app_3Fvs…CfuO`), then Clerk's **Connect with Supabase** + add the **Supabase Third-Party Auth** integration (NOT the deprecated JWT template).
+- ⬜ After the trust link: wire the Clerk token into the Supabase clients via `accessToken` (browser + server), so authed reads/Realtime key off Clerk claims. (Deferred — wiring it before the link would 401 signed-in requests.)
+- ⬜ Write `bookings` RLS against Clerk claims (`clerk_user_id = auth.jwt()->>'sub'`; owner reads-all) once the integration is live.
 - ⬜ ⚠️ If using a Clerk **custom domain**, test authed Realtime early (JWKS `/.well-known/jwks.json` vs `/jwks` 404 bug).
 
 ## Phase 5 — TanStack Query + Realtime wiring
