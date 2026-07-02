@@ -3,10 +3,22 @@
     "title": "Bella Nails — Copenhagen Nail Atelier",
     "description": "A premium bilingual nail atelier in Copenhagen. Book your appointment online."
   },
+  "nav": {
+    "services": "Services",
+    "gallery": "Gallery",
+    "book": "Book",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "account": "My account"
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",
     "tagline": "A premium nail atelier. Online booking opens soon."
+  },
+  "footer": {
+    "tagline": "World-class nail artistry in the heart of Copenhagen.",
+    "rights": "All rights reserved."
   },
   "locale": {
     "label": "Language",

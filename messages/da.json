@@ -3,10 +3,22 @@
     "title": "Bella Nails — Neglestudie i København",
     "description": "Et eksklusivt tosproget neglestudie i København. Book din tid online."
   },
+  "nav": {
+    "services": "Behandlinger",
+    "gallery": "Galleri",
+    "book": "Book tid",
+    "signIn": "Log ind",
+    "signUp": "Opret konto",
+    "account": "Min konto"
+  },
   "home": {
     "eyebrow": "København · Atelier",
     "title": "Bella Nails",
     "tagline": "Et eksklusivt neglestudie. Online booking åbner snart."
+  },
+  "footer": {
+    "tagline": "Neglekunst i verdensklasse i hjertet af København.",
+    "rights": "Alle rettigheder forbeholdes."
   },
   "locale": {
     "label": "Sprog",

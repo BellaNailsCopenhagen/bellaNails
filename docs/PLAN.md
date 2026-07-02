@@ -17,7 +17,7 @@ Legend: ✅ done · 🔼 in progress · ⬜ todo
 - ✅ `pnpm lint` and `pnpm build` green (TypeScript passes; `/` prerenders static).
 - ⬜ *(optional)* Remove leftover `public/next.svg`, `public/vercel.svg` from create-next-app — no longer referenced.
 
-## Phase 1 — Design system primitives (FIRST) 🔼
+## Phase 1 — Design system primitives (FIRST) ✅
 
 Goal: an on-brand component kit so every later feature is consistent from day one.
 
@@ -27,7 +27,7 @@ Goal: an on-brand component kit so every later feature is consistent from day on
 - ✅ **PriceTag** (`price-tag.tsx`) — cents→amount, editorial face, `Intl.NumberFormat` (locale prop), `sign` for add-on deltas.
 - ✅ **Form set** — `input`, `textarea`, `label`, `checkbox`, `separator` re-themed to the comp: underline-only inputs (`border-b`), uppercase muted `Label` (= `Caption`), squared Onyx `Checkbox`. Later: `card`, `dialog`, `sheet`, `dropdown-menu`, `badge`, `skeleton`, `sonner`, `tabs`, `select`, `avatar` as needed.
 - ✅ Verified tokens + fonts: every component token class resolves in `@theme`; brand hexes + self-hosted Cormorant/Jakarta `.woff2` confirmed in compiled output. Added missing `--destructive` (muted `#8e2c2c`) that the destructive variant + all `aria-invalid` states reference.
-- ⬜ Remaining brand primitives: `Container`/`Section` shells, `SiteHeader` + `SiteFooter`, `LanguageToggle`.
+- ✅ Layout shells (`src/components/layout/`): `Container`/`Section`, `SiteHeader` (wordmark, localized nav, `LocaleToggle`, `AuthControls`, Book CTA), `SiteFooter` (wordmark, tagline, rights). Header/footer mounted in `[locale]/layout.tsx`; `LanguageToggle` shipped as `LocaleToggle` in Phase 2. Also added `/[locale]/account` (`<UserProfile/>`, proxy-protected). ⚠️ Header nav targets (`/services`, `/gallery`, `/book`) resolve in Phases 6–7. Note: the global header's auth controls make `[locale]` pages dynamic (auth state per request).
 - ✅ `/styleguide` now sectioned (Typography · Buttons · Prices); extend as components land.
 
 ## Phase 2 — i18n + route structure ✅
