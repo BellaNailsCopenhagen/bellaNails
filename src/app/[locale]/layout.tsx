@@ -8,6 +8,8 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { Toaster } from "@/components/ui/sonner";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -89,7 +91,11 @@ export default async function LocaleLayout({
           appearance={{ theme: shadcn }}
           localization={locale === "da" ? daDK : enUS}
         >
-          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+          <NextIntlClientProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter year={new Date().getFullYear()} />
+          </NextIntlClientProvider>
           <Toaster />
         </ClerkProvider>
       </body>
