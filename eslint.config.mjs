@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored Claude Code skill docs/templates — not our source (also gitignored).
+    ".agents/**",
+    ".claude/**",
   ]),
 ]);
 

@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { Display, Eyebrow, Lead } from "@/components/ui/typography";
 import { LocaleToggle } from "@/components/locale-toggle";
+import { AuthControls } from "@/components/auth-controls";
 
 export default async function Home({
   params,
@@ -20,7 +21,10 @@ export default async function Home({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-      <LocaleToggle className="absolute top-6 right-6" />
+      <div className="absolute top-6 right-6 flex items-center gap-4">
+        <LocaleToggle />
+        <AuthControls />
+      </div>
       <Eyebrow>{t("eyebrow")}</Eyebrow>
       <Display className="mt-6">{t("title")}</Display>
       <Lead className="mt-5 max-w-md">{t("tagline")}</Lead>

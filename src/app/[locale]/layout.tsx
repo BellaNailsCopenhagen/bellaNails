@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
+import { ClerkProvider } from "@clerk/nextjs";
+import { daDK, enUS } from "@clerk/localizations";
+import { shadcn } from "@clerk/ui/themes";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -72,13 +75,23 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
+    // Locale-aware Clerk routes so sign-in/up stay under the active locale.
+    // ClerkProvider lives inside <body> (Clerk requirement), wrapping the
+    // intl provider so Clerk's components can read translations if needed.
     <html
       lang={locale}
       className={`${cormorant.variable} ${jakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-        <Toaster />
+        <ClerkProvider
+          signInUrl={`/${locale}/sign-in`}
+          signUpUrl={`/${locale}/sign-up`}
+          appearance={{ theme: shadcn }}
+          localization={locale === "da" ? daDK : enUS}
+        >
+          <NextIntlClientProvider>{children}</NextIntlClientProvider>
+          <Toaster />
+        </ClerkProvider>
       </body>
     </html>
   );

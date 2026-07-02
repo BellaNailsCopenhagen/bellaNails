@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Clerk widgets follow the shadcn design system → our brand tokens (--primary,
+   --background, --border, …) defined below, so sign-in/up match the site. */
+@import "@clerk/ui/themes/shadcn.css";
 
 /* ------------------------------------------------------------------
    Design tokens — 1:1 mapping from Figma "Collection 1".

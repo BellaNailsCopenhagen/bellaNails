@@ -1,5 +1,8 @@
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true
+  bufferutil: false
+  core-js: false
   sharp: true
   unrs-resolver: true
+  utf-8-validate: false
