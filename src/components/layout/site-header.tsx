@@ -46,6 +46,7 @@ export async function SiteHeader() {
           <Button
             size="sm"
             className="hidden sm:inline-flex"
+            nativeButton={false}
             render={<Link href="/book" />}
           >
             {t("book")}

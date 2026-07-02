@@ -3,7 +3,6 @@ import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { ClerkProvider } from "@clerk/nextjs";
 import { daDK, enUS } from "@clerk/localizations";
-import { shadcn } from "@clerk/ui/themes";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -29,6 +28,17 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
 });
+
+// Brand theming for Clerk widgets via the built-in `variables` API — no
+// external @clerk/ui bundle (which stalled/blanked on locale-triggered
+// re-inits). Stable module constant so it never changes across renders.
+const clerkAppearance = {
+  variables: {
+    colorPrimary: "#121212", // Onyx CTA
+    borderRadius: "0.125rem", // ~2px, matches the squared brand radius
+    fontFamily: "var(--font-jakarta), sans-serif",
+  },
+} as const;
 
 // Pre-render both locales at build time (static, no per-request work).
 export function generateStaticParams() {
@@ -88,8 +98,8 @@ export default async function LocaleLayout({
         <ClerkProvider
           signInUrl={`/${locale}/sign-in`}
           signUpUrl={`/${locale}/sign-up`}
-          appearance={{ theme: shadcn }}
           localization={locale === "da" ? daDK : enUS}
+          appearance={clerkAppearance}
         >
           <NextIntlClientProvider>
             <SiteHeader />
