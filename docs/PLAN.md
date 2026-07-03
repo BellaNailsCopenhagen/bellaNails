@@ -88,6 +88,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
   - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag) — the full Services *menu* page is still to build.
   - ⬜ Full Services menu page (from `services` + `addons`, localized, prices) — nav links `/services` etc. still 404.
   - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — StudioGallery currently uses placeholder tiles.
+  - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
   - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
   - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
 
@@ -96,6 +97,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - ⬜ Manage services / add-ons / incompatibilities (soft-delete via `archived_at`).
 - ⬜ Manage gallery — Cloudinary signed client upload, store URL only, drag-sort `sort_order`.
+- ⬜ Manage testimonials — new `testimonials` table (see Phase 7) + CRUD; home section switches from i18n to reading it.
 - ⬜ Booking queue (client component + Query + Realtime).
 
 ## Phase 9 — Hardening & launch
