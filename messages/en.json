@@ -72,6 +72,12 @@
       "role": "Editor, Kinfolk"
     }
   },
+  "findUs": {
+    "eyebrow": "Find us",
+    "hoursLine": "Monday – Saturday · 09:00 – 18:00",
+    "hoursNote": "By appointment only",
+    "openMaps": "Open in Google Maps"
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",

@@ -80,13 +80,16 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`.
 - ⬜ Stripe no-show card holds via Cal.com (SetupIntents) — config in Cal.com + Stripe dashboards.
 
-## Phase 7 — Public site features
+## Phase 7 — Public site features 🔼
 
-- ⬜ Home / hero (Quiet Luxury landing).
-- ⬜ "The Formula" section — powered by Didier Lab (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium); durability + "difficult nails" positioning. Story framing: **personal, first-person, no medical diagnosis** (chosen). Placement TBD (dedicated band vs upgrade "Premium Formulas"). Copy drafted; see also Phase 10 keywords.
-- ⬜ Services menu (from `services` + `addons`, localized, prices formatted).
-- ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`).
-- ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
+- 🔼 **Home page built to the Figma comp** as responsive, localized (da/en) sections in `src/components/sections/` — one branch each (`bellaNails-home-*`): Hero, ServicesPreview, Formula, Differentiators, StudioGallery, Testimonials, FindUs (+ header/footer revamp). All use the design system (typography, tokens, Container/Section). Stacked branches off `main`; assembled in `[locale]/page.tsx`. Verified: both locales 200 with all sections.
+  - ✅ Home / hero (Quiet Luxury landing) — full-bleed, editorial headline, Reserve CTA, scroll cue.
+  - ✅ "The Formula" section — Didier Lab positioning (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium), personal first-person framing.
+  - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag) — the full Services *menu* page is still to build.
+  - ⬜ Full Services menu page (from `services` + `addons`, localized, prices) — nav links `/services` etc. still 404.
+  - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — StudioGallery currently uses placeholder tiles.
+  - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
+  - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
 
 ## Phase 8 — Admin
 
