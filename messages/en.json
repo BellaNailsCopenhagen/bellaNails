@@ -50,6 +50,10 @@
       "body": "A curated wardrobe of shades, refreshed each season."
     }
   },
+  "studio": {
+    "eyebrow": "The Studio",
+    "viewGallery": "View gallery"
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",

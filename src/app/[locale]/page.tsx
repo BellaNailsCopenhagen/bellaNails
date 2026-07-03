@@ -7,6 +7,7 @@ import { Hero } from "@/components/sections/hero";
 import { ServicesPreview } from "@/components/sections/services-preview";
 import { Formula } from "@/components/sections/formula";
 import { Differentiators } from "@/components/sections/differentiators";
+import { StudioGallery } from "@/components/sections/studio-gallery";
 
 export default async function Home({
   params,
@@ -25,6 +26,7 @@ export default async function Home({
       <ServicesPreview />
       <Formula />
       <Differentiators />
+      <StudioGallery />
     </main>
   );
 }
