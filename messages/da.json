@@ -6,7 +6,9 @@
   "nav": {
     "services": "Behandlinger",
     "gallery": "Galleri",
-    "book": "Book tid",
+    "lookbook": "Lookbook",
+    "bookings": "Mine bookinger",
+    "reserve": "Reservér tid",
     "signIn": "Log ind",
     "signUp": "Opret konto",
     "account": "Min konto"
@@ -18,7 +20,14 @@
   },
   "footer": {
     "tagline": "Neglekunst i verdensklasse i hjertet af København.",
-    "rights": "Alle rettigheder forbeholdes."
+    "rights": "Alle rettigheder forbeholdes.",
+    "studio": "Studie",
+    "about": "Om os",
+    "findUs": "Find os",
+    "explore": "Udforsk",
+    "social": "Sociale medier",
+    "instagram": "Instagram",
+    "facebook": "Facebook"
   },
   "locale": {
     "label": "Sprog",

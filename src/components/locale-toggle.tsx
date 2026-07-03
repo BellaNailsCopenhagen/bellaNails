@@ -6,43 +6,41 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
+// Two-letter labels for the square toggle (comp shows EN / DK for Danish).
+const SHORT: Record<string, string> = { en: "EN", da: "DK" };
+
 /**
- * LocaleToggle — switches between locales while staying on the current page.
- *
- * Renders a real <Link> per locale (next-intl's locale-aware navigation), so
- * switching is a plain navigation: it works without JS and produces no client
- * flash. `usePathname()` here returns the path *without* the locale prefix, so
- * the same path is preserved across locales.
+ * LocaleToggle — square EN/DK switch matching the comp: active locale filled
+ * Onyx, the other outlined. Each is a real locale-aware <Link> (works without
+ * JS, no flash); `usePathname()` returns the path without the locale prefix so
+ * the current page is preserved across locales.
  */
 function LocaleToggle({ className }: { className?: string }) {
   const active = useLocale();
   const pathname = usePathname();
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 font-functional text-xs uppercase tracking-widest-lux",
-        className,
-      )}
-    >
-      {routing.locales.map((locale, i) => (
-        <span key={locale} className="flex items-center gap-2">
-          {i > 0 && <span className="text-border">/</span>}
+    <div className={cn("flex items-center gap-1", className)}>
+      {routing.locales.map((locale) => {
+        const isActive = locale === active;
+        return (
           <Link
+            key={locale}
             href={pathname}
             locale={locale}
-            aria-current={locale === active ? "true" : undefined}
+            aria-label={locale}
+            aria-current={isActive ? "true" : undefined}
             className={cn(
-              "transition-colors",
-              locale === active
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+              "flex size-6 items-center justify-center border font-functional text-[11px] leading-none transition-colors",
+              isActive
+                ? "border-foreground bg-foreground text-background"
+                : "border-border text-foreground hover:border-foreground",
             )}
           >
-            {locale}
+            {SHORT[locale] ?? locale.toUpperCase()}
           </Link>
-        </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
