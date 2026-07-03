@@ -36,6 +36,20 @@
     "fiberglass": "Forstærket med fiberglas",
     "vitamins": "Vitamin E + Calcium"
   },
+  "differentiators": {
+    "one": {
+      "title": "Private sessioner",
+      "body": "Kun efter aftale. Studiet deles aldrig mellem kunder."
+    },
+    "two": {
+      "title": "Premium-formler",
+      "body": "Hentet fra de fineste europæiske gel- og lakhuse."
+    },
+    "three": {
+      "title": "Atelier-udvalget",
+      "body": "En kurateret garderobe af nuancer, fornyet hver sæson."
+    }
+  },
   "home": {
     "eyebrow": "København · Atelier",
     "title": "Bella Nails",

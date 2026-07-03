@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { Hero } from "@/components/sections/hero";
 import { ServicesPreview } from "@/components/sections/services-preview";
 import { Formula } from "@/components/sections/formula";
+import { Differentiators } from "@/components/sections/differentiators";
 
 export default async function Home({
   params,
@@ -23,6 +24,7 @@ export default async function Home({
       <Hero />
       <ServicesPreview />
       <Formula />
+      <Differentiators />
     </main>
   );
 }

@@ -36,6 +36,20 @@
     "fiberglass": "Fiberglass-reinforced",
     "vitamins": "Vitamin E + Calcium"
   },
+  "differentiators": {
+    "one": {
+      "title": "Private Sessions",
+      "body": "By appointment only. The studio is never shared between clients."
+    },
+    "two": {
+      "title": "Premium Formulas",
+      "body": "Sourced from the finest European gel and lacquer houses."
+    },
+    "three": {
+      "title": "The Atelier Edit",
+      "body": "A curated wardrobe of shades, refreshed each season."
+    }
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",
