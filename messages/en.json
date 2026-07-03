@@ -6,7 +6,9 @@
   "nav": {
     "services": "Services",
     "gallery": "Gallery",
-    "book": "Book",
+    "lookbook": "Lookbook",
+    "bookings": "My bookings",
+    "reserve": "Reserve session",
     "signIn": "Sign in",
     "signUp": "Sign up",
     "account": "My account"
@@ -18,7 +20,16 @@
   },
   "footer": {
     "tagline": "World-class nail artistry in the heart of Copenhagen.",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "studio": "Studio",
+    "session": "Session",
+    "follow": "Follow",
+    "about": "About",
+    "findUs": "Find us",
+    "explore": "Explore",
+    "social": "Social",
+    "instagram": "Instagram",
+    "facebook": "Facebook"
   },
   "locale": {
     "label": "Language",
