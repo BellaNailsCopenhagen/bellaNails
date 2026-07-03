@@ -18,6 +18,13 @@
     "reserveCta": "Reserve your session",
     "scroll": "Scroll"
   },
+  "services": {
+    "eyebrow": "Most requested",
+    "headingLead": "A Selection",
+    "headingAccent": "of the Studio's Best",
+    "viewFullMenu": "View full menu",
+    "minutes": "min"
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",

@@ -18,6 +18,13 @@
     "reserveCta": "Reservér din tid",
     "scroll": "Scroll"
   },
+  "services": {
+    "eyebrow": "Mest efterspurgt",
+    "headingLead": "Et udvalg",
+    "headingAccent": "af studiets bedste",
+    "viewFullMenu": "Se hele menuen",
+    "minutes": "min"
+  },
   "home": {
     "eyebrow": "København · Atelier",
     "title": "Bella Nails",

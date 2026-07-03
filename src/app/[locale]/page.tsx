@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
 import { Hero } from "@/components/sections/hero";
+import { ServicesPreview } from "@/components/sections/services-preview";
 
 export default async function Home({
   params,
@@ -19,6 +20,7 @@ export default async function Home({
   return (
     <main className="flex flex-1 flex-col">
       <Hero />
+      <ServicesPreview />
     </main>
   );
 }
