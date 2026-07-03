@@ -8,6 +8,7 @@ import { ServicesPreview } from "@/components/sections/services-preview";
 import { Formula } from "@/components/sections/formula";
 import { Differentiators } from "@/components/sections/differentiators";
 import { StudioGallery } from "@/components/sections/studio-gallery";
+import { Testimonials } from "@/components/sections/testimonials";
 
 export default async function Home({
   params,
@@ -27,6 +28,7 @@ export default async function Home({
       <Formula />
       <Differentiators />
       <StudioGallery />
+      <Testimonials />
     </main>
   );
 }

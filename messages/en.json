@@ -54,6 +54,24 @@
     "eyebrow": "The Studio",
     "viewGallery": "View gallery"
   },
+  "testimonials": {
+    "eyebrow": "Client words",
+    "one": {
+      "quote": "The most considered nail experience I have ever had. The silence alone is worth the price.",
+      "name": "Astrid H.",
+      "role": "Architect, Copenhagen"
+    },
+    "two": {
+      "quote": "Nothing is rushed here. Every detail is attended to with a calm I have not found elsewhere in the city.",
+      "name": "Sara B.",
+      "role": "Interior Stylist"
+    },
+    "three": {
+      "quote": "I came for a manicure and left with a new understanding of what precision can look like.",
+      "name": "Mathilde V.",
+      "role": "Editor, Kinfolk"
+    }
+  },
   "home": {
     "eyebrow": "Copenhagen · Atelier",
     "title": "Bella Nails",

@@ -54,6 +54,24 @@
     "eyebrow": "Studiet",
     "viewGallery": "Se galleri"
   },
+  "testimonials": {
+    "eyebrow": "Kundernes ord",
+    "one": {
+      "quote": "Den mest gennemtænkte negleoplevelse, jeg nogensinde har haft. Stilheden alene er prisen værd.",
+      "name": "Astrid H.",
+      "role": "Arkitekt, København"
+    },
+    "two": {
+      "quote": "Intet forhastes her. Hver detalje bliver håndteret med en ro, jeg ikke har fundet andre steder i byen.",
+      "name": "Sara B.",
+      "role": "Interiørstylist"
+    },
+    "three": {
+      "quote": "Jeg kom til en manicure og gik derfra med en ny forståelse af, hvordan præcision kan se ud.",
+      "name": "Mathilde V.",
+      "role": "Redaktør, Kinfolk"
+    }
+  },
   "home": {
     "eyebrow": "København · Atelier",
     "title": "Bella Nails",
