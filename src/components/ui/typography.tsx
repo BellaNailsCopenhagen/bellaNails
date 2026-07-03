@@ -28,7 +28,7 @@ const typographyVariants = cva("", {
       h3: "font-editorial font-normal text-xl leading-snug sm:text-2xl",
       // Tiny uppercase overline — "MOST REQUESTED", "THE PHILOSOPHY"
       eyebrow:
-        "font-functional text-[0.7rem] font-medium uppercase tracking-widest-lux text-muted-foreground",
+        "font-functional text-[11px] leading-[1.1] font-semibold uppercase tracking-[0.1em] text-muted-foreground",
       // Larger intro paragraph
       lead: "font-functional text-base leading-relaxed text-muted-foreground sm:text-lg",
       // Default running text
