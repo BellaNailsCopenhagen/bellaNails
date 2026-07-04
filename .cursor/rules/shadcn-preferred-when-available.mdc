@@ -1,0 +1,12 @@
+---
+description: Prefer existing shadcn/ui components for consistent styling
+alwaysApply: true
+---
+
+# Prefer shadcn/ui primitives
+
+- When a suitable component already exists in `src/components/ui`, prefer it over raw HTML so styling and behavior stay consistent.
+- Before introducing native controls or patterns like buttons, inputs, labels, textareas, checkboxes, separators, menus, or navigation primitives, check whether the repo already has a `shadcn/ui` wrapper for that use case.
+- Keep using native semantic layout elements like `main`, `section`, `header`, `footer`, and `nav` when no meaningful `shadcn/ui` primitive exists for them.
+- Use the app's existing locale-aware `Link` abstraction for internal navigation instead of inventing a new link wrapper.
+- If no suitable `shadcn/ui` component exists, native HTML is acceptable; prefer adding a reusable UI primitive only when the pattern repeats or needs shared styling/behavior.
