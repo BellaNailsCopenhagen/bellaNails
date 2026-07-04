@@ -76,6 +76,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 - ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language.
 - ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`.
+- ⬜ Add booking consent copy linking to `/[locale]/terms` anywhere users submit or confirm a reservation (embed wrapper, booking CTA area, confirmation screen as needed).
 - ⬜ Redirect to own `/[locale]/confirmation` on success.
 - ⬜ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`.
 - ⬜ Stripe no-show card holds via Cal.com (SetupIntents) — config in Cal.com + Stripe dashboards.
@@ -87,6 +88,8 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Services menu (from `services` + `addons`, localized, prices formatted).
 - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`).
 - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
+- ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, and payment terms.
+- ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
 
 ## Phase 8 — Admin
 
@@ -99,6 +102,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 - ⬜ SEO/metadata per locale, sitemap, OG images. → see Phase 10 (Local SEO).
 - ⬜ Error/loading boundaries, empty states, toasts.
+- ⬜ Final legal-content review for the published `Terms of Service` copy and all linked placements before launch.
 - ⬜ Lighthouse / a11y pass; verify no booking-UI flicker.
 - ⬜ Env wiring on host (Vercel free tier), webhook URLs pointed at prod, secrets set.
 - ⬜ Smoke test full booking → webhook → DB → admin live update.
