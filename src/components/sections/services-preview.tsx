@@ -10,7 +10,7 @@ import {
   Caption,
   H3,
 } from "@/components/ui/typography";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getFeaturedServices } from "@/lib/services/get-featured-services";
 
 /**
  * ServicesPreview — "A Selection of the Studio's Best". Reads the featured
@@ -24,18 +24,9 @@ export async function ServicesPreview() {
     getLocale(),
   ]);
 
-  const supabase = createSupabaseServerClient();
-  const { data: services } = await supabase
-    .from("services")
-    .select(
-      "id, name_en, name_dk, description_en, description_dk, base_price_cents, base_duration_mins",
-    )
-    .eq("is_featured", true)
-    .is("archived_at", null)
-    .order("cal_event_id", { ascending: true })
-    .limit(3);
+  const services = await getFeaturedServices();
 
-  if (!services?.length) return null;
+  if (!services.length) return null;
 
   const isDa = locale === "da";
 
