@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
-import { Display } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
+import { Display, Eyebrow } from "@/components/ui/typography";
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
@@ -40,9 +40,9 @@ export async function Hero() {
 
       <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
         <span aria-hidden className="h-12 w-px bg-background/45" />
-        <span className="font-functional text-[11px] uppercase tracking-widest-lux text-background/45">
+        <Eyebrow as="span" className="text-background/45">
           {t("scroll")}
-        </span>
+        </Eyebrow>
       </div>
     </section>
   );

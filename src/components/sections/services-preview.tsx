@@ -4,14 +4,11 @@ import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/ui/price-tag";
+import { SectionHeading } from "@/components/ui/section-heading";
 import {
   BodySm,
   Caption,
-  Eyebrow,
-  H1,
   H3,
-  HeadingAccent,
-  HeadingLine,
 } from "@/components/ui/typography";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -46,13 +43,11 @@ export async function ServicesPreview() {
     <Section>
       <Container className="max-w-4xl">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="space-y-4">
-            <Eyebrow>{t("eyebrow")}</Eyebrow>
-            <H1 as="h2">
-              <HeadingLine>{t("headingLead")}</HeadingLine>
-              <HeadingAccent>{t("headingAccent")}</HeadingAccent>
-            </H1>
-          </div>
+          <SectionHeading
+            eyebrow={t("eyebrow")}
+            lead={t("headingLead")}
+            accent={t("headingAccent")}
+          />
           <Link
             href="/services"
             className="group inline-flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
