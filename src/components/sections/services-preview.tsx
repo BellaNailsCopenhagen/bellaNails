@@ -38,6 +38,7 @@ export async function ServicesPreview() {
             eyebrow={t("eyebrow")}
             lead={t("headingLead")}
             accent={t("headingAccent")}
+            accentTone="secondary"
           />
           <Link
             href="/services"
@@ -58,7 +59,7 @@ export async function ServicesPreview() {
             return (
               <li
                 key={service.id}
-                className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-border py-6 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-baseline"
+                className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-border py-6 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-start"
               >
                 <Caption className="text-muted-foreground">
                   {String(i + 1).padStart(2, "0")}

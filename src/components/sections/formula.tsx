@@ -3,10 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Container, Section } from "@/components/layout/container";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/ui/section-heading";
-import {
-  Body,
-  Eyebrow,
-} from "@/components/ui/typography";
+import { Body } from "@/components/ui/typography";
 
 /**
  * Formula — "Made to last, even on the most difficult nails." The maker's-note
@@ -26,16 +23,16 @@ export async function Formula() {
           eyebrow={t("eyebrow")}
           lead={t("headingLead")}
           accent={t("headingAccent")}
-          accentClassName="text-muted-foreground"
+          accentTone="secondary"
         />
         <Body className="max-w-3xl text-muted-foreground">{t("body")}</Body>
 
         <div className="space-y-5 pt-2">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             {inlineBadges.map((label) => (
-              <Eyebrow key={label} as="span" className="text-muted-foreground">
+              <Badge key={label} size="sm">
                 {label}
-              </Eyebrow>
+              </Badge>
             ))}
           </div>
           <div className="flex flex-wrap gap-3">

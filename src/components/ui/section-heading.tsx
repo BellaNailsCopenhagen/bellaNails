@@ -9,7 +9,7 @@ type SectionHeadingProps = {
   lead: React.ReactNode;
   accent?: React.ReactNode;
   className?: string;
-  accentClassName?: string;
+  accentTone?: "default" | "muted" | "secondary";
 };
 
 /**
@@ -21,7 +21,7 @@ function SectionHeading({
   lead,
   accent,
   className,
-  accentClassName,
+  accentTone = "default",
 }: SectionHeadingProps) {
   return (
     <div className={cn("space-y-4", className)}>
@@ -29,7 +29,14 @@ function SectionHeading({
       <H1 as="h2">
         <HeadingLine>{lead}</HeadingLine>
         {accent ? (
-          <HeadingAccent className={accentClassName}>{accent}</HeadingAccent>
+          <HeadingAccent
+            className={cn(
+              accentTone === "muted" && "text-muted-foreground",
+              accentTone === "secondary" && "text-[var(--bn-text-secondary)]",
+            )}
+          >
+            {accent}
+          </HeadingAccent>
         ) : null}
       </H1>
     </div>
