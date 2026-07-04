@@ -87,7 +87,9 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ "The Formula" section — powered by Didier Lab (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium); durability + "difficult nails" positioning. Story framing: **personal, first-person, no medical diagnosis** (chosen). Placement TBD (dedicated band vs upgrade "Premium Formulas"). Copy drafted; see also Phase 10 keywords.
 - ⬜ Services menu (from `services` + `addons`, localized, prices formatted).
 - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`).
+- ⬜ "My bookings" — protected login-required page; signed-out users should be redirected to localized sign-in before viewing or managing bookings.
 - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
+- ⬜ Add a branded localized 404 / not-found page with clear recovery actions (home, services, booking).
 - ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, and payment terms.
 - ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
 
@@ -102,6 +104,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 - ⬜ SEO/metadata per locale, sitemap, OG images. → see Phase 10 (Local SEO).
 - ⬜ Error/loading boundaries, empty states, toasts.
+- ⬜ Verify the custom 404 / not-found page renders correctly for bad locale-prefixed routes and unknown slugs.
 - ⬜ Final legal-content review for the published `Terms of Service` copy and all linked placements before launch.
 - ⬜ Lighthouse / a11y pass; verify no booking-UI flicker.
 - ⬜ Env wiring on host (Vercel free tier), webhook URLs pointed at prod, secrets set.
