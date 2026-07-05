@@ -3,7 +3,12 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { Display, Eyebrow } from "@/components/ui/typography";
+import {
+  Display,
+  Eyebrow,
+  HeadingAccent,
+  HeadingLine,
+} from "@/components/ui/typography";
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
@@ -30,7 +35,13 @@ export async function Hero() {
       />
 
       <div className="flex max-w-3xl flex-col items-center gap-10 px-6 text-center">
-        <Display className="text-balance text-background">{t("headline")}</Display>
+        <Eyebrow className="text-background/70">{t("kicker")}</Eyebrow>
+        <Display className="text-background">
+          <HeadingLine>{t("headlineLead")}</HeadingLine>
+          <HeadingAccent className="text-background">
+            {t("headlineAccent")}
+          </HeadingAccent>
+        </Display>
         <Button
           variant="inverse"
           size="lg"

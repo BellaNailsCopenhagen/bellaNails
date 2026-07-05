@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Bella Nails — Neglestudie i København",
-    "description": "Et eksklusivt tosproget neglestudie i København. Book din tid online."
+    "title": "Bella Nails – Neglesalon i Ørestad, København S | Shellac, Gel & BIAB",
+    "description": "Bella Nails er en intim neglesalon i Ørestad ved Bella Kvarter. Geleforlængelse, klassisk manicure, Shellac og BIAB. Book tid online."
   },
   "nav": {
     "services": "Behandlinger",
@@ -14,7 +14,9 @@
     "account": "Min konto"
   },
   "hero": {
-    "headline": "Hvor håndværk bliver kunst",
+    "kicker": "Neglesalon i Ørestad · København",
+    "headlineLead": "Hvor håndværk",
+    "headlineAccent": "bliver kunst",
     "reserveCta": "Reservér din tid",
     "scroll": "Scroll"
   },
@@ -88,12 +90,13 @@
     "openMaps": "Find vej"
   },
   "home": {
-    "eyebrow": "København · Atelier",
+    "eyebrow": "København · Studio",
     "title": "Bella Nails",
-    "tagline": "Et eksklusivt neglestudie. Online booking åbner snart."
+    "tagline": "En eksklusiv neglesalon i Ørestad. Online booking åbner snart."
   },
   "footer": {
     "tagline": "Neglekunst i verdensklasse i hjertet af København.",
+    "areasServed": "Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup",
     "rights": "Alle rettigheder forbeholdes.",
     "studio": "Studie",
     "session": "Session",

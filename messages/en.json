@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Bella Nails — Copenhagen Nail Atelier",
-    "description": "A premium bilingual nail atelier in Copenhagen. Book your appointment online."
+    "title": "Bella Nails – Nail Salon in Ørestad, Copenhagen | Shellac, Gel & BIAB",
+    "description": "Bella Nails is an intimate nail salon in Ørestad by Bella Kvarter, Copenhagen. Gel extensions, classic manicure, Shellac and BIAB. Book online."
   },
   "nav": {
     "services": "Services",
@@ -14,7 +14,9 @@
     "account": "My account"
   },
   "hero": {
-    "headline": "Where Craft Becomes Art",
+    "kicker": "Nail Salon in Ørestad · Copenhagen",
+    "headlineLead": "Where Craft",
+    "headlineAccent": "Becomes Art",
     "reserveCta": "Reserve your session",
     "scroll": "Scroll"
   },
@@ -88,12 +90,13 @@
     "openMaps": "Find your way"
   },
   "home": {
-    "eyebrow": "Copenhagen · Atelier",
+    "eyebrow": "Copenhagen · Studio",
     "title": "Bella Nails",
-    "tagline": "A premium nail atelier. Online booking opens soon."
+    "tagline": "A premium nail salon in Ørestad. Online booking opens soon."
   },
   "footer": {
     "tagline": "World-class nail artistry in the heart of Copenhagen.",
+    "areasServed": "Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup",
     "rights": "All rights reserved.",
     "studio": "Studio",
     "session": "Session",

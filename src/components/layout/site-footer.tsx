@@ -57,6 +57,9 @@ export async function SiteFooter() {
             <br />
             2300 København S
           </address>
+          <Caption className="ml-2 max-w-[18rem] text-balance leading-relaxed text-[0.65rem] text-primary-foreground/55">
+            {t("areasServed")}
+          </Caption>
         </div>
 
         {columns.map((col) => (

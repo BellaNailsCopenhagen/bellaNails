@@ -1,21 +1,61 @@
-import { getTranslations } from "next-intl/server";
+import Image from "next/image";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items";
 
-// Placeholder tiles — the real portfolio images are wired from `gallery_items`
-// via Cloudinary in Phase 7/8. Neutral card fills keep the editorial rhythm.
-function Tile() {
-  return <div aria-hidden className="aspect-square bg-muted" />;
+function GalleryTile({
+  src,
+  alt,
+  className,
+  imageClassName,
+  sizes,
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  imageClassName?: string;
+  sizes: string;
+  priority?: boolean;
+}) {
+  return (
+    <div className={className}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        priority={priority}
+        sizes={sizes}
+        className={imageClassName ?? "object-cover"}
+      />
+    </div>
+  );
 }
 
 /**
- * StudioGallery — "The Studio". A large lead tile beside a 2×2 grid, matching
- * the comp. Images are placeholders until Cloudinary is wired.
+ * StudioGallery — "The Studio". A large lead image with supporting gallery
+ * tiles. Responsive on mobile and powered by `gallery_items`.
  */
 export async function StudioGallery() {
-  const t = await getTranslations("studio");
+  const [t, locale, items] = await Promise.all([
+    getTranslations("studio"),
+    getLocale(),
+    getGalleryPreviewItems(),
+  ]);
+
+  if (!items.length) return null;
+
+  const leadItem = items[0];
+  const supportingItems = items.slice(1);
+  const isDa = locale === "da";
+
+  const getAlt = (item: (typeof items)[number], index: number) =>
+    (isDa ? item.title_dk : item.title_en) ??
+    item.title_en ??
+    `Bella Nails gallery image ${index + 1}`;
 
   return (
     <Section className="border-t border-border">
@@ -38,15 +78,39 @@ export async function StudioGallery() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <Tile />
-          <div className="grid grid-cols-2 gap-2">
-            <Tile />
-            <Tile />
-            <Tile />
-            <Tile />
+        {supportingItems.length ? (
+          <div className="grid gap-2 md:grid-cols-2">
+            <GalleryTile
+              src={leadItem.asset_url}
+              alt={getAlt(leadItem, 0)}
+              priority
+              sizes="(min-width: 768px) 38vw, 100vw"
+              className="relative aspect-[4/3] overflow-hidden bg-muted md:aspect-square"
+              imageClassName="object-cover object-center"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              {supportingItems.map((item, index) => (
+                <GalleryTile
+                  key={item.id}
+                  src={item.asset_url}
+                  alt={getAlt(item, index + 1)}
+                  sizes="(min-width: 768px) 19vw, 50vw"
+                  className="relative aspect-square overflow-hidden bg-muted"
+                  imageClassName="object-cover object-center"
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <GalleryTile
+            src={leadItem.asset_url}
+            alt={getAlt(leadItem, 0)}
+            priority
+            sizes="(min-width: 768px) 76vw, 100vw"
+            className="relative aspect-[4/3] overflow-hidden bg-muted md:aspect-[3/2]"
+            imageClassName="object-cover object-center"
+          />
+        )}
       </Container>
     </Section>
   );
