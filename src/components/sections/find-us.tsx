@@ -2,6 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { Container, Section } from "@/components/layout/container";
+import { HoverArrow } from "@/components/ui/arrow-link";
 import { SectionHeading } from "@/components/ui/section-heading";
 
 // Studio address (literal — not translated). Also drives the Maps link.
@@ -62,9 +63,7 @@ export async function FindUs() {
             />
             <span className="relative z-10 inline-flex items-center gap-2 rounded-sm border border-background/65 bg-background/12 px-4 py-2 font-functional text-xs uppercase tracking-widest-lux text-background backdrop-blur-[4px]">
               {t("openMaps")}
-              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-                →
-              </span>
+              <HoverArrow />
             </span>
           </a>
         </div>

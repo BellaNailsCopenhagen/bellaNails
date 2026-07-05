@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
+import { ArrowLink } from "@/components/ui/arrow-link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items";
+import { pickLocalized } from "@/lib/i18n/localized";
 
 function GalleryTile({
   src,
@@ -50,11 +51,9 @@ export async function StudioGallery() {
 
   const leadItem = items[0];
   const supportingItems = items.slice(1);
-  const isDa = locale === "da";
 
   const getAlt = (item: (typeof items)[number], index: number) =>
-    (isDa ? item.title_dk : item.title_en) ??
-    item.title_en ??
+    pickLocalized(locale, item.title_en, item.title_dk) ??
     `Bella Nails gallery image ${index + 1}`;
 
   return (
@@ -67,15 +66,7 @@ export async function StudioGallery() {
             accent={t("headingAccent")}
             accentTone="secondary"
           />
-          <Link
-            href="/gallery"
-            className="group inline-flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("viewGallery")}
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </Link>
+          <ArrowLink href="/gallery">{t("viewGallery")}</ArrowLink>
         </div>
 
         {supportingItems.length ? (

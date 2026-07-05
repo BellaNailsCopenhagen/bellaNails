@@ -9,7 +9,11 @@ type SectionHeadingProps = {
   lead: React.ReactNode;
   accent?: React.ReactNode;
   className?: string;
-  accentTone?: "default" | "muted" | "secondary";
+  /**
+   * Accent-line color. `"default"` inherits the heading color; `"secondary"`
+   * is the muted brand tone (`#66635f`) used by the marketing sections.
+   */
+  accentTone?: "default" | "secondary";
 };
 
 /**
@@ -31,7 +35,6 @@ function SectionHeading({
         {accent ? (
           <HeadingAccent
             className={cn(
-              accentTone === "muted" && "text-muted-foreground",
               accentTone === "secondary" && "text-[var(--bn-text-secondary)]",
             )}
           >

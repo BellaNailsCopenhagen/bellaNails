@@ -2,15 +2,13 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
+import { ArrowLink } from "@/components/ui/arrow-link";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/ui/price-tag";
 import { SectionHeading } from "@/components/ui/section-heading";
-import {
-  BodySm,
-  Caption,
-  H3,
-} from "@/components/ui/typography";
+import { BodySm, Caption, H3 } from "@/components/ui/typography";
 import { getFeaturedServices } from "@/lib/services/get-featured-services";
+import { pickLocalized } from "@/lib/i18n/localized";
 
 /**
  * ServicesPreview — "A Selection of the Studio's Best". Reads the featured
@@ -28,8 +26,6 @@ export async function ServicesPreview() {
 
   if (!services.length) return null;
 
-  const isDa = locale === "da";
-
   return (
     <Section>
       <Container className="max-w-4xl">
@@ -40,22 +36,20 @@ export async function ServicesPreview() {
             accent={t("headingAccent")}
             accentTone="secondary"
           />
-          <Link
-            href="/services"
-            className="group inline-flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t("viewFullMenu")}
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </Link>
+          <ArrowLink href="/services">{t("viewFullMenu")}</ArrowLink>
         </div>
 
         <ul className="mt-6 border-b border-border">
           {services.map((service, i) => {
-            const name = (isDa ? service.name_dk : service.name_en) ?? service.name_en;
+            const name =
+              pickLocalized(locale, service.name_en, service.name_dk) ??
+              service.name_en;
             const description =
-              (isDa ? service.description_dk : service.description_en) ?? "";
+              pickLocalized(
+                locale,
+                service.description_en,
+                service.description_dk,
+              ) ?? "";
             return (
               <li
                 key={service.id}
