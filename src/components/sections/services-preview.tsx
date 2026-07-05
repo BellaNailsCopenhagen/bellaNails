@@ -4,16 +4,13 @@ import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/ui/price-tag";
+import { SectionHeading } from "@/components/ui/section-heading";
 import {
   BodySm,
   Caption,
-  Eyebrow,
-  H1,
   H3,
-  HeadingAccent,
-  HeadingLine,
 } from "@/components/ui/typography";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getFeaturedServices } from "@/lib/services/get-featured-services";
 
 /**
  * ServicesPreview — "A Selection of the Studio's Best". Reads the featured
@@ -27,18 +24,9 @@ export async function ServicesPreview() {
     getLocale(),
   ]);
 
-  const supabase = createSupabaseServerClient();
-  const { data: services } = await supabase
-    .from("services")
-    .select(
-      "id, name_en, name_dk, description_en, description_dk, base_price_cents, base_duration_mins",
-    )
-    .eq("is_featured", true)
-    .is("archived_at", null)
-    .order("cal_event_id", { ascending: true })
-    .limit(3);
+  const services = await getFeaturedServices();
 
-  if (!services?.length) return null;
+  if (!services.length) return null;
 
   const isDa = locale === "da";
 
@@ -46,13 +34,12 @@ export async function ServicesPreview() {
     <Section>
       <Container className="max-w-4xl">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="space-y-4">
-            <Eyebrow>{t("eyebrow")}</Eyebrow>
-            <H1 as="h2">
-              <HeadingLine>{t("headingLead")}</HeadingLine>
-              <HeadingAccent>{t("headingAccent")}</HeadingAccent>
-            </H1>
-          </div>
+          <SectionHeading
+            eyebrow={t("eyebrow")}
+            lead={t("headingLead")}
+            accent={t("headingAccent")}
+            accentTone="secondary"
+          />
           <Link
             href="/services"
             className="group inline-flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
@@ -72,7 +59,7 @@ export async function ServicesPreview() {
             return (
               <li
                 key={service.id}
-                className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-border py-6 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-baseline"
+                className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-border py-6 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-start"
               >
                 <Caption className="text-muted-foreground">
                   {String(i + 1).padStart(2, "0")}
