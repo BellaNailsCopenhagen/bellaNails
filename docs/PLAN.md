@@ -51,6 +51,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ✅ **RLS applied + verified via MCP** ([supabase/rls.sql](../supabase/rls.sql)): all tables had RLS enabled but **zero policies** (catalog was unreadable by anon). Added public `select` for active catalog (`to anon, authenticated`); verified anon sees services/categories/gallery and **cannot** see `bookings`. Also hardened a pre-existing `rls_auto_enable()` `SECURITY DEFINER` function the advisors flagged (revoked `execute` from PUBLIC).
 - ✅ **Realtime applied** ([supabase/realtime.sql](../supabase/realtime.sql)): `bookings` added to `supabase_realtime` (verified).
 - ✅ Seed **not needed** — the project already contains sample rows; [supabase/seed.sql](../supabase/seed.sql) kept for fresh/dev DBs only.
+- 🔼 Gallery homepage ordering guardrails prepared in [supabase/gallery-ordering.sql](../supabase/gallery-ordering.sql): `sort_order` defaults to `null`, only allows slots `1..5`, and is unique when set so at most five gallery items can be featured on the home page at once. Apply to the live DB before the admin/gallery management flow is considered complete.
 - ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
 - ⬜ `bookings` RLS (owner-reads-all + user-reads-own keyed off Clerk `sub`) → Phase 4. Advisors correctly still flag `bookings` as RLS-enabled-no-policy (intentional deny-all until then).
 
@@ -76,6 +77,8 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 - ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language.
 - ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`.
+- ⬜ The app owns service/add-on selection and booking summary; **Cal.com owns availability search and date/time selection**. Do not build a separate first-party slot picker unless a later requirement proves Cal.com cannot satisfy the UX.
+- ⬜ Hand off the chosen service/add-on context into Cal.com so users land directly in the smarter availability step rather than re-entering booking context.
 - ⬜ Add booking consent copy linking to `/[locale]/terms` anywhere users submit or confirm a reservation (embed wrapper, booking CTA area, confirmation screen as needed).
 - ⬜ Define the studio guarantee terms before promising them in booking copy: coverage window by treatment type, what counts as normal wear, exclusions, contact method, and proof/repair flow.
 - ⬜ Redirect to own `/[locale]/confirmation` on success.
@@ -89,7 +92,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
   - ✅ "The Formula" section — Didier Lab positioning (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium), personal first-person framing.
   - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag) — the full Services *menu* page is still to build.
   - ⬜ Full Services menu page (from `services` + `addons`, localized, prices) — nav links `/services` etc. still 404.
-  - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — StudioGallery currently uses placeholder tiles.
+  - 🔼 Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — home StudioGallery now reads DB-backed items; next step is replacing temporary reused imagery with curated live assets and finishing the full gallery page/admin flow.
   - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
   - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
   - ⬜ Footer visual differentiation pass: explore an Onyx background treatment (or similar stronger contrast move) once the final footer content settles.
@@ -103,7 +106,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - ⬜ Manage services / add-ons / incompatibilities (soft-delete via `archived_at`).
-- ⬜ Manage gallery — Cloudinary signed client upload, store URL only, drag-sort `sort_order`.
+- ⬜ Manage gallery — Cloudinary signed client upload, store URL only, and expose homepage featuring through nullable `sort_order` slots `1..5` (not arbitrary full-gallery ordering). Non-featured gallery items should keep `sort_order = null`.
 - ⬜ Manage testimonials — new `testimonials` table (see Phase 7) + CRUD; home section switches from i18n to reading it.
 - ⬜ Booking queue (client component + Query + Realtime).
 
