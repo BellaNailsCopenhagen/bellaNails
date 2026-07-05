@@ -24,7 +24,7 @@ function SectionHeading({
   accentTone = "default",
 }: SectionHeadingProps) {
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("space-y-6", className)}>
       <Eyebrow>{eyebrow}</Eyebrow>
       <H1 as="h2">
         <HeadingLine>{lead}</HeadingLine>

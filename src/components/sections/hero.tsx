@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
@@ -6,19 +7,21 @@ import { Display, Eyebrow } from "@/components/ui/typography";
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
- * header. The backdrop is a placeholder onyx gradient with the comp's diagonal
- * darkening overlay so the headline stays legible; the real atelier photo is
- * wired via Cloudinary in Phase 7/8.
+ * header. Uses a temporary local hero photo until the final brand imagery
+ * (and later video options) are ready.
  */
 export async function Hero() {
   const t = await getTranslations("hero");
 
   return (
     <section className="relative flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden">
-      {/* Placeholder backdrop (replace with Cloudinary image). */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-gradient-to-br from-[#1a1a19] via-[#2b2825] to-[#413c37]"
+      <Image
+        src="/assets/hero_image.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 -z-10 object-cover object-center"
       />
       {/* Comp overlay: diagonal darkening for text contrast. */}
       <div

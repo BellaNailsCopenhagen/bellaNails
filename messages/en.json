@@ -37,25 +37,32 @@
     "vitamins": "Vitamin E + Calcium"
   },
   "differentiators": {
+    "eyebrow": "The Difference",
+    "headingLead": "What Makes",
+    "headingAccent": "Bella Nails Different",
     "one": {
-      "title": "Private Sessions",
-      "body": "By appointment only. The studio is never shared between clients."
+      "title": "Private Sessions, Fully Yours",
+      "body": "By appointment only, with the studio reserved for one client at a time."
     },
     "two": {
-      "title": "Premium Formulas",
-      "body": "Sourced from the finest European gel and lacquer houses."
+      "title": "Premium Formulas, Carefully Chosen",
+      "body": "European gel systems selected for lasting wear, finish, and nail health."
     },
     "three": {
-      "title": "The Atelier Edit",
-      "body": "A curated wardrobe of shades, refreshed each season."
+      "title": "Difficult Nails, Done Properly",
+      "body": "Built with lasting quality even on difficult nails, backed by our studio guarantee."
     }
   },
   "studio": {
     "eyebrow": "The Studio",
+    "headingLead": "Inside",
+    "headingAccent": "the Studio",
     "viewGallery": "View gallery"
   },
   "testimonials": {
     "eyebrow": "Client words",
+    "headingLead": "What Clients",
+    "headingAccent": "Say About Bella Nails",
     "one": {
       "quote": "The most considered nail experience I have ever had. The silence alone is worth the price.",
       "name": "Astrid H.",
@@ -74,9 +81,11 @@
   },
   "findUs": {
     "eyebrow": "Find us",
+    "headingLead": "Where to",
+    "headingAccent": "Find Bella Nails",
     "hoursLine": "Monday – Saturday · 09:00 – 18:00",
     "hoursNote": "By appointment only",
-    "openMaps": "Open in Google Maps"
+    "openMaps": "Find your way"
   },
   "home": {
     "eyebrow": "Copenhagen · Atelier",

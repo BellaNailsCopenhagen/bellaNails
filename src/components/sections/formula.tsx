@@ -18,7 +18,7 @@ export async function Formula() {
 
   return (
     <Section className="border-t border-border">
-      <Container className="max-w-4xl space-y-8">
+      <Container className="max-w-4xl space-y-6">
         <SectionHeading
           eyebrow={t("eyebrow")}
           lead={t("headingLead")}
@@ -27,7 +27,7 @@ export async function Formula() {
         />
         <Body className="max-w-3xl text-muted-foreground">{t("body")}</Body>
 
-        <div className="space-y-5 pt-2">
+        <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             {inlineBadges.map((label) => (
               <Badge key={label} size="sm">

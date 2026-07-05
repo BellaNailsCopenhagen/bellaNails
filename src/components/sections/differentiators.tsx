@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import { Container, Section } from "@/components/layout/container";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { BodySm, Caption, H3 } from "@/components/ui/typography";
 
 /**
@@ -18,7 +19,13 @@ export async function Differentiators() {
 
   return (
     <Section className="border-t border-border">
-      <Container className="max-w-4xl">
+      <Container className="max-w-4xl space-y-6">
+        <SectionHeading
+          eyebrow={t("eyebrow")}
+          lead={t("headingLead")}
+          accent={t("headingAccent")}
+          accentTone="secondary"
+        />
         <div className="grid gap-x-8 gap-y-12 md:grid-cols-3">
           {items.map((item) => (
             <div key={item.n} className="space-y-3">

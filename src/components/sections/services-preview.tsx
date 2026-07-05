@@ -51,7 +51,7 @@ export async function ServicesPreview() {
           </Link>
         </div>
 
-        <ul className="mt-12 border-b border-border">
+        <ul className="mt-6 border-b border-border">
           {services.map((service, i) => {
             const name = (isDa ? service.name_dk : service.name_en) ?? service.name_en;
             const description =
@@ -78,7 +78,7 @@ export async function ServicesPreview() {
         </ul>
 
         <Button
-          className="mt-10"
+          className="mt-6"
           nativeButton={false}
           render={<Link href="/book" />}
         >

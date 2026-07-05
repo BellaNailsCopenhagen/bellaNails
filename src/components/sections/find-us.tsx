@@ -1,7 +1,8 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { Container, Section } from "@/components/layout/container";
-import { Eyebrow } from "@/components/ui/typography";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 // Studio address (literal — not translated). Also drives the Maps link.
 const ADDRESS_LINE_1 = "Halldór Laxness Vej 3, 2. th";
@@ -11,17 +12,22 @@ const MAPS_URL =
   encodeURIComponent("Halldór Laxness Vej 3, 2300 København S");
 
 /**
- * FindUs — "Find Us". Address + opening hours and a map placeholder that links
- * out to Google Maps (a real embedded map is wired in a later pass). Placeholder
- * keeps it reliable and dependency-free for now.
+ * FindUs — "Find Us". Address + opening hours and a static location preview
+ * image that links out to Google Maps. A real embedded map can be wired in
+ * later if needed, but the static image keeps the section lightweight for now.
  */
 export async function FindUs() {
   const t = await getTranslations("findUs");
 
   return (
     <Section className="border-t border-border">
-      <Container className="max-w-4xl space-y-8">
-        <Eyebrow>{t("eyebrow")}</Eyebrow>
+      <Container className="max-w-4xl space-y-6">
+        <SectionHeading
+          eyebrow={t("eyebrow")}
+          lead={t("headingLead")}
+          accent={t("headingAccent")}
+          accentTone="secondary"
+        />
 
         <div className="flex flex-wrap items-start justify-between gap-6">
           <address className="max-w-sm font-editorial text-2xl not-italic leading-snug text-foreground">
@@ -35,20 +41,33 @@ export async function FindUs() {
           </div>
         </div>
 
-        <a
-          href={MAPS_URL}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={t("openMaps")}
-          className="group flex aspect-[5/2] w-full items-center justify-center overflow-hidden bg-muted transition-colors hover:bg-[color-mix(in_oklch,var(--muted),var(--foreground)_4%)]"
-        >
-          <span className="inline-flex items-center gap-2 rounded-sm bg-foreground/90 px-4 py-2 font-functional text-xs uppercase tracking-widest-lux text-background">
-            {t("openMaps")}
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-              →
+        <div className="relative">
+          <a
+            href={MAPS_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("openMaps")}
+            className="group relative z-0 flex aspect-[5/2] w-full items-center justify-center overflow-hidden bg-muted"
+          >
+            <Image
+              src="/assets/Map_bella_nails.png"
+              alt="Map preview showing the Bella Nails location in Copenhagen."
+              fill
+              sizes="(min-width: 1024px) 896px, 100vw"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.015]"
+            />
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,18,18,0.06)_0%,rgba(18,18,18,0.18)_100%)]"
+            />
+            <span className="relative z-10 inline-flex items-center gap-2 rounded-sm border border-background/65 bg-background/12 px-4 py-2 font-functional text-xs uppercase tracking-widest-lux text-background backdrop-blur-[4px]">
+              {t("openMaps")}
+              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
             </span>
-          </span>
-        </a>
+          </a>
+        </div>
       </Container>
     </Section>
   );

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
-import { Eyebrow } from "@/components/ui/typography";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 // Placeholder tiles — the real portfolio images are wired from `gallery_items`
 // via Cloudinary in Phase 7/8. Neutral card fills keep the editorial rhythm.
@@ -20,8 +20,13 @@ export async function StudioGallery() {
   return (
     <Section className="border-t border-border">
       <Container className="max-w-4xl space-y-6">
-        <div className="flex items-center justify-between">
-          <Eyebrow>{t("eyebrow")}</Eyebrow>
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <SectionHeading
+            eyebrow={t("eyebrow")}
+            lead={t("headingLead")}
+            accent={t("headingAccent")}
+            accentTone="secondary"
+          />
           <Link
             href="/gallery"
             className="group inline-flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"

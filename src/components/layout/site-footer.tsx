@@ -9,12 +9,13 @@ type FooterLink = { href: string; label: string; external?: boolean };
 
 /**
  * SiteFooter — logo column, address column, three nav columns, and a separate
- * copyright band. `year` is passed in so the (RSC) footer stays
- * render-deterministic.
+ * copyright band. The year is derived server-side so it stays current without
+ * manual maintenance.
  */
-export async function SiteFooter({ year }: { year: number }) {
+export async function SiteFooter() {
   const t = await getTranslations("footer");
   const tNav = await getTranslations("nav");
+  const year = new Date().getFullYear();
 
   const columns: { heading: string; links: FooterLink[] }[] = [
     {
@@ -39,19 +40,19 @@ export async function SiteFooter({ year }: { year: number }) {
   ];
 
   return (
-    <footer className="mt-auto bg-background">
+    <footer className="mt-auto border-t border-background/10 bg-primary text-primary-foreground">
       <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:gap-6 sm:grid-cols-[1.5fr_repeat(3,minmax(0,1fr))]">
         <div className="text-left">
           <Link href="/" className="block w-fit" aria-label="Bella Nails home">
             <Image
-              src="/brand/bella-nails-horizontal.svg"
+              src="/brand/bella-nails-horizontal-reverse.svg"
               alt="Bella Nails"
               width={224}
               height={32}
               className="h-auto w-[10rem] sm:w-[11.25rem]"
             />
           </Link>
-          <address className="font-functional ml-2 text-sm leading-8 not-italic text-foreground/80">
+          <address className="font-functional ml-2 text-sm leading-8 not-italic text-primary-foreground/72">
             Halldór Laxness Vej 3, 2. th
             <br />
             2300 København S
@@ -60,7 +61,7 @@ export async function SiteFooter({ year }: { year: number }) {
 
         {columns.map((col) => (
           <div key={col.heading} className="space-y-4">
-            <Eyebrow className="text-[0.65rem] text-foreground/85">
+            <Eyebrow className="text-[0.65rem] text-primary-foreground/65">
               {col.heading}
             </Eyebrow>
             <ul className="space-y-2.5">
@@ -71,14 +72,14 @@ export async function SiteFooter({ year }: { year: number }) {
                       href={link.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary transition-colors hover:text-primary/80"
+                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
                     >
                       {link.label}
                     </a>
                   ) : (
                     <Link
                       href={link.href}
-                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary transition-colors hover:text-primary/80"
+                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
                     >
                       {link.label}
                     </Link>
@@ -90,9 +91,9 @@ export async function SiteFooter({ year }: { year: number }) {
         ))}
       </Container>
 
-      <div className="border-t border-border/70">
+      <div className="border-t border-primary-foreground/12">
         <Container className="py-6">
-          <Caption className="text-[0.65rem] text-foreground/80">
+          <Caption className="text-[0.65rem] text-primary-foreground/65">
             © {year} Bella Nails. {t("rights")}
           </Caption>
         </Container>

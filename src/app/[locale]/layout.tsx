@@ -104,7 +104,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider>
             <SiteHeader />
             {children}
-            <SiteFooter year={new Date().getFullYear()} />
+            <SiteFooter />
           </NextIntlClientProvider>
           <Toaster />
         </ClerkProvider>

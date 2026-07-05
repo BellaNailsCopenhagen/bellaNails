@@ -37,25 +37,32 @@
     "vitamins": "Vitamin E + Calcium"
   },
   "differentiators": {
+    "eyebrow": "Forskellen",
+    "headingLead": "Det, der gør",
+    "headingAccent": "Bella Nails anderledes",
     "one": {
-      "title": "Private sessioner",
-      "body": "Kun efter aftale. Studiet deles aldrig mellem kunder."
+      "title": "Privat tid, helt din egen",
+      "body": "Kun efter aftale, med studiet reserveret til én kunde ad gangen."
     },
     "two": {
-      "title": "Premium-formler",
-      "body": "Hentet fra de fineste europæiske gel- og lakhuse."
+      "title": "Premium-formler, nøje udvalgt",
+      "body": "Europæiske gelsystemer udvalgt for holdbarhed, finish og neglesundhed."
     },
     "three": {
-      "title": "Atelier-udvalget",
-      "body": "En kurateret garderobe af nuancer, fornyet hver sæson."
+      "title": "Svære negle, gjort ordentligt",
+      "body": "Skabt med holdbar kvalitet selv til svære negle, understøttet af vores studiogaranti."
     }
   },
   "studio": {
     "eyebrow": "Studiet",
+    "headingLead": "Inde i",
+    "headingAccent": "studiet",
     "viewGallery": "Se galleri"
   },
   "testimonials": {
     "eyebrow": "Kundernes ord",
+    "headingLead": "Det, kunderne",
+    "headingAccent": "siger om Bella Nails",
     "one": {
       "quote": "Den mest gennemtænkte negleoplevelse, jeg nogensinde har haft. Stilheden alene er prisen værd.",
       "name": "Astrid H.",
@@ -74,9 +81,11 @@
   },
   "findUs": {
     "eyebrow": "Find os",
+    "headingLead": "Her finder du",
+    "headingAccent": "Bella Nails",
     "hoursLine": "Mandag – lørdag · 09:00 – 18:00",
     "hoursNote": "Kun efter aftale",
-    "openMaps": "Åbn i Google Maps"
+    "openMaps": "Find vej"
   },
   "home": {
     "eyebrow": "København · Atelier",
