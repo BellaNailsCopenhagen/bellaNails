@@ -58,7 +58,7 @@ export async function generateMetadata({
 
   return {
     metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://bellanails.dk",
     ),
     title: {
       default: t("title"),
@@ -104,7 +104,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider>
             <SiteHeader />
             {children}
-            <SiteFooter year={new Date().getFullYear()} />
+            <SiteFooter />
           </NextIntlClientProvider>
           <Toaster />
         </ClerkProvider>

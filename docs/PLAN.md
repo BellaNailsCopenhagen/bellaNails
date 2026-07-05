@@ -77,20 +77,26 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language.
 - ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`.
 - ⬜ Add booking consent copy linking to `/[locale]/terms` anywhere users submit or confirm a reservation (embed wrapper, booking CTA area, confirmation screen as needed).
+- ⬜ Define the studio guarantee terms before promising them in booking copy: coverage window by treatment type, what counts as normal wear, exclusions, contact method, and proof/repair flow.
 - ⬜ Redirect to own `/[locale]/confirmation` on success.
 - ⬜ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`.
 - ⬜ Stripe no-show card holds via Cal.com (SetupIntents) — config in Cal.com + Stripe dashboards.
 
-## Phase 7 — Public site features
+## Phase 7 — Public site features 🔼
 
-- ⬜ Home / hero (Quiet Luxury landing).
-- ⬜ "The Formula" section — powered by Didier Lab (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium); durability + "difficult nails" positioning. Story framing: **personal, first-person, no medical diagnosis** (chosen). Placement TBD (dedicated band vs upgrade "Premium Formulas"). Copy drafted; see also Phase 10 keywords.
-- ⬜ Services menu (from `services` + `addons`, localized, prices formatted).
-- ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`).
+- 🔼 **Home page built to the Figma comp** as responsive, localized (da/en) sections in `src/components/sections/` — one branch each (`bellaNails-home-*`): Hero, ServicesPreview, Formula, Differentiators, StudioGallery, Testimonials, FindUs (+ header/footer revamp). All use the design system (typography, tokens, Container/Section). Stacked branches off `main`; assembled in `[locale]/page.tsx`. Verified: both locales 200 with all sections.
+  - ✅ Home / hero (Quiet Luxury landing) — full-bleed, editorial headline, Reserve CTA, scroll cue.
+  - ✅ "The Formula" section — Didier Lab positioning (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium), personal first-person framing.
+  - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag) — the full Services *menu* page is still to build.
+  - ⬜ Full Services menu page (from `services` + `addons`, localized, prices) — nav links `/services` etc. still 404.
+  - ⬜ Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — StudioGallery currently uses placeholder tiles.
+  - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
+  - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
+  - ⬜ Footer visual differentiation pass: explore an Onyx background treatment (or similar stronger contrast move) once the final footer content settles.
 - ⬜ "My bookings" — protected login-required page; signed-out users should be redirected to localized sign-in before viewing or managing bookings.
 - ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
 - ⬜ Add a branded localized 404 / not-found page with clear recovery actions (home, services, booking).
-- ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, and payment terms.
+- ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, payment, and studio guarantee terms.
 - ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
 
 ## Phase 8 — Admin
@@ -98,6 +104,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - ⬜ Manage services / add-ons / incompatibilities (soft-delete via `archived_at`).
 - ⬜ Manage gallery — Cloudinary signed client upload, store URL only, drag-sort `sort_order`.
+- ⬜ Manage testimonials — new `testimonials` table (see Phase 7) + CRUD; home section switches from i18n to reading it.
 - ⬜ Booking queue (client component + Query + Realtime).
 
 ## Phase 9 — Hardening & launch
@@ -105,7 +112,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ SEO/metadata per locale, sitemap, OG images. → see Phase 10 (Local SEO).
 - ⬜ Error/loading boundaries, empty states, toasts.
 - ⬜ Verify the custom 404 / not-found page renders correctly for bad locale-prefixed routes and unknown slugs.
-- ⬜ Final legal-content review for the published `Terms of Service` copy and all linked placements before launch.
+- ⬜ Final legal-content review for the published `Terms of Service` copy, guarantee wording, and all linked placements before launch.
 - ⬜ Lighthouse / a11y pass; verify no booking-UI flicker.
 - ⬜ Env wiring on host (Vercel free tier), webhook URLs pointed at prod, secrets set.
 - ⬜ Smoke test full booking → webhook → DB → admin live update.

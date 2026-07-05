@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Bella Nails — Copenhagen Nail Atelier",
-    "description": "A premium bilingual nail atelier in Copenhagen. Book your appointment online."
+    "title": "Bella Nails – Nail Salon in Ørestad, Copenhagen | Shellac, Gel & BIAB",
+    "description": "Bella Nails is an intimate nail salon in Ørestad by Bella Kvarter, Copenhagen. Gel extensions, classic manicure, Shellac and BIAB. Book online."
   },
   "nav": {
     "services": "Services",
@@ -14,7 +14,9 @@
     "account": "My account"
   },
   "hero": {
-    "headline": "Where Craft Becomes Art",
+    "kicker": "Nail Salon in Ørestad · Copenhagen",
+    "headlineLead": "Where Craft",
+    "headlineAccent": "Becomes Art",
     "reserveCta": "Reserve your session",
     "scroll": "Scroll"
   },
@@ -36,13 +38,65 @@
     "fiberglass": "Fiberglass-reinforced",
     "vitamins": "Vitamin E + Calcium"
   },
+  "differentiators": {
+    "eyebrow": "The Difference",
+    "headingLead": "What Makes",
+    "headingAccent": "Bella Nails Different",
+    "one": {
+      "title": "Private Sessions, Fully Yours",
+      "body": "By appointment only, with the studio reserved for one client at a time."
+    },
+    "two": {
+      "title": "Premium Formulas, Carefully Chosen",
+      "body": "European gel systems selected for lasting wear, finish, and nail health."
+    },
+    "three": {
+      "title": "Difficult Nails, Done Properly",
+      "body": "Built with lasting quality even on difficult nails, backed by our studio guarantee."
+    }
+  },
+  "studio": {
+    "eyebrow": "The Studio",
+    "headingLead": "Inside",
+    "headingAccent": "the Studio",
+    "viewGallery": "View gallery"
+  },
+  "testimonials": {
+    "eyebrow": "Client words",
+    "headingLead": "What Clients",
+    "headingAccent": "Say About Bella Nails",
+    "one": {
+      "quote": "The most considered nail experience I have ever had. The silence alone is worth the price.",
+      "name": "Astrid H.",
+      "role": "Architect, Copenhagen"
+    },
+    "two": {
+      "quote": "Nothing is rushed here. Every detail is attended to with a calm I have not found elsewhere in the city.",
+      "name": "Sara B.",
+      "role": "Interior Stylist"
+    },
+    "three": {
+      "quote": "I came for a manicure and left with a new understanding of what precision can look like.",
+      "name": "Mathilde V.",
+      "role": "Editor, Kinfolk"
+    }
+  },
+  "findUs": {
+    "eyebrow": "Find us",
+    "headingLead": "Where to",
+    "headingAccent": "Find Bella Nails",
+    "hoursLine": "Monday – Saturday · 09:00 – 18:00",
+    "hoursNote": "By appointment only",
+    "openMaps": "Find your way"
+  },
   "home": {
-    "eyebrow": "Copenhagen · Atelier",
+    "eyebrow": "Copenhagen · Studio",
     "title": "Bella Nails",
-    "tagline": "A premium nail atelier. Online booking opens soon."
+    "tagline": "A premium nail salon in Ørestad. Online booking opens soon."
   },
   "footer": {
     "tagline": "World-class nail artistry in the heart of Copenhagen.",
+    "areasServed": "Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup",
     "rights": "All rights reserved.",
     "studio": "Studio",
     "session": "Session",
