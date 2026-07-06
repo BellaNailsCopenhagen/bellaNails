@@ -96,7 +96,7 @@
   },
   "footer": {
     "tagline": "Neglekunst i verdensklasse i hjertet af København.",
-    "areasServed": "Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup",
+    "areasServed": ["Ørestad", "Bella Kvarter", "Amager", "Islands Brygge", "Kastrup"],
     "rights": "Alle rettigheder forbeholdes.",
     "studio": "Studie",
     "session": "Session",

@@ -35,8 +35,20 @@ export async function SiteFooter() {
             <br />
             2300 København S
           </address>
-          <Caption className="ml-2 max-w-[18rem] text-balance leading-relaxed text-[0.65rem] text-primary-foreground/55">
-            {t("areasServed")}
+          <Caption
+            as="ul"
+            className="ml-2 flex max-w-[18rem] flex-wrap gap-x-1.5 leading-relaxed text-[0.65rem] text-primary-foreground/55"
+          >
+            {(t.raw("areasServed") as string[]).map((area, index) => (
+              <li key={area} className="whitespace-nowrap">
+                {index > 0 && (
+                  <span aria-hidden className="mr-1.5 text-primary-foreground/35">
+                    ·
+                  </span>
+                )}
+                {area}
+              </li>
+            ))}
           </Caption>
         </div>
 

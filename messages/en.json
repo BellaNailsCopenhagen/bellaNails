@@ -96,7 +96,7 @@
   },
   "footer": {
     "tagline": "World-class nail artistry in the heart of Copenhagen.",
-    "areasServed": "Ørestad · Bella Kvarter · Amager · Islands Brygge · Kastrup",
+    "areasServed": ["Ørestad", "Bella Kvarter", "Amager", "Islands Brygge", "Kastrup"],
     "rights": "All rights reserved.",
     "studio": "Studio",
     "session": "Session",
