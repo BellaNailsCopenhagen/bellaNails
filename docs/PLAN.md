@@ -54,6 +54,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - 🔼 Gallery homepage ordering guardrails prepared in [supabase/gallery-ordering.sql](../supabase/gallery-ordering.sql): `sort_order` defaults to `null`, only allows slots `1..5`, and is unique when set so at most five gallery items can be featured on the home page at once. Apply to the live DB before the admin/gallery management flow is considered complete.
 - ⬜ Indices — deferred; confirm which query paths need them once Phase 7 read patterns exist.
 - ⬜ `bookings` RLS (owner-reads-all + user-reads-own keyed off Clerk `sub`) → Phase 4. Advisors correctly still flag `bookings` as RLS-enabled-no-policy (intentional deny-all until then).
+- ⬜ **Clients keyed to Clerk, no PII in our DB (Phase 8 dependency):** rather than storing client email/name in our tables, the Phase 6 webhook (and the out-of-hours request flow) **create-or-find a Clerk user by the attendee email** (Clerk Backend API, passwordless) and store only the pseudonymous `clerk_user_id`. So `bookings` needs **no schema change** — `clerk_user_id` stays `NOT NULL`, Cal.com keeps populating `cal_booking_id` / `cancel_url` / `reschedule_url`, and PII lives in Clerk. The only new table is `booking_requests` for out-of-hours requests (see Phase 8; SQL in [supabase/booking-requests.sql](../supabase/booking-requests.sql)). Regenerate `src/lib/supabase/types.ts` after applying.
 
 ## Phase 4 — Auth (Clerk + Supabase native) ✅
 
@@ -97,7 +98,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
   - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
   - ⬜ Footer visual differentiation pass: explore an Onyx background treatment (or similar stronger contrast move) once the final footer content settles.
 - ⬜ "My bookings" — protected login-required page; signed-out users should be redirected to localized sign-in before viewing or managing bookings.
-- ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs.
+- ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs. Every path keys bookings to `clerk_user_id` (the webhook create-or-finds the client's Clerk user), so a simple Clerk `sub` match surfaces studio-created bookings too.
 - ⬜ Add a branded localized 404 / not-found page with clear recovery actions (home, services, booking).
 - ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, payment, and studio guarantee terms.
 - ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
@@ -109,6 +110,30 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ Manage gallery — Cloudinary signed client upload, store URL only, and expose homepage featuring through nullable `sort_order` slots `1..5` (not arbitrary full-gallery ordering). Non-featured gallery items should keep `sort_order = null`.
 - ⬜ Manage testimonials — new `testimonials` table (see Phase 7) + CRUD; home section switches from i18n to reading it.
 - ⬜ Booking queue (client component + Query + Realtime).
+
+### Studio-created bookings
+
+Two paths, one identity model. Client PII (email/name) lives in **Clerk**; our tables store only the pseudonymous `clerk_user_id`, so the DB holds no personal data. Keystone helper: **create-or-find a Clerk user by email** (Clerk Backend API, passwordless — the client later signs in with an email code and sees their full history).
+
+**A. In-hours bookings (via Cal.com)** — within normal availability (Saturday):
+
+- ⬜ The artist creates a booking for a client (existing or new) by email in the Cal.com dashboard; it arrives via the existing `BOOKING_CREATED` webhook and syncs to `bookings` through the Phase 6 pipeline. No custom flow.
+- ⬜ Webhook maps the attendee email → Clerk user via create-or-find and stores `clerk_user_id`. `bookings` needs no schema change (Cal.com populates `cal_booking_id` / `cancel_url` / `reschedule_url`).
+- ⬜ (Optional, later) an in-admin "New booking" shortcut calling `POST /v2/bookings` on the studio event type — same data path, still availability-bound.
+
+**B. Out-of-hours requests (via `booking_requests`)** — for slots Cal.com availability won't offer (currently anything but Saturday). SQL: [supabase/booking-requests.sql](../supabase/booking-requests.sql).
+
+- ⬜ New `booking_requests` table: `clerk_user_id`, `services` (jsonb snapshot), `est_duration_mins`, `est_price_cents`, `preferred_times`, `note`, `status` (`pending|accepted|declined|scheduled|cancelled|expired`), `booking_id` (→ `bookings.id`, set once scheduled), timestamps. RLS mirrors `bookings` (user reads/creates own via Clerk `sub`; admin transitions via service-role). Added to Realtime for the live admin queue.
+- ⬜ Request form is **gated behind Clerk email-code auth** — captures a verified email in Clerk, removes the auto-create-user spam vector, and makes history automatic. Client picks service(s)/add-ons + proposed times + note; submits as `pending`.
+- ⬜ Admin reviews requests in the queue, agrees a slot, creates the Cal.com booking (host-created, out-of-hours via API), links `booking_id`; status → `scheduled`. The confirmed booking still lands in `bookings` via the webhook, tied to the same `clerk_user_id`.
+
+**Shared:** "My bookings" matches a client's rows by Clerk `sub` (covers both paths, since everything is keyed to a Clerk user). Both feed the admin Booking queue.
+
+Decisions / to verify:
+
+- ⬜ **GDPR posture:** centralizing PII in Clerk shrinks our surface (DB is PII-free; erasure = delete the Clerk user, leaving only a dangling id) but does **not** remove controller obligations — ensure a Clerk DPA and a privacy-policy line.
+- ⬜ **Clerk MAU:** confirm created-but-dormant users don't count toward the plan's MAU before relying on the free tier.
+- ⬜ Deferred: full auto-recurring series. (Guest→account reconciliation is now moot — every client is a Clerk user from the first interaction.)
 
 ## Phase 9 — Hardening & launch
 
