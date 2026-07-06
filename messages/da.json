@@ -27,6 +27,19 @@
     "viewFullMenu": "Se hele menuen",
     "minutes": "min"
   },
+  "serviceMenu": {
+    "metaTitle": "Behandlinger",
+    "metaDescription": "Hele menuen af behandlinger hos Bella Nails i Ørestad — geleforlængelse, manicure, Shellac og BIAB med priser og varighed.",
+    "eyebrow": "Studiet",
+    "headingLead": "Menuen",
+    "headingMuted": "Behandlinger & pleje",
+    "intro": "En gennemtænkt menu af neglebehandlinger — klassisk manicure, geleforlængelse, Shellac og BIAB — udført én kunde ad gangen i vores private neglesalon i Ørestad, København. Hver session er bygget op omkring dine naturlige negles sundhed.",
+    "rowCta": "Book",
+    "imageAlt": "{category} hos Bella Nails – neglesalon i Ørestad, København",
+    "pricingNoteLabel": "En note om priser",
+    "pricingNoteBody": "Vores priser afspejler den fulde omkostning ved materialer i premium-kvalitet, privat studietid og årene af ekspertise bag hver behandling. Vi arbejder ikke med rabatstrukturer eller kampagnepriser.",
+    "policyNote": "Alle priser inkluderer materialer. Sessioner er private og kun efter aftale, og der gælder 24 timers afbudsfrist."
+  },
   "formula": {
     "eyebrow": "Formlen",
     "headingLead": "Skabt til at holde —",
