@@ -9,6 +9,7 @@ import {
   HeadingAccent,
   HeadingLine,
 } from "@/components/ui/typography";
+import { routes } from "@/config/routes";
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
@@ -46,7 +47,7 @@ export async function Hero() {
           variant="inverse"
           size="lg"
           nativeButton={false}
-          render={<Link href="/book" />}
+          render={<Link href={routes.book} />}
         >
           {t("reserveCta")}
         </Button>

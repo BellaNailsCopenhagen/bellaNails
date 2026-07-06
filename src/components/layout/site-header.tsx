@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { headerNav, routes } from "@/config/routes";
 
 /**
  * SiteHeader — sticky top bar matching the comp: wordmark, primary nav, the
@@ -26,17 +27,15 @@ import {
 export async function SiteHeader() {
   const t = await getTranslations("nav");
 
-  const navLinks = [
-    { href: "/services", label: t("services") },
-    { href: "/gallery", label: t("gallery") },
-    { href: "/lookbook", label: t("lookbook") },
-    { href: "/bookings", label: t("bookings") },
-  ] as const;
+  const navLinks = headerNav.map((item) => ({
+    href: item.href,
+    label: t(item.labelKey),
+  }));
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-6">
-        <Link href="/" className="block w-fit" aria-label="Bella Nails home">
+        <Link href={routes.home} className="block w-fit" aria-label="Bella Nails home">
           <Image
             src="/brand/bella-nails-horizontal.svg"
             alt="Bella Nails"
@@ -62,7 +61,7 @@ export async function SiteHeader() {
           <Button
             size="sm"
             nativeButton={false}
-            render={<Link href="/book" />}
+            render={<Link href={routes.book} />}
             className="hidden sm:inline-flex"
           >
             {t("reserve")}
@@ -70,7 +69,7 @@ export async function SiteHeader() {
 
           <Show when="signed-out">
             <Link
-              href="/sign-in"
+              href={routes.signIn}
               className="hidden font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground sm:inline"
             >
               {t("signIn")}
@@ -112,12 +111,12 @@ export async function SiteHeader() {
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/book" className="w-full" />}>
+              <DropdownMenuItem render={<Link href={routes.book} className="w-full" />}>
                 {t("reserve")}
               </DropdownMenuItem>
               <Show when="signed-out">
                 <DropdownMenuItem
-                  render={<Link href="/sign-in" className="w-full" />}
+                  render={<Link href={routes.signIn} className="w-full" />}
                 >
                   {t("signIn")}
                 </DropdownMenuItem>

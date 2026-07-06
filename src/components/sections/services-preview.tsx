@@ -9,6 +9,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { BodySm, Caption, H3 } from "@/components/ui/typography";
 import { getFeaturedServices } from "@/lib/services/get-featured-services";
 import { pickLocalized } from "@/lib/i18n/localized";
+import { routes } from "@/config/routes";
 
 /**
  * ServicesPreview — "A Selection of the Studio's Best". Reads the featured
@@ -36,7 +37,7 @@ export async function ServicesPreview() {
             accent={t("headingAccent")}
             accentTone="secondary"
           />
-          <ArrowLink href="/services">{t("viewFullMenu")}</ArrowLink>
+          <ArrowLink href={routes.services}>{t("viewFullMenu")}</ArrowLink>
         </div>
 
         <ul className="mt-6 border-b border-border">
@@ -74,7 +75,7 @@ export async function ServicesPreview() {
         <Button
           className="mt-6"
           nativeButton={false}
-          render={<Link href="/book" />}
+          render={<Link href={routes.book} />}
         >
           {tNav("reserve")}
         </Button>

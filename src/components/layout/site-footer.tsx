@@ -4,46 +4,24 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { Eyebrow, Caption } from "@/components/ui/typography";
-
-type FooterLink = { href: string; label: string; external?: boolean };
+import { footerNav, routes } from "@/config/routes";
 
 /**
  * SiteFooter — logo column, address column, three nav columns, and a separate
  * copyright band. The year is derived server-side so it stays current without
- * manual maintenance.
+ * manual maintenance. Nav columns come from the shared route registry
+ * (`footerNav`); labels are resolved here so the footer can localize them.
  */
 export async function SiteFooter() {
   const t = await getTranslations("footer");
   const tNav = await getTranslations("nav");
   const year = new Date().getFullYear();
 
-  const columns: { heading: string; links: FooterLink[] }[] = [
-    {
-      heading: t("studio"),
-      links: [
-        { href: "/services", label: tNav("services") },
-        { href: "/gallery", label: tNav("gallery") },
-        { href: "/lookbook", label: tNav("lookbook") },
-      ],
-    },
-    {
-      heading: t("session"),
-      links: [{ href: "/book", label: tNav("reserve") }],
-    },
-    {
-      heading: t("follow"),
-      links: [
-        { href: "https://instagram.com", label: t("instagram"), external: true },
-        { href: "https://facebook.com", label: t("facebook"), external: true },
-      ],
-    },
-  ];
-
   return (
     <footer className="mt-auto border-t border-background/10 bg-primary text-primary-foreground">
       <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:gap-6 sm:grid-cols-[1.5fr_repeat(3,minmax(0,1fr))]">
         <div className="text-left">
-          <Link href="/" className="block w-fit" aria-label="Bella Nails home">
+          <Link href={routes.home} className="block w-fit" aria-label="Bella Nails home">
             <Image
               src="/brand/bella-nails-horizontal-reverse.svg"
               alt="Bella Nails"
@@ -62,14 +40,14 @@ export async function SiteFooter() {
           </Caption>
         </div>
 
-        {columns.map((col) => (
-          <div key={col.heading} className="space-y-4">
+        {footerNav.map((col) => (
+          <div key={col.headingKey} className="space-y-4">
             <Eyebrow className="text-[0.65rem] text-primary-foreground/65">
-              {col.heading}
+              {t(col.headingKey)}
             </Eyebrow>
             <ul className="space-y-2.5">
               {col.links.map((link) => (
-                <li key={link.label}>
+                <li key={link.href}>
                   {link.external ? (
                     <a
                       href={link.href}
@@ -77,14 +55,14 @@ export async function SiteFooter() {
                       rel="noreferrer"
                       className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   ) : (
                     <Link
                       href={link.href}
                       className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
                     >
-                      {link.label}
+                      {tNav(link.labelKey)}
                     </Link>
                   )}
                 </li>

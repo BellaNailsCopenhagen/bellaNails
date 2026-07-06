@@ -6,6 +6,7 @@ import { ArrowLink } from "@/components/ui/arrow-link";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items";
 import { pickLocalized } from "@/lib/i18n/localized";
+import { routes } from "@/config/routes";
 
 function GalleryTile({
   src,
@@ -66,7 +67,7 @@ export async function StudioGallery() {
             accent={t("headingAccent")}
             accentTone="secondary"
           />
-          <ArrowLink href="/gallery">{t("viewGallery")}</ArrowLink>
+          <ArrowLink href={routes.gallery}>{t("viewGallery")}</ArrowLink>
         </div>
 
         {supportingItems.length ? (

@@ -1,0 +1,79 @@
+import type enMessages from "../../messages/en.json";
+
+/**
+ * Central route registry — the single source of truth for every internal path
+ * and outbound social link. Import these instead of hardcoding `href` strings
+ * so paths can be renamed in one place and never drift between components.
+ *
+ * Header and footer navigation are exposed as *separate* subsets (`headerNav`,
+ * `footerNav`): they draw from the same route constants but are intentionally
+ * allowed to diverge in what they surface and how they group it.
+ */
+export const routes = {
+  home: "/",
+  services: "/services",
+  gallery: "/gallery",
+  lookbook: "/lookbook",
+  bookings: "/bookings",
+  book: "/book",
+  signIn: "/sign-in",
+  account: "/account",
+} as const;
+
+export type Route = (typeof routes)[keyof typeof routes];
+
+/** Outbound social links (open in a new tab). */
+export const externalLinks = {
+  instagram: "https://instagram.com",
+  facebook: "https://facebook.com",
+} as const;
+
+// Label keys are validated against the real i18n catalogs so a renamed message
+// key fails the build here rather than rendering a raw key at runtime.
+type NavLabelKey = keyof (typeof enMessages)["nav"];
+type FooterLabelKey = keyof (typeof enMessages)["footer"];
+
+/** A primary nav entry. `labelKey` resolves against the `nav` i18n namespace. */
+export type NavItem = { href: Route; labelKey: NavLabelKey };
+
+/** Primary header navigation. */
+export const headerNav: NavItem[] = [
+  { href: routes.services, labelKey: "services" },
+  { href: routes.gallery, labelKey: "gallery" },
+  { href: routes.lookbook, labelKey: "lookbook" },
+  { href: routes.bookings, labelKey: "bookings" },
+];
+
+/**
+ * A footer link. Internal links resolve their label against the `nav`
+ * namespace; external (social) links against `footer`.
+ */
+export type FooterNavLink =
+  | { href: Route; labelKey: NavLabelKey; external?: false }
+  | { href: string; labelKey: FooterLabelKey; external: true };
+
+/** A footer column: a heading (from the `footer` namespace) plus its links. */
+export type FooterColumn = { headingKey: FooterLabelKey; links: FooterNavLink[] };
+
+/** Footer navigation, grouped into columns. */
+export const footerNav: FooterColumn[] = [
+  {
+    headingKey: "studio",
+    links: [
+      { href: routes.services, labelKey: "services" },
+      { href: routes.gallery, labelKey: "gallery" },
+      { href: routes.lookbook, labelKey: "lookbook" },
+    ],
+  },
+  {
+    headingKey: "session",
+    links: [{ href: routes.book, labelKey: "reserve" }],
+  },
+  {
+    headingKey: "follow",
+    links: [
+      { href: externalLinks.instagram, labelKey: "instagram", external: true },
+      { href: externalLinks.facebook, labelKey: "facebook", external: true },
+    ],
+  },
+];
