@@ -47,7 +47,23 @@
     "headingLine1": "Tilpas",
     "headingLine2": "din session",
     "intro": "Begynd sammensætningen af din behandling. Vælg mellem klassisk manicure, geleforlængelse, Shellac og BIAB nedenfor — i de næste trin tilpasser du med tilvalg og finder et tidspunkt, der passer dig. Hver session er privat og reserveret til dig alene.",
-    "rowCta": "Vælg"
+    "rowCta": "Vælg",
+    "back": "Tilbage til valg",
+    "steps": {
+      "customise": "Tilpas",
+      "details": "Dine oplysninger",
+      "confirm": "Bekræft"
+    },
+    "addonsIntro": "Forfin din behandling med et eller flere tilvalg — alt udføres i den samme private session. Din samlede pris og varighed opdateres, mens du vælger, og i næste trin finder du dato og tidspunkt.",
+    "noAddons": "Denne behandling har ingen tilvalg — fortsæt direkte til valg af tidspunkt.",
+    "continue": "Fortsæt",
+    "incompatible": "Kan ikke kombineres med {name}",
+    "summaryLabel": "Oversigt over din tid",
+    "privateSession": "Studio — privat session",
+    "durationLabel": "Varighed",
+    "timeNote": "Du vælger dato og tidspunkt i næste trin.",
+    "totalLabel": "I alt",
+    "paymentNote": "Betaling foregår i studiet. Der gælder 24 timers afbudsfrist."
   },
   "formula": {
     "eyebrow": "Formlen",

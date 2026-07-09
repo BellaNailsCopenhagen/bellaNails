@@ -47,7 +47,23 @@
     "headingLine1": "Customise",
     "headingLine2": "Your Session",
     "intro": "Begin composing your appointment. Choose from classic manicure, gel extensions, Shellac and BIAB below — in the next steps you'll tailor your treatment with add-ons and pick a time that suits you. Every session is private, reserved for you alone.",
-    "rowCta": "Select"
+    "rowCta": "Select",
+    "back": "Back to selection",
+    "steps": {
+      "customise": "Customise",
+      "details": "Your details",
+      "confirm": "Confirm"
+    },
+    "addonsIntro": "Enhance your appointment with one or more add-ons — everything is performed within the same private session. Your total price and duration update as you choose, and you'll pick a date and time in the next step.",
+    "noAddons": "This treatment has no add-ons — continue straight to choosing your time.",
+    "continue": "Continue",
+    "incompatible": "Not compatible with {name}",
+    "summaryLabel": "Appointment summary",
+    "privateSession": "Studio — Private Session",
+    "durationLabel": "Duration",
+    "timeNote": "You'll choose the date and time in the next step.",
+    "totalLabel": "Total",
+    "paymentNote": "Payment is collected at the studio. 24-hour cancellation policy applies."
   },
   "formula": {
     "eyebrow": "The formula",
