@@ -99,6 +99,13 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - **Machine payload in `metadata`** (IDs only, never parse the human string): `{ serviceId, addonIds[], totalPriceCents, totalDurationMins, locale }` — this is what the webhook persists into `bookings.selected_addons` / `total_price_cents`.
 - Embed UI chrome follows the language we pass; consider the event-name template (interpolating a booking field) so the artist's calendar shows "Gel Extension + French tips — {name}" per appointment.
 
+### One event type per service — decided (July 2026)
+
+- Considered collapsing to a single generic "session" event type (duration overridden per booking anyway) — **rejected**: the webhook's `eventTypeId` is the tamper-proof service identity (booking `metadata` is client-controllable via URL params), and per-service knobs (distinct buffers, price-proportional Stripe holds, per-treatment availability) all require distinct event types. `cal_event_id` stays `NOT NULL UNIQUE`.
+- Event types stay **deliberately uniform**: one template (in-person address, 1440 notice, 30 after-buffer, hidden from profile, duration selector hidden) stamped per service — only slug/title/description/duration-grid differ. The admin sync then only ever writes those four fields.
+- ⚠️ **The current five services are placeholders** — the owner will rebuild the real catalog. Sequencing decided: ship `/book` against the placeholders (validates the whole pipeline) → pull the **admin services CRUD forward from Phase 8** (create/update/archive with Cal event-type sync) → owner rebuilds the catalog through the admin, which doubles as its real-world test.
+- Admin↔Cal sync mechanics: server action `POST/PATCH api.cal.eu/v2/event-types` (header `cal-api-version: 2024-06-14`) using a **server-only** `CALCOM_API_KEY`; create returns the `id` stored as `cal_event_id`; archive sets `archived_at` + hides the event type. Verified working against the live EU account (duration grid + description PATCHes, July 2026).
+
 ### Build
 
 - ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language. Point it at the **EU instance**.
@@ -130,8 +137,8 @@ Owner walkthrough — verifies every decision above in one pass:
 - 🔼 **Home page built to the Figma comp** as responsive, localized (da/en) sections in `src/components/sections/` — one branch each (`bellaNails-home-*`): Hero, ServicesPreview, Formula, Differentiators, StudioGallery, Testimonials, FindUs (+ header/footer revamp). All use the design system (typography, tokens, Container/Section). Stacked branches off `main`; assembled in `[locale]/page.tsx`. Verified: both locales 200 with all sections.
   - ✅ Home / hero (Quiet Luxury landing) — full-bleed, editorial headline, Reserve CTA, scroll cue.
   - ✅ "The Formula" section — Didier Lab positioning (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium), personal first-person framing.
-  - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag) — the full Services *menu* page is still to build.
-  - ⬜ Full Services menu page (from `services` + `addons`, localized, prices) — nav links `/services` etc. still 404.
+  - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag).
+  - ✅ **Full Services menu page** (`/services`, PR #17, July 2026) — "The Menu / Treatments & Care": data-driven category sections (`categories` + embedded `services`, ordered by `sort_order`; catalog restructured into Classic Manicure / Shellac & BIAB / Gel Extensions via [supabase/categories-menu.sql](../supabase/categories-menu.sql)), hoverable service rows deep-linking `/book?service=<uuid>`, SEO keyword intro copy (per [seo-plan.md](./seo-plan.md) Tier 2/3) + localized keyworded image alts, pricing/policy fine-print close. Also fixed the site-wide invisible `Separator` (classes targeted `data-horizontal`; base-ui emits `data-orientation`). Category images reuse the hero placeholder until Cloudinary photos land. Add-ons not shown on the menu yet — decide presentation with `/book`.
   - 🔼 Gallery (`gallery_items`: portfolio + before/after; Cloudinary `q_auto,f_auto`) — home StudioGallery now reads DB-backed items; next step is replacing temporary reused imagery with curated live assets and finishing the full gallery page/admin flow.
   - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
   - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
@@ -145,7 +152,7 @@ Owner walkthrough — verifies every decision above in one pass:
 ## Phase 8 — Admin
 
 - ⬜ Owner-gated `/[locale]/admin` shell.
-- ⬜ Manage services / add-ons / incompatibilities (soft-delete via `archived_at`).
+- 🔼 Manage services / add-ons / incompatibilities (soft-delete via `archived_at`) — **pulled forward, build right after `/book`**: one-step create/update/archive including the Cal event-type sync (see the Phase 6 "one event type per service" decision), so the owner rebuilds the placeholder catalog entirely from the admin without touching the Cal dashboard.
 - ⬜ Manage gallery — Cloudinary signed client upload, store URL only, and expose homepage featuring through nullable `sort_order` slots `1..5` (not arbitrary full-gallery ordering). Non-featured gallery items should keep `sort_order = null`.
 - ⬜ Manage testimonials — new `testimonials` table (see Phase 7) + CRUD; home section switches from i18n to reading it.
 - ⬜ Booking queue (client component + Query + Realtime).
