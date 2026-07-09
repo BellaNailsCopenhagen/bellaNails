@@ -40,6 +40,15 @@
     "pricingNoteBody": "Vores priser afspejler den fulde omkostning ved materialer i premium-kvalitet, privat studietid og årene af ekspertise bag hver behandling. Vi arbejder ikke med rabatstrukturer eller kampagnepriser.",
     "policyNote": "Alle priser inkluderer materialer. Sessioner er private og kun efter aftale, og der gælder 24 timers afbudsfrist."
   },
+  "booking": {
+    "metaTitle": "Book tid online – neglesalon i Ørestad, København",
+    "metaDescription": "Book din negletid online: klassisk manicure, geleforlængelse, Shellac og BIAB hos Bella Nails — en privat neglesalon i Ørestad, København.",
+    "eyebrow": "Online tidsbestilling · Ørestad, København",
+    "headingLine1": "Tilpas",
+    "headingLine2": "din session",
+    "intro": "Begynd sammensætningen af din behandling. Vælg mellem klassisk manicure, geleforlængelse, Shellac og BIAB nedenfor — i de næste trin tilpasser du med tilvalg og finder et tidspunkt, der passer dig. Hver session er privat og reserveret til dig alene.",
+    "rowCta": "Vælg"
+  },
   "formula": {
     "eyebrow": "Formlen",
     "headingLead": "Skabt til at holde —",

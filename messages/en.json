@@ -40,6 +40,15 @@
     "pricingNoteBody": "Our pricing reflects the full cost of premium-grade materials, private studio time, and the years of expertise behind each treatment. We do not operate discount structures or promotional pricing.",
     "policyNote": "All prices include materials. Sessions are private and by appointment only, and a 24-hour cancellation policy applies."
   },
+  "booking": {
+    "metaTitle": "Book Online – Nail Salon in Ørestad, Copenhagen",
+    "metaDescription": "Book your nail appointment online: classic manicure, gel extensions, Shellac and BIAB at Bella Nails — a private nail salon in Ørestad, Copenhagen.",
+    "eyebrow": "Online booking · Ørestad, Copenhagen",
+    "headingLine1": "Customise",
+    "headingLine2": "Your Session",
+    "intro": "Begin composing your appointment. Choose from classic manicure, gel extensions, Shellac and BIAB below — in the next steps you'll tailor your treatment with add-ons and pick a time that suits you. Every session is private, reserved for you alone.",
+    "rowCta": "Select"
+  },
   "formula": {
     "eyebrow": "The formula",
     "headingLead": "Made to last —",
