@@ -76,15 +76,54 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 ## Phase 6 — Booking flow (Cal.com + Stripe)
 
-- ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language.
-- ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`.
+### Cal.com account state (done July 2026)
+
+- ✅ Account live on the **EU instance** — booking URLs are `cal.eu/bellanails/*` and API calls go to `api.cal.eu` (⚠️ not `cal.com` — embed config, `NEXT_PUBLIC_CALCOM_LINK`, and API base must all point at the EU instance).
+- ✅ Five event types created, one per service, `cal_event_id` attached via [supabase/cal-event-ids.sql](../supabase/cal-event-ids.sql) (363871 gel-extension · 363953 the-classic-manicure · 363957 classic-manicure · 363961 shellac-biab · 363966 gel-polish).
+- ✅ Each event type: in-person location only (address `public:false`), `minimumBookingNotice` 1440 (24 h, matches the cancellation policy), `afterEventBuffer` 30, hidden from the public profile, duration selector hidden on the booking page.
+- ✅ Zoho Calendar sync **skipped** (EU-DC OAuth kept failing) — the Cal.com dashboard/app is the artist's booking calendar; Google Calendar is the fallback if external sync is ever needed. Zoho stays email-only.
+- ⬜ Verify the account's **default availability schedule** is the real studio hours — every event type has `scheduleId: null` (= default schedule governs all bookability).
+- ⬜ Stripe **deferred** (owner undecided): no-show holds are per-event-type Cal config, can be enabled later with zero app changes. When enabling, set currency to DKK (event types currently report `usd` default).
+
+### Custom durations (add-on model) — decided
+
+- **Only the main service's `cal_event_id` is ever sent to Cal.** Add-ons have no Cal identity; the app computes totals and picks a slot length.
+- Each event type has **multiple durations** in **15-minute steps from the base to base + max compatible add-on sum** (e.g. gel-extension: 90/105/120/135). At booking, the app `ceil`s the true total to the smallest offered option — **round up, never down** (over-reserving ≤14 min is fine; under-reserving collides bookings). Steps start from the base, so non-grid bases (45) still offer themselves.
+- ⚠️ The Cal **UI duration picker only offers preset values** (nothing between 90 and 120) — options like 105/135 must be written via **API v2** (`lengthInMinutesOptions`, header `cal-api-version: 2024-06-14`), which accepts arbitrary ints. The Phase 8 admin sync owns this; until then any duration change is an API PATCH, not a dashboard edit.
+- Buffer applies **once per booking** on top of the chosen duration (client sees 105, calendar blocks 135 with the 30-min buffer).
+
+### Localization across the Cal boundary — decided
+
+- Cal event-type `description` is a **single-language static field** (no per-locale variants) — keep it a short bilingual/Danish one-liner; all real localized copy lives in Supabase and renders on `/services` + `/book` before the embed opens.
+- **Per-booking localized summary**: `/book` composes a human-readable, locale-aware summary of the full selection ("Klassisk Gelforlængelse (90 min) + French tips (+15 min) · i alt 105 min · 700 kr.") and prefills it into the **notes/booking field** (visible to artist + in client emails, in the booker's language).
+- **Machine payload in `metadata`** (IDs only, never parse the human string): `{ serviceId, addonIds[], totalPriceCents, totalDurationMins, locale }` — this is what the webhook persists into `bookings.selected_addons` / `total_price_cents`.
+- Embed UI chrome follows the language we pass; consider the event-name template (interpolating a booking field) so the artist's calendar shows "Gel Extension + French tips — {name}" per appointment.
+
+### Build
+
+- ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language. Point it at the **EU instance**.
+- ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`. Reads the `?service=<uuid>` preselect that the `/services` menu rows already send.
 - ⬜ The app owns service/add-on selection and booking summary; **Cal.com owns availability search and date/time selection**. Do not build a separate first-party slot picker unless a later requirement proves Cal.com cannot satisfy the UX.
-- ⬜ Hand off the chosen service/add-on context into Cal.com so users land directly in the smarter availability step rather than re-entering booking context.
+- ⬜ Hand off the chosen service/add-on context into Cal.com (`?duration=` + the prefills above) so users land directly in the smarter availability step rather than re-entering booking context.
 - ⬜ Add booking consent copy linking to `/[locale]/terms` anywhere users submit or confirm a reservation (embed wrapper, booking CTA area, confirmation screen as needed).
 - ⬜ Define the studio guarantee terms before promising them in booking copy: coverage window by treatment type, what counts as normal wear, exclusions, contact method, and proof/repair flow.
 - ⬜ Redirect to own `/[locale]/confirmation` on success.
-- ⬜ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`.
-- ⬜ Stripe no-show card holds via Cal.com (SetupIntents) — config in Cal.com + Stripe dashboards.
+- ⬜ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`. ⚠️ Create the webhook in Cal (Settings → Developer → Webhooks, secret → `CALCOM_WEBHOOK_SECRET`) only once this endpoint exists; earlier deliveries would just fail.
+- ⬜ Stripe no-show card holds via Cal.com (SetupIntents) — config in Cal.com + Stripe dashboards. **Deferred** (see account state above).
+
+### End-to-end test scenario (run once `/book` ships)
+
+Owner walkthrough — verifies every decision above in one pass:
+
+1. **Locale + preselect**: from `/da/services`, click the "Gel Polish" row → `/da/book?service=59c02169…` opens with Gel Polish preselected, Danish copy, correct price/duration shown.
+2. **Add-on math**: select an add-on → total price and duration update; try an incompatible pair → UI blocks it. Confirm the computed duration rounds *up* to the next offered step.
+3. **Embed handoff**: continue to the embed → it opens `cal.eu/bellanails/gel-polish` with the *chosen* duration (no duration selector visible), Danish UI, brand theming, and slots only within studio hours (default-schedule check).
+4. **Notice + buffer**: verify no slots are offered within the next 24 h, and after booking, the next available slot sits ≥30 min after the booked treatment ends.
+5. **Booking data**: complete a real test booking (use a personal email) → confirmation email arrives with the localized summary in the notes; the Cal dashboard booking shows the same summary + metadata; the calendar event title/duration are correct.
+6. **Webhook sync**: the `bookings` row appears in Supabase with `cal_booking_id`, correct `total_price_cents`, `selected_addons` populated from metadata, and `clerk_user_id` resolved from the attendee email.
+7. **Confirmation page**: the success redirect lands on `/da/confirmation` (locale preserved).
+8. **Lifecycle**: use the emailed links to reschedule, then cancel → the Supabase row status updates on each webhook event; cancelling inside 24 h is blocked by policy.
+9. **Repeat 1–3 in English** (`/en/services` → `/en/book`) — everything mirrors except the notes summary language, which follows the booker.
 
 ## Phase 7 — Public site features 🔼
 
