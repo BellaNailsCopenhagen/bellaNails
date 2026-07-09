@@ -2,10 +2,8 @@ import { Fragment } from "react";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
-import { HoverArrow } from "@/components/ui/arrow-link";
-import { PriceTag } from "@/components/ui/price-tag";
+import { ServiceRow } from "@/components/sections/service-row";
 import { Separator } from "@/components/ui/separator";
 import {
   BodySm,
@@ -18,7 +16,6 @@ import {
 } from "@/components/ui/typography";
 import { getServiceMenu, type MenuCategory } from "@/lib/services/get-service-menu";
 import { pickLocalized } from "@/lib/i18n/localized";
-import { routes } from "@/config/routes";
 
 async function CategorySection({
   category,
@@ -56,45 +53,16 @@ async function CategorySection({
             {description ? <BodySm>{description}</BodySm> : null}
           </div>
 
-          {/* Each row is the booking entry point (/book reads `?service=`
-              to preselect, Phase 6) with a card-like hover fill. */}
           <ul>
-            {category.services.map((service) => {
-              const serviceName =
-                pickLocalized(locale, service.name_en, service.name_dk) ??
-                service.name_en;
-              return (
-                <li key={service.id}>
-                  <Link
-                    href={{
-                      pathname: routes.book,
-                      query: { service: service.id },
-                    }}
-                    className="group -mx-4 flex items-center justify-between gap-6 rounded-sm px-4 py-5 outline-none transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40"
-                  >
-                    <div className="space-y-1">
-                      <BodySm className="text-foreground">{serviceName}</BodySm>
-                      <Caption className="block text-[11px] tracking-wide">
-                        {service.base_duration_mins} {tCatalog("minutes")}
-                      </Caption>
-                    </div>
-                    <div className="flex items-baseline gap-5">
-                      <PriceTag
-                        cents={service.base_price_cents}
-                        className="text-lg"
-                      />
-                      {/* Always visible on touch; revealed on hover/focus on
-                          desktop (opacity keeps the price from shifting). */}
-                      <Caption className="inline-flex items-center gap-1.5 text-foreground transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
-                        {t("rowCta")}
-                        <HoverArrow />
-                      </Caption>
-                    </div>
-                  </Link>
-                  <Separator />
-                </li>
-              );
-            })}
+            {category.services.map((service) => (
+              <ServiceRow
+                key={service.id}
+                service={service}
+                locale={locale}
+                minutesLabel={tCatalog("minutes")}
+                ctaLabel={t("rowCta")}
+              />
+            ))}
           </ul>
         </div>
 
