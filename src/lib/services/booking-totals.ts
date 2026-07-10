@@ -36,4 +36,28 @@ export function computeBookingTotals(
   return { totalCents, totalMins, slotMins };
 }
 
+/**
+ * Drops add-on ids that don't belong to the service or that clash with an
+ * earlier-kept id per `incompatiblePairs` — the server-side counterpart of
+ * the customizer's checkbox locking, so a hand-crafted URL can't book (and
+ * pay for) a combination the UI forbids. Keep order = URL order.
+ */
+export function sanitizeSelectedAddonIds(
+  requestedIds: string[],
+  addons: { id: string }[],
+  incompatiblePairs: [string, string][],
+): string[] {
+  const valid = new Set(addons.map((addon) => addon.id));
+  const kept: string[] = [];
+  for (const id of requestedIds) {
+    if (!valid.has(id) || kept.includes(id)) continue;
+    const clashes = incompatiblePairs.some(
+      ([a, b]) =>
+        (a === id && kept.includes(b)) || (b === id && kept.includes(a)),
+    );
+    if (!clashes) kept.push(id);
+  }
+  return kept;
+}
+
 export type { BookingTotals };

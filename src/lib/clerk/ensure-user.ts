@@ -64,14 +64,25 @@ export async function ensureClerkUser({
   ).data[0];
 
   if (!existing) {
-    const user = await client.users.createUser({
-      emailAddress: [normalizedEmail],
-      ...(firstName ? { firstName } : {}),
-      ...(lastName ? { lastName } : {}),
-      skipPasswordRequirement: true,
-    });
-    await tryAttachPhone(client, user.id, phone);
-    return user.id;
+    try {
+      const user = await client.users.createUser({
+        emailAddress: [normalizedEmail],
+        ...(firstName ? { firstName } : {}),
+        ...(lastName ? { lastName } : {}),
+        skipPasswordRequirement: true,
+      });
+      await tryAttachPhone(client, user.id, phone);
+      return user.id;
+    } catch (error) {
+      // Check-then-create race: a concurrent delivery (or the account
+      // opt-in) created the user between our lookup and createUser. Clerk
+      // rejects the duplicate email — re-fetch and use the winner.
+      const raced = (
+        await client.users.getUserList({ emailAddress: [normalizedEmail] })
+      ).data[0];
+      if (raced) return raced.id;
+      throw error;
+    }
   }
 
   const patch = {

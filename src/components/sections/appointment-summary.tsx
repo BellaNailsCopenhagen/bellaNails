@@ -22,9 +22,12 @@ type BookingLineItem = {
 function AppointmentSummary({
   service,
   selectedAddons,
+  showTimeNote = true,
 }: {
   service: BookingLineItem;
   selectedAddons: BookingLineItem[];
+  /** Hide the "you'll pick a time next" note on the step that IS the picker. */
+  showTimeNote?: boolean;
 }) {
   const t = useTranslations("booking");
   const tCatalog = useTranslations("services");
@@ -54,9 +57,11 @@ function AppointmentSummary({
             {totalMins} {tCatalog("minutes")}
           </Caption>
         </div>
-        <Caption className="block text-[11px] tracking-wide normal-case">
-          {t("timeNote")}
-        </Caption>
+        {showTimeNote ? (
+          <Caption className="block text-[11px] tracking-wide normal-case">
+            {t("timeNote")}
+          </Caption>
+        ) : null}
 
         <Separator />
 

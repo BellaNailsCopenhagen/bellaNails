@@ -2,31 +2,36 @@ import { Show } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import { getLocale, getTranslations } from "next-intl/server";
 
-import { Link } from "@/i18n/navigation";
-import {
-  AppointmentSummary,
-  type BookingLineItem,
-} from "@/components/sections/appointment-summary";
-import { BookingSteps } from "@/components/sections/booking-steps";
+import { getPathname, Link } from "@/i18n/navigation";
+import { AppointmentSummary } from "@/components/sections/appointment-summary";
+import { BookingStepHeader } from "@/components/sections/booking-step-header";
 import { Container, Section } from "@/components/layout/container";
-import { ArrowLink } from "@/components/ui/arrow-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PageHeader } from "@/components/ui/page-header";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { BodySm } from "@/components/ui/typography";
 import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons";
-import { PHONE_HTML_PATTERN } from "@/lib/contact-validation";
-import { pickLocalized } from "@/lib/i18n/localized";
+import {
+  EMAIL_HTML_PATTERN,
+  PHONE_HTML_PATTERN,
+  type BookingContact,
+} from "@/lib/contact-validation";
+import { localizeSelection } from "@/lib/services/localize-selection";
 import { routes } from "@/config/routes";
 
-type ContactPrefill = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  notes?: string;
+/** Keep GET URLs (and the Cal notes prefill) comfortably bounded. */
+const NOTES_MAX_LENGTH = 500;
+
+type Field = {
+  id: "name" | "email" | "phone";
+  label: string;
+  placeholder: string;
+  type: string;
+  autoComplete: string;
+  minLength?: number;
+  pattern?: string;
+  defaultValue?: string;
 };
 
 /**
@@ -44,7 +49,7 @@ export async function BookingDetails({
   prefill = {},
 }: Pick<ServiceWithAddons, "service" | "addons"> & {
   selectedAddonIds: string[];
-  prefill?: ContactPrefill;
+  prefill?: BookingContact;
 }) {
   const [t, locale, user] = await Promise.all([
     getTranslations("booking"),
@@ -66,51 +71,18 @@ export async function BookingDetails({
     notes: prefill.notes,
   };
 
-  const toLineItem = (
-    id: string,
-    nameEn: string,
-    nameDk: string | null,
-    priceCents: number,
-    durationMins: number,
-  ): BookingLineItem => ({
-    id,
-    name: pickLocalized(locale, nameEn, nameDk) ?? nameEn,
-    priceCents,
-    durationMins,
-  });
+  const { service: localizedService, addons: selectedAddons } =
+    localizeSelection(service, addons, locale, selectedAddonIds);
 
-  const localizedService = toLineItem(
-    service.id,
-    service.name_en,
-    service.name_dk,
-    service.base_price_cents,
-    service.base_duration_mins,
-  );
-  // Only ids that are real add-ons of this service survive (a tampered or
-  // stale `addons` param degrades to "not selected", never a wrong price).
-  const selectedAddons = addons
-    .filter((addon) => selectedAddonIds.includes(addon.id))
-    .map((addon) =>
-      toLineItem(
-        addon.id,
-        addon.name_en,
-        addon.name_dk,
-        addon.extra_price_cents,
-        addon.extra_duration_mins,
-      ),
-    );
+  const addonsParam = selectedAddons.length
+    ? { addons: selectedAddons.map((a) => a.id).join(",") }
+    : {};
+  const backQuery = { service: service.id, ...addonsParam };
 
-  const backQuery = {
-    service: service.id,
-    ...(selectedAddons.length
-      ? { addons: selectedAddons.map((a) => a.id).join(",") }
-      : {}),
-  };
-
-  // All three are required — enforced here natively (required/type/pattern,
+  // All three are required — enforced natively here (required/type/pattern,
   // browser-localized messages) and again at the /book routing gate
-  // (`isCompleteContact`), so a hand-edited confirm URL can't skip them.
-  const fields = [
+  // (`isCompleteContact`), using the same patterns so they can't disagree.
+  const fields: Field[] = [
     {
       id: "name",
       label: t("fields.fullName"),
@@ -118,7 +90,6 @@ export async function BookingDetails({
       type: "text",
       autoComplete: "name",
       minLength: 2,
-      pattern: undefined,
       defaultValue: defaults.name,
     },
     {
@@ -127,8 +98,7 @@ export async function BookingDetails({
       placeholder: t("fields.emailPlaceholder"),
       type: "email",
       autoComplete: "email",
-      minLength: undefined,
-      pattern: undefined,
+      pattern: EMAIL_HTML_PATTERN,
       defaultValue: defaults.email,
     },
     {
@@ -137,39 +107,29 @@ export async function BookingDetails({
       placeholder: t("fields.phonePlaceholder"),
       type: "tel",
       autoComplete: "tel",
-      minLength: undefined,
       pattern: PHONE_HTML_PATTERN,
       defaultValue: defaults.phone,
     },
-  ] as const;
+  ];
 
+  const bookPath = getPathname({ locale, href: routes.book });
   // Where the sign-in flow should land back: this exact step with selection.
-  const returnUrl = `/${locale}${routes.book}?${new URLSearchParams({
+  const returnParams = new URLSearchParams({
     service: service.id,
     step: "details",
-    ...(selectedAddons.length
-      ? { addons: selectedAddons.map((a) => a.id).join(",") }
-      : {}),
-  }).toString()}`;
+  });
+  if (selectedAddons.length) {
+    returnParams.set("addons", selectedAddons.map((a) => a.id).join(","));
+  }
+  const returnUrl = `${bookPath}?${returnParams.toString()}`;
 
   return (
     <Section>
       <Container className="max-w-4xl">
-        <div className="space-y-4 pb-8">
-          <ArrowLink
-            back
-            href={{ pathname: routes.book, query: backQuery }}
-            className="text-[10px]"
-          >
-            {t("backToCustomise")}
-          </ArrowLink>
-          <BookingSteps current={1} />
-        </div>
-
-        <Separator />
-
-        <PageHeader
-          className="py-16"
+        <BookingStepHeader
+          current={1}
+          backHref={{ pathname: routes.book, query: backQuery }}
+          backLabel={t("backToCustomise")}
           eyebrow={t("eyebrow")}
           lead={t("headingDetails1")}
           muted={t("headingDetails2")}
@@ -199,10 +159,14 @@ export async function BookingDetails({
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           {/* GET submit: the contact fields join the URL-driven flow state
               (`?service=…&addons=…&step=confirm&name=…`), keeping every step
-              refreshable and back-button safe. */}
+              refreshable and back-button safe. Accepted trade-off (owner
+              decision): contact data transits the query string — it reaches
+              our own access logs/browser history but NOT third parties (the
+              default strict-origin-when-cross-origin referrer policy strips
+              path+query from the Cal iframe's Referer). */}
           <form
             method="get"
-            action={`/${locale}${routes.book}`}
+            action={bookPath}
             className="w-full max-w-[25rem] space-y-10"
           >
             <input type="hidden" name="service" value={service.id} />
@@ -249,6 +213,7 @@ export async function BookingDetails({
                 id="notes"
                 name="notes"
                 placeholder={t("fields.notesPlaceholder")}
+                maxLength={NOTES_MAX_LENGTH}
                 defaultValue={defaults.notes}
               />
             </div>

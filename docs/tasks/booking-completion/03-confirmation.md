@@ -20,6 +20,8 @@ The branded post-booking success page. Shows an appointment recap and makes
 - For **signed-in** clients, render an **optimistic recap immediately** from cached selection/profile context, then reconcile when the row lands.
 - Recap content: service (+ add-ons), date/time (localized), duration, total (`PriceTag`), studio address (reuse `FindUs` data/map asset).
 - **Account block** via Clerk **prebuilt `<SignUp/>`** (brand-themed) — email code + Google + Apple, no hand-built buttons. Copy: *"Create an account to manage your bookings"* / *"Opret en konto for at administrere dine bookinger"*; sub-copy: reschedule, cancel, rebook in one place; email can be prefilled from the booking. Hide this block entirely when already signed in.
+  - **Decided (owner, July 2026): no passwords, ever** — "completing the account" means verifying the booking email with a one-time code, then redirecting to `routes.bookings`. Note the webhook has usually *already created* the Clerk user for this email (create-or-find), so the prebuilt component must hand off gracefully to sign-in for an existing identity (Clerk's existing-account transfer + verified-email linking cover this); if the webhook lags, plain sign-up works and linking merges later.
+  - The step-03 account opt-in checkbox was removed in favour of this block — the conversion moment lives here.
 - Primary action "View my bookings" → `routes.bookings`; secondary "Back to home" / "Browse the menu".
 - i18n: new `confirmation.*` namespace in `da.json` + `en.json` (incl. `metaTitle`/`metaDescription`).
 - `noindex` this page.

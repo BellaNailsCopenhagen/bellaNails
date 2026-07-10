@@ -9,7 +9,9 @@ import { BookingConfirm } from "@/components/sections/booking-confirm";
 import { BookingDetails } from "@/components/sections/booking-details";
 import { BookingServicePicker } from "@/components/sections/booking-service-picker";
 import { isCompleteContact } from "@/lib/contact-validation";
+import { sanitizeSelectedAddonIds } from "@/lib/services/booking-totals";
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons";
+import { CALCOM_USERNAME } from "@/config/calcom";
 
 /** First value when a query param repeats; undefined when absent. */
 function single(value: string | string[] | undefined): string | undefined {
@@ -46,10 +48,7 @@ export async function generateMetadata({
 export default async function BookPage({
   params,
   searchParams,
-}: {
-  params: Promise<{ locale: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+}: PageProps<"/[locale]/book">) {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
   if (!hasLocale(routing.locales, locale)) {
     notFound();
@@ -59,7 +58,15 @@ export default async function BookPage({
   const service = single(query.service);
   const step = single(query.step);
   const selection = service ? await getServiceWithAddons(service) : null;
-  const selectedAddonIds = single(query.addons)?.split(",").filter(Boolean) ?? [];
+  const selectedAddonIds = selection
+    ? // Server-side counterpart of the customizer's checkbox locking: drop
+      // unknown ids and incompatible combinations a crafted URL could carry.
+      sanitizeSelectedAddonIds(
+        single(query.addons)?.split(",").filter(Boolean) ?? [],
+        selection.addons,
+        selection.incompatiblePairs,
+      )
+    : [];
 
   const contact = {
     name: single(query.name),
@@ -68,15 +75,22 @@ export default async function BookPage({
     notes: single(query.notes),
   };
 
+  // Confirm needs the Cal identity to exist — a null slug or missing Cal
+  // username is a config gap, not a user error: log it loudly and degrade.
+  const calReady = Boolean(selection?.service.cal_event_slug && CALCOM_USERNAME);
+  if (step === "confirm" && selection && !calReady) {
+    console.error("[book] confirm unavailable: missing Cal config", {
+      serviceId: selection.service.id,
+      hasSlug: Boolean(selection.service.cal_event_slug),
+      hasUsername: Boolean(CALCOM_USERNAME),
+    });
+  }
+
   const renderStep = () => {
     if (!selection) return <BookingServicePicker />;
-    // Confirm requires a Cal slug AND complete, well-formed contact data —
-    // a hand-edited URL that skips the form degrades to the details step.
-    if (
-      step === "confirm" &&
-      selection.service.cal_event_slug &&
-      isCompleteContact(contact)
-    ) {
+    // Confirm requires the Cal config AND complete, well-formed contact
+    // data — a hand-edited URL that skips the form degrades to details.
+    if (step === "confirm" && calReady && isCompleteContact(contact)) {
       return (
         <BookingConfirm
           service={selection.service}

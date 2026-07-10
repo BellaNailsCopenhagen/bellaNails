@@ -6,8 +6,13 @@ import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
 import { Caption } from "@/components/ui/typography";
+import type { BookingContact } from "@/lib/contact-validation";
 import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom";
 import { routes } from "@/config/routes";
+
+/** Skeleton and iframe share this height — unequal values reintroduce the
+    layout shift the fixed shell exists to prevent. */
+const EMBED_MIN_HEIGHT = "36rem";
 
 /** IDs-only machine payload for the webhook (Task 02) — never parsed as text. */
 type BookingMetadata = {
@@ -34,7 +39,7 @@ export function BookingEmbed({
 }: {
   calLink: string;
   slotMins: number;
-  prefill: { name?: string; email?: string; phone?: string; notes?: string };
+  prefill: BookingContact;
   notesSummary: string;
   metadata: BookingMetadata;
 }) {
@@ -46,9 +51,20 @@ export function BookingEmbed({
 
   React.useEffect(() => {
     let cancelled = false;
+    const onLinkReady = () => setReady(true);
+    const onBooked = (event: { detail: { data: { uid?: string } } }) => {
+      const { uid } = event.detail.data;
+      router.push({
+        pathname: routes.confirmation,
+        query: uid ? { uid } : undefined,
+      });
+    };
+
+    let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined;
     (async () => {
       const cal = await getCalApi({ embedJsUrl: CALCOM_EMBED_JS_URL });
       if (cancelled) return;
+      calApi = cal;
       cal("ui", {
         theme: "light",
         hideEventTypeDetails: false,
@@ -58,23 +74,17 @@ export function BookingEmbed({
           dark: { "cal-brand": "#fbfbfa" },
         },
       });
-      cal("on", {
-        action: "linkReady",
-        callback: () => setReady(true),
-      });
-      cal("on", {
-        action: "bookingSuccessfulV2",
-        callback: (event) => {
-          const { uid } = event.detail.data;
-          router.push({
-            pathname: routes.confirmation,
-            query: uid ? { uid } : undefined,
-          });
-        },
-      });
+      cal("on", { action: "linkReady", callback: onLinkReady });
+      cal("on", { action: "bookingSuccessfulV2", callback: onBooked });
     })();
+
     return () => {
       cancelled = true;
+      // getCalApi hands back a window-level singleton: without `off`, every
+      // remount (locale switch, back/forward) stacks another handler and one
+      // booking would push to /confirmation once per stacked listener.
+      calApi?.("off", { action: "linkReady", callback: onLinkReady });
+      calApi?.("off", { action: "bookingSuccessfulV2", callback: onBooked });
     };
   }, [router]);
 
@@ -84,7 +94,7 @@ export function BookingEmbed({
 
   return (
     <div className="w-full">
-      <div className="relative min-h-[36rem]">
+      <div className="relative" style={{ minHeight: EMBED_MIN_HEIGHT }}>
         {/* Branded skeleton while the booker boots (fixed-height shell = no
             layout shift); removed on linkReady so it can't peek out around
             the loaded iframe. */}
@@ -118,7 +128,7 @@ export function BookingEmbed({
             "metadata[totalDurationMins]": String(metadata.totalDurationMins),
             "metadata[locale]": metadata.locale,
           }}
-          style={{ width: "100%", minHeight: "36rem" }}
+          style={{ width: "100%", minHeight: EMBED_MIN_HEIGHT }}
         />
       </div>
     </div>
