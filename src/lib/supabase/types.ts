@@ -249,6 +249,7 @@ export type Database = {
           base_duration_mins: number
           base_price_cents: number
           cal_event_id: number
+          cal_event_slug: string | null
           category_id: string | null
           created_at: string | null
           description_dk: string | null
@@ -265,6 +266,7 @@ export type Database = {
           base_duration_mins: number
           base_price_cents: number
           cal_event_id: number
+          cal_event_slug?: string | null
           category_id?: string | null
           created_at?: string | null
           description_dk?: string | null
@@ -281,6 +283,7 @@ export type Database = {
           base_duration_mins?: number
           base_price_cents?: number
           cal_event_id?: number
+          cal_event_slug?: string | null
           category_id?: string | null
           created_at?: string | null
           description_dk?: string | null

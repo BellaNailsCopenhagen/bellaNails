@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { PriceTag } from "@/components/ui/price-tag";
 import { Separator } from "@/components/ui/separator";
 import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography";
+import { computeBookingTotals } from "@/lib/services/booking-totals";
 
 /** Localized, display-ready line item — resolved from `_en`/`_dk` upstream. */
 type BookingLineItem = {
@@ -28,12 +29,10 @@ function AppointmentSummary({
   const t = useTranslations("booking");
   const tCatalog = useTranslations("services");
 
-  const totalCents =
-    service.priceCents +
-    selectedAddons.reduce((sum, addon) => sum + addon.priceCents, 0);
-  const totalMins =
-    service.durationMins +
-    selectedAddons.reduce((sum, addon) => sum + addon.durationMins, 0);
+  const { totalCents, totalMins } = computeBookingTotals(
+    service,
+    selectedAddons,
+  );
 
   return (
     <aside className="w-full max-w-[22.5rem] rounded-lg border border-border bg-muted/60 p-6 sm:p-8">

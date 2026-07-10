@@ -16,6 +16,8 @@ export const routes = {
   lookbook: "/lookbook",
   bookings: "/bookings",
   book: "/book",
+  confirmation: "/confirmation",
+  terms: "/terms",
   signIn: "/sign-in",
   account: "/account",
 } as const;
