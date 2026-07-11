@@ -9,8 +9,15 @@ type ServiceAddon = Pick<
   "id" | "name_en" | "name_dk" | "extra_price_cents" | "extra_duration_mins"
 >;
 
+/** Menu columns plus the Cal.com identity the confirm step embeds with. */
+type BookableService = MenuService &
+  Pick<
+    Database["public"]["Tables"]["services"]["Row"],
+    "cal_event_id" | "cal_event_slug"
+  >;
+
 type ServiceWithAddons = {
-  service: MenuService;
+  service: BookableService;
   addons: ServiceAddon[];
   /** Unordered incompatible pairs among this service's addons, by addon id. */
   incompatiblePairs: [string, string][];
@@ -34,7 +41,7 @@ export async function getServiceWithAddons(
   const { data, error } = await supabase
     .from("services")
     .select(
-      "id, name_en, name_dk, base_price_cents, base_duration_mins, addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins)",
+      "id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_id, cal_event_slug, addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins)",
     )
     .eq("id", serviceId)
     .is("archived_at", null)
@@ -47,7 +54,7 @@ export async function getServiceWithAddons(
   }
   if (!data) return null;
 
-  const { addons, ...service } = data as MenuService & {
+  const { addons, ...service } = data as BookableService & {
     addons: ServiceAddon[];
   };
 
@@ -77,4 +84,4 @@ export async function getServiceWithAddons(
   return { service, addons, incompatiblePairs };
 }
 
-export type { ServiceAddon, ServiceWithAddons };
+export type { BookableService, ServiceAddon, ServiceWithAddons };

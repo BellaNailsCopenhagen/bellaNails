@@ -4,33 +4,32 @@ import * as React from "react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
+import {
+  AppointmentSummary,
+  type BookingLineItem,
+} from "@/components/sections/appointment-summary";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PriceTag } from "@/components/ui/price-tag";
 import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography";
-
-/** Localized, display-ready line item — the server wrapper resolves `_en`/`_dk`. */
-type CustomizerItem = {
-  id: string;
-  name: string;
-  priceCents: number;
-  durationMins: number;
-};
+import { BodySm, Caption } from "@/components/ui/typography";
+import { routes } from "@/config/routes";
 
 /**
  * BookingCustomizer — the interactive half of the customise step: toggle
  * add-ons, live price/duration totals, and incompatibility locking (an addon
  * incompatible with a selected one is disabled with a note naming it).
- * Continue is disabled until the next step (details/time) ships.
+ * Continue carries the selection to step 02 via the URL
+ * (`?service=…&addons=a,b&step=details`).
  */
 export function BookingCustomizer({
   service,
   addons,
   incompatiblePairs,
 }: {
-  service: CustomizerItem;
-  addons: CustomizerItem[];
+  service: BookingLineItem;
+  addons: BookingLineItem[];
   incompatiblePairs: [string, string][];
 }) {
   const t = useTranslations("booking");
@@ -64,12 +63,6 @@ export function BookingCustomizer({
   };
 
   const selectedAddons = addons.filter((addon) => selected.has(addon.id));
-  const totalCents =
-    service.priceCents +
-    selectedAddons.reduce((sum, addon) => sum + addon.priceCents, 0);
-  const totalMins =
-    service.durationMins +
-    selectedAddons.reduce((sum, addon) => sum + addon.durationMins, 0);
 
   return (
     <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
@@ -118,69 +111,29 @@ export function BookingCustomizer({
           <BodySm>{t("noAddons")}</BodySm>
         )}
 
-        {/* Enabled once step 02 (details/time) exists. */}
-        <Button size="lg" disabled>
+        <Button
+          size="lg"
+          nativeButton={false}
+          render={
+            <Link
+              href={{
+                pathname: routes.book,
+                query: {
+                  service: service.id,
+                  step: "details",
+                  ...(selectedAddons.length
+                    ? { addons: selectedAddons.map((a) => a.id).join(",") }
+                    : {}),
+                },
+              }}
+            />
+          }
+        >
           {t("continue")}
         </Button>
       </div>
 
-      <aside className="w-full max-w-[22.5rem] rounded-lg border border-border bg-muted/60 p-6 sm:p-8">
-        <div className="space-y-6">
-          <Eyebrow className="font-normal">{t("summaryLabel")}</Eyebrow>
-
-          <div className="space-y-1">
-            <H3>{service.name}</H3>
-            <Caption className="block tracking-wide normal-case">
-              {t("privateSession")}
-            </Caption>
-          </div>
-
-          <div className="flex items-baseline justify-between">
-            <Caption className="text-[10px] tracking-widest">
-              {t("durationLabel")}
-            </Caption>
-            <Caption className="text-[10px] tracking-widest text-foreground">
-              {totalMins} {tCatalog("minutes")}
-            </Caption>
-          </div>
-          <Caption className="block text-[11px] tracking-wide normal-case">
-            {t("timeNote")}
-          </Caption>
-
-          <Separator />
-
-          <ul className="space-y-2">
-            <li className="flex items-baseline justify-between gap-6">
-              <BodySm className="text-foreground">{service.name}</BodySm>
-              <PriceTag cents={service.priceCents} className="text-sm" />
-            </li>
-            {selectedAddons.map((addon) => (
-              <li
-                key={addon.id}
-                className="flex items-baseline justify-between gap-6"
-              >
-                <BodySm>{addon.name}</BodySm>
-                <PriceTag
-                  cents={addon.priceCents}
-                  sign
-                  className="text-sm text-muted-foreground"
-                />
-              </li>
-            ))}
-          </ul>
-
-          <Separator />
-
-          <div className="flex items-baseline justify-between gap-6">
-            <Eyebrow as="span">{t("totalLabel")}</Eyebrow>
-            <PriceTag cents={totalCents} className="font-editorial text-2xl" />
-          </div>
-
-          <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">
-            {t("paymentNote")}
-          </Caption>
-        </div>
-      </aside>
+      <AppointmentSummary service={service} selectedAddons={selectedAddons} />
     </div>
   );
 }

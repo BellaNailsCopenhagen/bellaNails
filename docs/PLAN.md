@@ -97,7 +97,8 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - Cal event-type `description` is a **single-language static field** (no per-locale variants) — keep it a short bilingual/Danish one-liner; all real localized copy lives in Supabase and renders on `/services` + `/book` before the embed opens.
 - **Per-booking localized summary**: `/book` composes a human-readable, locale-aware summary of the full selection ("Klassisk Gelforlængelse (90 min) + French tips (+15 min) · i alt 105 min · 700 kr.") and prefills it into the **notes/booking field** (visible to artist + in client emails, in the booker's language).
 - **Machine payload in `metadata`** (IDs only, never parse the human string): `{ serviceId, addonIds[], totalPriceCents, totalDurationMins, locale }` — this is what the webhook persists into `bookings.selected_addons` / `total_price_cents`.
-- Embed UI chrome follows the language we pass; consider the event-name template (interpolating a booking field) so the artist's calendar shows "Gel Extension + French tips — {name}" per appointment.
+- ⚠️ **Embed UI language cannot follow the site locale** — Cal cloud auto-detects the *browser* language and offers no per-visitor override (open requests calcom/cal.com#8904, #18710). Decided: keep auto-detect (matches the visitor better than anything we can force); the per-event `interfaceLanguage` field could force one fixed language for all visitors, rejected because EN-site visitors would get a Danish booker. Revisit if Cal ships a `?language=` param.
+- Consider the event-name template (interpolating a booking field) so the artist's calendar shows "Gel Extension + French tips — {name}" per appointment.
 
 ### One event type per service — decided (July 2026)
 
@@ -107,6 +108,8 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - Admin↔Cal sync mechanics: server action `POST/PATCH api.cal.eu/v2/event-types` (header `cal-api-version: 2024-06-14`) using a **server-only** `CALCOM_API_KEY`; create returns the `id` stored as `cal_event_id`; archive sets `archived_at` + hides the event type. Verified working against the live EU account (duration grid + description PATCHes, July 2026).
 
 ### Build
+
+> **Agent task briefs for Phases 6–7 booking completion:** [`tasks/booking-completion/`](./tasks/booking-completion/) — dependency-ordered, one branch/PR each (01 embed · 02 webhook+identity · 03 confirmation · 04 bookings). Read `00-context.md` first.
 
 - ⬜ Install `@calcom/embed-react`; themed embed (`brandColor` Onyx, `bodyBg` Alabaster, matching fonts/radii), pass language. Point it at the **EU instance**.
 - ⬜ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`. Reads the `?service=<uuid>` preselect that the `/services` menu rows already send.

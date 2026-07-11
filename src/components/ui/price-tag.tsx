@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
  */
 function formatPrice(
   cents: number,
-  locale: string,
-  currency: string,
-  sign: boolean,
+  locale = "da-DK",
+  currency = "DKK",
+  sign = false,
 ) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
