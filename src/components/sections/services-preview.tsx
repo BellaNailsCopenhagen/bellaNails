@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Container, Section } from "@/components/layout/container";
-import { ArrowLink } from "@/components/ui/arrow-link";
+import { ArrowLink, HoverArrow } from "@/components/ui/arrow-link";
 import { Button } from "@/components/ui/button";
 import { PriceTag } from "@/components/ui/price-tag";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -17,9 +17,10 @@ import { routes } from "@/config/routes";
  * locale, prices via PriceTag. Renders nothing if there are no featured rows.
  */
 export async function ServicesPreview() {
-  const [t, tNav, locale] = await Promise.all([
+  const [t, tNav, tMenu, locale] = await Promise.all([
     getTranslations("services"),
     getTranslations("nav"),
+    getTranslations("serviceMenu"),
     getLocale(),
   ]);
 
@@ -52,21 +53,40 @@ export async function ServicesPreview() {
                 service.description_dk,
               ) ?? "";
             return (
-              <li
-                key={service.id}
-                className="grid grid-cols-1 gap-x-8 gap-y-3 border-t border-border py-6 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-start"
-              >
-                <Caption className="text-muted-foreground">
-                  {String(i + 1).padStart(2, "0")}
-                </Caption>
-                <div className="space-y-1">
-                  <H3>{name}</H3>
-                  <Caption className="tracking-wide text-muted-foreground">
-                    {service.base_duration_mins} {t("minutes")}
+              <li key={service.id} className="border-t border-border">
+                {/* Whole row deep-links into the booking flow with the
+                    service preselected — same handoff as the /services menu. */}
+                <Link
+                  href={{
+                    pathname: routes.book,
+                    query: { service: service.id },
+                  }}
+                  className="group -mx-3 grid grid-cols-1 gap-x-8 gap-y-3 rounded-sm px-3 py-6 outline-none transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40 md:grid-cols-[2.5rem_minmax(11rem,1fr)_1.4fr_auto] md:items-start"
+                >
+                  <Caption className="text-muted-foreground">
+                    {String(i + 1).padStart(2, "0")}
                   </Caption>
-                </div>
-                <BodySm className="max-w-sm">{description}</BodySm>
-                <PriceTag cents={service.base_price_cents} className="text-lg" />
+                  <div className="space-y-1">
+                    <H3>{name}</H3>
+                    <Caption className="tracking-wide text-muted-foreground">
+                      {service.base_duration_mins} {t("minutes")}
+                    </Caption>
+                  </div>
+                  <BodySm className="max-w-sm">{description}</BodySm>
+                  <div className="flex items-baseline gap-5 md:justify-end">
+                    <PriceTag
+                      cents={service.base_price_cents}
+                      className="text-lg"
+                    />
+                    {/* Same affordance as the menu's ServiceRow: always
+                        visible on touch, revealed on hover/focus on desktop
+                        (opacity keeps the price from shifting). */}
+                    <Caption className="inline-flex items-center gap-1.5 text-foreground transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
+                      {tMenu("rowCta")}
+                      <HoverArrow />
+                    </Caption>
+                  </div>
+                </Link>
               </li>
             );
           })}

@@ -5,12 +5,11 @@ import { Container, Section } from "@/components/layout/container";
 import { HoverArrow } from "@/components/ui/arrow-link";
 import { SectionHeading } from "@/components/ui/section-heading";
 
-// Studio address (literal — not translated). Also drives the Maps link.
-const ADDRESS_LINE_1 = "Halldór Laxness Vej 3, 2. th";
-const ADDRESS_LINE_2 = "2300 København S";
-const MAPS_URL =
-  "https://www.google.com/maps/search/?api=1&query=" +
-  encodeURIComponent("Halldór Laxness Vej 3, 2300 København S");
+import {
+  STUDIO_ADDRESS_LINE_1,
+  STUDIO_ADDRESS_LINE_2,
+  STUDIO_MAPS_URL,
+} from "@/config/studio";
 
 /**
  * FindUs — "Find Us". Address + opening hours and a static location preview
@@ -32,9 +31,9 @@ export async function FindUs() {
 
         <div className="flex flex-wrap items-start justify-between gap-6">
           <address className="max-w-sm font-editorial text-2xl not-italic leading-snug text-foreground">
-            {ADDRESS_LINE_1}
+            {STUDIO_ADDRESS_LINE_1}
             <br />
-            {ADDRESS_LINE_2}
+            {STUDIO_ADDRESS_LINE_2}
           </address>
           <div className="font-functional text-sm text-muted-foreground">
             <div>{t("hoursLine")}</div>
@@ -44,7 +43,7 @@ export async function FindUs() {
 
         <div className="relative">
           <a
-            href={MAPS_URL}
+            href={STUDIO_MAPS_URL}
             target="_blank"
             rel="noreferrer"
             aria-label={t("openMaps")}
