@@ -120,12 +120,14 @@ export type Database = {
       bookings: {
         Row: {
           cal_booking_id: number
+          cal_uid: string | null
           cancel_url: string
           clerk_user_id: string
           created_at: string | null
           end_time: string
           id: string
           reschedule_url: string
+          rescheduled_from_uid: string | null
           selected_addons: Json | null
           start_time: string
           status: string
@@ -133,12 +135,14 @@ export type Database = {
         }
         Insert: {
           cal_booking_id: number
+          cal_uid?: string | null
           cancel_url: string
           clerk_user_id: string
           created_at?: string | null
           end_time: string
           id?: string
           reschedule_url: string
+          rescheduled_from_uid?: string | null
           selected_addons?: Json | null
           start_time: string
           status: string
@@ -146,12 +150,14 @@ export type Database = {
         }
         Update: {
           cal_booking_id?: number
+          cal_uid?: string | null
           cancel_url?: string
           clerk_user_id?: string
           created_at?: string | null
           end_time?: string
           id?: string
           reschedule_url?: string
+          rescheduled_from_uid?: string | null
           selected_addons?: Json | null
           start_time?: string
           status?: string

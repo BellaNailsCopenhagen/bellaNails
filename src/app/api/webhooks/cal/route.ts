@@ -159,6 +159,13 @@ async function persistBooking(
   const { error } = await supabase.from("bookings").upsert(
     {
       cal_booking_id: bookingId,
+      cal_uid: uid,
+      // Traceability: which booking this one replaced (reschedules only) —
+      // the chain old → new is queryable without consulting Cal.
+      rescheduled_from_uid:
+        status === BOOKING_STATUS.rescheduled
+          ? (payload.rescheduleUid ?? null)
+          : null,
       clerk_user_id: clerkUserId,
       status,
       start_time: startTime,
@@ -182,14 +189,12 @@ async function persistBooking(
   if (error) return persistFailed("bookings upsert failed", error.message);
 
   // A reschedule replaces the old booking with this new one, and Cal fires
-  // no BOOKING_CANCELLED for the original — close it out here. We have no
-  // uid column, but the stored cancel_url embeds the uid exactly.
+  // no BOOKING_CANCELLED for the original — close it out here by its uid.
   if (status === BOOKING_STATUS.rescheduled && payload.rescheduleUid) {
-    const oldCancelUrl = `${CALCOM_BOOKING_ORIGIN}/booking/${payload.rescheduleUid}?cancel=true`;
     const { error: oldError } = await supabase
       .from("bookings")
       .update({ status: BOOKING_STATUS.cancelled })
-      .eq("cancel_url", oldCancelUrl)
+      .eq("cal_uid", payload.rescheduleUid)
       .neq("cal_booking_id", bookingId);
     if (oldError) {
       // New row is safe; log the stale original rather than failing the
