@@ -69,9 +69,18 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 ## Phase 5 — TanStack Query + Realtime wiring
 
-- ⬜ `QueryClientProvider` + `HydrationBoundary` in App Router (RSC prefetch → hydrate, no double-fetch).
-- ⬜ Migrate booking-flow client data to `useQuery`.
-- ⬜ One Realtime hook on `bookings` → `invalidateQueries`; verify two-browser live update.
+> **Decided (July 2026): this phase lands as part of Task 04 (`/bookings`), not standalone.**
+> `@tanstack/react-query` is installed but unused — the booking flow turned out to be
+> almost entirely server-rendered (URL-driven steps, RSC reads), and the app's first
+> client-side fetch (the /confirmation recap poll) is a single fire-once request that
+> didn't justify mounting the provider. The `/bookings` page is the first surface with
+> TanStack-shaped needs: a user-keyed list, reschedule/cancel mutations with cache
+> invalidation, and the Realtime subscription. Build the wiring there, where it has
+> consumers; migrate the confirmation recap onto `useQuery` in the same pass.
+
+- ⬜ `QueryClientProvider` + `HydrationBoundary` in App Router (RSC prefetch → hydrate, no double-fetch) — **with Task 04**.
+- ⬜ `/bookings` list + reschedule/cancel via `useQuery`/`useMutation`; migrate the /confirmation recap poll to `useQuery` (retry/retryDelay replaces the hand-rolled loop).
+- ⬜ One Realtime hook on `bookings` → `invalidateQueries`; verify two-browser live update. Booker side stays RLS-safe (authed `postgres_changes` on own rows); the same plumbing later powers the admin live queue and can upgrade the confirm step's post-booking probe to a uid-scoped broadcast channel (see the securing hold in `booking-embed.tsx` — the wait is the UX, the transport is swappable in `waitForBookingRow`).
 - ⬜ (Later) shadcn data-table for the admin queue.
 
 ## Phase 6 — Booking flow (Cal.com + Stripe)
