@@ -14,6 +14,28 @@ import { routes } from "@/config/routes";
     layout shift the fixed shell exists to prevent. */
 const EMBED_MIN_HEIGHT = "36rem";
 
+/** After Cal reports success, wait for our webhook-written row before moving
+    on (~15 s worst case). Cumulative sleeps between existence probes. */
+const CONFIRM_POLL_DELAYS_MS = [0, 1000, 2000, 3000, 4000, 5000];
+
+/** Resolves once the booking row exists (or the budget runs out — the Cal
+    booking is real either way; /confirmation degrades gracefully). Not
+    cancellable on purpose: once Cal has created the booking, the flow must
+    end on /confirmation no matter what re-renders or unmounts in between. */
+async function waitForBookingRow(uid: string) {
+  for (const delay of CONFIRM_POLL_DELAYS_MS) {
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    try {
+      const res = await fetch(
+        `/api/bookings/${encodeURIComponent(uid)}?probe=1`,
+      );
+      if (res.ok) return;
+    } catch {
+      // Network hiccup — try the next probe.
+    }
+  }
+}
+
 /** IDs-only machine payload for the webhook (Task 02) — never parsed as text. */
 type BookingMetadata = {
   serviceId: string;
@@ -48,16 +70,34 @@ export function BookingEmbed({
   // Skeleton shows until Cal reports the booker ready — leaving it mounted
   // behind the loaded iframe reads as a duplicated container.
   const [ready, setReady] = React.useState(false);
+  // Cal has created the booking; we're waiting for our webhook-written row so
+  // /confirmation opens with the recap already there. Slot conflicts never
+  // reach this state — Cal rejects those inside the embed, before success.
+  const [securing, setSecuring] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
     const onLinkReady = () => setReady(true);
     const onBooked = (event: { detail: { data: { uid?: string } } }) => {
       const { uid } = event.detail.data;
-      router.push({
-        pathname: routes.confirmation,
-        query: uid ? { uid } : undefined,
-      });
+      // `replace`, not `push`: drops the armed confirm step out of history so
+      // browser-back can't resurface a completed booking for a double-book.
+      // The email rides along to prefill the account block on /confirmation.
+      const query = {
+        ...(uid ? { uid } : {}),
+        ...(prefill.email ? { email: prefill.email } : {}),
+      };
+      const goToConfirmation = () =>
+        router.replace({ pathname: routes.confirmation, query });
+      if (!uid) {
+        goToConfirmation();
+        return;
+      }
+      setSecuring(true);
+      // Deliberately not gated on effect cleanup: the booking exists in Cal,
+      // so this navigation must survive re-renders, unmounts and back
+      // presses — anything else strands the user on an armed flow.
+      void waitForBookingRow(uid).then(goToConfirmation);
     };
 
     let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined;
@@ -86,7 +126,7 @@ export function BookingEmbed({
       calApi?.("off", { action: "linkReady", callback: onLinkReady });
       calApi?.("off", { action: "bookingSuccessfulV2", callback: onBooked });
     };
-  }, [router]);
+  }, [router, prefill.email]);
 
   // The visitor's own notes ride along under the composed summary so the
   // artist sees both; metadata keys use Cal's `metadata[key]` param form.
@@ -108,6 +148,18 @@ export function BookingEmbed({
             </Caption>
           </div>
         )}
+        {/* Post-success hold: the booking exists in Cal; cover the booker
+            while our row lands so /confirmation opens complete. */}
+        {securing ? (
+          <div
+            role="status"
+            className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border border-border bg-background/90 backdrop-blur-[2px]"
+          >
+            <Caption className="tracking-widest-lux">
+              {t("securingBooking")}
+            </Caption>
+          </div>
+        ) : null}
         <Cal
           calLink={calLink}
           calOrigin={CALCOM_ORIGIN}

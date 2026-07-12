@@ -11,12 +11,8 @@ import { BookingServicePicker } from "@/components/sections/booking-service-pick
 import { isCompleteContact } from "@/lib/contact-validation";
 import { sanitizeSelectedAddonIds } from "@/lib/services/booking-totals";
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons";
+import { singleParam } from "@/lib/search-params";
 import { CALCOM_USERNAME } from "@/config/calcom";
-
-/** First value when a query param repeats; undefined when absent. */
-function single(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
 
 export async function generateMetadata({
   params,
@@ -55,24 +51,24 @@ export default async function BookPage({
   }
   setRequestLocale(locale);
 
-  const service = single(query.service);
-  const step = single(query.step);
+  const service = singleParam(query.service);
+  const step = singleParam(query.step);
   const selection = service ? await getServiceWithAddons(service) : null;
   const selectedAddonIds = selection
     ? // Server-side counterpart of the customizer's checkbox locking: drop
       // unknown ids and incompatible combinations a crafted URL could carry.
       sanitizeSelectedAddonIds(
-        single(query.addons)?.split(",").filter(Boolean) ?? [],
+        singleParam(query.addons)?.split(",").filter(Boolean) ?? [],
         selection.addons,
         selection.incompatiblePairs,
       )
     : [];
 
   const contact = {
-    name: single(query.name),
-    email: single(query.email),
-    phone: single(query.phone),
-    notes: single(query.notes),
+    name: singleParam(query.name),
+    email: singleParam(query.email),
+    phone: singleParam(query.phone),
+    notes: singleParam(query.notes),
   };
 
   // Confirm needs the Cal identity to exist — a null slug or missing Cal

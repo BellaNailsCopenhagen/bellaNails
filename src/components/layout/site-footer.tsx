@@ -5,6 +5,10 @@ import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { Eyebrow, Caption } from "@/components/ui/typography";
 import { footerNav, routes } from "@/config/routes";
+import {
+  STUDIO_ADDRESS_LINE_1,
+  STUDIO_ADDRESS_LINE_2,
+} from "@/config/studio";
 
 /**
  * SiteFooter — logo column, address column, three nav columns, and a separate
@@ -31,9 +35,9 @@ export async function SiteFooter() {
             />
           </Link>
           <address className="font-functional ml-2 text-sm leading-8 not-italic text-primary-foreground/72">
-            Halldór Laxness Vej 3, 2. th
+            {STUDIO_ADDRESS_LINE_1}
             <br />
-            2300 København S
+            {STUDIO_ADDRESS_LINE_2}
           </address>
           <Caption
             as="ul"
