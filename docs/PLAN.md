@@ -135,6 +135,14 @@ Owner walkthrough — verifies every decision above in one pass:
 8. **Lifecycle**: use the emailed links to reschedule, then cancel → the Supabase row status updates on each webhook event; cancelling inside 24 h is blocked by policy.
 9. **Repeat 1–3 in English** (`/en/services` → `/en/book`) — everything mirrors except the notes summary language, which follows the booker.
 
+### Improvements from the first deployed test round (July 2026)
+
+Found while running the E2E scenario on the test deployment (`test.bellanails.dk`, Vercel CLI — see [DEPLOY-TEST.md](./DEPLOY-TEST.md)). Core chain verified working: booking → Cal → signed webhook → Supabase row → Clerk identity.
+
+- ⬜ **Home page featured services should be clickable** — the ServicesPreview rows on the main page don't link anywhere; clicking a service should deep-link to `/book?service=<uuid>` and land on the add-on step, same as the `/services` menu rows already do.
+- ⬜ **Reset the flow after a completed booking** — the whole flow state lives in the URL, so after a successful booking, browser-back (today: back from the `/confirmation` 404) restores the confirm step fully armed and the user can double-book in two clicks. On `bookingSuccessfulV2`, navigate with **`router.replace`** (not `push`) so the confirm URL drops out of history, and consider marking the completed booking (e.g. session flag keyed by uid) so a revisited confirm step redirects to step 1 / the confirmation page instead of re-arming the embed.
+- ⬜ **Branded transactional emails for every stage** — Cal's default emails are generic and off-brand. Cover: booking confirmation, reminder(s) before the appointment, cancellation, and reschedule. Options to evaluate: Cal **Workflows** (built-in email reminders/templates — check EU-instance availability and customisation limits) vs. sending our own branded emails from the webhook (we already receive every lifecycle event) via Zoho's SMTP/API to stay within the adopted vendor stack. Decide per-stage: reminders may be fine in Cal; confirmation/cancellation likely want the branded route.
+
 ## Phase 7 — Public site features 🔼
 
 - 🔼 **Home page built to the Figma comp** as responsive, localized (da/en) sections in `src/components/sections/` — one branch each (`bellaNails-home-*`): Hero, ServicesPreview, Formula, Differentiators, StudioGallery, Testimonials, FindUs (+ header/footer revamp). All use the design system (typography, tokens, Container/Section). Stacked branches off `main`; assembled in `[locale]/page.tsx`. Verified: both locales 200 with all sections.
