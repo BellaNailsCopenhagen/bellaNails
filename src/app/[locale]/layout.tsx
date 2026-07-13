@@ -94,7 +94,10 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${cormorant.variable} ${jakarta.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* suppressHydrationWarning: browser extensions (Grammarly et al.)
+          inject attributes into <body> before React hydrates — harmless, and
+          the suppression is attribute-only on this one element. */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <ClerkProvider
           signInUrl={`/${locale}/sign-in`}
           signUpUrl={`/${locale}/sign-up`}

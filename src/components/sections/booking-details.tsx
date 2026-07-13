@@ -167,7 +167,7 @@ export async function BookingDetails({
           <form
             method="get"
             action={bookPath}
-            className="w-full max-w-[25rem] space-y-10"
+            className="w-full space-y-10 md:max-w-[25rem]"
           >
             <input type="hidden" name="service" value={service.id} />
             {selectedAddons.length ? (

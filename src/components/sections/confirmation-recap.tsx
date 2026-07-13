@@ -84,7 +84,7 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
 
   if (missing) {
     return (
-      <RecapCard className="max-w-[22.5rem]">
+      <RecapCard className="md:max-w-[22.5rem]">
         <BodySm>{t("recapFallback")}</BodySm>
       </RecapCard>
     );
@@ -94,7 +94,7 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
     return (
       <RecapCard
         aria-busy
-        className="flex max-w-[22.5rem] items-center justify-center py-16"
+        className="flex md:max-w-[22.5rem] items-center justify-center py-16"
       >
         <Caption className="tracking-widest-lux">{t("recapLoading")}</Caption>
       </RecapCard>
@@ -106,7 +106,7 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
   // old slot as reserved.
   if (recap.status === BOOKING_STATUS.cancelled) {
     return (
-      <RecapCard className="max-w-[22.5rem]">
+      <RecapCard className="md:max-w-[22.5rem]">
         <BodySm>{t("recapCancelled")}</BodySm>
       </RecapCard>
     );
@@ -128,7 +128,7 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
   }).format(start);
 
   return (
-    <div className="w-full max-w-[22.5rem] space-y-6">
+    <div className="w-full md:max-w-[22.5rem] space-y-6">
       <RecapCard>
         <div className="space-y-2">
           <Eyebrow className="font-normal">{t("whenLabel")}</Eyebrow>

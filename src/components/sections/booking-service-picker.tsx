@@ -44,7 +44,7 @@ export async function BookingServicePicker() {
           return (
             <Fragment key={category.id}>
               <section className="py-16 sm:py-20">
-                <div className="mx-auto w-full max-w-[25rem] space-y-5">
+                <div className="mx-auto w-full space-y-5 md:max-w-[25rem]">
                   <div className="flex items-end gap-4">
                     <Caption className="pb-1">
                       {String(index + 1).padStart(2, "0")}

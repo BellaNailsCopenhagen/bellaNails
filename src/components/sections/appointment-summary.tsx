@@ -38,7 +38,7 @@ function AppointmentSummary({
   );
 
   return (
-    <aside className="w-full max-w-[22.5rem] rounded-lg border border-border bg-muted/60 p-6 sm:p-8">
+    <aside className="w-full rounded-lg border border-border bg-muted/60 p-6 sm:p-8 md:max-w-[22.5rem]">
       <div className="space-y-6">
         <Eyebrow className="font-normal">{t("summaryLabel")}</Eyebrow>
 

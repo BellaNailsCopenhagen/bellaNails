@@ -66,7 +66,7 @@ export function BookingCustomizer({
 
   return (
     <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
-      <div className="w-full max-w-[25rem] space-y-10">
+      <div className="w-full space-y-10 md:max-w-[25rem]">
         {addons.length ? (
           <ul>
             {addons.map((addon) => {
@@ -110,9 +110,15 @@ export function BookingCustomizer({
         ) : (
           <BodySm>{t("noAddons")}</BodySm>
         )}
+      </div>
 
+      {/* Continue lives under the overview: the total is the last thing read
+          before committing (and on mobile it puts the CTA at the bottom). */}
+      <div className="flex w-full flex-col gap-6 md:max-w-[22.5rem]">
+        <AppointmentSummary service={service} selectedAddons={selectedAddons} />
         <Button
           size="lg"
+          className="w-full"
           nativeButton={false}
           render={
             <Link
@@ -132,8 +138,6 @@ export function BookingCustomizer({
           {t("continue")}
         </Button>
       </div>
-
-      <AppointmentSummary service={service} selectedAddons={selectedAddons} />
     </div>
   );
 }
