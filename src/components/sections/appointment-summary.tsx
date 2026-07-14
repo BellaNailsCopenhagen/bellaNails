@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 
+import { cn } from "@/lib/utils";
 import { PriceTag } from "@/components/ui/price-tag";
 import { Separator } from "@/components/ui/separator";
 import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography";
@@ -23,11 +24,14 @@ function AppointmentSummary({
   service,
   selectedAddons,
   showTimeNote = true,
+  className,
 }: {
   service: BookingLineItem;
   selectedAddons: BookingLineItem[];
   /** Hide the "you'll pick a time next" note on the step that IS the picker. */
   showTimeNote?: boolean;
+  /** Width/breakpoint overrides for layouts that stack differently. */
+  className?: string;
 }) {
   const t = useTranslations("booking");
   const tCatalog = useTranslations("services");
@@ -38,7 +42,12 @@ function AppointmentSummary({
   );
 
   return (
-    <aside className="w-full rounded-lg border border-border bg-muted/60 p-6 sm:p-8 md:max-w-[22.5rem]">
+    <aside
+      className={cn(
+        "w-full rounded-lg border border-border bg-muted/60 p-6 sm:p-8 md:max-w-[22.5rem]",
+        className,
+      )}
+    >
       <div className="space-y-6">
         <Eyebrow className="font-normal">{t("summaryLabel")}</Eyebrow>
 

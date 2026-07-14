@@ -49,7 +49,14 @@ export async function Confirmation({
           intro={t("intro")}
         />
 
-        <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
+        {/* Recap first in the DOM: on mobile/tablet the booking details are
+            the payoff and lead the page (what/when → where → account pitch →
+            exit links). Two columns only from lg — below that the fixed-width
+            Clerk card and the summary can't share a row without overlapping.
+            `lg:flex-row-reverse` keeps desktop as recap right, content left. */}
+        <div className="flex flex-col gap-12 lg:flex-row-reverse lg:items-start lg:justify-between lg:gap-16">
+          {uid ? <ConfirmationRecap uid={uid} /> : null}
+
           <div className="w-full min-w-0 flex-1 space-y-10">
             <div className="space-y-2">
               <Eyebrow className="font-normal">{t("whereLabel")}</Eyebrow>
@@ -67,6 +74,18 @@ export async function Confirmation({
                   routing="hash"
                   forceRedirectUrl={returnUrl}
                   initialValues={email ? { emailAddress: email } : undefined}
+                  // Clerk pins its card WIDTH internally (~25rem), so w-full
+                  // loses to its stylesheet — but max-width is uncontested:
+                  // `max-w-full` lets the card shrink inside a narrow column
+                  // (no overlap), while `max-lg:mx-auto` centers it on the
+                  // single-column layouts. Merged over the global
+                  // ClerkProvider appearance.
+                  appearance={{
+                    elements: {
+                      rootBox: "max-lg:mx-auto max-w-full",
+                      cardBox: "max-w-full",
+                    },
+                  }}
                 />
               </div>
             </Show>
@@ -85,8 +104,6 @@ export async function Confirmation({
               <ArrowLink href={routes.services}>{t("browseMenu")}</ArrowLink>
             </div>
           </div>
-
-          {uid ? <ConfirmationRecap uid={uid} /> : null}
         </div>
       </Container>
     </Section>
