@@ -1,7 +1,7 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cva, type VariantProps } from "class-variance-authority";
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-sm border border-transparent bg-clip-padding font-functional text-xs font-medium uppercase tracking-ui-button whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -38,12 +38,12 @@ const buttonVariants = cva(
       size: "default",
     },
   },
-);
+)
 
 // Omit base-ui's function-`className` (state callback): this button always
 // composes its classes via cva, so `className` is a plain string here.
 type ButtonProps = Omit<ButtonPrimitive.Props, "className"> &
-  VariantProps<typeof buttonVariants> & { className?: string };
+  VariantProps<typeof buttonVariants> & { className?: string }
 
 function Button({
   className,
@@ -57,8 +57,8 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
-  );
+  )
 }
 
-export { Button, buttonVariants };
-export type { ButtonProps };
+export { Button, buttonVariants }
+export type { ButtonProps }

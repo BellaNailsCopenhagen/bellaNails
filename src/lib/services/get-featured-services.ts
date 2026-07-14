@@ -1,7 +1,7 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import type { Database } from "@/lib/supabase/types"
 
 type FeaturedService = Pick<
   Database["public"]["Tables"]["services"]["Row"],
@@ -12,7 +12,7 @@ type FeaturedService = Pick<
   | "description_dk"
   | "base_price_cents"
   | "base_duration_mins"
->;
+>
 
 /**
  * Public featured services for landing-page previews.
@@ -33,13 +33,13 @@ export async function getFeaturedServices(
     .eq("is_featured", true)
     .is("archived_at", null)
     .order("cal_event_id", { ascending: true })
-    .limit(3);
+    .limit(3)
 
   if (error) {
-    throw new Error(`Failed to load featured services: ${error.message}`);
+    throw new Error(`Failed to load featured services: ${error.message}`)
   }
 
-  return (data ?? []) as FeaturedService[];
+  return (data ?? []) as FeaturedService[]
 }
 
-export type { FeaturedService };
+export type { FeaturedService }

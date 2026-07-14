@@ -1,18 +1,18 @@
-import { useTranslations } from "next-intl";
+import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils";
-import { PriceTag } from "@/components/ui/price-tag";
-import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography";
-import { computeBookingTotals } from "@/lib/services/booking-totals";
+import { cn } from "@/lib/utils"
+import { PriceTag } from "@/components/ui/price-tag"
+import { Separator } from "@/components/ui/separator"
+import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography"
+import { computeBookingTotals } from "@/lib/services/booking-totals"
 
 /** Localized, display-ready line item — resolved from `_en`/`_dk` upstream. */
 type BookingLineItem = {
-  id: string;
-  name: string;
-  priceCents: number;
-  durationMins: number;
-};
+  id: string
+  name: string
+  priceCents: number
+  durationMins: number
+}
 
 /**
  * AppointmentSummary — the tinted running-total card shared by the booking
@@ -26,20 +26,20 @@ function AppointmentSummary({
   showTimeNote = true,
   className,
 }: {
-  service: BookingLineItem;
-  selectedAddons: BookingLineItem[];
+  service: BookingLineItem
+  selectedAddons: BookingLineItem[]
   /** Hide the "you'll pick a time next" note on the step that IS the picker. */
-  showTimeNote?: boolean;
+  showTimeNote?: boolean
   /** Width/breakpoint overrides for layouts that stack differently. */
-  className?: string;
+  className?: string
 }) {
-  const t = useTranslations("booking");
-  const tCatalog = useTranslations("services");
+  const t = useTranslations("booking")
+  const tCatalog = useTranslations("services")
 
   const { totalCents, totalMins } = computeBookingTotals(
     service,
     selectedAddons,
-  );
+  )
 
   return (
     <aside
@@ -106,8 +106,8 @@ function AppointmentSummary({
         </Caption>
       </div>
     </aside>
-  );
+  )
 }
 
-export { AppointmentSummary };
-export type { BookingLineItem };
+export { AppointmentSummary }
+export type { BookingLineItem }

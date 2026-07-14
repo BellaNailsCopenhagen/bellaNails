@@ -1,21 +1,20 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { useLocale, useTranslations } from "next-intl";
+import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
-import type { BookingRecap } from "@/app/api/bookings/[uid]/route";
-import { AppointmentSummary } from "@/components/sections/appointment-summary";
-import { BodySm, Caption, Eyebrow } from "@/components/ui/typography";
-import { BOOKING_STATUS } from "@/lib/booking-status";
-import { cn } from "@/lib/utils";
+import type { BookingRecap } from "@/app/api/bookings/[uid]/route"
+import { AppointmentSummary } from "@/components/sections/appointment-summary"
+import { BodySm, Caption, Eyebrow } from "@/components/ui/typography"
+import { BOOKING_STATUS } from "@/lib/booking-status"
+import { formatStudioDate, formatStudioTime } from "@/lib/studio-time"
+import { cn } from "@/lib/utils"
 
 /** The confirm step already waits for the webhook row before navigating
     here, so the first fetch normally succeeds instantly. The long tail is a
     safety net for the wait's ~15 s timeout path and direct/old-link visits —
     attempts run sequentially, never overlapping. */
-const RETRY_DELAYS_MS = [0, 1500, 4000, 8000, 15000];
-
-const STUDIO_TIME_ZONE = "Europe/Copenhagen";
+const RETRY_DELAYS_MS = [0, 1500, 4000, 8000, 15000]
 
 /** The tinted card shell shared by every recap state — matches the
     AppointmentSummary aside it renders next to. */
@@ -23,8 +22,8 @@ function RecapCard({
   className,
   children,
 }: {
-  className?: string;
-  children: React.ReactNode;
+  className?: string
+  children: React.ReactNode
 }) {
   return (
     <div
@@ -35,7 +34,7 @@ function RecapCard({
     >
       {children}
     </div>
-  );
+  )
 }
 
 /**
@@ -46,48 +45,48 @@ function RecapCard({
  * since been cancelled (revisited old link) — never a broken card.
  */
 export function ConfirmationRecap({ uid }: { uid: string }) {
-  const t = useTranslations("confirmation");
-  const locale = useLocale();
-  const [recap, setRecap] = React.useState<BookingRecap | null>(null);
-  const [missing, setMissing] = React.useState(false);
+  const t = useTranslations("confirmation")
+  const locale = useLocale()
+  const [recap, setRecap] = React.useState<BookingRecap | null>(null)
+  const [missing, setMissing] = React.useState(false)
 
   React.useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
 
     void (async () => {
       for (const delay of RETRY_DELAYS_MS) {
         if (delay) {
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
-        if (cancelled) return;
+        if (cancelled) return
         try {
           const res = await fetch(
             `/api/bookings/${encodeURIComponent(uid)}?locale=${locale}`,
-          );
-          if (cancelled) return;
+          )
+          if (cancelled) return
           if (res.ok) {
-            setRecap((await res.json()) as BookingRecap);
-            return;
+            setRecap((await res.json()) as BookingRecap)
+            return
           }
         } catch {
           // Network hiccup or aborted body — indistinguishable from webhook
           // lag; fall through to the next attempt.
         }
       }
-      if (!cancelled) setMissing(true);
-    })();
+      if (!cancelled) setMissing(true)
+    })()
 
     return () => {
-      cancelled = true;
-    };
-  }, [uid, locale]);
+      cancelled = true
+    }
+  }, [uid, locale])
 
   if (missing) {
     return (
       <RecapCard className="lg:max-w-[22.5rem]">
         <BodySm>{t("recapFallback")}</BodySm>
       </RecapCard>
-    );
+    )
   }
 
   if (!recap) {
@@ -98,7 +97,7 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
       >
         <Caption className="tracking-widest-lux">{t("recapLoading")}</Caption>
       </RecapCard>
-    );
+    )
   }
 
   // A revisited link for a booking that was cancelled (or replaced by a
@@ -109,23 +108,11 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
       <RecapCard className="lg:max-w-[22.5rem]">
         <BodySm>{t("recapCancelled")}</BodySm>
       </RecapCard>
-    );
+    )
   }
 
-  const start = new Date(recap.startTime);
-  const dateLine = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: STUDIO_TIME_ZONE,
-  }).format(start);
-  const timeLine = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: STUDIO_TIME_ZONE,
-  }).format(start);
+  const dateLine = formatStudioDate(recap.startTime, locale)
+  const timeLine = formatStudioTime(recap.startTime, locale)
 
   return (
     <div className="w-full lg:max-w-[22.5rem] space-y-6">
@@ -155,5 +142,5 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
         </RecapCard>
       )}
     </div>
-  );
+  )
 }

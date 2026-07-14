@@ -11,5 +11,5 @@ export function pickLocalized(
   en: string | null,
   dk: string | null,
 ): string | null {
-  return (locale === "da" ? dk : en) ?? en;
+  return (locale === "da" ? dk : en) ?? en
 }

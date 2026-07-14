@@ -1,9 +1,9 @@
-import type { BookingLineItem } from "@/components/sections/appointment-summary";
+import type { BookingLineItem } from "@/components/sections/appointment-summary"
 import type {
   BookableService,
   ServiceAddon,
-} from "@/lib/services/get-service-with-addons";
-import { pickLocalized } from "@/lib/i18n/localized";
+} from "@/lib/services/get-service-with-addons"
+import { pickLocalized } from "@/lib/i18n/localized"
 
 /**
  * The one place a service + add-on selection is resolved into localized,
@@ -23,7 +23,7 @@ export function localizeSelection(
 ): { service: BookingLineItem; addons: BookingLineItem[] } {
   const kept = selectedAddonIds
     ? addons.filter((addon) => selectedAddonIds.includes(addon.id))
-    : addons;
+    : addons
 
   return {
     service: {
@@ -41,5 +41,5 @@ export function localizeSelection(
       priceCents: addon.extra_price_cents,
       durationMins: addon.extra_duration_mins,
     })),
-  };
+  }
 }

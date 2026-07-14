@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { useTranslations } from "next-intl";
+import * as React from "react"
+import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils"
+import { Link } from "@/i18n/navigation"
 import {
   AppointmentSummary,
   type BookingLineItem,
-} from "@/components/sections/appointment-summary";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PriceTag } from "@/components/ui/price-tag";
-import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption } from "@/components/ui/typography";
-import { routes } from "@/config/routes";
+} from "@/components/sections/appointment-summary"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { PriceTag } from "@/components/ui/price-tag"
+import { Separator } from "@/components/ui/separator"
+import { BodySm, Caption } from "@/components/ui/typography"
+import { routes } from "@/config/routes"
 
 /**
  * BookingCustomizer — the interactive half of the customise step: toggle
@@ -28,41 +28,41 @@ export function BookingCustomizer({
   addons,
   incompatiblePairs,
 }: {
-  service: BookingLineItem;
-  addons: BookingLineItem[];
-  incompatiblePairs: [string, string][];
+  service: BookingLineItem
+  addons: BookingLineItem[]
+  incompatiblePairs: [string, string][]
 }) {
-  const t = useTranslations("booking");
-  const tCatalog = useTranslations("services");
-  const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const t = useTranslations("booking")
+  const tCatalog = useTranslations("services")
+  const [selected, setSelected] = React.useState<Set<string>>(new Set())
 
-  const addonById = new Map(addons.map((addon) => [addon.id, addon]));
+  const addonById = new Map(addons.map((addon) => [addon.id, addon]))
 
   /** The addon in `selection` that `addonId` clashes with, if any. */
   const blockerFor = (addonId: string, selection: ReadonlySet<string>) => {
     for (const [a, b] of incompatiblePairs) {
-      if (a === addonId && selection.has(b)) return addonById.get(b);
-      if (b === addonId && selection.has(a)) return addonById.get(a);
+      if (a === addonId && selection.has(b)) return addonById.get(b)
+      if (b === addonId && selection.has(a)) return addonById.get(a)
     }
-    return undefined;
-  };
+    return undefined
+  }
 
   const toggle = (addonId: string) => {
     setSelected((current) => {
-      const next = new Set(current);
+      const next = new Set(current)
       if (next.has(addonId)) {
-        next.delete(addonId);
+        next.delete(addonId)
       } else if (!blockerFor(addonId, next)) {
         // Guard against `next`, not the render snapshot: two clicks can land
         // in one commit, before `disabled` has re-rendered onto the blocked
         // checkbox — checking the snapshot would let an incompatible pair in.
-        next.add(addonId);
+        next.add(addonId)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
-  const selectedAddons = addons.filter((addon) => selected.has(addon.id));
+  const selectedAddons = addons.filter((addon) => selected.has(addon.id))
 
   return (
     <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
@@ -70,10 +70,10 @@ export function BookingCustomizer({
         {addons.length ? (
           <ul>
             {addons.map((addon) => {
-              const isSelected = selected.has(addon.id);
+              const isSelected = selected.has(addon.id)
               const blocker = isSelected
                 ? undefined
-                : blockerFor(addon.id, selected);
+                : blockerFor(addon.id, selected)
               return (
                 <li key={addon.id}>
                   <label
@@ -100,11 +100,15 @@ export function BookingCustomizer({
                           : null}
                       </Caption>
                     </span>
-                    <PriceTag cents={addon.priceCents} sign className="text-lg" />
+                    <PriceTag
+                      cents={addon.priceCents}
+                      sign
+                      className="text-lg"
+                    />
                   </label>
                   <Separator />
                 </li>
-              );
+              )
             })}
           </ul>
         ) : (
@@ -139,5 +143,5 @@ export function BookingCustomizer({
         </Button>
       </div>
     </div>
-  );
+  )
 }

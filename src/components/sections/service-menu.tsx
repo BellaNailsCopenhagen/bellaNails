@@ -1,36 +1,39 @@
-import { Fragment } from "react";
-import Image from "next/image";
-import { getLocale, getTranslations } from "next-intl/server";
+import { Fragment } from "react"
+import Image from "next/image"
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { ServiceRow } from "@/components/sections/service-row";
-import { PageHeader } from "@/components/ui/page-header";
-import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography";
-import { getServiceMenu, type MenuCategory } from "@/lib/services/get-service-menu";
-import { pickLocalized } from "@/lib/i18n/localized";
+import { Container, Section } from "@/components/layout/container"
+import { ServiceRow } from "@/components/sections/service-row"
+import { PageHeader } from "@/components/ui/page-header"
+import { Separator } from "@/components/ui/separator"
+import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
+import {
+  getServiceMenu,
+  type MenuCategory,
+} from "@/lib/services/get-service-menu"
+import { pickLocalized } from "@/lib/i18n/localized"
 
 async function CategorySection({
   category,
   index,
   locale,
 }: {
-  category: MenuCategory;
-  index: number;
-  locale: string;
+  category: MenuCategory
+  index: number
+  locale: string
 }) {
   // Per-request translation lookups are cached by next-intl, so fetching
   // here (rather than prop-drilling labels) costs nothing.
   const [t, tCatalog] = await Promise.all([
     getTranslations("serviceMenu"),
     getTranslations("services"),
-  ]);
+  ])
   const name =
     pickLocalized(locale, category.name_en, category.name_dk) ??
-    category.name_en;
+    category.name_en
   const description =
     pickLocalized(locale, category.description_en, category.description_dk) ??
-    "";
+    ""
 
   return (
     <section className="py-16 sm:py-20">
@@ -72,7 +75,7 @@ async function CategorySection({
         ) : null}
       </div>
     </section>
-  );
+  )
 }
 
 /**
@@ -85,7 +88,7 @@ export async function ServiceMenu() {
     getTranslations("serviceMenu"),
     getLocale(),
     getServiceMenu(),
-  ]);
+  ])
 
   return (
     <Section>
@@ -119,5 +122,5 @@ export async function ServiceMenu() {
         </div>
       </Container>
     </Section>
-  );
+  )
 }

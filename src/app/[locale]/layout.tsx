@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
-import { notFound } from "next/navigation";
-import { ClerkProvider } from "@clerk/nextjs";
-import { daDK, enUS } from "@clerk/localizations";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Metadata } from "next"
+import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google"
+import { notFound } from "next/navigation"
+import { ClerkProvider } from "@clerk/nextjs"
+import { daDK, enUS } from "@clerk/localizations"
+import { hasLocale, NextIntlClientProvider } from "next-intl"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { Toaster } from "@/components/ui/sonner";
-import { SiteHeader } from "@/components/layout/site-header";
-import { SiteFooter } from "@/components/layout/site-footer";
-import { routing } from "@/i18n/routing";
-import "../globals.css";
+import { Toaster } from "@/components/ui/sonner"
+import { SiteHeader } from "@/components/layout/site-header"
+import { SiteFooter } from "@/components/layout/site-footer"
+import { routing } from "@/i18n/routing"
+import "../globals.css"
 
 // font-editorial — Figma "Collection 1". Italic is part of the brand:
 // section headings pair a roman line with an italic second line.
@@ -20,14 +20,14 @@ const cormorant = Cormorant_Garamond({
   weight: ["400", "500", "600"],
   style: ["normal", "italic"],
   display: "swap",
-});
+})
 
 // font-functional — Figma "Collection 1"
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
-});
+})
 
 // Brand theming for Clerk widgets via the built-in `variables` API — no
 // external @clerk/ui bundle (which stalled/blanked on locale-triggered
@@ -38,23 +38,23 @@ const clerkAppearance = {
     borderRadius: "0.125rem", // ~2px, matches the squared brand radius
     fontFamily: "var(--font-jakarta), sans-serif",
   },
-} as const;
+} as const
 
 // Pre-render both locales at build time (static, no per-request work).
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }))
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params
   if (!hasLocale(routing.locales, locale)) {
-    notFound();
+    notFound()
   }
-  const t = await getTranslations({ locale, namespace: "meta" });
+  const t = await getTranslations({ locale, namespace: "meta" })
 
   return {
     metadataBase: new URL(
@@ -65,26 +65,26 @@ export async function generateMetadata({
       template: "%s · Bella Nails",
     },
     description: t("description"),
-  };
+  }
 }
 
 export default async function LocaleLayout({
   children,
   params,
 }: Readonly<{
-  children: React.ReactNode;
-  params: Promise<{ locale: string }>;
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
 }>) {
-  const { locale } = await params;
+  const { locale } = await params
 
   // Reject unknown locales (the proxy only routes da/en, but a direct hit on
   // e.g. /fr would otherwise render with the default locale).
   if (!hasLocale(routing.locales, locale)) {
-    notFound();
+    notFound()
   }
 
   // Opt this layout into static rendering for the resolved locale.
-  setRequestLocale(locale);
+  setRequestLocale(locale)
 
   return (
     // Locale-aware Clerk routes so sign-in/up stay under the active locale.
@@ -113,5 +113,5 @@ export default async function LocaleLayout({
         </ClerkProvider>
       </body>
     </html>
-  );
+  )
 }

@@ -1,18 +1,18 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation";
-import { AppointmentSummary } from "@/components/sections/appointment-summary";
-import { BookingEmbed } from "@/components/sections/booking-embed";
-import { BookingStepHeader } from "@/components/sections/booking-step-header";
-import { Container, Section } from "@/components/layout/container";
-import { formatPrice } from "@/components/ui/price-tag";
-import { BodySm } from "@/components/ui/typography";
-import { computeBookingTotals } from "@/lib/services/booking-totals";
-import { localizeSelection } from "@/lib/services/localize-selection";
-import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons";
-import type { BookingContact } from "@/lib/contact-validation";
-import { buildCalLink } from "@/config/calcom";
-import { routes } from "@/config/routes";
+import { Link } from "@/i18n/navigation"
+import { AppointmentSummary } from "@/components/sections/appointment-summary"
+import { BookingEmbed } from "@/components/sections/booking-embed"
+import { BookingStepHeader } from "@/components/sections/booking-step-header"
+import { Container, Section } from "@/components/layout/container"
+import { formatPrice } from "@/components/ui/price-tag"
+import { BodySm } from "@/components/ui/typography"
+import { computeBookingTotals } from "@/lib/services/booking-totals"
+import { localizeSelection } from "@/lib/services/localize-selection"
+import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import type { BookingContact } from "@/lib/contact-validation"
+import { buildCalLink } from "@/config/calcom"
+import { routes } from "@/config/routes"
 
 /**
  * BookingConfirm — step 03 · Confirm: the themed Cal.com embed pre-loaded
@@ -28,21 +28,21 @@ export async function BookingConfirm({
   selectedAddonIds,
   prefill,
 }: Pick<ServiceWithAddons, "service" | "addons"> & {
-  selectedAddonIds: string[];
-  prefill: BookingContact;
+  selectedAddonIds: string[]
+  prefill: BookingContact
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
-  ]);
+  ])
 
   const { service: localizedService, addons: selectedAddons } =
-    localizeSelection(service, addons, locale, selectedAddonIds);
+    localizeSelection(service, addons, locale, selectedAddonIds)
 
   const { totalCents, totalMins, slotMins } = computeBookingTotals(
     localizedService,
     selectedAddons,
-  );
+  )
 
   // Human-readable, locale-aware — what the artist and the client read in
   // the booking notes/emails. The webhook never parses this string; the
@@ -54,7 +54,9 @@ export async function BookingConfirm({
     ),
   ]
     .join(" + ")
-    .concat(` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`);
+    .concat(
+      ` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`,
+    )
 
   // Carry the contact fields back so the details form re-renders filled —
   // state lives in the URL across the whole flow.
@@ -68,7 +70,7 @@ export async function BookingConfirm({
     ...(prefill.email ? { email: prefill.email } : {}),
     ...(prefill.phone ? { phone: prefill.phone } : {}),
     ...(prefill.notes ? { notes: prefill.notes } : {}),
-  };
+  }
 
   return (
     <Section>
@@ -124,5 +126,5 @@ export async function BookingConfirm({
         </div>
       </Container>
     </Section>
-  );
+  )
 }

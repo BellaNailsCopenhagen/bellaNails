@@ -1,21 +1,21 @@
-import "server-only";
+import "server-only"
 
-import { clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server"
 
-type ClerkClient = Awaited<ReturnType<typeof clerkClient>>;
+type ClerkClient = Awaited<ReturnType<typeof clerkClient>>
 
 type EnsureClerkUserInput = {
-  email: string;
+  email: string
   /** Full display name as typed by the client ("Anna Jensen"). */
-  name?: string;
+  name?: string
   /** Phone as typed by the client — attached best-effort (must be E.164). */
-  phone?: string;
-};
+  phone?: string
+}
 
 /** "Anna Marie Jensen" → { firstName: "Anna", lastName: "Marie Jensen" }. */
 function splitName(name: string | undefined) {
-  const [firstName, ...rest] = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  return { firstName, lastName: rest.length ? rest.join(" ") : undefined };
+  const [firstName, ...rest] = (name ?? "").trim().split(/\s+/).filter(Boolean)
+  return { firstName, lastName: rest.length ? rest.join(" ") : undefined }
 }
 
 /**
@@ -27,12 +27,12 @@ async function tryAttachPhone(
   userId: string,
   phone: string | undefined,
 ) {
-  if (!phone) return;
+  if (!phone) return
   try {
     await client.phoneNumbers.createPhoneNumber({
       userId,
       phoneNumber: phone.replace(/[\s()-]/g, ""),
-    });
+    })
   } catch {
     // Unparseable/duplicate phone — the booking sync proceeds without it.
   }
@@ -55,13 +55,13 @@ export async function ensureClerkUser({
   name,
   phone,
 }: EnsureClerkUserInput): Promise<string> {
-  const client = await clerkClient();
-  const normalizedEmail = email.trim().toLowerCase();
-  const { firstName, lastName } = splitName(name);
+  const client = await clerkClient()
+  const normalizedEmail = email.trim().toLowerCase()
+  const { firstName, lastName } = splitName(name)
 
   const existing = (
     await client.users.getUserList({ emailAddress: [normalizedEmail] })
-  ).data[0];
+  ).data[0]
 
   if (!existing) {
     try {
@@ -70,30 +70,30 @@ export async function ensureClerkUser({
         ...(firstName ? { firstName } : {}),
         ...(lastName ? { lastName } : {}),
         skipPasswordRequirement: true,
-      });
-      await tryAttachPhone(client, user.id, phone);
-      return user.id;
+      })
+      await tryAttachPhone(client, user.id, phone)
+      return user.id
     } catch (error) {
       // Check-then-create race: a concurrent delivery (or the account
       // opt-in) created the user between our lookup and createUser. Clerk
       // rejects the duplicate email — re-fetch and use the winner.
       const raced = (
         await client.users.getUserList({ emailAddress: [normalizedEmail] })
-      ).data[0];
-      if (raced) return raced.id;
-      throw error;
+      ).data[0]
+      if (raced) return raced.id
+      throw error
     }
   }
 
   const patch = {
     ...(!existing.firstName && firstName ? { firstName } : {}),
     ...(!existing.lastName && lastName ? { lastName } : {}),
-  };
+  }
   if (Object.keys(patch).length) {
-    await client.users.updateUser(existing.id, patch);
+    await client.users.updateUser(existing.id, patch)
   }
   if (existing.phoneNumbers.length === 0) {
-    await tryAttachPhone(client, existing.id, phone);
+    await tryAttachPhone(client, existing.id, phone)
   }
-  return existing.id;
+  return existing.id
 }

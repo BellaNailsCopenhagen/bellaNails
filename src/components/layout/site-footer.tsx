@@ -1,14 +1,11 @@
-import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation";
-import { Container } from "@/components/layout/container";
-import { Eyebrow, Caption } from "@/components/ui/typography";
-import { footerNav, routes } from "@/config/routes";
-import {
-  STUDIO_ADDRESS_LINE_1,
-  STUDIO_ADDRESS_LINE_2,
-} from "@/config/studio";
+import { Link } from "@/i18n/navigation"
+import { Container } from "@/components/layout/container"
+import { Eyebrow, Caption } from "@/components/ui/typography"
+import { footerNav, routes } from "@/config/routes"
+import { STUDIO_ADDRESS_LINE_1, STUDIO_ADDRESS_LINE_2 } from "@/config/studio"
 
 /**
  * SiteFooter — logo column, address column, three nav columns, and a separate
@@ -17,15 +14,19 @@ import {
  * (`footerNav`); labels are resolved here so the footer can localize them.
  */
 export async function SiteFooter() {
-  const t = await getTranslations("footer");
-  const tNav = await getTranslations("nav");
-  const year = new Date().getFullYear();
+  const t = await getTranslations("footer")
+  const tNav = await getTranslations("nav")
+  const year = new Date().getFullYear()
 
   return (
     <footer className="mt-auto border-t border-background/10 bg-primary text-primary-foreground">
       <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:gap-6 sm:grid-cols-[1.5fr_repeat(3,minmax(0,1fr))]">
         <div className="text-left">
-          <Link href={routes.home} className="block w-fit" aria-label="Bella Nails home">
+          <Link
+            href={routes.home}
+            className="block w-fit"
+            aria-label="Bella Nails home"
+          >
             <Image
               src="/brand/bella-nails-horizontal-reverse.svg"
               alt="Bella Nails"
@@ -46,7 +47,10 @@ export async function SiteFooter() {
             {(t.raw("areasServed") as string[]).map((area, index) => (
               <li key={area} className="whitespace-nowrap">
                 {index > 0 && (
-                  <span aria-hidden className="mr-1.5 text-primary-foreground/35">
+                  <span
+                    aria-hidden
+                    className="mr-1.5 text-primary-foreground/35"
+                  >
                     ·
                   </span>
                 )}
@@ -96,5 +100,5 @@ export async function SiteFooter() {
         </Container>
       </div>
     </footer>
-  );
+  )
 }

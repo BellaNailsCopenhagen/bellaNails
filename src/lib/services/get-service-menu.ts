@@ -1,17 +1,22 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import type { Database } from "@/lib/supabase/types"
 
 type MenuService = Pick<
   Database["public"]["Tables"]["services"]["Row"],
   "id" | "name_en" | "name_dk" | "base_price_cents" | "base_duration_mins"
->;
+>
 
 type MenuCategory = Pick<
   Database["public"]["Tables"]["categories"]["Row"],
-  "id" | "name_en" | "name_dk" | "description_en" | "description_dk" | "image_url"
-> & { services: MenuService[] };
+  | "id"
+  | "name_en"
+  | "name_dk"
+  | "description_en"
+  | "description_dk"
+  | "image_url"
+> & { services: MenuService[] }
 
 /**
  * The full public service menu: active categories (in `sort_order`) with their
@@ -32,15 +37,15 @@ export async function getServiceMenu(
     .is("archived_at", null)
     .is("services.archived_at", null)
     .order("sort_order", { ascending: true })
-    .order("cal_event_id", { referencedTable: "services", ascending: true });
+    .order("cal_event_id", { referencedTable: "services", ascending: true })
 
   if (error) {
-    throw new Error(`Failed to load the service menu: ${error.message}`);
+    throw new Error(`Failed to load the service menu: ${error.message}`)
   }
 
   return ((data ?? []) as MenuCategory[]).filter(
     (category) => category.services.length > 0,
-  );
+  )
 }
 
-export type { MenuCategory, MenuService };
+export type { MenuCategory, MenuService }

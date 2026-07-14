@@ -1,22 +1,22 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { Container, Section } from "@/components/layout/container"
+import { SectionHeading } from "@/components/ui/section-heading"
 
 /**
  * Testimonials — "Client Words". Three editorial pull-quotes with attributions,
  * divided by vertical hairlines on desktop (stacked on mobile).
  */
 export async function Testimonials() {
-  const t = await getTranslations("testimonials");
+  const t = await getTranslations("testimonials")
 
   const items = [
     { quote: t("one.quote"), name: t("one.name"), role: t("one.role") },
     { quote: t("two.quote"), name: t("two.name"), role: t("two.role") },
     { quote: t("three.quote"), name: t("three.name"), role: t("three.role") },
-  ].filter((item) => item.quote.trim() && item.name.trim() && item.role.trim());
+  ].filter((item) => item.quote.trim() && item.name.trim() && item.role.trim())
 
-  if (!items.length) return null;
+  if (!items.length) return null
 
   return (
     <Section className="border-t border-border">
@@ -49,5 +49,5 @@ export async function Testimonials() {
         </div>
       </Container>
     </Section>
-  );
+  )
 }

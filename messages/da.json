@@ -90,6 +90,31 @@
     "totalLabel": "I alt",
     "paymentNote": "Betaling foregår i studiet. Der gælder 24 timers afbudsfrist."
   },
+  "bookings": {
+    "metaTitle": "Mine bookinger – Bella Nails",
+    "metaDescription": "Se og administrér dine tider hos Bella Nails — flyt, aflys eller book din næste session.",
+    "eyebrow": "Din konto · Bella Nails",
+    "headingLine1": "Dine",
+    "headingLine2": "tider",
+    "intro": "Alt samlet ét sted — dine kommende sessioner med mulighed for at flytte eller aflyse, og din historik når du har lyst til at booke en favorit igen.",
+    "upcoming": "Kommende",
+    "past": "Historik",
+    "reschedule": "Flyt tid",
+    "cancel": "Aflys",
+    "bookAgain": "Book igen",
+    "within24h": "Mindre end 24 timer til din session — ring eller skriv til studiet for at ændre den.",
+    "sessionFallback": "Studio-session",
+    "emptyTitle": "Ingen tider endnu",
+    "emptyBody": "Når du booker en session, vises den her — med alt du skal bruge for at administrere den.",
+    "emptyCta": "Se menuen",
+    "emptyCtaBook": "Book en session",
+    "loadError": "Vi kunne ikke hente dine bookinger lige nu — prøv igen om et øjeblik.",
+    "status": {
+      "confirmed": "Bekræftet",
+      "rescheduled": "Flyttet",
+      "cancelled": "Aflyst"
+    }
+  },
   "confirmation": {
     "metaTitle": "Booking bekræftet – Bella Nails, Ørestad, København",
     "metaDescription": "Din tid hos Bella Nails er bekræftet. Se detaljerne for din session og administrér dine bookinger.",

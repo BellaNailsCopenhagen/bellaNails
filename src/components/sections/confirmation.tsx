@@ -1,15 +1,15 @@
-import { Show, SignUp } from "@clerk/nextjs";
-import { getLocale, getTranslations } from "next-intl/server";
+import { Show, SignUp } from "@clerk/nextjs"
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { getPathname, Link } from "@/i18n/navigation";
-import { ConfirmationRecap } from "@/components/sections/confirmation-recap";
-import { Container, Section } from "@/components/layout/container";
-import { PageHeader } from "@/components/ui/page-header";
-import { ArrowLink } from "@/components/ui/arrow-link";
-import { Button } from "@/components/ui/button";
-import { BodySm, Eyebrow, H3 } from "@/components/ui/typography";
-import { routes } from "@/config/routes";
-import { STUDIO_ADDRESS } from "@/config/studio";
+import { getPathname, Link } from "@/i18n/navigation"
+import { ConfirmationRecap } from "@/components/sections/confirmation-recap"
+import { Container, Section } from "@/components/layout/container"
+import { PageHeader } from "@/components/ui/page-header"
+import { ArrowLink } from "@/components/ui/arrow-link"
+import { Button } from "@/components/ui/button"
+import { BodySm, Eyebrow, H3 } from "@/components/ui/typography"
+import { routes } from "@/config/routes"
+import { STUDIO_ADDRESS } from "@/config/studio"
 
 /**
  * Confirmation — the branded post-booking success page. The recap arrives via
@@ -24,20 +24,20 @@ export async function Confirmation({
   uid,
   email,
 }: {
-  uid: string | null;
-  email: string | null;
+  uid: string | null
+  email: string | null
 }) {
   const [t, locale] = await Promise.all([
     getTranslations("confirmation"),
     getLocale(),
-  ]);
+  ])
 
   // Land back on this exact page after the account is verified, so the
   // signed-in state swaps in with the recap still on screen.
-  const basePath = getPathname({ locale, href: routes.confirmation });
+  const basePath = getPathname({ locale, href: routes.confirmation })
   const returnUrl = uid
     ? `${basePath}?${new URLSearchParams({ uid })}`
-    : basePath;
+    : basePath
 
   return (
     <Section>
@@ -93,7 +93,10 @@ export async function Confirmation({
             <Show when="signed-in">
               <div className="space-y-4 border-t border-border pt-10">
                 <BodySm className="max-w-md">{t("signedInBody")}</BodySm>
-                <Button nativeButton={false} render={<Link href={routes.bookings} />}>
+                <Button
+                  nativeButton={false}
+                  render={<Link href={routes.bookings} />}
+                >
                   {t("viewBookings")}
                 </Button>
               </div>
@@ -107,5 +110,5 @@ export async function Confirmation({
         </div>
       </Container>
     </Section>
-  );
+  )
 }

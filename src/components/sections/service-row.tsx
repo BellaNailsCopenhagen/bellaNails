@@ -1,11 +1,11 @@
-import { Link } from "@/i18n/navigation";
-import { HoverArrow } from "@/components/ui/arrow-link";
-import { PriceTag } from "@/components/ui/price-tag";
-import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption } from "@/components/ui/typography";
-import type { MenuService } from "@/lib/services/get-service-menu";
-import { pickLocalized } from "@/lib/i18n/localized";
-import { routes } from "@/config/routes";
+import { Link } from "@/i18n/navigation"
+import { HoverArrow } from "@/components/ui/arrow-link"
+import { PriceTag } from "@/components/ui/price-tag"
+import { Separator } from "@/components/ui/separator"
+import { BodySm, Caption } from "@/components/ui/typography"
+import type { MenuService } from "@/lib/services/get-service-menu"
+import { pickLocalized } from "@/lib/i18n/localized"
+import { routes } from "@/config/routes"
 
 /**
  * ServiceRow — the shared bookable service line (name + duration left, price +
@@ -19,13 +19,13 @@ export function ServiceRow({
   minutesLabel,
   ctaLabel,
 }: {
-  service: MenuService;
-  locale: string;
-  minutesLabel: string;
-  ctaLabel: string;
+  service: MenuService
+  locale: string
+  minutesLabel: string
+  ctaLabel: string
 }) {
   const name =
-    pickLocalized(locale, service.name_en, service.name_dk) ?? service.name_en;
+    pickLocalized(locale, service.name_en, service.name_dk) ?? service.name_en
 
   return (
     <li>
@@ -51,5 +51,5 @@ export function ServiceRow({
       </Link>
       <Separator />
     </li>
-  );
+  )
 }

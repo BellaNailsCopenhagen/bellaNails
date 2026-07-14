@@ -1,14 +1,14 @@
-import "server-only";
+import "server-only"
 
-import { auth } from "@clerk/nextjs/server";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { auth } from "@clerk/nextjs/server"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-import { assertEnv } from "./env";
-import type { Database } from "./types";
+import { assertEnv } from "./env"
+import type { Database } from "./types"
 
 // No session persistence on the server — each request builds a fresh client
 // and there is no browser storage to sync to.
-const SERVER_AUTH = { persistSession: false, autoRefreshToken: false } as const;
+const SERVER_AUTH = { persistSession: false, autoRefreshToken: false } as const
 
 /**
  * Anonymous server (RSC / route handler) client using the public anon key —
@@ -24,7 +24,7 @@ export function createSupabaseServerClient(): SupabaseClient<Database> {
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ),
     { auth: SERVER_AUTH },
-  );
+  )
 }
 
 /**
@@ -44,11 +44,11 @@ export function createAuthedSupabaseServerClient(): SupabaseClient<Database> {
     ),
     {
       accessToken: async () => {
-        const { getToken } = await auth();
-        return (await getToken()) ?? null;
+        const { getToken } = await auth()
+        return (await getToken()) ?? null
       },
     },
-  );
+  )
 }
 
 /**
@@ -67,5 +67,5 @@ export function createSupabaseServiceRoleClient(): SupabaseClient<Database> {
       "SUPABASE_SERVICE_ROLE_KEY",
     ),
     { auth: SERVER_AUTH },
-  );
+  )
 }

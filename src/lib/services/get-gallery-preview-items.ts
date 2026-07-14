@@ -1,23 +1,23 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import type { Database } from "@/lib/supabase/types"
 
 type GalleryPreviewItem = {
-  id: string;
-  title_en: string | null;
-  title_dk: string | null;
-  asset_url: string;
-};
+  id: string
+  title_en: string | null
+  title_dk: string | null
+  asset_url: string
+}
 
 // Supabase types a foreign-key join as the related row *or* an array of them
 // depending on the relationship shape, so the joined asset is normalized below.
 type GalleryPreviewQueryRow = {
-  id: string;
-  title_en: string | null;
-  title_dk: string | null;
-  primary_asset: { url: string } | { url: string }[] | null;
-};
+  id: string
+  title_en: string | null
+  title_dk: string | null
+  primary_asset: { url: string } | { url: string }[] | null
+}
 
 /**
  * Featured gallery items for the home-page Studio section, ordered by their
@@ -36,18 +36,18 @@ export async function getGalleryPreviewItems(
     )
     .not("sort_order", "is", null)
     .order("sort_order", { ascending: true })
-    .limit(5);
+    .limit(5)
 
   if (error) {
-    throw new Error(`Failed to load gallery preview items: ${error.message}`);
+    throw new Error(`Failed to load gallery preview items: ${error.message}`)
   }
 
   return ((data ?? []) as GalleryPreviewQueryRow[]).flatMap((row) => {
     const asset = Array.isArray(row.primary_asset)
       ? row.primary_asset[0]
-      : row.primary_asset;
+      : row.primary_asset
 
-    if (!asset?.url) return [];
+    if (!asset?.url) return []
 
     return [
       {
@@ -56,8 +56,8 @@ export async function getGalleryPreviewItems(
         title_dk: row.title_dk,
         asset_url: asset.url,
       },
-    ];
-  });
+    ]
+  })
 }
 
-export type { GalleryPreviewItem };
+export type { GalleryPreviewItem }

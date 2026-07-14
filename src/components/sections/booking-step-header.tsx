@@ -1,10 +1,10 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps } from "react"
 
-import { Link } from "@/i18n/navigation";
-import { BookingSteps } from "@/components/sections/booking-steps";
-import { ArrowLink } from "@/components/ui/arrow-link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Separator } from "@/components/ui/separator";
+import { Link } from "@/i18n/navigation"
+import { BookingSteps } from "@/components/sections/booking-steps"
+import { ArrowLink } from "@/components/ui/arrow-link"
+import { PageHeader } from "@/components/ui/page-header"
+import { Separator } from "@/components/ui/separator"
 
 /**
  * BookingStepHeader — the chrome every booking step shares: back link,
@@ -20,13 +20,13 @@ export async function BookingStepHeader({
   muted,
   intro,
 }: {
-  current: ComponentProps<typeof BookingSteps>["current"];
-  backHref: ComponentProps<typeof Link>["href"];
-  backLabel: React.ReactNode;
-  eyebrow: React.ReactNode;
-  lead: React.ReactNode;
-  muted?: React.ReactNode;
-  intro?: React.ReactNode;
+  current: ComponentProps<typeof BookingSteps>["current"]
+  backHref: ComponentProps<typeof Link>["href"]
+  backLabel: React.ReactNode
+  eyebrow: React.ReactNode
+  lead: React.ReactNode
+  muted?: React.ReactNode
+  intro?: React.ReactNode
 }) {
   return (
     <>
@@ -47,5 +47,5 @@ export async function BookingStepHeader({
         intro={intro}
       />
     </>
-  );
+  )
 }

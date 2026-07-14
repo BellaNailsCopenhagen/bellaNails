@@ -1,7 +1,7 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server"
 
-import { cn } from "@/lib/utils";
-import { Caption } from "@/components/ui/typography";
+import { cn } from "@/lib/utils"
+import { Caption } from "@/components/ui/typography"
 
 /**
  * BookingSteps — the "01 · Customise 02 · Your details 03 · Confirm"
@@ -9,12 +9,8 @@ import { Caption } from "@/components/ui/typography";
  * step renders dark, the rest muted.
  */
 export async function BookingSteps({ current }: { current: 0 | 1 | 2 }) {
-  const t = await getTranslations("booking");
-  const steps = [
-    t("steps.customise"),
-    t("steps.details"),
-    t("steps.confirm"),
-  ];
+  const t = await getTranslations("booking")
+  const steps = [t("steps.customise"), t("steps.details"), t("steps.confirm")]
 
   return (
     <ol className="flex flex-wrap gap-x-4 gap-y-1">
@@ -31,5 +27,5 @@ export async function BookingSteps({ current }: { current: 0 | 1 | 2 }) {
         </Caption>
       ))}
     </ol>
-  );
+  )
 }

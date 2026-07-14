@@ -1,15 +1,15 @@
-import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { HoverArrow } from "@/components/ui/arrow-link";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { Container, Section } from "@/components/layout/container"
+import { HoverArrow } from "@/components/ui/arrow-link"
+import { SectionHeading } from "@/components/ui/section-heading"
 
 import {
   STUDIO_ADDRESS_LINE_1,
   STUDIO_ADDRESS_LINE_2,
   STUDIO_MAPS_URL,
-} from "@/config/studio";
+} from "@/config/studio"
 
 /**
  * FindUs — "Find Us". Address + opening hours and a static location preview
@@ -17,7 +17,7 @@ import {
  * later if needed, but the static image keeps the section lightweight for now.
  */
 export async function FindUs() {
-  const t = await getTranslations("findUs");
+  const t = await getTranslations("findUs")
 
   return (
     <Section className="border-t border-border">
@@ -68,5 +68,5 @@ export async function FindUs() {
         </div>
       </Container>
     </Section>
-  );
+  )
 }

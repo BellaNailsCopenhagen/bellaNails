@@ -1,13 +1,13 @@
-"use client";
+"use client"
 
-import { useLocale } from "next-intl";
+import { useLocale } from "next-intl"
 
-import { Link, usePathname } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
-import { cn } from "@/lib/utils";
+import { Link, usePathname } from "@/i18n/navigation"
+import { routing } from "@/i18n/routing"
+import { cn } from "@/lib/utils"
 
 // Two-letter labels for the square toggle (comp shows EN / DK for Danish).
-const SHORT: Record<string, string> = { en: "EN", da: "DK" };
+const SHORT: Record<string, string> = { en: "EN", da: "DK" }
 
 /**
  * LocaleToggle — square EN/DK switch matching the comp: active locale filled
@@ -16,13 +16,13 @@ const SHORT: Record<string, string> = { en: "EN", da: "DK" };
  * the current page is preserved across locales.
  */
 function LocaleToggle({ className }: { className?: string }) {
-  const active = useLocale();
-  const pathname = usePathname();
+  const active = useLocale()
+  const pathname = usePathname()
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
       {routing.locales.map((locale) => {
-        const isActive = locale === active;
+        const isActive = locale === active
         return (
           <Link
             key={locale}
@@ -39,10 +39,10 @@ function LocaleToggle({ className }: { className?: string }) {
           >
             {SHORT[locale] ?? locale.toUpperCase()}
           </Link>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
-export { LocaleToggle };
+export { LocaleToggle }

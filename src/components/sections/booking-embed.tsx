@@ -1,22 +1,22 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import Cal, { getCalApi } from "@calcom/embed-react";
-import { useTranslations } from "next-intl";
+import * as React from "react"
+import Cal, { getCalApi } from "@calcom/embed-react"
+import { useTranslations } from "next-intl"
 
-import { useRouter } from "@/i18n/navigation";
-import { Caption } from "@/components/ui/typography";
-import type { BookingContact } from "@/lib/contact-validation";
-import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom";
-import { routes } from "@/config/routes";
+import { useRouter } from "@/i18n/navigation"
+import { Caption } from "@/components/ui/typography"
+import type { BookingContact } from "@/lib/contact-validation"
+import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom"
+import { routes } from "@/config/routes"
 
 /** Skeleton and iframe share this height — unequal values reintroduce the
     layout shift the fixed shell exists to prevent. */
-const EMBED_MIN_HEIGHT = "36rem";
+const EMBED_MIN_HEIGHT = "36rem"
 
 /** After Cal reports success, wait for our webhook-written row before moving
     on (~15 s worst case). Cumulative sleeps between existence probes. */
-const CONFIRM_POLL_DELAYS_MS = [0, 1000, 2000, 3000, 4000, 5000];
+const CONFIRM_POLL_DELAYS_MS = [0, 1000, 2000, 3000, 4000, 5000]
 
 /** Resolves once the booking row exists (or the budget runs out — the Cal
     booking is real either way; /confirmation degrades gracefully). Not
@@ -24,12 +24,12 @@ const CONFIRM_POLL_DELAYS_MS = [0, 1000, 2000, 3000, 4000, 5000];
     end on /confirmation no matter what re-renders or unmounts in between. */
 async function waitForBookingRow(uid: string) {
   for (const delay of CONFIRM_POLL_DELAYS_MS) {
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    if (delay) await new Promise((resolve) => setTimeout(resolve, delay))
     try {
       const res = await fetch(
         `/api/bookings/${encodeURIComponent(uid)}?probe=1`,
-      );
-      if (res.ok) return;
+      )
+      if (res.ok) return
     } catch {
       // Network hiccup — try the next probe.
     }
@@ -38,12 +38,12 @@ async function waitForBookingRow(uid: string) {
 
 /** IDs-only machine payload for the webhook (Task 02) — never parsed as text. */
 type BookingMetadata = {
-  serviceId: string;
-  addonIds: string[];
-  totalPriceCents: number;
-  totalDurationMins: number;
-  locale: string;
-};
+  serviceId: string
+  addonIds: string[]
+  totalPriceCents: number
+  totalDurationMins: number
+  locale: string
+}
 
 /**
  * BookingEmbed — the inline Cal.com booker (EU instance), pre-configured with
@@ -59,52 +59,52 @@ export function BookingEmbed({
   notesSummary,
   metadata,
 }: {
-  calLink: string;
-  slotMins: number;
-  prefill: BookingContact;
-  notesSummary: string;
-  metadata: BookingMetadata;
+  calLink: string
+  slotMins: number
+  prefill: BookingContact
+  notesSummary: string
+  metadata: BookingMetadata
 }) {
-  const t = useTranslations("booking");
-  const router = useRouter();
+  const t = useTranslations("booking")
+  const router = useRouter()
   // Skeleton shows until Cal reports the booker ready — leaving it mounted
   // behind the loaded iframe reads as a duplicated container.
-  const [ready, setReady] = React.useState(false);
+  const [ready, setReady] = React.useState(false)
   // Cal has created the booking; we're waiting for our webhook-written row so
   // /confirmation opens with the recap already there. Slot conflicts never
   // reach this state — Cal rejects those inside the embed, before success.
-  const [securing, setSecuring] = React.useState(false);
+  const [securing, setSecuring] = React.useState(false)
 
   React.useEffect(() => {
-    let cancelled = false;
-    const onLinkReady = () => setReady(true);
+    let cancelled = false
+    const onLinkReady = () => setReady(true)
     const onBooked = (event: { detail: { data: { uid?: string } } }) => {
-      const { uid } = event.detail.data;
+      const { uid } = event.detail.data
       // `replace`, not `push`: drops the armed confirm step out of history so
       // browser-back can't resurface a completed booking for a double-book.
       // The email rides along to prefill the account block on /confirmation.
       const query = {
         ...(uid ? { uid } : {}),
         ...(prefill.email ? { email: prefill.email } : {}),
-      };
-      const goToConfirmation = () =>
-        router.replace({ pathname: routes.confirmation, query });
-      if (!uid) {
-        goToConfirmation();
-        return;
       }
-      setSecuring(true);
+      const goToConfirmation = () =>
+        router.replace({ pathname: routes.confirmation, query })
+      if (!uid) {
+        goToConfirmation()
+        return
+      }
+      setSecuring(true)
       // Deliberately not gated on effect cleanup: the booking exists in Cal,
       // so this navigation must survive re-renders, unmounts and back
       // presses — anything else strands the user on an armed flow.
-      void waitForBookingRow(uid).then(goToConfirmation);
-    };
+      void waitForBookingRow(uid).then(goToConfirmation)
+    }
 
-    let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined;
-    (async () => {
-      const cal = await getCalApi({ embedJsUrl: CALCOM_EMBED_JS_URL });
-      if (cancelled) return;
-      calApi = cal;
+    let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined
+    ;(async () => {
+      const cal = await getCalApi({ embedJsUrl: CALCOM_EMBED_JS_URL })
+      if (cancelled) return
+      calApi = cal
       cal("ui", {
         theme: "light",
         hideEventTypeDetails: false,
@@ -113,24 +113,24 @@ export function BookingEmbed({
           light: { "cal-brand": "#121212" },
           dark: { "cal-brand": "#fbfbfa" },
         },
-      });
-      cal("on", { action: "linkReady", callback: onLinkReady });
-      cal("on", { action: "bookingSuccessfulV2", callback: onBooked });
-    })();
+      })
+      cal("on", { action: "linkReady", callback: onLinkReady })
+      cal("on", { action: "bookingSuccessfulV2", callback: onBooked })
+    })()
 
     return () => {
-      cancelled = true;
+      cancelled = true
       // getCalApi hands back a window-level singleton: without `off`, every
       // remount (locale switch, back/forward) stacks another handler and one
       // booking would push to /confirmation once per stacked listener.
-      calApi?.("off", { action: "linkReady", callback: onLinkReady });
-      calApi?.("off", { action: "bookingSuccessfulV2", callback: onBooked });
-    };
-  }, [router, prefill.email]);
+      calApi?.("off", { action: "linkReady", callback: onLinkReady })
+      calApi?.("off", { action: "bookingSuccessfulV2", callback: onBooked })
+    }
+  }, [router, prefill.email])
 
   // The visitor's own notes ride along under the composed summary so the
   // artist sees both; metadata keys use Cal's `metadata[key]` param form.
-  const notes = [notesSummary, prefill.notes].filter(Boolean).join("\n\n");
+  const notes = [notesSummary, prefill.notes].filter(Boolean).join("\n\n")
 
   return (
     <div className="w-full">
@@ -184,7 +184,7 @@ export function BookingEmbed({
         />
       </div>
     </div>
-  );
+  )
 }
 
-export type { BookingMetadata };
+export type { BookingMetadata }

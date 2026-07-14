@@ -1,6 +1,6 @@
-import * as React from "react";
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 import {
   BodySm,
@@ -8,18 +8,18 @@ import {
   Eyebrow,
   HeadingLine,
   HeadingMuted,
-} from "./typography";
+} from "./typography"
 
 type PageHeaderProps = {
-  eyebrow: React.ReactNode;
+  eyebrow: React.ReactNode
   /** First (dark) display line. */
-  lead: React.ReactNode;
+  lead: React.ReactNode
   /** Second display line in the muted brand tone. */
-  muted?: React.ReactNode;
+  muted?: React.ReactNode
   /** Supporting note, right column on md+ (bottom-aligned), stacked below. */
-  intro?: React.ReactNode;
-  className?: string;
-};
+  intro?: React.ReactNode
+  className?: string
+}
 
 /**
  * PageHeader — the shared editorial page intro used by /services and the
@@ -27,7 +27,13 @@ type PageHeaderProps = {
  * continuation), and a supporting note in a right-hand column. One component
  * so the composition can't drift between pages.
  */
-function PageHeader({ eyebrow, lead, muted, intro, className }: PageHeaderProps) {
+function PageHeader({
+  eyebrow,
+  lead,
+  muted,
+  intro,
+  className,
+}: PageHeaderProps) {
   return (
     <div
       className={cn(
@@ -44,8 +50,8 @@ function PageHeader({ eyebrow, lead, muted, intro, className }: PageHeaderProps)
       </div>
       {intro ? <BodySm>{intro}</BodySm> : null}
     </div>
-  );
+  )
 }
 
-export { PageHeader };
-export type { PageHeaderProps };
+export { PageHeader }
+export type { PageHeaderProps }

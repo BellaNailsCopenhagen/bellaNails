@@ -1,11 +1,11 @@
-"use client";
+"use client"
 
-import { useMemo } from "react";
-import { useSession } from "@clerk/nextjs";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { useMemo } from "react"
+import { useSession } from "@clerk/nextjs"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
-import { assertEnv } from "./env";
-import type { Database } from "./types";
+import { assertEnv } from "./env"
+import type { Database } from "./types"
 
 /**
  * Browser Supabase client bound to the Clerk session.
@@ -17,7 +17,7 @@ import type { Database } from "./types";
  * session so a fresh token is used across sign-in/out.
  */
 export function useSupabaseBrowserClient(): SupabaseClient<Database> {
-  const { session } = useSession();
+  const { session } = useSession()
 
   return useMemo(
     () =>
@@ -33,5 +33,5 @@ export function useSupabaseBrowserClient(): SupabaseClient<Database> {
         { accessToken: async () => (await session?.getToken()) ?? null },
       ),
     [session],
-  );
+  )
 }

@@ -1,15 +1,15 @@
-import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import Image from "next/image"
+import { getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation"
+import { Button } from "@/components/ui/button"
 import {
   Display,
   Eyebrow,
   HeadingAccent,
   HeadingLine,
-} from "@/components/ui/typography";
-import { routes } from "@/config/routes";
+} from "@/components/ui/typography"
+import { routes } from "@/config/routes"
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
@@ -17,7 +17,7 @@ import { routes } from "@/config/routes";
  * (and later video options) are ready.
  */
 export async function Hero() {
-  const t = await getTranslations("hero");
+  const t = await getTranslations("hero")
 
   return (
     <section className="relative flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden">
@@ -60,5 +60,5 @@ export async function Hero() {
         </Eyebrow>
       </div>
     </section>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 /**
  * Bella Nails typography scale — derived from the Bella Nails designs.
@@ -46,11 +46,11 @@ const typographyVariants = cva("", {
   defaultVariants: {
     variant: "body",
   },
-});
+})
 
 type TypographyVariant = NonNullable<
   VariantProps<typeof typographyVariants>["variant"]
->;
+>
 
 /**
  * Default elements match each heading's name, so there are no surprises:
@@ -72,26 +72,26 @@ const defaultElement: Record<TypographyVariant, React.ElementType> = {
   bodySm: "p",
   quote: "blockquote",
   caption: "span",
-};
+}
 
 type TypographyProps = React.HTMLAttributes<HTMLElement> &
   VariantProps<typeof typographyVariants> & {
     /** Override the rendered element (e.g. `as="h2"` on a display variant). */
-    as?: React.ElementType;
-  };
+    as?: React.ElementType
+  }
 
 function Typography({ as, variant, className, ...props }: TypographyProps) {
   // cva allows `variant` to be null/undefined; normalize once for both the
   // element lookup and the generated classes.
-  const resolved = variant ?? "body";
-  const Comp = as ?? defaultElement[resolved];
+  const resolved = variant ?? "body"
+  const Comp = as ?? defaultElement[resolved]
   return (
     <Comp
       data-slot="typography"
       className={cn(typographyVariants({ variant: resolved }), className)}
       {...props}
     />
-  );
+  )
 }
 
 /**
@@ -109,40 +109,37 @@ function Typography({ as, variant, className, ...props }: TypographyProps) {
  *   </Display>
  */
 function HeadingLine({ className, ...props }: React.ComponentProps<"span">) {
-  return <span className={cn("block", className)} {...props} />;
+  return <span className={cn("block", className)} {...props} />
 }
 
 function HeadingAccent({ className, ...props }: React.ComponentProps<"span">) {
-  return <span className={cn("block italic", className)} {...props} />;
+  return <span className={cn("block italic", className)} {...props} />
 }
 
 function HeadingMuted({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <span
-      className={cn("block text-muted-foreground", className)}
-      {...props}
-    />
-  );
+    <span className={cn("block text-muted-foreground", className)} {...props} />
+  )
 }
 
-type NamedProps = Omit<TypographyProps, "variant">;
+type NamedProps = Omit<TypographyProps, "variant">
 
 const Display = (props: NamedProps) => (
   <Typography variant="display" {...props} />
-);
-const H1 = (props: NamedProps) => <Typography variant="h1" {...props} />;
-const H2 = (props: NamedProps) => <Typography variant="h2" {...props} />;
-const H3 = (props: NamedProps) => <Typography variant="h3" {...props} />;
+)
+const H1 = (props: NamedProps) => <Typography variant="h1" {...props} />
+const H2 = (props: NamedProps) => <Typography variant="h2" {...props} />
+const H3 = (props: NamedProps) => <Typography variant="h3" {...props} />
 const Eyebrow = (props: NamedProps) => (
   <Typography variant="eyebrow" {...props} />
-);
-const Lead = (props: NamedProps) => <Typography variant="lead" {...props} />;
-const Body = (props: NamedProps) => <Typography variant="body" {...props} />;
-const BodySm = (props: NamedProps) => <Typography variant="bodySm" {...props} />;
-const Quote = (props: NamedProps) => <Typography variant="quote" {...props} />;
+)
+const Lead = (props: NamedProps) => <Typography variant="lead" {...props} />
+const Body = (props: NamedProps) => <Typography variant="body" {...props} />
+const BodySm = (props: NamedProps) => <Typography variant="bodySm" {...props} />
+const Quote = (props: NamedProps) => <Typography variant="quote" {...props} />
 const Caption = (props: NamedProps) => (
   <Typography variant="caption" {...props} />
-);
+)
 
 export {
   Typography,
@@ -160,5 +157,5 @@ export {
   BodySm,
   Quote,
   Caption,
-};
-export type { TypographyProps, TypographyVariant };
+}
+export type { TypographyProps, TypographyVariant }

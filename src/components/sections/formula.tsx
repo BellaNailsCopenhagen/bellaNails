@@ -1,9 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { Badge } from "@/components/ui/badge";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Body } from "@/components/ui/typography";
+import { Container, Section } from "@/components/layout/container"
+import { Badge } from "@/components/ui/badge"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { Body } from "@/components/ui/typography"
 
 /**
  * Formula — "Made to last, even on the most difficult nails." The maker's-note
@@ -11,10 +11,10 @@ import { Body } from "@/components/ui/typography";
  * inline meta labels plus two bordered chips.
  */
 export async function Formula() {
-  const t = await getTranslations("formula");
+  const t = await getTranslations("formula")
 
-  const inlineBadges = [t("hemaFree"), t("vegan"), t("crueltyFree")];
-  const chips = [t("fiberglass"), t("vitamins")];
+  const inlineBadges = [t("hemaFree"), t("vegan"), t("crueltyFree")]
+  const chips = [t("fiberglass"), t("vitamins")]
 
   return (
     <Section className="border-t border-border">
@@ -37,13 +37,11 @@ export async function Formula() {
           </div>
           <div className="flex flex-wrap gap-3">
             {chips.map((label) => (
-              <Badge key={label}>
-                {label}
-              </Badge>
+              <Badge key={label}>{label}</Badge>
             ))}
           </div>
         </div>
       </Container>
     </Section>
-  );
+  )
 }

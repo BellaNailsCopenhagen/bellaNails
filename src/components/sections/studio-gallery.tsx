@@ -1,12 +1,12 @@
-import Image from "next/image";
-import { getLocale, getTranslations } from "next-intl/server";
+import Image from "next/image"
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { ArrowLink } from "@/components/ui/arrow-link";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items";
-import { pickLocalized } from "@/lib/i18n/localized";
-import { routes } from "@/config/routes";
+import { Container, Section } from "@/components/layout/container"
+import { ArrowLink } from "@/components/ui/arrow-link"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items"
+import { pickLocalized } from "@/lib/i18n/localized"
+import { routes } from "@/config/routes"
 
 function GalleryTile({
   src,
@@ -16,12 +16,12 @@ function GalleryTile({
   sizes,
   priority = false,
 }: {
-  src: string;
-  alt: string;
-  className: string;
-  imageClassName?: string;
-  sizes: string;
-  priority?: boolean;
+  src: string
+  alt: string
+  className: string
+  imageClassName?: string
+  sizes: string
+  priority?: boolean
 }) {
   return (
     <div className={className}>
@@ -34,7 +34,7 @@ function GalleryTile({
         className={imageClassName ?? "object-cover"}
       />
     </div>
-  );
+  )
 }
 
 /**
@@ -46,16 +46,16 @@ export async function StudioGallery() {
     getTranslations("studio"),
     getLocale(),
     getGalleryPreviewItems(),
-  ]);
+  ])
 
-  if (!items.length) return null;
+  if (!items.length) return null
 
-  const leadItem = items[0];
-  const supportingItems = items.slice(1);
+  const leadItem = items[0]
+  const supportingItems = items.slice(1)
 
   const getAlt = (item: (typeof items)[number], index: number) =>
     pickLocalized(locale, item.title_en, item.title_dk) ??
-    `Bella Nails gallery image ${index + 1}`;
+    `Bella Nails gallery image ${index + 1}`
 
   return (
     <Section className="border-t border-border">
@@ -105,5 +105,5 @@ export async function StudioGallery() {
         )}
       </Container>
     </Section>
-  );
+  )
 }

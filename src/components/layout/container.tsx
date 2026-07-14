@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 /**
  * Container — the horizontal layout shell. Caps content width and applies the
@@ -11,7 +11,7 @@ function Container({ className, ...props }: React.ComponentProps<"div">) {
       className={cn("mx-auto w-full max-w-6xl px-6 sm:px-8", className)}
       {...props}
     />
-  );
+  )
 }
 
 /**
@@ -25,7 +25,7 @@ function Section({ className, ...props }: React.ComponentProps<"section">) {
       className={cn("py-16 sm:py-24", className)}
       {...props}
     />
-  );
+  )
 }
 
-export { Container, Section };
+export { Container, Section }

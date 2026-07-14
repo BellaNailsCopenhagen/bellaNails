@@ -90,6 +90,31 @@
     "totalLabel": "Total",
     "paymentNote": "Payment is collected at the studio. 24-hour cancellation policy applies."
   },
+  "bookings": {
+    "metaTitle": "My Bookings – Bella Nails",
+    "metaDescription": "See and manage your appointments at Bella Nails — reschedule, cancel or book your next session.",
+    "eyebrow": "Your account · Bella Nails",
+    "headingLine1": "Your",
+    "headingLine2": "Appointments",
+    "intro": "Everything in one place — your upcoming sessions with the option to reschedule or cancel, and your history when you feel like rebooking a favourite.",
+    "upcoming": "Upcoming",
+    "past": "History",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel",
+    "bookAgain": "Book again",
+    "within24h": "Within 24 hours of your session — call or write the studio to make changes.",
+    "sessionFallback": "Studio session",
+    "emptyTitle": "No appointments yet",
+    "emptyBody": "When you book a session, it will appear here — with everything you need to manage it.",
+    "emptyCta": "Browse the menu",
+    "emptyCtaBook": "Book a session",
+    "loadError": "We couldn't load your bookings right now — please try again in a moment.",
+    "status": {
+      "confirmed": "Confirmed",
+      "rescheduled": "Rescheduled",
+      "cancelled": "Cancelled"
+    }
+  },
   "confirmation": {
     "metaTitle": "Booking Confirmed – Bella Nails, Ørestad, Copenhagen",
     "metaDescription": "Your appointment at Bella Nails is confirmed. Review your session details and manage your bookings.",

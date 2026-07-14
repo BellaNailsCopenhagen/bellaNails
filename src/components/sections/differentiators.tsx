@@ -1,21 +1,21 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { BodySm, Caption, H3 } from "@/components/ui/typography";
+import { Container, Section } from "@/components/layout/container"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { BodySm, Caption, H3 } from "@/components/ui/typography"
 
 /**
  * Differentiators — the three studio promises (Private Sessions / Premium
  * Formulas / The Atelier Edit) as a numbered three-column grid.
  */
 export async function Differentiators() {
-  const t = await getTranslations("differentiators");
+  const t = await getTranslations("differentiators")
 
   const items = [
     { n: "01", title: t("one.title"), body: t("one.body") },
     { n: "02", title: t("two.title"), body: t("two.body") },
     { n: "03", title: t("three.title"), body: t("three.body") },
-  ];
+  ]
 
   return (
     <Section className="border-t border-border">
@@ -37,5 +37,5 @@ export async function Differentiators() {
         </div>
       </Container>
     </Section>
-  );
+  )
 }

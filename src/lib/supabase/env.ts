@@ -8,7 +8,7 @@ export function assertEnv(value: string | undefined, name: string): string {
   if (!value) {
     throw new Error(
       `Missing required environment variable: ${name}. See .env.example.`,
-    );
+    )
   }
-  return value;
+  return value
 }

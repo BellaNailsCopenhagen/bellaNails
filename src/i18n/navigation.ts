@@ -1,6 +1,6 @@
-import { createNavigation } from "next-intl/navigation";
+import { createNavigation } from "next-intl/navigation"
 
-import { routing } from "./routing";
+import { routing } from "./routing"
 
 /**
  * Locale-aware navigation APIs. Use these `Link`/`redirect`/`usePathname`/
@@ -8,4 +8,4 @@ import { routing } from "./routing";
  * the active locale prefix is preserved automatically.
  */
 export const { Link, redirect, usePathname, useRouter, getPathname } =
-  createNavigation(routing);
+  createNavigation(routing)

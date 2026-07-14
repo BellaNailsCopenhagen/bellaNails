@@ -1,12 +1,12 @@
-import Image from "next/image";
-import { Show, UserButton } from "@clerk/nextjs";
-import { getTranslations } from "next-intl/server";
-import { MenuIcon } from "lucide-react";
+import Image from "next/image"
+import { Show, UserButton } from "@clerk/nextjs"
+import { getTranslations } from "next-intl/server"
+import { MenuIcon } from "lucide-react"
 
-import { Link } from "@/i18n/navigation";
-import { Container } from "@/components/layout/container";
-import { LocaleToggle } from "@/components/locale-toggle";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation"
+import { Container } from "@/components/layout/container"
+import { LocaleToggle } from "@/components/locale-toggle"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +15,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { headerNav, routes } from "@/config/routes";
+} from "@/components/ui/dropdown-menu"
+import { headerNav, routes } from "@/config/routes"
 
 /**
  * SiteHeader — sticky top bar matching the comp: wordmark, primary nav, the
@@ -25,17 +25,21 @@ import { headerNav, routes } from "@/config/routes";
  * come online across Phases 6–7; the chrome is locale-aware now.
  */
 export async function SiteHeader() {
-  const t = await getTranslations("nav");
+  const t = await getTranslations("nav")
 
   const navLinks = headerNav.map((item) => ({
     href: item.href,
     label: t(item.labelKey),
-  }));
+  }))
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-6">
-        <Link href={routes.home} className="block w-fit" aria-label="Bella Nails home">
+        <Link
+          href={routes.home}
+          className="block w-fit"
+          aria-label="Bella Nails home"
+        >
           <Image
             src="/brand/bella-nails-horizontal.svg"
             alt="Bella Nails"
@@ -111,7 +115,9 @@ export async function SiteHeader() {
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href={routes.book} className="w-full" />}>
+              <DropdownMenuItem
+                render={<Link href={routes.book} className="w-full" />}
+              >
                 {t("reserve")}
               </DropdownMenuItem>
               <Show when="signed-out">
@@ -126,5 +132,5 @@ export async function SiteHeader() {
         </div>
       </Container>
     </header>
-  );
+  )
 }

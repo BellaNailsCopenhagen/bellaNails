@@ -1,13 +1,13 @@
-import { Fragment } from "react";
-import { getLocale, getTranslations } from "next-intl/server";
+import { Fragment } from "react"
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { Container, Section } from "@/components/layout/container";
-import { ServiceRow } from "@/components/sections/service-row";
-import { PageHeader } from "@/components/ui/page-header";
-import { Separator } from "@/components/ui/separator";
-import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography";
-import { getServiceMenu } from "@/lib/services/get-service-menu";
-import { pickLocalized } from "@/lib/i18n/localized";
+import { Container, Section } from "@/components/layout/container"
+import { ServiceRow } from "@/components/sections/service-row"
+import { PageHeader } from "@/components/ui/page-header"
+import { Separator } from "@/components/ui/separator"
+import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
+import { getServiceMenu } from "@/lib/services/get-service-menu"
+import { pickLocalized } from "@/lib/i18n/localized"
 
 /**
  * BookingServicePicker — step 1 of the booking flow ("Customise Your
@@ -23,7 +23,7 @@ export async function BookingServicePicker() {
     getTranslations("services"),
     getLocale(),
     getServiceMenu(),
-  ]);
+  ])
 
   return (
     <Section>
@@ -40,7 +40,7 @@ export async function BookingServicePicker() {
         {categories.map((category, index) => {
           const name =
             pickLocalized(locale, category.name_en, category.name_dk) ??
-            category.name_en;
+            category.name_en
           return (
             <Fragment key={category.id}>
               <section className="py-16 sm:py-20">
@@ -67,7 +67,7 @@ export async function BookingServicePicker() {
               </section>
               <Separator />
             </Fragment>
-          );
+          )
         })}
 
         <div className="space-y-4 pt-16 sm:pt-20">
@@ -79,5 +79,5 @@ export async function BookingServicePicker() {
         </div>
       </Container>
     </Section>
-  );
+  )
 }

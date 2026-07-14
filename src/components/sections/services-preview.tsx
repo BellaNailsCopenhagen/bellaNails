@@ -1,15 +1,15 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation";
-import { Container, Section } from "@/components/layout/container";
-import { ArrowLink, HoverArrow } from "@/components/ui/arrow-link";
-import { Button } from "@/components/ui/button";
-import { PriceTag } from "@/components/ui/price-tag";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { BodySm, Caption, H3 } from "@/components/ui/typography";
-import { getFeaturedServices } from "@/lib/services/get-featured-services";
-import { pickLocalized } from "@/lib/i18n/localized";
-import { routes } from "@/config/routes";
+import { Link } from "@/i18n/navigation"
+import { Container, Section } from "@/components/layout/container"
+import { ArrowLink, HoverArrow } from "@/components/ui/arrow-link"
+import { Button } from "@/components/ui/button"
+import { PriceTag } from "@/components/ui/price-tag"
+import { SectionHeading } from "@/components/ui/section-heading"
+import { BodySm, Caption, H3 } from "@/components/ui/typography"
+import { getFeaturedServices } from "@/lib/services/get-featured-services"
+import { pickLocalized } from "@/lib/i18n/localized"
+import { routes } from "@/config/routes"
 
 /**
  * ServicesPreview — "A Selection of the Studio's Best". Reads the featured
@@ -22,11 +22,11 @@ export async function ServicesPreview() {
     getTranslations("nav"),
     getTranslations("serviceMenu"),
     getLocale(),
-  ]);
+  ])
 
-  const services = await getFeaturedServices();
+  const services = await getFeaturedServices()
 
-  if (!services.length) return null;
+  if (!services.length) return null
 
   return (
     <Section>
@@ -45,13 +45,13 @@ export async function ServicesPreview() {
           {services.map((service, i) => {
             const name =
               pickLocalized(locale, service.name_en, service.name_dk) ??
-              service.name_en;
+              service.name_en
             const description =
               pickLocalized(
                 locale,
                 service.description_en,
                 service.description_dk,
-              ) ?? "";
+              ) ?? ""
             return (
               <li key={service.id} className="border-t border-border">
                 {/* Whole row deep-links into the booking flow with the
@@ -88,7 +88,7 @@ export async function ServicesPreview() {
                   </div>
                 </Link>
               </li>
-            );
+            )
           })}
         </ul>
 
@@ -101,5 +101,5 @@ export async function ServicesPreview() {
         </Button>
       </Container>
     </Section>
-  );
+  )
 }

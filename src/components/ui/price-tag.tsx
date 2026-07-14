@@ -1,6 +1,6 @@
-import * as React from "react";
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 /**
  * Prices are stored in cents (per the schema). PriceTag renders them in the
@@ -20,19 +20,19 @@ function formatPrice(
     style: "currency",
     currency,
     signDisplay: sign ? "always" : "auto",
-  }).format(cents / 100);
+  }).format(cents / 100)
 }
 
 type PriceTagProps = React.ComponentProps<"span"> & {
   /** Amount in cents (e.g. `65000` → "650,00 kr."). */
-  cents: number;
+  cents: number
   /** BCP-47 locale for formatting. Defaults to `da-DK`. */
-  locale?: string;
+  locale?: string
   /** Show an explicit "+"/"−" — for add-on deltas ("+50,00 kr."). */
-  sign?: boolean;
+  sign?: boolean
   /** ISO 4217 currency code. Defaults to `DKK`. */
-  currency?: string;
-};
+  currency?: string
+}
 
 function PriceTag({
   cents,
@@ -50,8 +50,8 @@ function PriceTag({
     >
       {formatPrice(cents, locale, currency, sign)}
     </span>
-  );
+  )
 }
 
-export { PriceTag, formatPrice };
-export type { PriceTagProps };
+export { PriceTag, formatPrice }
+export type { PriceTagProps }

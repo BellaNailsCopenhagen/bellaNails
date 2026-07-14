@@ -1,14 +1,20 @@
-import * as React from "react";
+import * as React from "react"
 
-import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation"
+import { cn } from "@/lib/utils"
 
 /**
  * Directional arrow that nudges along its axis on hover. Place inside an
  * element marked `group` (e.g. `ArrowLink`) so it reacts to the parent's
  * hover state. `back` points it left and nudges backward.
  */
-function HoverArrow({ className, back = false }: { className?: string; back?: boolean }) {
+function HoverArrow({
+  className,
+  back = false,
+}: {
+  className?: string
+  back?: boolean
+}) {
   return (
     <span
       aria-hidden
@@ -20,20 +26,25 @@ function HoverArrow({ className, back = false }: { className?: string; back?: bo
     >
       {back ? "←" : "→"}
     </span>
-  );
+  )
 }
 
 type ArrowLinkProps = React.ComponentProps<typeof Link> & {
   /** Leading left arrow ("back to…") instead of the trailing forward arrow. */
-  back?: boolean;
-};
+  back?: boolean
+}
 
 /**
  * Editorial "view more" link — the uppercase luxe caption with a hover arrow
  * shared by the home-page section intros (services, gallery) and the booking
  * flow's back navigation (`back`).
  */
-function ArrowLink({ className, children, back = false, ...props }: ArrowLinkProps) {
+function ArrowLink({
+  className,
+  children,
+  back = false,
+  ...props
+}: ArrowLinkProps) {
   return (
     <Link
       className={cn(
@@ -46,7 +57,7 @@ function ArrowLink({ className, children, back = false, ...props }: ArrowLinkPro
       {children}
       {back ? null : <HoverArrow />}
     </Link>
-  );
+  )
 }
 
-export { ArrowLink, HoverArrow };
+export { ArrowLink, HoverArrow }

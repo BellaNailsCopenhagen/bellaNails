@@ -1,20 +1,20 @@
-import * as React from "react";
+import * as React from "react"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
-import { Eyebrow, H1, HeadingAccent, HeadingLine } from "./typography";
+import { Eyebrow, H1, HeadingAccent, HeadingLine } from "./typography"
 
 type SectionHeadingProps = {
-  eyebrow: React.ReactNode;
-  lead: React.ReactNode;
-  accent?: React.ReactNode;
-  className?: string;
+  eyebrow: React.ReactNode
+  lead: React.ReactNode
+  accent?: React.ReactNode
+  className?: string
   /**
    * Accent-line color. `"default"` inherits the heading color; `"secondary"`
    * is the muted brand tone (`#66635f`) used by the marketing sections.
    */
-  accentTone?: "default" | "secondary";
-};
+  accentTone?: "default" | "secondary"
+}
 
 /**
  * Reusable editorial section intro: small eyebrow plus a two-line heading.
@@ -43,8 +43,8 @@ function SectionHeading({
         ) : null}
       </H1>
     </div>
-  );
+  )
 }
 
-export { SectionHeading };
-export type { SectionHeadingProps };
+export { SectionHeading }
+export type { SectionHeadingProps }

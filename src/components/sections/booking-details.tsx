@@ -1,38 +1,38 @@
-import { Show } from "@clerk/nextjs";
-import { currentUser } from "@clerk/nextjs/server";
-import { getLocale, getTranslations } from "next-intl/server";
+import { Show } from "@clerk/nextjs"
+import { currentUser } from "@clerk/nextjs/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { getPathname, Link } from "@/i18n/navigation";
-import { AppointmentSummary } from "@/components/sections/appointment-summary";
-import { BookingStepHeader } from "@/components/sections/booking-step-header";
-import { Container, Section } from "@/components/layout/container";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { BodySm } from "@/components/ui/typography";
-import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons";
+import { getPathname, Link } from "@/i18n/navigation"
+import { AppointmentSummary } from "@/components/sections/appointment-summary"
+import { BookingStepHeader } from "@/components/sections/booking-step-header"
+import { Container, Section } from "@/components/layout/container"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { BodySm } from "@/components/ui/typography"
+import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import {
   EMAIL_HTML_PATTERN,
   PHONE_HTML_PATTERN,
   type BookingContact,
-} from "@/lib/contact-validation";
-import { localizeSelection } from "@/lib/services/localize-selection";
-import { routes } from "@/config/routes";
+} from "@/lib/contact-validation"
+import { localizeSelection } from "@/lib/services/localize-selection"
+import { routes } from "@/config/routes"
 
 /** Keep GET URLs (and the Cal notes prefill) comfortably bounded. */
-const NOTES_MAX_LENGTH = 500;
+const NOTES_MAX_LENGTH = 500
 
 type Field = {
-  id: "name" | "email" | "phone";
-  label: string;
-  placeholder: string;
-  type: string;
-  autoComplete: string;
-  minLength?: number;
-  pattern?: string;
-  defaultValue?: string;
-};
+  id: "name" | "email" | "phone"
+  label: string
+  placeholder: string
+  type: string
+  autoComplete: string
+  minLength?: number
+  pattern?: string
+  defaultValue?: string
+}
 
 /**
  * BookingDetails — step 02 · Your details: contact fields (prefilled into the
@@ -48,36 +48,36 @@ export async function BookingDetails({
   selectedAddonIds,
   prefill = {},
 }: Pick<ServiceWithAddons, "service" | "addons"> & {
-  selectedAddonIds: string[];
-  prefill?: BookingContact;
+  selectedAddonIds: string[]
+  prefill?: BookingContact
 }) {
   const [t, locale, user] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
     currentUser(),
-  ]);
+  ])
 
   const clerkEmail =
     user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-      ?.emailAddress ?? user?.emailAddresses[0]?.emailAddress;
+      ?.emailAddress ?? user?.emailAddresses[0]?.emailAddress
   const clerkName =
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || undefined;
-  const clerkPhone = user?.phoneNumbers[0]?.phoneNumber;
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || undefined
+  const clerkPhone = user?.phoneNumbers[0]?.phoneNumber
 
   const defaults = {
     name: prefill.name ?? clerkName,
     email: prefill.email ?? clerkEmail,
     phone: prefill.phone ?? clerkPhone,
     notes: prefill.notes,
-  };
+  }
 
   const { service: localizedService, addons: selectedAddons } =
-    localizeSelection(service, addons, locale, selectedAddonIds);
+    localizeSelection(service, addons, locale, selectedAddonIds)
 
   const addonsParam = selectedAddons.length
     ? { addons: selectedAddons.map((a) => a.id).join(",") }
-    : {};
-  const backQuery = { service: service.id, ...addonsParam };
+    : {}
+  const backQuery = { service: service.id, ...addonsParam }
 
   // All three are required — enforced natively here (required/type/pattern,
   // browser-localized messages) and again at the /book routing gate
@@ -110,18 +110,18 @@ export async function BookingDetails({
       pattern: PHONE_HTML_PATTERN,
       defaultValue: defaults.phone,
     },
-  ];
+  ]
 
-  const bookPath = getPathname({ locale, href: routes.book });
+  const bookPath = getPathname({ locale, href: routes.book })
   // Where the sign-in flow should land back: this exact step with selection.
   const returnParams = new URLSearchParams({
     service: service.id,
     step: "details",
-  });
+  })
   if (selectedAddons.length) {
-    returnParams.set("addons", selectedAddons.map((a) => a.id).join(","));
+    returnParams.set("addons", selectedAddons.map((a) => a.id).join(","))
   }
-  const returnUrl = `${bookPath}?${returnParams.toString()}`;
+  const returnUrl = `${bookPath}?${returnParams.toString()}`
 
   return (
     <Section>
@@ -205,7 +205,10 @@ export async function BookingDetails({
             ))}
 
             <div className="space-y-1">
-              <Label htmlFor="notes" className="text-[10px] tracking-widest-lux">
+              <Label
+                htmlFor="notes"
+                className="text-[10px] tracking-widest-lux"
+              >
                 {t("fields.notes")}
               </Label>
               <Textarea
@@ -232,5 +235,5 @@ export async function BookingDetails({
         </div>
       </Container>
     </Section>
-  );
+  )
 }

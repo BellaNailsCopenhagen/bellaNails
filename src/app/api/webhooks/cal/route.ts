@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto"
 
-import { ensureClerkUser } from "@/lib/clerk/ensure-user";
-import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
-import { CALCOM_BOOKING_ORIGIN } from "@/config/calcom";
+import { ensureClerkUser } from "@/lib/clerk/ensure-user"
+import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
 /**
  * Cal.com webhook (EU instance) — the single write path into `bookings`.
@@ -23,80 +23,84 @@ import { CALCOM_BOOKING_ORIGIN } from "@/config/calcom";
 
 /** Cal's standard (non-custom-template) payload — only the fields we read. */
 type CalWebhookEvent = {
-  triggerEvent: string;
+  triggerEvent: string
   payload: {
-    bookingId?: number;
-    uid?: string;
+    bookingId?: number
+    uid?: string
     /** On BOOKING_RESCHEDULED: the uid of the ORIGINAL (replaced) booking. */
-    rescheduleUid?: string;
-    status?: string;
-    startTime?: string;
-    endTime?: string;
+    rescheduleUid?: string
+    status?: string
+    startTime?: string
+    endTime?: string
     attendees?: {
-      email?: string;
-      name?: string;
-      phoneNumber?: string;
-    }[];
+      email?: string
+      name?: string
+      phoneNumber?: string
+    }[]
     responses?: {
-      attendeePhoneNumber?: { value?: string };
-    };
-    metadata?: Record<string, unknown>;
-  };
-};
+      attendeePhoneNumber?: { value?: string }
+    }
+    metadata?: Record<string, unknown>
+  }
+}
 
-function verifySignature(secret: string, rawBody: string, header: string | null) {
-  if (!header) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  const a = Buffer.from(expected, "utf8");
-  const b = Buffer.from(header, "utf8");
-  return a.length === b.length && timingSafeEqual(a, b);
+function verifySignature(
+  secret: string,
+  rawBody: string,
+  header: string | null,
+) {
+  if (!header) return false
+  const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
+  const a = Buffer.from(expected, "utf8")
+  const b = Buffer.from(header, "utf8")
+  return a.length === b.length && timingSafeEqual(a, b)
 }
 
 /** `metadata[totalPriceCents]` arrives as a string — parse defensively. */
 function metaInt(value: unknown): number | null {
-  const n = typeof value === "string" ? Number.parseInt(value, 10) : NaN;
-  return Number.isFinite(n) ? n : null;
+  const n = typeof value === "string" ? Number.parseInt(value, 10) : NaN
+  return Number.isFinite(n) ? n : null
 }
 
 function metaString(value: unknown): string | null {
-  return typeof value === "string" && value.length ? value : null;
+  return typeof value === "string" && value.length ? value : null
 }
 
 function persistFailed(context: string, message: string) {
-  console.error(`[cal-webhook] ${context}: ${message}`);
+  console.error(`[cal-webhook] ${context}: ${message}`)
   // 5xx → Cal retries; every write here is idempotent.
-  return new Response("Persist failed", { status: 500 });
+  return new Response("Persist failed", { status: 500 })
 }
 
 export async function POST(request: Request) {
-  const secret = process.env.CALCOM_WEBHOOK_SECRET;
+  const secret = process.env.CALCOM_WEBHOOK_SECRET
   if (!secret) {
-    return new Response("Webhook secret not configured", { status: 500 });
+    return new Response("Webhook secret not configured", { status: 500 })
   }
 
-  const rawBody = await request.text();
-  const signature = request.headers.get("x-cal-signature-256");
+  const rawBody = await request.text()
+  const signature = request.headers.get("x-cal-signature-256")
   if (!verifySignature(secret, rawBody, signature)) {
-    return new Response("Invalid signature", { status: 401 });
+    return new Response("Invalid signature", { status: 401 })
   }
 
-  let event: CalWebhookEvent;
+  let event: CalWebhookEvent
   try {
-    event = JSON.parse(rawBody) as CalWebhookEvent;
+    event = JSON.parse(rawBody) as CalWebhookEvent
   } catch {
-    return new Response("Malformed JSON", { status: 400 });
+    return new Response("Malformed JSON", { status: 400 })
   }
 
   switch (event.triggerEvent) {
     case "BOOKING_CREATED":
-      return persistBooking(event.payload, BOOKING_STATUS.confirmed);
+      return persistBooking(event.payload, BOOKING_STATUS.confirmed)
     case "BOOKING_RESCHEDULED":
-      return persistBooking(event.payload, BOOKING_STATUS.rescheduled);
+      return persistBooking(event.payload, BOOKING_STATUS.rescheduled)
     case "BOOKING_CANCELLED":
-      return markCancelled(event.payload);
+      return markCancelled(event.payload)
     default:
       // Unsubscribed/unknown trigger — acknowledge so Cal doesn't retry.
-      return Response.json({ ignored: event.triggerEvent });
+      return Response.json({ ignored: event.triggerEvent })
   }
 }
 
@@ -105,8 +109,8 @@ async function persistBooking(
   payload: CalWebhookEvent["payload"],
   status: BookingStatus,
 ) {
-  const { bookingId, uid, startTime, endTime } = payload;
-  const attendee = payload.attendees?.[0];
+  const { bookingId, uid, startTime, endTime } = payload
+  const attendee = payload.attendees?.[0]
 
   if (!bookingId || !uid || !startTime || !endTime || !attendee?.email) {
     // Not retryable — acknowledge and surface in logs instead of 4xx-ing,
@@ -116,11 +120,11 @@ async function persistBooking(
       bookingId,
       uid,
       hasAttendee: Boolean(attendee?.email),
-    });
-    return Response.json({ skipped: "missing fields" });
+    })
+    return Response.json({ skipped: "missing fields" })
   }
 
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = createSupabaseServiceRoleClient()
 
   // Duplicate delivery? Skip the Clerk round-trips entirely — the row (and
   // its user) already exist, and the upsert below is what guarantees
@@ -129,32 +133,32 @@ async function persistBooking(
     .from("bookings")
     .select("cal_booking_id, status")
     .eq("cal_booking_id", bookingId)
-    .maybeSingle();
+    .maybeSingle()
   if (existing && existing.status === status) {
-    return Response.json({ ok: true, duplicate: true });
+    return Response.json({ ok: true, duplicate: true })
   }
 
-  let clerkUserId: string;
+  let clerkUserId: string
   try {
     clerkUserId = await ensureClerkUser({
       email: attendee.email,
       name: attendee.name,
       phone:
         payload.responses?.attendeePhoneNumber?.value ?? attendee.phoneNumber,
-    });
+    })
   } catch (error) {
     // Clerk outage/rate limit — controlled 500 so Cal retries later instead
     // of the route crashing; nothing was written yet.
     return persistFailed(
       "ensureClerkUser failed",
       error instanceof Error ? error.message : String(error),
-    );
+    )
   }
 
   // IDs-only machine metadata from the embed handoff — the human notes
   // string is never parsed.
-  const meta = payload.metadata ?? {};
-  const addonIds = metaString(meta.addonIds)?.split(",").filter(Boolean) ?? [];
+  const meta = payload.metadata ?? {}
+  const addonIds = metaString(meta.addonIds)?.split(",").filter(Boolean) ?? []
 
   const { error } = await supabase.from("bookings").upsert(
     {
@@ -184,9 +188,9 @@ async function persistBooking(
       },
     },
     { onConflict: "cal_booking_id" },
-  );
+  )
 
-  if (error) return persistFailed("bookings upsert failed", error.message);
+  if (error) return persistFailed("bookings upsert failed", error.message)
 
   // A reschedule replaces the old booking with this new one, and Cal fires
   // no BOOKING_CANCELLED for the original — close it out here by its uid.
@@ -195,41 +199,41 @@ async function persistBooking(
       .from("bookings")
       .update({ status: BOOKING_STATUS.cancelled })
       .eq("cal_uid", payload.rescheduleUid)
-      .neq("cal_booking_id", bookingId);
+      .neq("cal_booking_id", bookingId)
     if (oldError) {
       // New row is safe; log the stale original rather than failing the
       // delivery (a retry would just re-run the same idempotent writes).
       console.error(
         "[cal-webhook] failed to close replaced booking",
         oldError.message,
-      );
+      )
     }
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ ok: true })
 }
 
 async function markCancelled(payload: CalWebhookEvent["payload"]) {
   if (!payload.bookingId) {
-    console.error("[cal-webhook] BOOKING_CANCELLED without bookingId");
-    return Response.json({ skipped: "missing bookingId" });
+    console.error("[cal-webhook] BOOKING_CANCELLED without bookingId")
+    return Response.json({ skipped: "missing bookingId" })
   }
 
-  const supabase = createSupabaseServiceRoleClient();
+  const supabase = createSupabaseServiceRoleClient()
   const { data, error } = await supabase
     .from("bookings")
     .update({ status: BOOKING_STATUS.cancelled })
     .eq("cal_booking_id", payload.bookingId)
-    .select("cal_booking_id");
+    .select("cal_booking_id")
 
-  if (error) return persistFailed("bookings cancel failed", error.message);
+  if (error) return persistFailed("bookings cancel failed", error.message)
   if (!data?.length) {
     // No row yet — deliveries can arrive out of order. 5xx so Cal retries
     // once the BOOKING_CREATED upsert has landed.
     return persistFailed(
       "bookings cancel matched no row",
       `cal_booking_id=${payload.bookingId}`,
-    );
+    )
   }
-  return Response.json({ ok: true });
+  return Response.json({ ok: true })
 }

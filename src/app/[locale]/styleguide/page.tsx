@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import type { Metadata } from "next";
+import type { Metadata } from "next"
 
 import {
   Display,
@@ -15,14 +15,14 @@ import {
   BodySm,
   Quote,
   Caption,
-} from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
-import { PriceTag } from "@/components/ui/price-tag";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/ui/typography"
+import { Button } from "@/components/ui/button"
+import { PriceTag } from "@/components/ui/price-tag"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +30,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -38,7 +38,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from "@/components/ui/navigation-menu"
 import {
   Menubar,
   MenubarCheckboxItem,
@@ -48,23 +48,23 @@ import {
   MenubarSeparator,
   MenubarShortcut,
   MenubarTrigger,
-} from "@/components/ui/menubar";
+} from "@/components/ui/menubar"
 
-import { ToastDemo } from "./toast-demo";
+import { ToastDemo } from "./toast-demo"
 
 export const metadata: Metadata = {
   title: "Styleguide",
   robots: { index: false, follow: false },
-};
+}
 
 function Row({
   name,
   spec,
   children,
 }: {
-  name: string;
-  spec: string;
-  children: React.ReactNode;
+  name: string
+  spec: string
+  children: React.ReactNode
 }) {
   return (
     <div className="grid gap-3 border-t border-border py-10 sm:grid-cols-[10rem_1fr] sm:gap-8">
@@ -74,7 +74,7 @@ function Row({
       </div>
       <div>{children}</div>
     </div>
-  );
+  )
 }
 
 function GroupTitle({ children }: { children: React.ReactNode }) {
@@ -82,7 +82,7 @@ function GroupTitle({ children }: { children: React.ReactNode }) {
     <H3 as="h2" className="mt-20 first:mt-12">
       {children}
     </H3>
-  );
+  )
 }
 
 export default function StyleguidePage() {
@@ -94,8 +94,8 @@ export default function StyleguidePage() {
         <HeadingAccent>system</HeadingAccent>
       </H1>
       <Lead className="mt-5 max-w-xl">
-        The Bella Nails primitives — Cormorant Garamond for editorial voice, Plus
-        Jakarta Sans for everything functional.
+        The Bella Nails primitives — Cormorant Garamond for editorial voice,
+        Plus Jakarta Sans for everything functional.
       </Lead>
 
       <GroupTitle>Logo</GroupTitle>
@@ -207,8 +207,8 @@ export default function StyleguidePage() {
 
       <Row name="Quote" spec="editorial · italic">
         <Quote>
-          &ldquo;The most considered nail experience I have ever had. The silence
-          alone is worth the price.&rdquo;
+          &ldquo;The most considered nail experience I have ever had. The
+          silence alone is worth the price.&rdquo;
         </Quote>
       </Row>
 
@@ -375,5 +375,5 @@ export default function StyleguidePage() {
         <ToastDemo />
       </Row>
     </main>
-  );
+  )
 }

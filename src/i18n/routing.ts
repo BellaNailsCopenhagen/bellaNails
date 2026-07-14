@@ -1,4 +1,4 @@
-import { defineRouting } from "next-intl/routing";
+import { defineRouting } from "next-intl/routing"
 
 /**
  * Locale routing config — the single source of truth shared by the proxy,
@@ -12,6 +12,6 @@ export const routing = defineRouting({
   locales: ["da", "en"],
   defaultLocale: "da",
   localePrefix: "always",
-});
+})
 
-export type Locale = (typeof routing.locales)[number];
+export type Locale = (typeof routing.locales)[number]

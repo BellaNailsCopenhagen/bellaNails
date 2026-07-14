@@ -1,6 +1,6 @@
-import { UserProfile } from "@clerk/nextjs";
+import { UserProfile } from "@clerk/nextjs"
 
-import { routes } from "@/config/routes";
+import { routes } from "@/config/routes"
 
 // Catch-all so Clerk owns its sub-routes (/account/security, etc.). The proxy
 // requires a signed-in user for /[locale]/account, so UserProfile always has a
@@ -8,13 +8,13 @@ import { routes } from "@/config/routes";
 export default async function AccountPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>
 }) {
-  const { locale } = await params;
+  const { locale } = await params
 
   return (
     <main className="flex flex-1 justify-center px-6 py-16">
       <UserProfile path={`/${locale}${routes.account}`} />
     </main>
-  );
+  )
 }

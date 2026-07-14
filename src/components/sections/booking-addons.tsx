@@ -1,11 +1,11 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server"
 
-import { BookingCustomizer } from "@/components/sections/booking-customizer";
-import { BookingStepHeader } from "@/components/sections/booking-step-header";
-import { Container, Section } from "@/components/layout/container";
-import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons";
-import { localizeSelection } from "@/lib/services/localize-selection";
-import { routes } from "@/config/routes";
+import { BookingCustomizer } from "@/components/sections/booking-customizer"
+import { BookingStepHeader } from "@/components/sections/booking-step-header"
+import { Container, Section } from "@/components/layout/container"
+import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import { localizeSelection } from "@/lib/services/localize-selection"
+import { routes } from "@/config/routes"
 
 /**
  * BookingAddons — step 01 · Customise of the booking flow for one chosen
@@ -20,10 +20,10 @@ export async function BookingAddons({
   const [t, locale] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
-  ]);
+  ])
 
   const { service: localizedService, addons: localizedAddons } =
-    localizeSelection(service, addons, locale);
+    localizeSelection(service, addons, locale)
 
   return (
     <Section>
@@ -45,5 +45,5 @@ export async function BookingAddons({
         />
       </Container>
     </Section>
-  );
+  )
 }
