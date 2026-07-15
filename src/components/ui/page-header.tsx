@@ -2,6 +2,8 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+import { Skeleton } from "./skeleton"
+
 import {
   BodySm,
   Display,
@@ -53,5 +55,17 @@ function PageHeader({
   )
 }
 
-export { PageHeader }
+/** Loading ghost matching PageHeader's shape — keep in sync with the real
+    header so loading.tsx files don't jump when content streams in. */
+function PageHeaderSkeleton() {
+  return (
+    <div className="space-y-6 pb-16">
+      <Skeleton className="h-3 w-44" />
+      <Skeleton className="h-12 w-64 sm:h-14 sm:w-80" />
+      <Skeleton className="h-3 w-72 max-w-full" />
+    </div>
+  )
+}
+
+export { PageHeader, PageHeaderSkeleton }
 export type { PageHeaderProps }

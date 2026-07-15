@@ -11,12 +11,16 @@ import { routes } from "@/config/routes"
  * BookingAddons — step 01 · Customise of the booking flow for one chosen
  * service: back link, step indicator, the shared editorial header, then the
  * interactive add-on customizer with the live appointment summary.
+ * `selectedAddonIds` (already sanitized by the /book page) preselects the
+ * checkboxes — back-navigation from step 02 and "book again" links both
+ * arrive with a selection.
  */
 export async function BookingAddons({
   service,
   addons,
   incompatiblePairs,
-}: ServiceWithAddons) {
+  selectedAddonIds = [],
+}: ServiceWithAddons & { selectedAddonIds?: string[] }) {
   const [t, locale] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
@@ -42,6 +46,7 @@ export async function BookingAddons({
           service={localizedService}
           addons={localizedAddons}
           incompatiblePairs={incompatiblePairs}
+          initialSelectedIds={selectedAddonIds}
         />
       </Container>
     </Section>

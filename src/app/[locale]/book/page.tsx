@@ -106,7 +106,7 @@ export default async function BookPage({
         />
       )
     }
-    return <BookingAddons {...selection} />
+    return <BookingAddons {...selection} selectedAddonIds={selectedAddonIds} />
   }
 
   return <main className="flex flex-1 flex-col">{renderStep()}</main>

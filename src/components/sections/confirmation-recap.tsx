@@ -1,102 +1,72 @@
 "use client"
 
-import * as React from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 
 import type { BookingRecap } from "@/app/api/bookings/[uid]/route"
 import { AppointmentSummary } from "@/components/sections/appointment-summary"
+import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, Eyebrow } from "@/components/ui/typography"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import { formatStudioDate, formatStudioTime } from "@/lib/studio-time"
-import { cn } from "@/lib/utils"
 
 /** The confirm step already waits for the webhook row before navigating
-    here, so the first fetch normally succeeds instantly. The long tail is a
-    safety net for the wait's ~15 s timeout path and direct/old-link visits —
-    attempts run sequentially, never overlapping. */
-const RETRY_DELAYS_MS = [0, 1500, 4000, 8000, 15000]
+    here, so the first fetch normally succeeds instantly. The retry tail is
+    a safety net for that wait's ~15 s timeout path and direct/old-link
+    visits, where the row may land seconds later. */
+const RETRY_DELAYS_MS = [1500, 4000, 8000, 15000]
 
-/** The tinted card shell shared by every recap state — matches the
-    AppointmentSummary aside it renders next to. */
-function RecapCard({
-  className,
-  children,
-}: {
-  className?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      className={cn(
-        "w-full rounded-lg border border-border bg-muted/60 p-6 sm:p-8",
-        className,
-      )}
-    >
-      {children}
-    </div>
+/** 404 = webhook lag (retry until the row lands); anything else non-OK is a
+    server hiccup worth the same retries. */
+async function fetchRecap(uid: string, locale: string): Promise<BookingRecap> {
+  const res = await fetch(
+    `/api/bookings/${encodeURIComponent(uid)}?locale=${locale}`,
   )
+  if (!res.ok) throw new Error(`recap not ready (${res.status})`)
+  return (await res.json()) as BookingRecap
 }
 
 /**
  * ConfirmationRecap — fetches the booking row and renders date/time + the
- * shared AppointmentSummary. The embed's "securing" hold means the row is
- * normally already there; degrades to a calm "details are in your email"
- * note if it never lands, and to an explicit notice for a booking that has
- * since been cancelled (revisited old link) — never a broken card.
+ * shared AppointmentSummary. Retry/backoff and staleness are useQuery's
+ * job; the states degrade calmly: retries exhausted → "details are in your
+ * email", cancelled booking (revisited old link) → explicit notice — never
+ * a broken card.
  */
 export function ConfirmationRecap({ uid }: { uid: string }) {
   const t = useTranslations("confirmation")
   const locale = useLocale()
-  const [recap, setRecap] = React.useState<BookingRecap | null>(null)
-  const [missing, setMissing] = React.useState(false)
 
-  React.useEffect(() => {
-    let cancelled = false
+  const { data: recap, isError } = useQuery({
+    queryKey: ["booking-recap", uid, locale],
+    queryFn: () => fetchRecap(uid, locale),
+    retry: RETRY_DELAYS_MS.length,
+    retryDelay: (attemptIndex) =>
+      RETRY_DELAYS_MS[attemptIndex] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1],
+    // "always": offline must fail into the email fallback, not sit paused
+    // on the loading card forever (default networkMode never errors offline).
+    networkMode: "always",
+    // Refetch on every mount: a cached "confirmed" recap must not mask a
+    // just-cancelled booking on back-navigation.
+    staleTime: 0,
+  })
 
-    void (async () => {
-      for (const delay of RETRY_DELAYS_MS) {
-        if (delay) {
-          await new Promise((resolve) => setTimeout(resolve, delay))
-        }
-        if (cancelled) return
-        try {
-          const res = await fetch(
-            `/api/bookings/${encodeURIComponent(uid)}?locale=${locale}`,
-          )
-          if (cancelled) return
-          if (res.ok) {
-            setRecap((await res.json()) as BookingRecap)
-            return
-          }
-        } catch {
-          // Network hiccup or aborted body — indistinguishable from webhook
-          // lag; fall through to the next attempt.
-        }
-      }
-      if (!cancelled) setMissing(true)
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [uid, locale])
-
-  if (missing) {
+  if (isError) {
     return (
-      <RecapCard className="lg:max-w-[22.5rem]">
+      <TintedCard className="lg:max-w-[22.5rem]">
         <BodySm>{t("recapFallback")}</BodySm>
-      </RecapCard>
+      </TintedCard>
     )
   }
 
   if (!recap) {
     return (
-      <RecapCard
+      <TintedCard
         aria-busy
-        className="flex lg:max-w-[22.5rem] items-center justify-center py-16"
+        className="flex items-center justify-center py-16 lg:max-w-[22.5rem]"
       >
         <Caption className="tracking-widest-lux">{t("recapLoading")}</Caption>
-      </RecapCard>
+      </TintedCard>
     )
   }
 
@@ -105,28 +75,25 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
   // old slot as reserved.
   if (recap.status === BOOKING_STATUS.cancelled) {
     return (
-      <RecapCard className="lg:max-w-[22.5rem]">
+      <TintedCard className="lg:max-w-[22.5rem]">
         <BodySm>{t("recapCancelled")}</BodySm>
-      </RecapCard>
+      </TintedCard>
     )
   }
 
-  const dateLine = formatStudioDate(recap.startTime, locale)
-  const timeLine = formatStudioTime(recap.startTime, locale)
-
   return (
-    <div className="w-full lg:max-w-[22.5rem] space-y-6">
-      <RecapCard>
+    <div className="w-full space-y-6 lg:max-w-[22.5rem]">
+      <TintedCard>
         <div className="space-y-2">
           <Eyebrow className="font-normal">{t("whenLabel")}</Eyebrow>
           <BodySm className="font-editorial text-xl text-foreground">
-            {dateLine}
+            {formatStudioDate(recap.startTime, locale)}
           </BodySm>
           <Caption className="block tracking-wide normal-case">
-            {t("timeAt")} {timeLine}
+            {t("timeAt")} {formatStudioTime(recap.startTime, locale)}
           </Caption>
         </div>
-      </RecapCard>
+      </TintedCard>
 
       {recap.selection ? (
         <AppointmentSummary
@@ -137,9 +104,9 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
           className="md:max-w-none lg:max-w-[22.5rem]"
         />
       ) : (
-        <RecapCard>
+        <TintedCard>
           <BodySm>{t("recapFallback")}</BodySm>
-        </RecapCard>
+        </TintedCard>
       )}
     </div>
   )

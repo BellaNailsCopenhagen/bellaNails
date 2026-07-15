@@ -1,3 +1,4 @@
+import { metaOf } from "@/lib/booking-display"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import { localizeSelection } from "@/lib/services/localize-selection"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -71,10 +72,7 @@ export async function GET(
     return Response.json({ error: "not found" }, { status: 404 })
   }
 
-  const meta = (booking.selected_addons ?? {}) as {
-    serviceId?: string | null
-    addonIds?: string[] | null
-  }
+  const meta = metaOf(booking)
 
   // Render what was booked: the webhook validated the selection at write
   // time, so the stored addonIds are trusted as-is (re-checking today's

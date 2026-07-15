@@ -102,17 +102,25 @@
     "reschedule": "Flyt tid",
     "cancel": "Aflys",
     "bookAgain": "Book igen",
+    "addonsLabel": "Tilvalg",
     "within24h": "Mindre end 24 timer til din session — ring eller skriv til studiet for at ændre den.",
     "sessionFallback": "Studio-session",
+    "nextEyebrow": "Velkommen tilbage",
+    "nextHeadingLead": "Din næste",
+    "nextHeadingAccent": "tid",
+    "nextCta": "Se mine bookinger",
     "emptyTitle": "Ingen tider endnu",
     "emptyBody": "Når du booker en session, vises den her — med alt du skal bruge for at administrere den.",
     "emptyCta": "Se menuen",
     "emptyCtaBook": "Book en session",
+    "noUpcomingTitle": "Ingen kommende tider",
+    "noUpcomingBody": "Dit næste besøg er få klik væk — menuen venter.",
     "loadError": "Vi kunne ikke hente dine bookinger lige nu — prøv igen om et øjeblik.",
     "status": {
       "confirmed": "Bekræftet",
       "rescheduled": "Flyttet",
-      "cancelled": "Aflyst"
+      "cancelled": "Aflyst",
+      "completed": "Gennemført"
     }
   },
   "confirmation": {

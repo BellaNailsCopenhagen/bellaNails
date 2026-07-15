@@ -102,17 +102,25 @@
     "reschedule": "Reschedule",
     "cancel": "Cancel",
     "bookAgain": "Book again",
+    "addonsLabel": "Add-ons",
     "within24h": "Within 24 hours of your session — call or write the studio to make changes.",
     "sessionFallback": "Studio session",
+    "nextEyebrow": "Welcome back",
+    "nextHeadingLead": "Your Next",
+    "nextHeadingAccent": "Appointment",
+    "nextCta": "View my bookings",
     "emptyTitle": "No appointments yet",
     "emptyBody": "When you book a session, it will appear here — with everything you need to manage it.",
     "emptyCta": "Browse the menu",
     "emptyCtaBook": "Book a session",
+    "noUpcomingTitle": "No upcoming sessions",
+    "noUpcomingBody": "Your next visit is a few clicks away — the menu is waiting.",
     "loadError": "We couldn't load your bookings right now — please try again in a moment.",
     "status": {
       "confirmed": "Confirmed",
       "rescheduled": "Rescheduled",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "completed": "Completed"
     }
   },
   "confirmation": {

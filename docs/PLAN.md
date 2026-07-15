@@ -78,8 +78,8 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 > invalidation, and the Realtime subscription. Build the wiring there, where it has
 > consumers; migrate the confirmation recap onto `useQuery` in the same pass.
 
-- ⬜ `QueryClientProvider` + `HydrationBoundary` in App Router (RSC prefetch → hydrate, no double-fetch) — **with Task 04**.
-- ⬜ `/bookings` list + reschedule/cancel via `useQuery`/`useMutation`; migrate the /confirmation recap poll to `useQuery` (retry/retryDelay replaces the hand-rolled loop).
+- ✅ `QueryClientProvider` mounted app-wide (July 2026) — landed with its first consumer, the home page "next appointment" card (`next-appointment.tsx`: pure fetch fn + `useQuery` keyed by user+locale, no effects). 60 s staleTime, no refetch-on-focus.
+- ✅ /confirmation recap migrated to `useQuery` (July 2026) — the hand-rolled retry loop became `retry`/`retryDelay` config; 404-during-webhook-lag throws and retries on the same 1.5/4/8/15 s tail. **Decided: `/bookings` stays server-rendered** (RLS-authed RSC read is the better architecture for a read-only list) until in-place cancel/reschedule mutations or Realtime arrive — don't convert it to client fetching for consistency's sake.
 - ⬜ One Realtime hook on `bookings` → `invalidateQueries`; verify two-browser live update. Booker side stays RLS-safe (authed `postgres_changes` on own rows); the same plumbing later powers the admin live queue and can upgrade the confirm step's post-booking probe to a uid-scoped broadcast channel (see the securing hold in `booking-embed.tsx` — the wait is the UX, the transport is swappable in `waitForBookingRow`).
 - ⬜ (Later) shadcn data-table for the admin queue.
 
@@ -186,6 +186,8 @@ Two paths, one identity model. Client PII (email/name) lives in **Clerk**; our t
 - ⬜ The artist creates a booking for a client (existing or new) by email in the Cal.com dashboard; it arrives via the existing `BOOKING_CREATED` webhook and syncs to `bookings` through the Phase 6 pipeline. No custom flow.
 - ⬜ Webhook maps the attendee email → Clerk user via create-or-find and stores `clerk_user_id`. `bookings` needs no schema change (Cal.com populates `cal_booking_id` / `cancel_url` / `reschedule_url`).
 - ⬜ (Optional, later) an in-admin "New booking" shortcut calling `POST /v2/bookings` on the studio event type — same data path, still availability-bound.
+
+> **Booking status growth (decided July 2026):** the client-facing status set stays minimal — `confirmed|rescheduled|cancelled` in the DB plus the derived display-only "completed" on /bookings history. New statuses land WITH their features, not before: `requested`/`declined` arrive with the request flow below (Cal `BOOKING_REQUESTED`/`BOOKING_REJECTED` webhooks + `BOOKING_STATUS` enum + `BookingStatusBadge` variants), payment states arrive with Stripe holds, and no-show tracking stays **studio-side only** (admin queue — don't show "missed" to clients). The client's upcoming cards deliberately render no status badge at all.
 
 **B. Out-of-hours requests (via `booking_requests`)** — for slots Cal.com availability won't offer (currently anything but Saturday). SQL: [supabase/booking-requests.sql](../supabase/booking-requests.sql).
 

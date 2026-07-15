@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
+import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography"
 import { computeBookingTotals } from "@/lib/services/booking-totals"
 
@@ -42,12 +43,7 @@ function AppointmentSummary({
   )
 
   return (
-    <aside
-      className={cn(
-        "w-full rounded-lg border border-border bg-muted/60 p-6 sm:p-8 md:max-w-[22.5rem]",
-        className,
-      )}
-    >
+    <TintedCard as="aside" className={cn("md:max-w-[22.5rem]", className)}>
       <div className="space-y-6">
         <Eyebrow className="font-normal">{t("summaryLabel")}</Eyebrow>
 
@@ -105,7 +101,7 @@ function AppointmentSummary({
           {t("paymentNote")}
         </Caption>
       </div>
-    </aside>
+    </TintedCard>
   )
 }
 

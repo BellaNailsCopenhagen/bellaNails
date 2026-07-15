@@ -160,6 +160,23 @@ async function persistBooking(
   const meta = payload.metadata ?? {}
   const addonIds = metaString(meta.addonIds)?.split(",").filter(Boolean) ?? []
 
+  // Guard against under-reservation: if Cal blocked fewer minutes than the
+  // treatment needs, the event type is missing that slot length in its
+  // lengthInMinutesOptions (Cal silently falls back to the default). The
+  // booking is still real — log loudly so the config gap gets fixed.
+  const bookedMins = Math.round(
+    (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60_000,
+  )
+  const totalDurationMins = metaInt(meta.totalDurationMins)
+  if (totalDurationMins && bookedMins < totalDurationMins) {
+    console.error("[cal-webhook] slot shorter than treatment", {
+      bookingId,
+      bookedMins,
+      totalDurationMins,
+      serviceId: metaString(meta.serviceId),
+    })
+  }
+
   const { error } = await supabase.from("bookings").upsert(
     {
       cal_booking_id: bookingId,

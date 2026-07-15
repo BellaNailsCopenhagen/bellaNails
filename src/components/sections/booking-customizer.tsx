@@ -27,14 +27,19 @@ export function BookingCustomizer({
   service,
   addons,
   incompatiblePairs,
+  initialSelectedIds = [],
 }: {
   service: BookingLineItem
   addons: BookingLineItem[]
   incompatiblePairs: [string, string][]
+  /** Preselected add-ons (sanitized upstream) — back-nav and rebook links. */
+  initialSelectedIds?: string[]
 }) {
   const t = useTranslations("booking")
   const tCatalog = useTranslations("services")
-  const [selected, setSelected] = React.useState<Set<string>>(new Set())
+  const [selected, setSelected] = React.useState<Set<string>>(
+    () => new Set(initialSelectedIds),
+  )
 
   const addonById = new Map(addons.map((addon) => [addon.id, addon]))
 

@@ -6,6 +6,7 @@ import { daDK, enUS } from "@clerk/localizations"
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
+import { QueryProvider } from "@/components/providers/query-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SiteHeader } from "@/components/layout/site-header"
 import { SiteFooter } from "@/components/layout/site-footer"
@@ -104,11 +105,13 @@ export default async function LocaleLayout({
           localization={locale === "da" ? daDK : enUS}
           appearance={clerkAppearance}
         >
-          <NextIntlClientProvider>
-            <SiteHeader />
-            {children}
-            <SiteFooter />
-          </NextIntlClientProvider>
+          <QueryProvider>
+            <NextIntlClientProvider>
+              <SiteHeader />
+              {children}
+              <SiteFooter />
+            </NextIntlClientProvider>
+          </QueryProvider>
           <Toaster />
         </ClerkProvider>
       </body>

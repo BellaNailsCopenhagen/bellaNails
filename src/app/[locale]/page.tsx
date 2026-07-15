@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
 import { Hero } from "@/components/sections/hero"
+import { NextAppointment } from "@/components/sections/next-appointment"
 import { ServicesPreview } from "@/components/sections/services-preview"
 import { Formula } from "@/components/sections/formula"
 import { Differentiators } from "@/components/sections/differentiators"
@@ -25,6 +26,10 @@ export default async function Home({
   return (
     <main className="flex flex-1 flex-col">
       <Hero />
+      {/* Signed-in clients with an upcoming booking get their personal
+          band here; everyone else renders nothing (client-side, so the
+          page stays static). */}
+      <NextAppointment />
       <ServicesPreview />
       <Formula />
       <Differentiators />

@@ -5,6 +5,7 @@ import Cal, { getCalApi } from "@calcom/embed-react"
 import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
+import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
 import type { BookingContact } from "@/lib/contact-validation"
 import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom"
@@ -135,18 +136,17 @@ export function BookingEmbed({
   return (
     <div className="w-full">
       <div className="relative" style={{ minHeight: EMBED_MIN_HEIGHT }}>
-        {/* Branded skeleton while the booker boots (fixed-height shell = no
-            layout shift); removed on linkReady so it can't peek out around
-            the loaded iframe. */}
+        {/* Branded skeleton while the booker boots; removed on linkReady so
+            it can't peek out around the loaded iframe. */}
         {ready ? null : (
-          <div
+          <TintedCard
             aria-hidden
-            className="absolute inset-0 -z-10 flex items-center justify-center rounded-lg border border-border bg-muted/60"
+            className="absolute inset-0 -z-10 flex items-center justify-center"
           >
             <Caption className="tracking-widest-lux">
               {t("embedLoading")}
             </Caption>
-          </div>
+          </TintedCard>
         )}
         {/* Post-success hold: the booking exists in Cal; cover the booker
             while our row lands so /confirmation opens complete. */}
