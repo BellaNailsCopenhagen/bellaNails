@@ -123,6 +123,7 @@ export type Database = {
           cal_uid: string | null
           cancel_url: string
           clerk_user_id: string
+          client_notes: string | null
           created_at: string | null
           end_time: string
           id: string
@@ -138,6 +139,7 @@ export type Database = {
           cal_uid?: string | null
           cancel_url: string
           clerk_user_id: string
+          client_notes?: string | null
           created_at?: string | null
           end_time: string
           id?: string
@@ -153,6 +155,7 @@ export type Database = {
           cal_uid?: string | null
           cancel_url?: string
           clerk_user_id?: string
+          client_notes?: string | null
           created_at?: string | null
           end_time?: string
           id?: string

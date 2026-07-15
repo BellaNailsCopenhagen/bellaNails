@@ -46,7 +46,9 @@ export async function BookingConfirm({
 
   // Human-readable, locale-aware — what the artist and the client read in
   // the booking notes/emails. The webhook never parses this string; the
-  // price uses formatPrice's site-wide defaults.
+  // price uses formatPrice's site-wide defaults. The manage line rides along
+  // because Cal's own email buttons can't be repointed at our pages.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bellanails.dk"
   const notesSummary = [
     `${localizedService.name} (${localizedService.durationMins} min)`,
     ...selectedAddons.map(
@@ -56,6 +58,7 @@ export async function BookingConfirm({
     .join(" + ")
     .concat(
       ` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`,
+      `\n${t("manageOnline")}: ${siteUrl}/${locale}${routes.bookings}`,
     )
 
   // Carry the contact fields back so the details form re-renders filled —
@@ -101,6 +104,7 @@ export async function BookingConfirm({
                 totalPriceCents: totalCents,
                 totalDurationMins: totalMins,
                 locale,
+                clientNotes: prefill.notes,
               }}
             />
 

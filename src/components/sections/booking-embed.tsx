@@ -5,6 +5,7 @@ import Cal, { getCalApi } from "@calcom/embed-react"
 import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
+import { waitForBookingRow } from "@/lib/booking-probe"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
 import type { BookingContact } from "@/lib/contact-validation"
@@ -15,28 +16,6 @@ import { routes } from "@/config/routes"
     layout shift the fixed shell exists to prevent. */
 const EMBED_MIN_HEIGHT = "36rem"
 
-/** After Cal reports success, wait for our webhook-written row before moving
-    on (~15 s worst case). Cumulative sleeps between existence probes. */
-const CONFIRM_POLL_DELAYS_MS = [0, 1000, 2000, 3000, 4000, 5000]
-
-/** Resolves once the booking row exists (or the budget runs out — the Cal
-    booking is real either way; /confirmation degrades gracefully). Not
-    cancellable on purpose: once Cal has created the booking, the flow must
-    end on /confirmation no matter what re-renders or unmounts in between. */
-async function waitForBookingRow(uid: string) {
-  for (const delay of CONFIRM_POLL_DELAYS_MS) {
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay))
-    try {
-      const res = await fetch(
-        `/api/bookings/${encodeURIComponent(uid)}?probe=1`,
-      )
-      if (res.ok) return
-    } catch {
-      // Network hiccup — try the next probe.
-    }
-  }
-}
-
 /** IDs-only machine payload for the webhook (Task 02) — never parsed as text. */
 type BookingMetadata = {
   serviceId: string
@@ -44,6 +23,9 @@ type BookingMetadata = {
   totalPriceCents: number
   totalDurationMins: number
   locale: string
+  /** The client's own session note — machine copy the webhook stores
+      (Cal metadata values cap at 500 chars, same as the form's maxLength). */
+  clientNotes?: string
 }
 
 /**
@@ -179,6 +161,9 @@ export function BookingEmbed({
             "metadata[totalPriceCents]": String(metadata.totalPriceCents),
             "metadata[totalDurationMins]": String(metadata.totalDurationMins),
             "metadata[locale]": metadata.locale,
+            ...(metadata.clientNotes
+              ? { "metadata[clientNotes]": metadata.clientNotes.slice(0, 500) }
+              : {}),
           }}
           style={{ width: "100%", minHeight: EMBED_MIN_HEIGHT }}
         />

@@ -11,16 +11,18 @@ import type { Database } from "@/lib/supabase/types"
 
 /** The columns booking displays render — select exactly these. */
 export const BOOKING_DISPLAY_COLUMNS =
-  "cal_booking_id, start_time, end_time, status, total_price_cents, selected_addons, reschedule_url, cancel_url"
+  "cal_booking_id, cal_uid, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url"
 
 export type BookingRow = Pick<
   Database["public"]["Tables"]["bookings"]["Row"],
   | "cal_booking_id"
+  | "cal_uid"
   | "start_time"
   | "end_time"
   | "status"
   | "total_price_cents"
   | "selected_addons"
+  | "client_notes"
   | "reschedule_url"
   | "cancel_url"
 >
@@ -38,6 +40,7 @@ export type DisplayBooking = {
   serviceName: string | null
   addonNames: string[]
   durationMins: number | null
+  clientNotes: string | null
   /** Catalog entry still exists (RLS hides archived services) — gates the
       "book again" deep link. */
   rebookable: boolean
@@ -108,6 +111,7 @@ export function toDisplayBooking(
         : []
     }),
     durationMins: meta.totalDurationMins ?? null,
+    clientNotes: row.client_notes,
     rebookable: Boolean(entry),
   }
 }

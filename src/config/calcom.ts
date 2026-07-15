@@ -11,6 +11,9 @@ export const CALCOM_EMBED_JS_URL = `${CALCOM_ORIGIN}/embed/embed.js`
 /** Public booking-page origin — reschedule/cancel links live here. */
 export const CALCOM_BOOKING_ORIGIN = "https://cal.eu"
 
+/** API v2 base (EU data residency) — server-side calls with CALCOM_API_KEY. */
+export const CALCOM_API_BASE = "https://api.cal.eu/v2"
+
 /**
  * The Cal username, or null when the env var is missing — callers (the /book
  * routing gate) must check this and degrade instead of rendering the confirm

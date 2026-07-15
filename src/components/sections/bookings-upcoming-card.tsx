@@ -1,5 +1,7 @@
 import { useLocale, useTranslations } from "next-intl"
 
+import { Link } from "@/i18n/navigation"
+import { CancelBookingButton } from "@/components/sections/cancel-booking-button"
 import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
@@ -11,14 +13,24 @@ import {
   formatStudioDate,
   formatStudioTime,
 } from "@/lib/studio-time"
+import { routes } from "@/config/routes"
 
-/** Disabled inside the policy window; otherwise a new-tab link to Cal. */
-const calLinkProps = (href: string, withinPolicy: boolean) =>
+/** Disabled inside the policy window; otherwise an in-app link (external
+    Cal fallback for legacy rows without a cal_uid). */
+const manageLinkProps = (
+  withinPolicy: boolean,
+  inAppHref: string | null,
+  fallbackHref: string,
+) =>
   withinPolicy
     ? { disabled: true }
     : {
         nativeButton: false as const,
-        render: <a href={href} target="_blank" rel="noreferrer" />,
+        render: inAppHref ? (
+          <Link href={inAppHref} />
+        ) : (
+          <a href={fallbackHref} target="_blank" rel="noreferrer" />
+        ),
       }
 
 /**
@@ -84,6 +96,16 @@ function BookingsUpcomingCard({
                 {booking.durationMins} {tCatalog("minutes")}
               </Caption>
             ) : null}
+            {booking.clientNotes ? (
+              <div className="space-y-1 pt-1">
+                <Caption className="block text-[10px] tracking-widest-lux">
+                  {t("notesLabel")}
+                </Caption>
+                <BodySm className="max-w-md whitespace-pre-line">
+                  {booking.clientNotes}
+                </BodySm>
+              </div>
+            ) : null}
           </div>
           <PriceTag cents={row.total_price_cents} className="text-lg" />
         </div>
@@ -92,12 +114,28 @@ function BookingsUpcomingCard({
             reason — failing at Cal's page would be a worse surprise. */}
         <div className="space-y-3">
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="sm" {...calLinkProps(row.reschedule_url, withinPolicy)}>
+            <Button
+              variant="outline"
+              size="sm"
+              {...manageLinkProps(
+                withinPolicy,
+                row.cal_uid ? `${routes.bookings}/reschedule/${row.cal_uid}` : null,
+                row.reschedule_url,
+              )}
+            >
               {t("reschedule")}
             </Button>
-            <Button variant="destructive" size="sm" {...calLinkProps(row.cancel_url, withinPolicy)}>
-              {t("cancel")}
-            </Button>
+            {row.cal_uid ? (
+              <CancelBookingButton uid={row.cal_uid} disabled={withinPolicy} />
+            ) : (
+              <Button
+                variant="destructive"
+                size="sm"
+                {...manageLinkProps(withinPolicy, null, row.cancel_url)}
+              >
+                {t("cancel")}
+              </Button>
+            )}
           </div>
           {withinPolicy ? (
             <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">

@@ -163,8 +163,29 @@ Found while running the E2E scenario on the test deployment (`test.bellanails.dk
   - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
   - ⬜ Follow-ups: real photos via Cloudinary (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
   - ⬜ Footer visual differentiation pass: explore an Onyx background treatment (or similar stronger contrast move) once the final footer content settles.
-- ⬜ "My bookings" — protected login-required page; signed-out users should be redirected to localized sign-in before viewing or managing bookings.
-- ⬜ "My bookings" (authed) — reschedule/cancel via stored Cal.com URLs. Every path keys bookings to `clerk_user_id` (the webhook create-or-finds the client's Clerk user), so a simple Clerk `sub` match surfaces studio-created bookings too.
+- ✅ "My bookings" (July 2026) — protected page (proxy auth gate, locale-aware sign-in redirect), RLS-scoped list: upcoming cards (countdown, add-ons, stored total, 24 h policy lock) + history (cancelled/completed, "book again" deep link with add-ons preselected). Home page gets a signed-in "next appointment" band.
+- ✅ **In-app cancel & reschedule (July 2026)** — no Cal-hosted pages in the client flow: cancel = confirm dialog → server action → Cal API v2 (`CALCOM_API_KEY`) → row mirrored + revalidated; reschedule = `/bookings/reschedule/[uid]` (ownership via RLS read, eligibility re-checked) hosting the themed Cal embed's reschedule view → webhook probe → back to /bookings. ⚠️ Cal's own confirmation-email buttons still point at cal.eu (not customizable on cloud) — mitigated by a "manage your booking" line in the booking notes; fully fixed by the branded-email phase.
+
+### In-app manage hardening — DO BEFORE Phase 8 admin (senior review, July 2026)
+
+Findings from the code review of the cancel/reschedule/notes batch. The admin
+queue builds on the same action/eligibility/webhook machinery, so harden first.
+
+**Correctness (blockers):**
+- ⬜ **Deploy order:** run [supabase/booking-client-notes.sql](../supabase/booking-client-notes.sql) BEFORE deploying — the webhook writes `client_notes` unconditionally; code-before-migration 500s **all** booking persistence, not just notes.
+- ⬜ `cancelBooking`: wrap the Cal API fetch in try/catch — a transport failure currently throws out of the action (error boundary eats /bookings mid-dialog) instead of returning `{ok:false}`.
+- ⬜ `cancelBooking`: treat Cal's "already cancelled" 4xx as success → mirror row + revalidate — otherwise a ghost booking (missed cancel webhook) can never be healed in-app.
+- ⬜ `cancelBooking`: the `status === cancelled` early return must still `revalidatePath` (stale card stays rendered after an out-of-band cancel).
+- ⬜ **Reschedule embed fallback:** `calLink="reschedule/<uid>"` is not Cal's documented embed pattern (embed.js allowlists `rescheduleUid`/`bookingUid` as config params on an event link). Keep a visible external `reschedule_url` link on the reschedule page until live-verified; try `config.rescheduleUid` on the event link as the documented alternative if the path form breaks. Also live-verify metadata carries to the rescheduled booking via the embed path (confirmed once via Cal-hosted reschedule).
+- ⬜ Cancel dialog: gate `onOpenChange` on `pending` (Esc currently escapes the "stays open while pending" contract) and map error codes to distinct toasts — `within_policy` must say "contact the studio", not "try again" (also un-deadens the `CancelResult` union).
+
+**Structure (pay down before admin builds on it):**
+- ⬜ One `canManageBooking(row, now)` in `lib/booking-display` — the eligibility rule is currently spelled 4 ways (card, cancel action, reschedule page, isUpcoming); `cancelBooking` skips `isActiveBookingStatus`, so future `requested/declined` statuses would be cancellable.
+- ⬜ Extract the shared Cal embed shell (theme block, listener on/off wiring, skeleton, securing overlay) — booking-embed and reschedule-embed duplicate ~70 lines incl. the listener-stacking fix.
+- ⬜ `SITE_URL` const in `src/config/` (trailing-slash-normalized) — the fallback is duplicated in layout metadata + the emailed manage line, where a wrong origin is unregenerable. Fixes the `//` double-slash risk.
+- ⬜ Reschedule page: move UI into `sections/` (page not thin), let `routes` own the `/reschedule/` sub-path, drop the baked "– Bella Nails" from `rescheduleMetaTitle` (layout template appends the brand → currently doubles), add `rescheduleMetaDescription`.
+- ⬜ Webhook docblock says "the single write path into bookings" — no longer true (cancel action mirrors status); either route both writers through a tiny shared bookings-writer or fix the claim.
+- ⬜ Minor: shared `UID_PATTERN` guard for the reschedule page + cancel action (recap API has one); surrogate-safe truncation for `clientNotes` (`[...notes].slice(0,500)`); ineligible-reschedule bounce is silent — carry a notice back to /bookings; `.env.example`: document `CALCOM_API_KEY` as required for in-app cancel.
 - ⬜ Add a branded localized 404 / not-found page with clear recovery actions (home, services, booking).
 - ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, payment, and studio guarantee terms.
 - ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.

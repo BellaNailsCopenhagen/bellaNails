@@ -197,6 +197,7 @@ async function persistBooking(
       reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${uid}`,
       cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${uid}?cancel=true`,
       total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
+      client_notes: metaString(meta.clientNotes),
       selected_addons: {
         serviceId: metaString(meta.serviceId),
         addonIds,
