@@ -24,9 +24,12 @@ export async function waitForBookingRow(uid: string): Promise<void> {
 export async function settleBookingRow(uid: string): Promise<void> {
   try {
     const result = await syncBooking(uid)
+    console.log("[booking] sync", result)
     if (result.ok) return
-  } catch {
-    // Action unreachable — fall through to the probe.
+  } catch (error) {
+    console.error("[booking] sync action failed", error)
   }
+  console.log("[booking] falling back to probe")
   await waitForBookingRow(uid)
+  console.log("[booking] probe settled")
 }

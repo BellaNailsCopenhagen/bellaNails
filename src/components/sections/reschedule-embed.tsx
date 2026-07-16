@@ -30,10 +30,16 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
     const onBooked = (event: { detail: { data: { uid?: string } } }) => {
       const newUid = event.detail.data.uid
       const goToBookings = () => {
-        router.replace(routes.bookings)
-        // Bust the client router cache — /bookings was likely just visited,
-        // and a plain replace would serve the pre-reschedule payload.
-        router.refresh()
+        console.log("[booking] navigating to /bookings")
+        try {
+          router.replace(routes.bookings)
+          // Bust the client router cache — /bookings was likely just
+          // visited; a plain replace would serve the stale payload.
+          router.refresh()
+        } catch (error) {
+          console.error("[booking] router navigation failed", error)
+          window.location.assign(window.location.pathname.replace(/\/bookings\/.*$/, "/bookings"))
+        }
       }
       if (!newUid) {
         goToBookings()
