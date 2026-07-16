@@ -91,6 +91,14 @@ export async function POST(request: Request) {
     return new Response("Malformed JSON", { status: 400 })
   }
 
+  // Receipt log — Cal's cloud UI has no delivery history, so this is the
+  // only record of delivery timing (diagnosing multi-minute lag).
+  console.log("[cal-webhook] received", {
+    triggerEvent: event.triggerEvent,
+    bookingId: event.payload?.bookingId,
+    uid: event.payload?.uid,
+  })
+
   switch (event.triggerEvent) {
     case "BOOKING_CREATED":
       return persistBooking(event.payload, BOOKING_STATUS.confirmed)
