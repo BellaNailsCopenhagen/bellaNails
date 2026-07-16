@@ -242,5 +242,6 @@ export async function syncBookingFromCal(
     console.error("[booking-sync] persist failed", uid, result.message)
     return { ok: false }
   }
+  console.log("[booking-sync] synced", { uid, status })
   return { ok: true }
 }
