@@ -29,7 +29,12 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
     const onLinkReady = () => setReady(true)
     const onBooked = (event: { detail: { data: { uid?: string } } }) => {
       const newUid = event.detail.data.uid
-      const goToBookings = () => router.replace(routes.bookings)
+      const goToBookings = () => {
+        router.replace(routes.bookings)
+        // Bust the client router cache — /bookings was likely just visited,
+        // and a plain replace would serve the pre-reschedule payload.
+        router.refresh()
+      }
       if (!newUid) {
         goToBookings()
         return
