@@ -1,4 +1,5 @@
 import { metaOf } from "@/lib/booking-display"
+import { CAL_UID_PATTERN } from "@/lib/booking-sync"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import { localizeSelection } from "@/lib/services/localize-selection"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -16,9 +17,6 @@ import type { BookingLineItem } from "@/components/sections/appointment-summary"
  * no catalog work — the confirm step's post-booking wait polls this form.
  */
 
-// Cal uids are short url-safe tokens; reject junk before it reaches the DB.
-const UID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/
-
 type BookingRecap = {
   status: string
   startTime: string
@@ -34,7 +32,7 @@ export async function GET(
   { params }: { params: Promise<{ uid: string }> },
 ) {
   const { uid } = await params
-  if (!UID_PATTERN.test(uid)) {
+  if (!CAL_UID_PATTERN.test(uid)) {
     return Response.json({ error: "not found" }, { status: 404 })
   }
 

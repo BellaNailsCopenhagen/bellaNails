@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
-import { waitForBookingRow } from "@/lib/booking-probe"
+import { settleBookingRow } from "@/lib/booking-probe"
 import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom"
 import { routes } from "@/config/routes"
 
@@ -41,7 +41,7 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
       }
       setSecuring(true)
       // Not gated on cleanup: Cal has already rescheduled.
-      void waitForBookingRow(newUid).then(goToBookings)
+      void settleBookingRow(newUid).then(goToBookings)
     }
 
     let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined

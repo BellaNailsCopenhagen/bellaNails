@@ -1,3 +1,5 @@
+import { syncBooking } from "@/lib/actions/sync-booking"
+
 /** Post-success wait: after Cal creates/reschedules a booking, poll for our
     webhook-written row before navigating (~15 s worst case). Deliberately
     not cancellable — once Cal has acted, the flow must move forward. */
@@ -15,4 +17,16 @@ export async function waitForBookingRow(uid: string): Promise<void> {
       // Network hiccup — try the next probe.
     }
   }
+}
+
+/** Sync-first (Cal's webhook queue lags), probe as fallback. Never rejects —
+    callers navigate unconditionally after it settles. */
+export async function settleBookingRow(uid: string): Promise<void> {
+  try {
+    const result = await syncBooking(uid)
+    if (result.ok) return
+  } catch {
+    // Action unreachable — fall through to the probe.
+  }
+  await waitForBookingRow(uid)
 }

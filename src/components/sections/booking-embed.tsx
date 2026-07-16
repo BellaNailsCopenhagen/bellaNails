@@ -5,7 +5,7 @@ import Cal, { getCalApi } from "@calcom/embed-react"
 import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
-import { waitForBookingRow } from "@/lib/booking-probe"
+import { settleBookingRow } from "@/lib/booking-probe"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
 import type { BookingContact } from "@/lib/contact-validation"
@@ -77,10 +77,9 @@ export function BookingEmbed({
         return
       }
       setSecuring(true)
-      // Deliberately not gated on effect cleanup: the booking exists in Cal,
-      // so this navigation must survive re-renders, unmounts and back
-      // presses — anything else strands the user on an armed flow.
-      void waitForBookingRow(uid).then(goToConfirmation)
+      // Not gated on effect cleanup: the booking exists in Cal, so this
+      // navigation must survive re-renders and unmounts.
+      void settleBookingRow(uid).then(goToConfirmation)
     }
 
     let calApi: Awaited<ReturnType<typeof getCalApi>> | undefined
