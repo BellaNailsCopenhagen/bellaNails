@@ -21,15 +21,21 @@ export async function waitForBookingRow(uid: string): Promise<void> {
 
 /** Sync-first (Cal's webhook queue lags), probe as fallback. Never rejects —
     callers navigate unconditionally after it settles. */
+/** Hard cap on the post-success hold: navigate even if sync and probe are
+    both slow — the destination pages degrade gracefully to webhook timing. */
+const SETTLE_CAP_MS = 5000
+
 export async function settleBookingRow(uid: string): Promise<void> {
-  try {
-    const result = await syncBooking(uid)
-    console.log("[booking] sync", result)
-    if (result.ok) return
-  } catch (error) {
-    console.error("[booking] sync action failed", error)
-  }
-  console.log("[booking] falling back to probe")
-  await waitForBookingRow(uid)
-  console.log("[booking] probe settled")
+  const settle = (async () => {
+    try {
+      if ((await syncBooking(uid)).ok) return
+    } catch {
+      // Action unreachable — fall through to the probe.
+    }
+    await waitForBookingRow(uid)
+  })()
+  await Promise.race([
+    settle,
+    new Promise((resolve) => setTimeout(resolve, SETTLE_CAP_MS)),
+  ])
 }
