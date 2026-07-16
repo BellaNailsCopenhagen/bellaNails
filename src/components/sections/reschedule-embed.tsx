@@ -58,14 +58,18 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
         },
       })
       cal("on", { action: "linkReady", callback: onLinkReady })
-      cal("on", { action: "bookingSuccessfulV2", callback: onBooked })
+      // Reschedules fire their own success event — NOT bookingSuccessfulV2.
+      cal("on", { action: "rescheduleBookingSuccessfulV2", callback: onBooked })
     })()
 
     return () => {
       cancelled = true
       // Window-level singleton — always detach or handlers stack per remount.
       calApi?.("off", { action: "linkReady", callback: onLinkReady })
-      calApi?.("off", { action: "bookingSuccessfulV2", callback: onBooked })
+      calApi?.("off", {
+        action: "rescheduleBookingSuccessfulV2",
+        callback: onBooked,
+      })
     }
   }, [router])
 
