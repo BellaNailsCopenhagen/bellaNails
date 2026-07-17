@@ -38,6 +38,12 @@ type FooterLabelKey = keyof (typeof enMessages)["footer"]
 /** A primary nav entry. `labelKey` resolves against the `nav` i18n namespace. */
 export type NavItem = { href: Route; labelKey: NavLabelKey }
 
+/** In-app reschedule for one booking (dynamic — hence a builder, not a
+    constant; the segment must match app/[locale]/bookings/reschedule/[uid]). */
+export function rescheduleBookingPath(uid: string): string {
+  return `${routes.bookings}/reschedule/${encodeURIComponent(uid)}`
+}
+
 /** Primary header navigation. Lookbook returns when its page ships. */
 export const headerNav: NavItem[] = [
   { href: routes.services, labelKey: "services" },

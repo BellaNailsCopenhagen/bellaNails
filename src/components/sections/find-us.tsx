@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/ui/section-heading"
 import {
   STUDIO_ADDRESS_LINE_1,
   STUDIO_ADDRESS_LINE_2,
+  STUDIO_EMAIL,
   STUDIO_MAPS_URL,
 } from "@/config/studio"
 
@@ -38,6 +39,12 @@ export async function FindUs() {
           <div className="font-functional text-sm text-muted-foreground">
             <div>{t("hoursLine")}</div>
             <div>{t("hoursNote")}</div>
+            <a
+              href={`mailto:${STUDIO_EMAIL}`}
+              className="mt-2 inline-block underline underline-offset-2 hover:text-foreground"
+            >
+              {STUDIO_EMAIL}
+            </a>
           </div>
         </div>
 

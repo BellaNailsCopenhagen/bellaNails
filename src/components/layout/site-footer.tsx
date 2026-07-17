@@ -5,7 +5,11 @@ import { Link } from "@/i18n/navigation"
 import { Container } from "@/components/layout/container"
 import { Eyebrow, Caption } from "@/components/ui/typography"
 import { footerNav, routes } from "@/config/routes"
-import { STUDIO_ADDRESS_LINE_1, STUDIO_ADDRESS_LINE_2 } from "@/config/studio"
+import {
+  STUDIO_ADDRESS_LINE_1,
+  STUDIO_ADDRESS_LINE_2,
+  STUDIO_EMAIL,
+} from "@/config/studio"
 
 /**
  * SiteFooter — logo column, address column, three nav columns, and a separate
@@ -39,6 +43,13 @@ export async function SiteFooter() {
             {STUDIO_ADDRESS_LINE_1}
             <br />
             {STUDIO_ADDRESS_LINE_2}
+            <br />
+            <a
+              href={`mailto:${STUDIO_EMAIL}`}
+              className="underline underline-offset-2 hover:text-primary-foreground"
+            >
+              {STUDIO_EMAIL}
+            </a>
           </address>
           <Caption
             as="ul"

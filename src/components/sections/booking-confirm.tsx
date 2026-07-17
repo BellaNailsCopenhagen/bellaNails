@@ -13,6 +13,7 @@ import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import type { BookingContact } from "@/lib/contact-validation"
 import { buildCalLink } from "@/config/calcom"
 import { routes } from "@/config/routes"
+import { SITE_URL } from "@/config/site"
 
 /**
  * BookingConfirm — step 03 · Confirm: the themed Cal.com embed pre-loaded
@@ -48,7 +49,6 @@ export async function BookingConfirm({
   // the booking notes/emails. The webhook never parses this string; the
   // price uses formatPrice's site-wide defaults. The manage line rides along
   // because Cal's own email buttons can't be repointed at our pages.
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bellanails.dk"
   const notesSummary = [
     `${localizedService.name} (${localizedService.durationMins} min)`,
     ...selectedAddons.map(
@@ -58,7 +58,7 @@ export async function BookingConfirm({
     .join(" + ")
     .concat(
       ` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`,
-      `\n${t("manageOnline")}: ${siteUrl}/${locale}${routes.bookings}`,
+      `\n${t("manageOnline")}: ${SITE_URL}/${locale}${routes.bookings}`,
     )
 
   // Carry the contact fields back so the details form re-renders filled —

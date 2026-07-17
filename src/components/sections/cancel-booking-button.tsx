@@ -37,6 +37,9 @@ export function CancelBookingButton({
       const result = await cancelBooking(uid)
       if (result.ok) {
         toast.success(t("cancelDone"))
+      } else if (result.error === "within_policy") {
+        // Retrying can never succeed inside the window — point at the studio.
+        toast.error(t("within24h"))
       } else {
         toast.error(t("cancelFailed"))
       }
@@ -44,7 +47,14 @@ export function CancelBookingButton({
     })
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    // Esc/backdrop can't dismiss mid-flight — the dialog resolves only when
+    // the action does.
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!pending) setOpen(next)
+      }}
+    >
       <AlertDialogTrigger
         render={<Button variant="destructive" size="sm" disabled={disabled} />}
       >

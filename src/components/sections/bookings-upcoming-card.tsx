@@ -7,13 +7,14 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, H3 } from "@/components/ui/typography"
-import { POLICY_WINDOW_MS, type DisplayBooking } from "@/lib/booking-display"
+import { canManageBooking, type DisplayBooking } from "@/lib/booking-display"
 import {
   formatCountdown,
   formatStudioDate,
   formatStudioTime,
 } from "@/lib/studio-time"
-import { routes } from "@/config/routes"
+import { rescheduleBookingPath } from "@/config/routes"
+import { STUDIO_EMAIL } from "@/config/studio"
 
 /** Disabled inside the policy window; otherwise an in-app link (external
     Cal fallback for legacy rows without a cal_uid). */
@@ -49,8 +50,7 @@ function BookingsUpcomingCard({
   const locale = useLocale()
   const { row } = booking
 
-  const withinPolicy =
-    new Date(row.start_time).getTime() - now < POLICY_WINDOW_MS
+  const withinPolicy = !canManageBooking(row, now)
 
   return (
     <TintedCard as="li">
@@ -119,7 +119,7 @@ function BookingsUpcomingCard({
               size="sm"
               {...manageLinkProps(
                 withinPolicy,
-                row.cal_uid ? `${routes.bookings}/reschedule/${row.cal_uid}` : null,
+                row.cal_uid ? rescheduleBookingPath(row.cal_uid) : null,
                 row.reschedule_url,
               )}
             >
@@ -139,7 +139,13 @@ function BookingsUpcomingCard({
           </div>
           {withinPolicy ? (
             <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">
-              {t("within24h")}
+              {t("within24h")}{" "}
+              <a
+                href={`mailto:${STUDIO_EMAIL}`}
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                {STUDIO_EMAIL}
+              </a>
             </Caption>
           ) : null}
         </div>

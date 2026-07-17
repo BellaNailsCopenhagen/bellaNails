@@ -109,7 +109,8 @@
     "cancelling": "Aflyser…",
     "cancelDone": "Din tid er aflyst.",
     "cancelFailed": "Vi kunne ikke aflyse — prøv igen eller kontakt studiet.",
-    "rescheduleMetaTitle": "Flyt tid – Bella Nails",
+    "rescheduleMetaTitle": "Flyt tid",
+    "rescheduleMetaDescription": "Vælg et nyt tidspunkt for din tid hos Bella Nails — din behandling og dine oplysninger følger med bookingen.",
     "rescheduleHeading1": "Vælg et",
     "rescheduleHeading2": "nyt tidspunkt",
     "rescheduleIntro": "Vælg det tidspunkt, der passer dig bedre — din behandling og dine oplysninger følger med bookingen, og en ny bekræftelse kommer på e-mail.",
@@ -130,6 +131,7 @@
     "emptyCtaBook": "Book en session",
     "noUpcomingTitle": "Ingen kommende tider",
     "noUpcomingBody": "Dit næste besøg er få klik væk — menuen venter.",
+    "noticePolicy": "Den tid kan ikke længere ændres online — ring eller skriv til studiet, så finder vi ud af det.",
     "loadError": "Vi kunne ikke hente dine bookinger lige nu — prøv igen om et øjeblik.",
     "status": {
       "confirmed": "Bekræftet",

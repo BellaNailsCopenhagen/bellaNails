@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
+import { isActiveBookingStatus } from "@/lib/booking-status"
 import { pickLocalized } from "@/lib/i18n/localized"
 import type { Database } from "@/lib/supabase/types"
 
@@ -49,6 +50,19 @@ export type DisplayBooking = {
 /** 24-hour cancellation policy: inside this window the Cal links are
     withheld and the client is pointed at the studio instead. */
 export const POLICY_WINDOW_MS = 24 * 60 * 60 * 1000
+
+/** THE eligibility rule for client-side manage actions (reschedule/cancel):
+    an active booking starting at least the policy window from now. Every
+    surface — card buttons, cancel action, reschedule page — asks this. */
+export function canManageBooking(
+  row: Pick<BookingRow, "status" | "start_time">,
+  now: number,
+): boolean {
+  return (
+    isActiveBookingStatus(row.status) &&
+    new Date(row.start_time).getTime() - now >= POLICY_WINDOW_MS
+  )
+}
 
 export const metaOf = (row: Pick<BookingRow, "selected_addons">) =>
   (row.selected_addons ?? {}) as BookingMeta

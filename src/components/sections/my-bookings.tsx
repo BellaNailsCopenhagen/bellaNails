@@ -3,6 +3,8 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { BookingsContent } from "@/components/sections/bookings-content"
 import { Container, Section } from "@/components/layout/container"
 import { PageHeader } from "@/components/ui/page-header"
+import { TintedCard } from "@/components/ui/tinted-card"
+import { BodySm } from "@/components/ui/typography"
 import {
   BOOKING_DISPLAY_COLUMNS,
   fetchBookingCatalog,
@@ -19,7 +21,7 @@ import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
  * a session; RLS scopes the rows (self-booked and studio-created alike).
  * Owns the data; all rendering states live in BookingsContent.
  */
-export async function MyBookings() {
+export async function MyBookings({ notice = null }: { notice?: string | null }) {
   const [t, locale] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
@@ -80,6 +82,12 @@ export async function MyBookings() {
           muted={t("headingLine2")}
           intro={t("intro")}
         />
+        {/* e.g. bounced off an ineligible reschedule — say why. */}
+        {notice === "policy" ? (
+          <TintedCard className="mb-10">
+            <BodySm>{t("noticePolicy")}</BodySm>
+          </TintedCard>
+        ) : null}
         <BookingsContent
           failed={Boolean(error)}
           upcoming={upcoming}

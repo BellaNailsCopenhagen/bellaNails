@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { MyBookings } from "@/components/sections/my-bookings"
 import { routing } from "@/i18n/routing"
+import { singleParam } from "@/lib/search-params"
 
 export async function generateMetadata({
   params,
@@ -26,14 +27,15 @@ export async function generateMetadata({
     signed-out visit redirects to the localized sign-in and returns here. */
 export default async function BookingsPage({
   params,
+  searchParams,
 }: PageProps<"/[locale]/bookings">) {
-  const { locale } = await params
+  const [{ locale }, query] = await Promise.all([params, searchParams])
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
   return (
     <main className="flex flex-1 flex-col">
-      <MyBookings />
+      <MyBookings notice={singleParam(query.notice) ?? null} />
     </main>
   )
 }

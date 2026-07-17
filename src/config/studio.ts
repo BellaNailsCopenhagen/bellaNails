@@ -8,6 +8,9 @@ export const STUDIO_ADDRESS_LINE_1 = "Halldór Laxness Vej 3, 2. th"
 export const STUDIO_ADDRESS_LINE_2 = "2300 København S"
 export const STUDIO_ADDRESS = `${STUDIO_ADDRESS_LINE_1} · ${STUDIO_ADDRESS_LINE_2}`
 
+/** Public contact (decided July 2026: email-first, no messaging system). */
+export const STUDIO_EMAIL = "hello@bellanails.dk"
+
 /** Times are stored UTC; every client-facing time renders in studio time. */
 export const STUDIO_TIME_ZONE = "Europe/Copenhagen"
 

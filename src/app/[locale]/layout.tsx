@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { SiteHeader } from "@/components/layout/site-header"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { routing } from "@/i18n/routing"
+import { SITE_URL } from "@/config/site"
 import "../globals.css"
 
 // font-editorial — Figma "Collection 1". Italic is part of the brand:
@@ -58,9 +59,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "meta" })
 
   return {
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL ?? "https://bellanails.dk",
-    ),
+    metadataBase: new URL(SITE_URL),
     title: {
       default: t("title"),
       template: "%s · Bella Nails",

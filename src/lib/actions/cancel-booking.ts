@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@clerk/nextjs/server"
 
-import { POLICY_WINDOW_MS } from "@/lib/booking-display"
+import { canManageBooking } from "@/lib/booking-display"
 import { BOOKING_STATUS } from "@/lib/booking-status"
-import { CAL_UID_PATTERN } from "@/lib/booking-sync"
+import { CAL_UID_PATTERN, syncBookingFromCal } from "@/lib/booking-sync"
 import {
   createAuthedSupabaseServerClient,
   createSupabaseServiceRoleClient,
@@ -36,8 +36,13 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
     .maybeSingle()
   if (error || !booking) return { ok: false, error: "not_found" }
 
-  if (booking.status === BOOKING_STATUS.cancelled) return { ok: true }
-  if (new Date(booking.start_time).getTime() - Date.now() < POLICY_WINDOW_MS) {
+  if (booking.status === BOOKING_STATUS.cancelled) {
+    // Already cancelled out-of-band — refresh the stale card that offered
+    // the button.
+    revalidatePath("/[locale]/bookings", "page")
+    return { ok: true }
+  }
+  if (!canManageBooking(booking, Date.now())) {
     return { ok: false, error: "within_policy" }
   }
 
@@ -47,17 +52,42 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
     return { ok: false, error: "failed" }
   }
 
-  const res = await fetch(`${CALCOM_API_BASE}/bookings/${uid}/cancel`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "cal-api-version": "2024-08-13",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      cancellationReason: "Cancelled by the client via the website",
-    }),
-  })
+  let res: Response
+  try {
+    res = await fetch(`${CALCOM_API_BASE}/bookings/${uid}/cancel`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "cal-api-version": "2024-08-13",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        cancellationReason: "Cancelled by the client via the website",
+      }),
+    })
+  } catch (error) {
+    console.error(
+      "[cancel-booking] Cal API unreachable",
+      error instanceof Error ? error.message : error,
+    )
+    return { ok: false, error: "failed" }
+  }
+  if (res.status >= 400 && res.status < 500) {
+    // Usually "already cancelled" on Cal's side (our webhook missed it) —
+    // reconcile from the authoritative source instead of guessing.
+    console.error("[cancel-booking] Cal API 4xx — reconciling", uid, res.status)
+    await syncBookingFromCal(uid)
+    const { data: after } = await supabase
+      .from("bookings")
+      .select("status")
+      .eq("cal_uid", uid)
+      .maybeSingle()
+    if (after?.status === BOOKING_STATUS.cancelled) {
+      revalidatePath("/[locale]/bookings", "page")
+      return { ok: true }
+    }
+    return { ok: false, error: "failed" }
+  }
   if (!res.ok) {
     console.error("[cancel-booking] Cal API rejected", uid, res.status)
     return { ok: false, error: "failed" }
