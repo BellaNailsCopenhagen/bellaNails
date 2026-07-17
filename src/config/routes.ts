@@ -38,11 +38,10 @@ type FooterLabelKey = keyof (typeof enMessages)["footer"]
 /** A primary nav entry. `labelKey` resolves against the `nav` i18n namespace. */
 export type NavItem = { href: Route; labelKey: NavLabelKey }
 
-/** Primary header navigation. */
+/** Primary header navigation. Lookbook returns when its page ships. */
 export const headerNav: NavItem[] = [
   { href: routes.services, labelKey: "services" },
   { href: routes.gallery, labelKey: "gallery" },
-  { href: routes.lookbook, labelKey: "lookbook" },
   { href: routes.bookings, labelKey: "bookings" },
 ]
 
@@ -67,7 +66,6 @@ export const footerNav: FooterColumn[] = [
     links: [
       { href: routes.services, labelKey: "services" },
       { href: routes.gallery, labelKey: "gallery" },
-      { href: routes.lookbook, labelKey: "lookbook" },
     ],
   },
   {
