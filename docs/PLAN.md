@@ -196,6 +196,8 @@ queue builds on the same action/eligibility/webhook machinery, so harden first.
 
 ## Phase 8 — Admin
 
+> **Agent task briefs:** [`tasks/admin/`](./tasks/admin/) — dependency-ordered, one branch/PR each (01 shell+auth+PWA · 02 live queue · 03 services CRUD+Cal sync · 04 gallery+testimonials · 05 push notifications). Read `00-context.md` first. **Decided (July 2026): the admin is a mobile-first installable PWA with web-push new-booking alerts** — not Electron (desktop-only), not a store app (Capacitor wrappable later if ever wanted); interim alerting = webhook→Zoho email.
+
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - 🔼 Manage services / add-ons / incompatibilities (soft-delete via `archived_at`) — **pulled forward, build right after `/book`**: one-step create/update/archive including the Cal event-type sync (see the Phase 6 "one event type per service" decision), so the owner rebuilds the placeholder catalog entirely from the admin without touching the Cal dashboard.
 - ⬜ Manage gallery — Cloudinary signed client upload, store URL only, and expose homepage featuring through nullable `sort_order` slots `1..5` (not arbitrary full-gallery ordering). Non-featured gallery items should keep `sort_order = null`.
@@ -227,6 +229,10 @@ Decisions / to verify:
 - ⬜ **GDPR posture:** centralizing PII in Clerk shrinks our surface (DB is PII-free; erasure = delete the Clerk user, leaving only a dangling id) but does **not** remove controller obligations — ensure a Clerk DPA and a privacy-policy line.
 - ⬜ **Clerk MAU:** confirm created-but-dormant users don't count toward the plan's MAU before relying on the free tier.
 - ⬜ Deferred: full auto-recurring series. (Guest→account reconciliation is now moot — every client is a Clerk user from the first interaction.)
+
+## Nice to have — explorations (not committed)
+
+- ⬜ **Client PWA** — installable client app: reminders, one-tap rebook, waitlist for cancellations, "my sets" photo history; coupons flagged as a brand decision (site copy currently promises no promotional pricing). Reuses the admin PWA plumbing (Phase 8 Task 05). Scoped in [tasks/explorations/client-pwa.md](./tasks/explorations/client-pwa.md) — validate install rate before investing past the cheap v1.
 
 ## Phase 9 — Hardening & launch
 
