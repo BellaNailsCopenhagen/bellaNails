@@ -140,6 +140,16 @@
       "completed": "Gennemført"
     }
   },
+  "gallery": {
+    "metaTitle": "Galleri",
+    "metaDescription": "Indenfor i Bella Nails-studiet i Ørestad, København — rummet, håndværket og arbejdet.",
+    "eyebrow": "Studiet",
+    "headingLead": "Galleriet",
+    "headingMuted": "Indenfor hos Bella Nails",
+    "intro": "Et første kig ind i studiet — rummet hvor hver session foregår, én kunde ad gangen. Den fulde portefølje af neglearbejde er ved at blive kurateret og kommer snart til at bo her.",
+    "comingSoon": "Den komplette portefølje — sæt, før & efter og signaturlooks — er på vej. Indtil da står stolen klar.",
+    "bookCta": "Book en session"
+  },
   "confirmation": {
     "metaTitle": "Booking bekræftet – Bella Nails, Ørestad, København",
     "metaDescription": "Din tid hos Bella Nails er bekræftet. Se detaljerne for din session og administrér dine bookinger.",

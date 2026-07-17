@@ -140,6 +140,16 @@
       "completed": "Completed"
     }
   },
+  "gallery": {
+    "metaTitle": "Gallery",
+    "metaDescription": "Inside the Bella Nails studio in Ørestad, Copenhagen — the space, the craft, and the work.",
+    "eyebrow": "The Studio",
+    "headingLead": "The Gallery",
+    "headingMuted": "Inside Bella Nails",
+    "intro": "A first look inside the studio — the space where every session happens, one client at a time. The full portfolio of nail work is being curated and will live here soon.",
+    "comingSoon": "The complete portfolio — sets, before & afters, and signature looks — is on its way. In the meantime, the chair is ready.",
+    "bookCta": "Book a session"
+  },
   "confirmation": {
     "metaTitle": "Booking Confirmed – Bella Nails, Ørestad, Copenhagen",
     "metaDescription": "Your appointment at Bella Nails is confirmed. Review your session details and manage your bookings.",
