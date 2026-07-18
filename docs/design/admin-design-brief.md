@@ -95,9 +95,33 @@ task.)
 
 ## 4 · Screens & flows to design
 
-### A. Queue (home)
-- Grouped **Today / Tomorrow / Later**, soonest first. Day headers as
-  tracked eyebrows with date in editorial serif.
+### A. Queue (home) — a forward agenda
+- **A planning agenda, not just "today".** The artist plans weeks ahead, so
+  the queue is a forward, scrollable agenda grouped **by week → day**, soonest
+  first, studio timezone, **weeks starting Monday** (Copenhagen convention).
+  Day headers are tracked eyebrows with the date in editorial serif; within
+  the current week the day groups read **Today / Tomorrow / <weekday>**.
+- **Collapsible weeks (the plan-ahead control).** The **current week is
+  expanded by default** — every day and card visible. **Every future week is
+  a collapsed group by default**: a tappable header row showing the week range
+  and a count ("Next week · 3 appointments", or "· open" when empty) that
+  expands to reveal its day-grouped cards. Show weeks through the furthest
+  upcoming booking so gaps in the calendar are visible at a glance; empty
+  weeks render as quiet collapsed "open" rows. Collapse/expand is a calm
+  chevron affordance on the week header (≥44px), no accordion theatrics.
+  Past bookings are not shown here — history lives on the client pages.
+- **Two views, one toggle.** A calm control in the queue header (icon pair:
+  list / grid, or a small segmented switch) flips between the **Agenda** (the
+  default week→day card list above — detail + planning) and a **condensed
+  Calendar** for a high-level glance across weeks. Agenda is the default; the
+  toggle remembers the last choice within a session.
+- **Condensed Calendar (month grid).** A mobile-first month grid: 7 columns,
+  **weeks start Monday**, prev/next-month nav to plan ahead. Each day cell is
+  spare — the date numeral (editorial) plus a quiet booking marker: a single
+  dot, or a small count when >1; **empty days stay blank** (calm, not a wall
+  of zeros). Today is marked; the selected day is highlighted. Tapping a day
+  with bookings drops back into the Agenda scrolled to that day. Same tokens
+  (tinted cells, hairline grid), no dense SaaS-calendar chrome.
 - **Booking card** (TintedCard): time range (editorial, prominent) +
   live countdown micro-caption top-right · client first name + service ·
   add-ons as small bulleted list · duration + total (price right-aligned,
