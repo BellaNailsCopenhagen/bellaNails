@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
+import { BRAND } from "@/config/brand"
 import { CALCOM_EMBED_JS_URL, CALCOM_ORIGIN } from "@/config/calcom"
 
 /** Skeleton and iframe share this height — unequal values reintroduce the
@@ -61,8 +62,8 @@ export function CalEmbedShell({
         hideEventTypeDetails: false,
         cssVarsPerTheme: {
           // Forced to light theme, but the type requires both.
-          light: { "cal-brand": "#121212" },
-          dark: { "cal-brand": "#fbfbfa" },
+          light: { "cal-brand": BRAND.cta },
+          dark: { "cal-brand": BRAND.background },
         },
       })
       cal("on", { action: "linkReady", callback: onLinkReady })
