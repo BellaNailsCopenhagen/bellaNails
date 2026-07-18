@@ -171,6 +171,22 @@
     "backHome": "Back to home",
     "browseMenu": "Browse the menu"
   },
+  "errors": {
+    "eyebrow": "Something went wrong",
+    "title": "This didn't go to plan",
+    "body": "An unexpected error interrupted this page. It's usually only temporary — please try again, and if it keeps happening, the studio is only a message away.",
+    "retry": "Try again",
+    "backHome": "Back to home"
+  },
+  "notFound": {
+    "eyebrow": "404 · Page not found",
+    "headingLine1": "This Page",
+    "headingLine2": "Has Slipped Away",
+    "intro": "The page you're looking for isn't here — it may have moved, or the link led somewhere that no longer exists. Let us guide you back to the studio.",
+    "backHome": "Back to home",
+    "browseMenu": "Browse the menu",
+    "book": "Book a session"
+  },
   "formula": {
     "eyebrow": "The formula",
     "headingLead": "Made to last —",

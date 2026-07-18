@@ -171,6 +171,22 @@
     "backHome": "Tilbage til forsiden",
     "browseMenu": "Se menuen"
   },
+  "errors": {
+    "eyebrow": "Noget gik galt",
+    "title": "Det gik ikke helt som planlagt",
+    "body": "En uventet fejl afbrød siden. Det er som regel kun midlertidigt — prøv igen, og hvis det bliver ved, er studiet kun en besked væk.",
+    "retry": "Prøv igen",
+    "backHome": "Tilbage til forsiden"
+  },
+  "notFound": {
+    "eyebrow": "404 · Siden findes ikke",
+    "headingLine1": "Denne side",
+    "headingLine2": "kunne ikke findes",
+    "intro": "Siden, du leder efter, er her ikke — den er måske flyttet, eller linket førte et sted hen, som ikke længere findes. Lad os vise dig vej tilbage til studiet.",
+    "backHome": "Tilbage til forsiden",
+    "browseMenu": "Se behandlinger",
+    "book": "Book en tid"
+  },
   "formula": {
     "eyebrow": "Formlen",
     "headingLead": "Skabt til at holde —",
