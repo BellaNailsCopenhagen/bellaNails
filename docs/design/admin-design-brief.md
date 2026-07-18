@@ -75,10 +75,13 @@ often wins). Tone: warm, precise, unhurried. “Din tid er aflyst.” not
 
 ## 3 · Information architecture
 
-Bottom tab bar on mobile (top tabs ≥768px): **Queue · New · Services ·
-Gallery · More**. “New” is the centered primary action (studio-created
-booking). “More” holds: testimonials, notifications toggle, deep links
-(Meta Business Suite inbox, Cal dashboard, studio Instagram), sign out.
+Bottom tab bar on mobile (top tabs ≥768px): **Queue · New · Clients ·
+Services · More**. “New” is the centered primary action (studio-created
+booking). “More” holds: gallery, testimonials, notifications toggle, deep
+links (Meta Business Suite inbox, Cal dashboard, studio Instagram), sign
+out. (Clients earned the tab over Gallery: the client book is a between-
+appointments daily surface; gallery curation is an occasional sit-down
+task.)
 
 ## 4 · Screens & flows to design
 
@@ -150,16 +153,70 @@ booking). “More” holds: testimonials, notifications toggle, deep links
 - Testimonials: simple list (quote, author, role), publish toggle,
   add/edit with a single-language quote field (quotes stay as given).
 
-### F. Notifications & More
+### F. Clients (the studio’s client book)
+
+- **List**: search field at top (underline input, searches name/email).
+  Rows: client name (editorial, ~18px) + micro-caption “Last visit 12 Jul ·
+  8 visits”. No avatars (we have none — don’t invent placeholder circles;
+  a quiet monogram tile in card-tint is acceptable). States: loading
+  skeleton rows · empty (“Your client book starts with the first booking”)
+  · no-results (“No one matches — check the spelling?”).
+- **Client page** (the hero screen of this section):
+  - Header: name in editorial display, email + phone as caption lines.
+    Action row of three equal touch targets: **Call · Email · New booking**
+    (New booking = the primary, onyx; call/email as outline/ghost —
+    they leave the app via tel:/mailto:).
+  - **Booking history**: upcoming first (same card anatomy as the queue,
+    slightly condensed), then past as compact rows with status chips
+    (completed sage / cancelled muted red) — the client site’s history
+    pattern at admin scale.
+  - **Notes**: timestamped entries, newest first; “Add note” opens an
+    underline textarea inline. Every entry shows date + edit/archive.
+    A permanent quiet caption under the section header: **“Write as if
+    the client will read it.”** — this is a legal posture, not decoration;
+    it must always be visible, styled as a calm caption, never a warning
+    banner.
+  - **Photos**: 3-up grid of private reference shots (previous sets).
+    Upload tile first (camera-roll happy path, progress state), tap to
+    view full-size, optional caption + “from appointment …” link. A quiet
+    caption marks the section **“Private — never shown on the site.”**
+  - **Photo consent states** (per tile, micro-chip in a corner): none
+    (no chip — private is the default, not a status) · “ASKED” bronze ·
+    “SHARED” sage (full-size view shows which scopes: website / social) ·
+    “DECLINED” muted (no red — a no is not an error) · “WITHDRAWN” muted.
+    Full-size view carries the action: **“Ask to feature”** → a small
+    sheet with two independent checkboxes (Website gallery / Social
+    media, both unchecked), the terms text preview, and “Send request”.
+    After sending: the tile chips to ASKED with age (“asked 3 days ago”),
+    and a stale request (>7 d) surfaces a gentle re-nudge hint. On
+    withdrawal with social granted: a one-time task-like reminder card
+    “Remove this from social posts” with a done-checkbox.
+    (The client answers on their own /bookings page — image + terms +
+    the same two checkboxes + Confirm/Decline, and a permanent “Photos
+    you’ve shared” list with one-tap Withdraw. Mirror the card anatomy
+    so both sides feel like one system.)
+  - **Edit client**: name + phone editable (underline inputs); email
+    visibly read-only with the caption “Sign-in identity — can’t change”.
+  - **Delete client**: at the very bottom, destructive-tint, opens an
+    AlertDialog that states plainly what erasure means (“Removes their
+    account, your notes and photos. Past appointments stay as anonymous
+    records.”). If upcoming bookings exist, the dialog explains it’s
+    blocked until they’re cancelled — disabled-with-reason, not hidden.
+- **Cross-links**: tapping the client name on a Queue card opens this
+  page; “New booking” here lands in flow B with step 1 pre-filled
+  (design the pre-filled state of B1: returning-client confirmation
+  shown, fields locked with an “edit” escape).
+
+### G. Notifications & More
 - Enable-notifications card: state machine — unsupported browser → “install
   to home screen first” (iOS instructions with the share-sheet glyph) →
   permission prompt → enabled (quiet sage confirmation) → disabled/denied
   (how to re-enable in settings).
-- More screen: link list rows (Business Suite inbox, Cal dashboard,
-  Instagram), account row, sign out (ghost, not destructive-red — leaving
-  isn’t dangerous).
+- More screen: link list rows (Gallery, Testimonials, Business Suite inbox,
+  Cal dashboard, Instagram), account row, sign out (ghost, not
+  destructive-red — leaving isn’t dangerous).
 
-### G. Shell states (design once, apply everywhere)
+### H. Shell states (design once, apply everywhere)
 - Auth: non-owner who somehow lands here sees a calm 404-style page.
 - Global loading: PageHeader skeleton + content skeletons (never spinners
   alone). Offline: quiet banner “You’re offline — showing the last loaded
@@ -180,10 +237,13 @@ booking). “More” holds: testimonials, notifications toggle, deep links
 ## 6 · Deliverables
 
 1. Mobile screens (390w) for: Queue (all states), New booking (4 steps +
-   success), proposal lifecycle states, Services list + edit, Gallery grid
-   + upload + slots, Testimonials, Notifications states, More, offline/
-   error/empty/loading variants.
-2. The 768 and 1280 adaptations for Queue, New booking, Services edit.
+   success + client-prefilled step 1), proposal lifecycle states, Clients
+   list + client page (history, notes, photos with all consent-chip
+   states, ask-to-feature sheet, edit, erasure dialog), Services list +
+   edit, Gallery grid + upload + slots, Testimonials, Notifications
+   states, More, offline/error/empty/loading variants.
+2. The 768 and 1280 adaptations for Queue, New booking, Client page,
+   Services edit.
 3. A component sheet instantiating the vocabulary in §2 at admin sizes
    (booking card anatomy, chips, toggles, tab bar, slot chips).
 4. A state matrix page: every chip/status/toast/dialog in one view.
