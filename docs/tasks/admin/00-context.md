@@ -54,9 +54,9 @@ wrapper can be added later on the same code if ever wanted. Interim alerting
 
 ```
 01 shell+auth+PWA ─▶ 02 queue+realtime ─▶ 05 push notifications
-                 │                    └─▶ 06 studio bookings ─▶ 07 clients ─▶ 08 photo consent
+                 │                    └─▶ 06 studio bookings ─▶ 07 clients ─▶ 08 photo consent ─▶ 09 client voice
                  └─▶ 03 services CRUD + Cal sync
-                 └─▶ 04 gallery + testimonials ──────────────────────────▶ 08
+                 └─▶ 04 gallery + testimonials ──────────────────────────▶ 08, 09
 ```
 
 01 blocks everything. 02–04 are independent after it. 05 needs 02's queue to
@@ -64,7 +64,10 @@ link into. 06 surfaces in 02's queue. 07 (client directory) wants 02 (queue
 cards link to client pages) and 06 (its "New booking" prefill target); its
 media upload reuses 04's Cloudinary plumbing. 08 (publication consent) needs
 07's client media and 04's gallery, and adds a client-facing card on
-`/bookings`.
+`/bookings`. 09 (client testimonials + "my photos" transparency) builds on
+04's testimonials table and 08's consent/withdraw — mostly client-facing on
+`/bookings`. ⚠️ 04 and 09 must agree on ONE testimonials status model
+(`pending|published|declined`, not a bare boolean) — see both briefs.
 
 ## Prerequisites (owner, before Task 01 merges)
 
@@ -75,3 +78,4 @@ media upload reuses 04's Cloudinary plumbing. 08 (publication consent) needs
 - [ ] Task 06 ships `supabase/booking-origin.sql` (origin + client_accepted_at) — migration before its deploy, as always.
 - [ ] Task 07 ships `supabase/clients.sql` (`client_notes` + `client_media`, owner-only RLS) — same rule; needs a privacy-policy paragraph from the owner (client records: notes + reference photos, retention, erasure).
 - [ ] Task 08 ships `supabase/photo-consent.sql` (`consent_terms` + `media_publication_consents`) — needs the owner-written consent terms text (da+en) as the v1 seed.
+- [ ] Task 09 ships `supabase/testimonial-submissions.sql` (submission columns + `testimonial_requests`) and the deliberate client-select-own RLS on `client_media`.

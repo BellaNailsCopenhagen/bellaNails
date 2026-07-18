@@ -86,9 +86,10 @@ client_media (
 - Indexes on `clerk_user_id` (both tables).
 - **RLS: owner-only** — same role-claim policy shape as owner-reads-all on
   `bookings` (Task 01), for select AND write. No anon/authenticated access
-  of any kind; these tables never render client-side outside `/admin`.
-  (If the client PWA ever shows "my sets", that's a deliberate new policy,
-  not a default.)
+  of any kind in THIS task. (Task 09 later adds a deliberate
+  client-select-own policy on `client_media` for the "my photos"
+  transparency section — that's its decision to make, not a default here.
+  `client_notes` stays owner-only permanently.)
 - `client_media` lives in a **separate Cloudinary folder with authenticated
   delivery** (signed URLs), NOT the public gallery assets. Private means
   private at the CDN too.

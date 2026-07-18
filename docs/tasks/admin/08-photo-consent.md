@@ -93,6 +93,9 @@ media_publication_consents (
   boxes), Confirm / Decline. Signed-in = identity is demonstrated.
 - Granted items remain listed under a quiet "Photos you've shared" section
   with a **Withdraw** action per item — visible forever, one tap.
+  (Task 09 widens this into a full "Photos of your nails" transparency
+  section — every photo incl. private ones, states, answer-in-place.
+  Build this section so it can grow into that, not as a one-off list.)
 
 **On grant (server action, the copy-on-consent step):**
 1. Copy the Cloudinary asset from the private client folder into the

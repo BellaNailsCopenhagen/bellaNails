@@ -19,9 +19,13 @@ testimonials — no developer in the loop for content.
   /gallery page read the result. Replacing the placeholder /gallery page
   with the full curated grid closes the Phase 7 gallery item.
 - **Testimonials**: new `testimonials` table per PLAN (quote as-given —
-  single language allowed — author, role, `sort_order`, `is_published`,
-  `archived_at`; public read RLS). Migrate the three i18n testimonials as
-  seed rows; home section switches to the table.
+  single language allowed — author, role, `sort_order`, `archived_at`;
+  public read RLS). ⚠️ Use `status text` (`pending|published|declined`)
+  instead of a bare `is_published` boolean — Task 09 adds client
+  submissions that arrive `pending`, and there must be one status truth
+  (public read policy = `status = 'published'`). Studio-entered rows
+  default `published`. Migrate the three i18n testimonials as seed rows;
+  home section switches to the table.
 - Mobile-first: uploading a photo from the phone camera roll must be the
   happy path.
 

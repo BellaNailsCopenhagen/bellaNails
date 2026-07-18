@@ -152,6 +152,12 @@ task.)
   the constraint (max 5, unique) is visible, not a surprise error.
 - Testimonials: simple list (quote, author, role), publish toggle,
   add/edit with a single-language quote field (quotes stay as given).
+- **Client submissions** surface at the top as a small moderation queue:
+  pending cards (quote + chosen credit + which appointment, if any) with
+  **Publish / Decline** — decline is quiet, never red (a client’s words
+  being unused is not an error). Client-submitted rows show a “from
+  client” micro-chip; if the artist edits one, an “edited” marker appears
+  (artist-facing only). Empty state: “No new words from clients yet.”
 
 ### F. Clients (the studio’s client book)
 
@@ -169,7 +175,9 @@ task.)
   - **Booking history**: upcoming first (same card anatomy as the queue,
     slightly condensed), then past as compact rows with status chips
     (completed sage / cancelled muted red) — the client site’s history
-    pattern at admin scale.
+    pattern at admin scale. Past rows carry a quiet **“Ask for a review”**
+    action (also available from queue history) → sends a testimonial
+    request; already-asked rows show “asked 12 Jul” instead.
   - **Notes**: timestamped entries, newest first; “Add note” opens an
     underline textarea inline. Every entry shows date + edit/archive.
     A permanent quiet caption under the section header: **“Write as if
@@ -240,8 +248,13 @@ task.)
    success + client-prefilled step 1), proposal lifecycle states, Clients
    list + client page (history, notes, photos with all consent-chip
    states, ask-to-feature sheet, edit, erasure dialog), Services list +
-   edit, Gallery grid + upload + slots, Testimonials, Notifications
-   states, More, offline/error/empty/loading variants.
+   edit, Gallery grid + upload + slots, Testimonials (incl. the
+   client-submission moderation queue), Notifications states, More,
+   offline/error/empty/loading variants.
+   *(The client-facing halves — testimonial form, request prompt card,
+   “Photos of your nails” transparency section — live on the client
+   site’s /bookings and follow the client site’s existing design system;
+   keep the card anatomy consistent so both sides read as one system.)*
 2. The 768 and 1280 adaptations for Queue, New booking, Client page,
    Services edit.
 3. A component sheet instantiating the vocabulary in §2 at admin sizes

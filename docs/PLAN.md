@@ -197,7 +197,7 @@ queue builds on the same action/eligibility/webhook machinery, so harden first.
 
 ## Phase 8 — Admin
 
-> **Agent task briefs:** [`tasks/admin/`](./tasks/admin/) — dependency-ordered, one branch/PR each (01 shell+auth+PWA · 02 live queue · 03 services CRUD+Cal sync · 04 gallery+testimonials · 05 push notifications · 06 studio bookings · 07 client directory · 08 photo consent). Read `00-context.md` first. **Decided (July 2026): the admin is a mobile-first installable PWA with web-push new-booking alerts** — not Electron (desktop-only), not a store app (Capacitor wrappable later if ever wanted); interim alerting = webhook→Zoho email.
+> **Agent task briefs:** [`tasks/admin/`](./tasks/admin/) — dependency-ordered, one branch/PR each (01 shell+auth+PWA · 02 live queue · 03 services CRUD+Cal sync · 04 gallery+testimonials · 05 push notifications · 06 studio bookings · 07 client directory · 08 photo consent · 09 client voice & transparency). Read `00-context.md` first. **Decided (July 2026): the admin is a mobile-first installable PWA with web-push new-booking alerts** — not Electron (desktop-only), not a store app (Capacitor wrappable later if ever wanted); interim alerting = webhook→Zoho email.
 
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - 🔼 Manage services / add-ons / incompatibilities (soft-delete via `archived_at`) — **pulled forward, build right after `/book`**: one-step create/update/archive including the Cal event-type sync (see the Phase 6 "one event type per service" decision), so the owner rebuilds the placeholder catalog entirely from the admin without touching the Cal dashboard.
@@ -242,6 +242,14 @@ The bridge from private client photos (Task 07) to the public gallery/social. **
 - ⬜ Flow: artist taps "Request permission" on a photo → client sees the image + versioned localized terms on `/bookings` → grant copies the asset into the public Cloudinary folder (private original untouched) + creates the `gallery_items` row; social grant = manual green light (posting pipeline stays dropped). **Withdrawal is one tap, forever visible** (Art. 7(3)): unpublishes the gallery copy immediately, social takedown reminder to the artist.
 - ⬜ `supabase/photo-consent.sql`: `consent_terms` (versioned, append-only — the log must prove the exact text seen) + `media_publication_consents` audit log (media id, client, terms version, scopes requested/granted, status pending|granted|declined|withdrawn, timestamps, published asset + gallery item links). Owner-full/client-reads-own RLS; responses via RLS-verified server action. Client erasure (Task 07) withdraws/unpublishes first, then erases.
 - ⬜ Prerequisite (owner): the plain-language terms text (da+en) for `consent_terms` v1.
+
+### Client voice & transparency (added July 2026, spec: [tasks/admin/09-client-voice-transparency.md](./tasks/admin/09-client-voice-transparency.md))
+
+Mostly client-facing, on the signed-in `/bookings` surface — which the website and the future client PWA share, so one build covers both endpoints.
+
+- ⬜ **Client-submitted testimonials**: always-available "Share your experience" + prompt cards when the artist requests one ("How was your appointment on 12 Jul?", dismissible, `testimonial_requests` table). Client picks their credit (first name / initial / anonymous); the consent to be featured is the stated purpose at submission — no separate flow. Submissions land `pending`; the artist publishes/declines from the Task 04 testimonials screen (decline shows neutrally client-side, never as rejection). Artist edits to a client quote are marked "edited" — rewrite-worthy quotes get declined, not rewritten. ⚠️ Task 04's schema uses `status pending|published|declined` (not `is_published`) so both tasks share one truth; public RLS reads `published` only.
+- ⬜ **"Photos of your nails"** (the deliberate RLS decision Task 07 reserved): client select-own on `client_media`, signed Cloudinary URLs minted server-side. Every photo shows its plain-language state — Private ("only Veronica sees this") · Asked (answer the Task 08 request in place) · Shared (on our website / approved for social) · Withdrawn — and **withdrawal is self-service** on any shared photo (Task 08's action, no new machinery). Deleting private reference photos entirely stays a contact-the-studio line in v1.
+- ⬜ **Artist notes stay non-visible client-side (recommendation, owner to confirm):** Art. 15 access-on-request + the privacy-policy mention already covers compliance; a live feed would make the artist write for the audience instead of for the next appointment. The section carries an honest one-liner ("Veronica keeps short service notes… want a copy? Write to hello@bellanails.dk"). Revisit if access requests actually arrive.
 
 Decisions / to verify:
 
