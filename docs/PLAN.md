@@ -208,11 +208,11 @@ queue builds on the same action/eligibility/webhook machinery, so harden first.
 
 Two paths, one identity model. Client PII (email/name) lives in **Clerk**; our tables store only the pseudonymous `clerk_user_id`, so the DB holds no personal data. Keystone helper: **create-or-find a Clerk user by email** (Clerk Backend API, passwordless — the client later signs in with an email code and sees their full history).
 
-**A. In-hours bookings (via Cal.com)** — within normal availability (Saturday):
+**A. Studio-created bookings — first-class admin feature (revised July 2026, spec: [tasks/admin/06-studio-bookings.md](./tasks/admin/06-studio-bookings.md)):**
 
-- ⬜ The artist creates a booking for a client (existing or new) by email in the Cal.com dashboard; it arrives via the existing `BOOKING_CREATED` webhook and syncs to `bookings` through the Phase 6 pipeline. No custom flow.
-- ⬜ Webhook maps the attendee email → Clerk user via create-or-find and stores `clerk_user_id`. `bookings` needs no schema change (Cal.com populates `cal_booking_id` / `cancel_url` / `reschedule_url`).
-- ⬜ (Optional, later) an in-admin "New booking" shortcut calling `POST /v2/bookings` on the studio event type — same data path, still availability-bound.
+- ⬜ The artist books on a client's behalf (email required; existing or new client via `ensureClerkUser`) from the admin PWA: catalog picker → `GET /v2/slots` → `POST /v2/bookings` with the standard metadata shape → existing sync/webhook pipeline persists. **Slot hard-blocks in Cal immediately.**
+- ⬜ **Client approval is OUR state, not Cal's**: new columns `origin ('client'|'studio')` + `client_accepted_at` — the "accepted by client" toggle. Queue shows "awaiting reply" + proposal age (follow-up view); client can Confirm in-app on /bookings; artist can toggle manually after an email/DM yes. Covers: client reached out via email/social, and the in-studio "book your next session" moment after a treatment.
+- ⬜ Same proposal→acceptance pattern is the foundation the deferred out-of-hours flow (B) reuses.
 
 > **Booking status growth (decided July 2026):** the client-facing status set stays minimal — `confirmed|rescheduled|cancelled` in the DB plus the derived display-only "completed" on /bookings history. New statuses land WITH their features, not before: `requested`/`declined` arrive with the request flow below (Cal `BOOKING_REQUESTED`/`BOOKING_REJECTED` webhooks + `BOOKING_STATUS` enum + `BookingStatusBadge` variants), payment states arrive with Stripe holds, and no-show tracking stays **studio-side only** (admin queue — don't show "missed" to clients). The client's upcoming cards deliberately render no status badge at all.
 
@@ -232,6 +232,7 @@ Decisions / to verify:
 
 ## Nice to have — explorations (not committed)
 
+- ✅ **Social integration — DROPPED (owner, July 2026)**; inbox = Meta Business Suite (deep-link from admin shell), no posting pipeline (unused + stores post-only data the site never shows). Shipped instead: **Open Graph/Twitter sharing metadata + branded OG image** so client shares look right in social/messaging apps. Record: [tasks/explorations/social-integration.md](./tasks/explorations/social-integration.md).
 - ⬜ **Client PWA** — installable client app: reminders, one-tap rebook, waitlist for cancellations, "my sets" photo history; coupons flagged as a brand decision (site copy currently promises no promotional pricing). Reuses the admin PWA plumbing (Phase 8 Task 05). Scoped in [tasks/explorations/client-pwa.md](./tasks/explorations/client-pwa.md) — validate install rate before investing past the cheap v1.
 
 ## Phase 9 — Hardening & launch

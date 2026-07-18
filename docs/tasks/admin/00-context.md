@@ -67,3 +67,4 @@ link into.
       owner's own account) in the Clerk dashboard.
 - [ ] Regenerate `src/lib/supabase/types.ts` from the live schema.
 - [ ] Apply [supabase/gallery-ordering.sql](../../../supabase/gallery-ordering.sql) (Task 04 depends on it).
+- [ ] Task 06 ships `supabase/booking-origin.sql` (origin + client_accepted_at) — migration before its deploy, as always.

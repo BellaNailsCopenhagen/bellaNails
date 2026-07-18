@@ -27,6 +27,10 @@ to cancel on a client's behalf.
   Reschedule-on-behalf links out to Cal's dashboard for now (owner is
   logged into Cal anyway) — in-app owner reschedule can come later.
 - History view (past bookings, simple list, search by client name later).
+- **Leave room for Task 06**: the card layout should accommodate an
+  "awaiting reply" marker + acceptance toggle for studio-created bookings
+  (origin/acceptance columns land with 06 — don't build them here, just
+  don't design them out).
 
 ## Out of scope
 
