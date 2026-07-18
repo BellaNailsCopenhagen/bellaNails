@@ -1,5 +1,15 @@
 # Bella Nails — Admin PWA Design Brief (integrated prompt)
 
+> **Design produced (July 2026):** this brief was run through Claude Design;
+> the result is the strong design direction for the admin build —
+> https://claude.ai/design/p/c3b840d8-04b7-4adb-8c48-abb7b51f9c67?file=Bella+Nails+Admin.dc.html
+> (import via the `claude_design` MCP, `https://api.anthropic.com/v1/design/mcp`,
+> auth `/design-login`; implement `Bella Nails Admin.dc.html`). See the
+> "Design source" section in [`../tasks/admin/00-context.md`](../tasks/admin/00-context.md)
+> for how implementing tasks should use it. This document remains the
+> written spec for states/flows the design file doesn't cover, and the
+> prompt to re-run if the design ever needs regenerating.
+
 > Paste this whole document into your design tool (Claude design, Figma
 > Make, etc.). It is self-contained: brand system, component vocabulary,
 > every screen, every flow, every state. Source of truth for values is the

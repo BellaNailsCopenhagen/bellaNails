@@ -16,6 +16,27 @@ NOT Electron (desktop-only) and NOT a native/store app for now — a Capacitor
 wrapper can be added later on the same code if ever wanted. Interim alerting
 (before push ships): "new booking" email from the webhook via Zoho.
 
+## Design source (use this — July 2026)
+
+The admin design exists as a Claude Design project and is the **strong
+design direction** for every task in this folder:
+
+- **Rendered reference (look here first):** the exported HTML is saved in-repo
+  at [`../../design/Bella Nails Admin.html`](../../design/Bella%20Nails%20Admin.html)
+  — open it in a browser to see the full admin design.
+- Source project (to re-import/edit) via the `claude_design` MCP server
+  (`https://api.anthropic.com/v1/design/mcp`, authenticate with
+  `/design-login`): https://claude.ai/design/p/c3b840d8-04b7-4adb-8c48-abb7b51f9c67?file=Bella+Nails+Admin.dc.html
+- Implement: **`Bella Nails Admin.dc.html`** (rendered as the in-repo file above).
+- "Strong direction" means: follow its layout, hierarchy, and component
+  usage — small refinements and additions are expected as we test, but
+  deviations should be deliberate, not improvised. Where the design file
+  and the codebase's existing components conflict, reuse the existing
+  component and match the design's intent (the reuse map below wins on
+  implementation, the design wins on look).
+- The written spec behind it: [`../../design/admin-design-brief.md`](../../design/admin-design-brief.md)
+  — still authoritative for states/flows the design file doesn't cover.
+
 ## Design constraints
 
 - **Mobile-first**: the artist manages bookings between clients, on a phone.
