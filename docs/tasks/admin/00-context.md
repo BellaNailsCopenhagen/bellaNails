@@ -54,12 +54,17 @@ wrapper can be added later on the same code if ever wanted. Interim alerting
 
 ```
 01 shell+auth+PWA ─▶ 02 queue+realtime ─▶ 05 push notifications
+                 │                    └─▶ 06 studio bookings ─▶ 07 clients ─▶ 08 photo consent
                  └─▶ 03 services CRUD + Cal sync
-                 └─▶ 04 gallery + testimonials
+                 └─▶ 04 gallery + testimonials ──────────────────────────▶ 08
 ```
 
 01 blocks everything. 02–04 are independent after it. 05 needs 02's queue to
-link into.
+link into. 06 surfaces in 02's queue. 07 (client directory) wants 02 (queue
+cards link to client pages) and 06 (its "New booking" prefill target); its
+media upload reuses 04's Cloudinary plumbing. 08 (publication consent) needs
+07's client media and 04's gallery, and adds a client-facing card on
+`/bookings`.
 
 ## Prerequisites (owner, before Task 01 merges)
 
@@ -68,3 +73,5 @@ link into.
 - [ ] Regenerate `src/lib/supabase/types.ts` from the live schema.
 - [ ] Apply [supabase/gallery-ordering.sql](../../../supabase/gallery-ordering.sql) (Task 04 depends on it).
 - [ ] Task 06 ships `supabase/booking-origin.sql` (origin + client_accepted_at) — migration before its deploy, as always.
+- [ ] Task 07 ships `supabase/clients.sql` (`client_notes` + `client_media`, owner-only RLS) — same rule; needs a privacy-policy paragraph from the owner (client records: notes + reference photos, retention, erasure).
+- [ ] Task 08 ships `supabase/photo-consent.sql` (`consent_terms` + `media_publication_consents`) — needs the owner-written consent terms text (da+en) as the v1 seed.

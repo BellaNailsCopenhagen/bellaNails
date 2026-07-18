@@ -190,13 +190,14 @@ queue builds on the same action/eligibility/webhook machinery, so harden first.
 - ✅ (docblocks scoped honestly; create/reschedule share persistCalBooking) Webhook docblock says "the single write path into bookings" — no longer true (cancel action mirrors status); either route both writers through a tiny shared bookings-writer or fix the claim.
 - ✅ (per-instance IP sliding window, 10/min — blunt by design; revisit if Phase 8 needs distributed limiting) **Rate-limit the unauthenticated `syncBooking` action** — it's an unmetered proxy to the Cal API key (junk-uid loops could 429 the key and break cancel/sync for real clients). Per-IP throttle or short-window per-uid dedupe; do before Phase 8 leans on the action.
 - ✅ Minor: surrogate-safe truncation for `clientNotes` (`[...notes].slice(0,500)`); ineligible-reschedule bounce is silent — carry a notice back to /bookings; `.env.example`: document `CALCOM_API_KEY` as required for in-app cancel + sync. (Done: shared `CAL_UID_PATTERN` guards recap API + cancel + sync + tightened to 12+ chars; persist path is resurrection-proof and heals failed old-row closes — replay-verified.)
-- ⬜ Add a branded localized 404 / not-found page with clear recovery actions (home, services, booking).
+- ✅ **Branded localized 404 (July 2026)** — `[locale]/not-found.tsx` renders the editorial `sections/not-found.tsx` (PageHeader + recovery actions: home / menu / book) inside the site header/footer, localized da/en via a `notFound` message namespace. Because the root layout is a `[locale]` dynamic segment (no `app/layout.tsx`), unknown slugs need a `[locale]/[...rest]/page.tsx` catch-all that calls `notFound()` to force the branded page (Next would otherwise fall through to the bare root 404); a self-contained `app/not-found.tsx` (own `<html>`/`<body>`, no brand fonts/i18n) covers no-locale / bad-locale (`/fr/x`) / dotted-path routes. Live-verified: `/da|/en` unknown slugs + nested paths → 404 + branded localized body; `/fr/x` → root fallback; real routes still 200.
+- ✅ **Branded localized error boundaries (July 2026)** — companion to the 404 for the "route exists but threw" case (part of Phase 9's "error boundaries"). Shared `errors` message namespace + reusable `sections`/`ui` `ErrorState` (mirrors `EmptyState`), consumed by `[locale]/error.tsx` (`'use client'` boundary for the locale subtree: branded ErrorState + retry via Next 16.2 `unstable_retry` + home, renders inside header/footer) and a self-contained `app/global-error.tsx` (own `<html>`/`<body>`, bilingual) for root-layout throws. Live-verified: a forced throw under `/da|/en` → **500** + branded localized fallback with retry, header intact. `ErrorState` is reusable for in-component boundaries that swap a single failed section.
 - ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, payment, and studio guarantee terms.
 - ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
 
 ## Phase 8 — Admin
 
-> **Agent task briefs:** [`tasks/admin/`](./tasks/admin/) — dependency-ordered, one branch/PR each (01 shell+auth+PWA · 02 live queue · 03 services CRUD+Cal sync · 04 gallery+testimonials · 05 push notifications). Read `00-context.md` first. **Decided (July 2026): the admin is a mobile-first installable PWA with web-push new-booking alerts** — not Electron (desktop-only), not a store app (Capacitor wrappable later if ever wanted); interim alerting = webhook→Zoho email.
+> **Agent task briefs:** [`tasks/admin/`](./tasks/admin/) — dependency-ordered, one branch/PR each (01 shell+auth+PWA · 02 live queue · 03 services CRUD+Cal sync · 04 gallery+testimonials · 05 push notifications · 06 studio bookings · 07 client directory · 08 photo consent). Read `00-context.md` first. **Decided (July 2026): the admin is a mobile-first installable PWA with web-push new-booking alerts** — not Electron (desktop-only), not a store app (Capacitor wrappable later if ever wanted); interim alerting = webhook→Zoho email.
 
 - ⬜ Owner-gated `/[locale]/admin` shell.
 - 🔼 Manage services / add-ons / incompatibilities (soft-delete via `archived_at`) — **pulled forward, build right after `/book`**: one-step create/update/archive including the Cal event-type sync (see the Phase 6 "one event type per service" decision), so the owner rebuilds the placeholder catalog entirely from the admin without touching the Cal dashboard.
@@ -224,6 +225,24 @@ Two paths, one identity model. Client PII (email/name) lives in **Clerk**; our t
 
 **Shared:** "My bookings" matches a client's rows by Clerk `sub` (covers both paths, since everything is keyed to a Clerk user). Both feed the admin Booking queue.
 
+### Client directory — CRM-lite (added July 2026, spec: [tasks/admin/07-clients.md](./tasks/admin/07-clients.md))
+
+- ⬜ `/admin/clients`: every client who ever booked (roster = distinct `clerk_user_id` from `bookings`; names/emails/phones fetched live from Clerk, never persisted — identity model unchanged). Search via Clerk's `query` param.
+- ⬜ Client page: contact actions (`tel:` / `mailto:` — Zoho), full booking history (reuses the /bookings display shapes under owner-reads-all RLS), **artist notes** (timestamped, owner-only) and **private reference photos** of previous sets (Cloudinary authenticated delivery, separate from the public gallery). "New booking" jumps into the Task 06 flow prefilled.
+- ⬜ Two new tables in `supabase/clients.sql`: `client_notes` + `client_media` — keyed by `clerk_user_id`, **owner-only RLS both directions**, soft-delete. Migration before deploy; regenerate types.
+- ⬜ Clerk-backed CRUD: edit name/phone via Backend API; email read-only in v1 (sign-in identity). **Delete = real GDPR erasure**: Clerk user + notes + media + Cloudinary assets hard-deleted; pseudonymous booking rows kept as business records; blocked while upcoming bookings exist.
+- ⬜ **Legal posture (answered in the brief):** viewing contact data outside a booking context is lawful (Art. 6(1)(b)/(f) — ongoing service relationship), with boundaries: no marketing use without consent, notes are disclosable on access request ("write as if the client will read it" caption in the UI), no health commentary beyond what the client volunteered (Art. 9), client photos stay private — the publication path is the consent flow below. Owner to add a privacy-policy paragraph covering client records.
+
+### Photo publication consent (added July 2026, spec: [tasks/admin/08-photo-consent.md](./tasks/admin/08-photo-consent.md))
+
+The bridge from private client photos (Task 07) to the public gallery/social. **Legal decisions settled with the owner:**
+
+- ⬜ **License + recorded consent, NOT ToS ownership transfer** — an "uploads become ours" clause is unfair-terms bait and irrelevant (publishing an identifiable person for marketing needs a GDPR basis regardless of copyright); artist-taken session photos are her copyright already but carry the identical consent requirement. Consent can't be bundled into service terms (Art. 7(4)).
+- ⬜ **Verbal yes in the chair = the trigger, never the record** (valid but undemonstrable, Art. 7(1)); the record is the client's one-tap Confirm on `/bookings`. No blanket "session data" consent email — private reference photos ride on legitimate interest + privacy policy; consent enters only at publication, per image, per purpose (website / social as separate un-preticked checkboxes).
+- ⬜ Flow: artist taps "Request permission" on a photo → client sees the image + versioned localized terms on `/bookings` → grant copies the asset into the public Cloudinary folder (private original untouched) + creates the `gallery_items` row; social grant = manual green light (posting pipeline stays dropped). **Withdrawal is one tap, forever visible** (Art. 7(3)): unpublishes the gallery copy immediately, social takedown reminder to the artist.
+- ⬜ `supabase/photo-consent.sql`: `consent_terms` (versioned, append-only — the log must prove the exact text seen) + `media_publication_consents` audit log (media id, client, terms version, scopes requested/granted, status pending|granted|declined|withdrawn, timestamps, published asset + gallery item links). Owner-full/client-reads-own RLS; responses via RLS-verified server action. Client erasure (Task 07) withdraws/unpublishes first, then erases.
+- ⬜ Prerequisite (owner): the plain-language terms text (da+en) for `consent_terms` v1.
+
 Decisions / to verify:
 
 - ⬜ **GDPR posture:** centralizing PII in Clerk shrinks our surface (DB is PII-free; erasure = delete the Clerk user, leaving only a dangling id) but does **not** remove controller obligations — ensure a Clerk DPA and a privacy-policy line.
@@ -239,7 +258,7 @@ Decisions / to verify:
 
 - ⬜ SEO/metadata per locale, sitemap, OG images. → see Phase 10 (Local SEO).
 - ⬜ Error/loading boundaries, empty states, toasts.
-- ⬜ Verify the custom 404 / not-found page renders correctly for bad locale-prefixed routes and unknown slugs.
+- ✅ Verify the custom 404 / not-found page renders correctly for bad locale-prefixed routes and unknown slugs (done with the Phase 7 build — `/da|/en` unknown + nested slugs branded 404, `/fr/x` bad-locale → root fallback, real routes 200). Re-run once on the prod host before launch.
 - ⬜ Final legal-content review for the published `Terms of Service` copy, guarantee wording, and all linked placements before launch.
 - ⬜ Lighthouse / a11y pass; verify no booking-UI flicker.
 - ⬜ Env wiring on host (Vercel free tier), webhook URLs pointed at prod, secrets set.

@@ -31,6 +31,9 @@ to cancel on a client's behalf.
   "awaiting reply" marker + acceptance toggle for studio-created bookings
   (origin/acceptance columns land with 06 — don't build them here, just
   don't design them out).
+- **Leave room for Task 07**: the client name on a card becomes a link to
+  `/admin/clients/[clerkUserId]` once the directory exists — render it as
+  a distinct tappable element from day one.
 
 ## Out of scope
 
