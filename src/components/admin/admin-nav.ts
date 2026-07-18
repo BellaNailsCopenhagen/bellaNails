@@ -1,20 +1,22 @@
 import {
-  CalendarClock,
+  AlignLeft,
+  List,
   MoreHorizontal,
   Plus,
-  Scissors,
-  Users,
+  User,
   type LucideIcon,
 } from "lucide-react"
 
 /**
- * Admin tab bar — the information architecture from the design brief §3:
- * Queue · New · Clients · Services · More. "New" is the centered primary
- * action. Only Queue (the dashboard at /admin) is live in Task 01; the rest
+ * Admin tab bar. Per the design's rendered bottom bar, **New is the centered
+ * action** (slot 3 of 5), so the visual order is Queue · Clients · New ·
+ * Services · More (the brief lists New 2nd by *priority*, but it renders
+ * centered). Only Queue (the dashboard at /admin) is live in Task 01; the rest
  * route to in-shell "coming soon" placeholders that later tasks fill in.
  *
- * The admin is English-only and not locale-prefixed, so these are plain
- * absolute paths used with `next/link` (not the i18n-aware navigation).
+ * Icons match the design mock (Queue = list, Clients = single person, New =
+ * plus, Services = lines, More = dots). The admin is English-only and not
+ * locale-prefixed, so these are plain absolute paths used with `next/link`.
  */
 export type AdminTab = {
   href: string
@@ -25,10 +27,10 @@ export type AdminTab = {
 }
 
 export const adminTabs: AdminTab[] = [
-  { href: "/admin", label: "Queue", icon: CalendarClock },
+  { href: "/admin", label: "Queue", icon: List },
+  { href: "/admin/clients", label: "Clients", icon: User },
   { href: "/admin/new", label: "New", icon: Plus, primary: true },
-  { href: "/admin/clients", label: "Clients", icon: Users },
-  { href: "/admin/services", label: "Services", icon: Scissors },
+  { href: "/admin/services", label: "Services", icon: AlignLeft },
   { href: "/admin/more", label: "More", icon: MoreHorizontal },
 ]
 

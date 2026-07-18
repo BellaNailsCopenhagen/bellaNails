@@ -6,19 +6,27 @@ import { usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { adminTabs, isTabActive } from "@/components/admin/admin-nav"
 
+// Desktop nav excludes the primary "New" action — on ≥md it's a dedicated
+// button (top-right), not a tab. On mobile "New" stays the centered action in
+// the bottom bar.
+const navTabs = adminTabs.filter((tab) => !tab.primary)
+const newTab = adminTabs.find((tab) => tab.primary)
+
 /**
- * AdminShell — the admin PWA chrome: a compact top header and a tab bar
- * (bottom on mobile, top on ≥md). No marketing SiteHeader/SiteFooter; the
- * admin is its own root layout. English-only, so copy is inline.
+ * AdminShell — the admin PWA chrome: a compact top header and navigation
+ * (bottom tab bar on mobile, top tabs on ≥md). No marketing SiteHeader/
+ * SiteFooter; the admin is its own root layout. English-only, so copy is inline.
  *
- * Mobile-first per the design brief: the artist works one-handed between
- * clients, so primary navigation lives in thumb reach at the bottom, and the
- * centered "New" action is emphasized.
+ * Mobile-first per the design: primary navigation lives in thumb reach at the
+ * bottom, with "New" as the centered raised action. On desktop, nav is the
+ * top tabs and "New" is a separate primary button.
  */
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const NewIcon = newTab?.icon
 
   return (
     <div className="flex min-h-full flex-col">
@@ -41,12 +49,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
 
-          {/* Top tabs — the ≥md enhancement; mobile uses the bottom bar. */}
+          {/* Top tabs — ≥md only (mobile uses the bottom bar). "New" is not a
+              tab here; it's the button on the right. */}
           <nav
             aria-label="Admin sections"
             className="hidden items-center gap-6 md:flex"
           >
-            {adminTabs.map((tab) => (
+            {navTabs.map((tab) => (
               <Link
                 key={tab.href}
                 href={tab.href}
@@ -63,7 +72,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <UserButton />
+          <div className="flex items-center gap-3">
+            {newTab && NewIcon ? (
+              <Button
+                size="sm"
+                nativeButton={false}
+                render={<Link href={newTab.href} />}
+                className="hidden md:inline-flex"
+              >
+                <NewIcon className="size-4" />
+                {newTab.label}
+              </Button>
+            ) : null}
+            <UserButton />
+          </div>
         </div>
       </header>
 
@@ -71,7 +93,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Bottom tab bar — mobile primary navigation, in thumb reach. */}
+      {/* Bottom tab bar — mobile primary navigation, in thumb reach. "New" is
+          the centered raised action. Labels share one baseline (justify-end +
+          pb) so the raised circle doesn't knock them out of line. */}
       <nav
         aria-label="Admin sections"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-md md:hidden"
@@ -81,36 +105,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             const active = isTabActive(tab, pathname)
             const Icon = tab.icon
 
-            if (tab.primary) {
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  aria-current={active ? "page" : undefined}
-                  className="flex flex-1 flex-col items-center justify-center gap-1"
-                >
-                  <span className="-mt-4 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
-                    <Icon className="size-5" />
-                  </span>
-                  <span className="font-functional text-[0.5625rem] uppercase tracking-widest-lux text-foreground/70">
-                    {tab.label}
-                  </span>
-                </Link>
-              )
-            }
-
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-1 flex-col items-center justify-center gap-1 transition-colors",
-                  active ? "text-foreground" : "text-foreground/55",
+                  "flex flex-1 flex-col items-center justify-end gap-1.5 pb-2 transition-colors",
+                  tab.primary
+                    ? "text-foreground"
+                    : active
+                      ? "text-foreground"
+                      : "text-foreground/55",
                 )}
               >
-                <Icon className="size-5" />
-                <span className="font-functional text-[0.5625rem] uppercase tracking-widest-lux">
+                {tab.primary ? (
+                  <span className="-mt-7 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-[6px] ring-background">
+                    <Icon className="size-6" />
+                  </span>
+                ) : (
+                  <Icon className="size-5" />
+                )}
+                <span className="font-functional text-[0.625rem] uppercase leading-none tracking-widest-lux">
                   {tab.label}
                 </span>
               </Link>
