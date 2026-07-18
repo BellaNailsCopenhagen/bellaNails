@@ -190,7 +190,30 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 - Use Supabase's **native third-party auth integration** for Clerk. **Do NOT** use the old Clerk JWT template — **deprecated 2025-04-01**.
 - RLS policies + Realtime auth both key off Clerk claims, so the Realtime client must be initialized with the Clerk session token.
 - **Known bug (Clerk custom domain):** Supabase Realtime fetches JWKS at `{issuer}/.well-known/jwks`, but Clerk custom domains serve `/.well-known/jwks.json` → JWT verification 404s. **Test authed Realtime early** if you use a custom Clerk domain.
-- Admin gating: Clerk metadata `{"role":"owner"}` checked in `proxy.ts`/layout for `/[locale]/admin`, **and** enforced again in RLS (defense in depth).
+- Admin gating: Clerk metadata `{"role":"owner"}` checked in `proxy.ts` for **`/admin`** (English-only, **not** locale-prefixed — see [tasks/admin/01-shell-auth-pwa.md](./tasks/admin/01-shell-auth-pwa.md)), **and** enforced again in RLS (defense in depth). Setting the role on the user is **not enough** — it must also be exposed in the session token (below).
+
+### Admin owner setup (repeatable — do ALL of it per Clerk instance: dev AND prod)
+
+`/admin` is gated to users with the `owner` role. Four things must all be true or the gate stays shut / the data stays scoped:
+
+1. **Owner account exists.** A Clerk user for the owner's email. Preferred identity: a **named, non-public** address on the studio domain — `veronica.a@bellanails.dk` (a Zoho alias on Veronica's own mailbox is fine; **not** `hello@`, which is public). The developer's own account may also be an owner in **dev** for testing. Put a **passkey/2FA** on any owner account — it can read every client's PII.
+2. **Role on the user** — `publicMetadata.role = "owner"`. Dashboard (Users → user → Metadata → Public) or Backend API (the `/metadata` endpoint **merges**, so it won't clobber other keys):
+   ```bash
+   # KEY = CLERK_SECRET_KEY for the TARGET instance; find <ID> via GET /v1/users?limit=100
+   curl -s -X PATCH "https://api.clerk.com/v1/users/<ID>/metadata" \
+     -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+     -d '{"public_metadata":{"role":"owner"}}'
+   ```
+3. **Role exposed in the session token** (the step everyone forgets — **dashboard only**, no Backend API). **Configure → Sessions → Customize session token → Edit**, add:
+   ```json
+   { "metadata": { "role": "{{user.public_metadata.role}}" } }
+   ```
+   New sessions pick it up within ~60s (or sign out/in). Without this, `sessionClaims.metadata.role` is empty and even a role-bearing user is bounced home. Same claim path backs the RLS below.
+4. **Owner-reads-all RLS applied** so the owner reads the whole studio, not just their own rows: apply [../supabase/admin-owner-reads.sql](../supabase/admin-owner-reads.sql) via the Supabase MCP. The gate/dashboard render without it; the count is just scoped to the owner's own bookings until it's applied.
+
+**Verify:** sign in at `/admin` with an owner account → dashboard renders (not redirected). A signed-in non-owner → redirected to `/`.
+
+**Status — dev instance (July 2026):** ✅ `veronica.a@bellanails.dk` + `alburaul@gmail.com` set to `owner` (step 2). ⬜ session-token claim (step 3) · ⬜ owner-reads-all RLS (step 4) · ⬜ production instance (all four again on `pk_live`).
 
 ---
 
@@ -211,6 +234,18 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 
 ---
 
+## Email (Zoho Mail)
+
+- Domain email for `bellanails.dk` runs on **Zoho Mail, EU data center** — admin console **https://mailadmin.zoho.eu** (**not** `.com`; Zoho hit us with EU-DC friction before on Zoho Calendar OAuth, so always use `.eu`).
+- **One mailbox, many hats.** The primary mailbox is Veronica's (`home@bellanails.dk`); `hello@` (the public contact = `STUDIO_EMAIL`), `bookings@`, `infrastructure@`, and `veronica.a@` are **aliases** on it — all deliver to that one inbox.
+- **Add an address** (mailadmin.zoho.eu):
+  - **New mailbox** — separate login/inbox, **costs a seat**: **Users → Add → Add user**, set the local part + `@bellanails.dk`, set a password, Save.
+  - **Alias** — free, delivers into an existing mailbox: open the user → **Mailbox Settings → Email Alias → + Add**. An alias is **not** a separate login; use it for role/extra addresses (or to give one person a tidy named address).
+- MX/SPF/DKIM are already configured (existing addresses deliver), so a new address/alias works immediately — no DNS step.
+- Transactional/alert mail (e.g. the interim "new booking" admin alert) sends via Zoho — stay within the adopted vendor stack, no separate ESP.
+
+---
+
 ## next-intl (⚠️ Next 16)
 
 - Locales `['da','en']`, **default `da`**, URL path-based (`/da`, `/en`).
@@ -223,7 +258,7 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 ## Pre-flight checklist (accounts to create / things to have ready)
 
 - [ ] Supabase project (URL, anon key, service-role key) + schema applied + Realtime publication.
-- [ ] Clerk app (publishable + secret keys) + native Supabase integration configured + `role` metadata convention.
+- [ ] Clerk app (publishable + secret keys) + native Supabase integration configured + owner set up per **Admin owner setup** above (role + session-token claim + RLS) — repeat on the prod instance.
 - [ ] Cal.com account, event type(s) matching `cal_event_id`, webhook → prod URL, signing secret, Stripe connected.
 - [ ] Cloudinary account (cloud name, API key/secret, upload preset).
 - [ ] Vercel project linked to the GitHub repo, all env vars set for Preview + Production.
