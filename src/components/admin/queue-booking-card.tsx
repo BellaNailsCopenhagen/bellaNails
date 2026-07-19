@@ -1,39 +1,52 @@
+import { Mail, Phone } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 import { PriceTag } from "@/components/ui/price-tag"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
+import type { ClientContact } from "@/lib/clerk/client-contacts"
 import { formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
+
+const telHref = (phone: string) => `tel:${phone.replace(/[\s()-]/g, "")}`
 
 /**
  * A booking in the admin queue — condensed vs the client's card. English-only
  * (the admin has no next-intl context), reusing the shared display shapes.
  *
- * Increment 1: time · service · add-ons · note · price · duration, plus a
- * "rescheduled" chip (studio cares even though clients don't see it). Client
- * name/contact and cancel land in later increments — the layout leaves room
- * (a right column for actions, a header row for the name).
+ * Client name + contact come from Clerk (resolved in the RSC, never persisted).
+ * The name is a distinct element so Task 07 can wrap it in a link to the client
+ * page without reworking the card. Cancel lands in a later increment.
  */
-export function QueueBookingCard({ booking }: { booking: DisplayBooking }) {
+export function QueueBookingCard({
+  booking,
+  contact,
+}: {
+  booking: DisplayBooking
+  contact?: ClientContact
+}) {
   const { row } = booking
+  const clientName = contact?.firstName || contact?.fullName || "Client"
 
   return (
-    <TintedCard as="li" className="p-4 sm:p-5">
+    <TintedCard as="li" className="space-y-3 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1.5">
           <p className="font-editorial text-xl leading-none text-foreground">
             {formatStudioTime(row.start_time, ADMIN_LOCALE)}–
             {formatStudioTime(row.end_time, ADMIN_LOCALE)}
           </p>
-          <p className="font-functional text-sm text-foreground">
+          {/* Distinct element — Task 07 wraps this in a link to /admin/clients. */}
+          <p className="font-functional text-sm font-medium text-foreground">
+            {clientName}
+          </p>
+          <p className="font-functional text-sm text-muted-foreground">
             {booking.serviceName ?? "Session"}
           </p>
           {booking.addonNames.length ? (
             <ul className="list-disc space-y-0.5 pl-4 font-functional text-xs text-muted-foreground">
               {booking.addonNames.map((name, index) => (
-                // Static per-render list; index key avoids collisions if two
-                // add-ons resolve to the same display name.
                 <li key={index}>{name}</li>
               ))}
             </ul>
@@ -64,6 +77,29 @@ export function QueueBookingCard({ booking }: { booking: DisplayBooking }) {
           ) : null}
         </div>
       </div>
+
+      {contact?.phone || contact?.email ? (
+        <div className="flex flex-wrap gap-5 border-t border-border pt-3">
+          {contact.phone ? (
+            <a
+              href={telHref(contact.phone)}
+              className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
+            >
+              <Phone className="size-3.5" />
+              Call
+            </a>
+          ) : null}
+          {contact.email ? (
+            <a
+              href={`mailto:${contact.email}`}
+              className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
+            >
+              <Mail className="size-3.5" />
+              Email
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </TintedCard>
   )
 }

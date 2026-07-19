@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { CalendarView } from "@/components/admin/calendar-view"
 import type { AgendaWeek } from "@/lib/admin/agenda"
+import type { ClientContact } from "@/lib/clerk/client-contacts"
 import {
   dayNumberToMs,
   formatStudioDayMonth,
@@ -54,15 +55,19 @@ function countLabel(count: number): string {
  */
 export function AdminQueue({
   weeks,
+  contacts,
   now,
   loadError = false,
 }: {
   weeks: AgendaWeek[]
+  contacts: Record<string, ClientContact>
   now: number
   loadError?: boolean
 }) {
   const nowDay = studioDayNumber(now)
   const [view, setView] = useState<QueueView>("agenda")
+  // Owned here (not in CalendarView) so the browsed month survives toggling.
+  const [monthOffset, setMonthOffset] = useState(0)
   const [open, setOpen] = useState<Set<number>>(
     () => new Set(weeks.filter((w) => w.isCurrent).map((w) => w.weekStartDay)),
   )
@@ -146,7 +151,13 @@ export function AdminQueue({
           body="Something went wrong reaching your bookings. Try again in a moment."
         />
       ) : view === "calendar" ? (
-        <CalendarView dayCounts={dayCounts} now={now} onSelectDay={selectDay} />
+        <CalendarView
+          dayCounts={dayCounts}
+          now={now}
+          offset={monthOffset}
+          onOffsetChange={setMonthOffset}
+          onSelectDay={selectDay}
+        />
       ) : isEmpty ? (
         <EmptyState
           title="Nothing booked"
@@ -203,6 +214,7 @@ export function AdminQueue({
                               <QueueBookingCard
                                 key={booking.row.cal_booking_id}
                                 booking={booking}
+                                contact={contacts[booking.row.clerk_user_id]}
                               />
                             ))}
                           </ul>

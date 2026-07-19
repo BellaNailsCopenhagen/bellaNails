@@ -10,14 +10,17 @@ import type { Database } from "@/lib/supabase/types"
  * Client-safe: works with both the RLS server client and the browser client.
  */
 
-/** The columns booking displays render — select exactly these. */
+/** The columns booking displays render — select exactly these. `clerk_user_id`
+    is the pseudonymous client id (not PII); the admin queue resolves it to
+    name/phone/email via Clerk, the client list simply ignores it. */
 export const BOOKING_DISPLAY_COLUMNS =
-  "cal_booking_id, cal_uid, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url"
+  "cal_booking_id, cal_uid, clerk_user_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url"
 
 export type BookingRow = Pick<
   Database["public"]["Tables"]["bookings"]["Row"],
   | "cal_booking_id"
   | "cal_uid"
+  | "clerk_user_id"
   | "start_time"
   | "end_time"
   | "status"

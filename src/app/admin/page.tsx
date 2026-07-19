@@ -6,6 +6,7 @@ import {
   BOOKING_DISPLAY_COLUMNS,
   toDisplayBookings,
 } from "@/lib/booking-display"
+import { fetchClientContacts } from "@/lib/clerk/client-contacts"
 import { groupIntoAgenda } from "@/lib/admin/agenda"
 import { AdminQueue } from "@/components/admin/admin-queue"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -40,13 +41,20 @@ export default async function AdminQueuePage() {
 
   if (error) console.error("[admin-queue] read failed", error.message)
 
-  const bookings = await toDisplayBookings(
-    supabase,
-    rows ?? [],
-    ADMIN_LOCALE,
-    "admin-queue",
-  )
+  // Resolve display names (Supabase catalog) and client contact (Clerk) in
+  // parallel — both only need the fetched rows.
+  const [bookings, contacts] = await Promise.all([
+    toDisplayBookings(supabase, rows ?? [], ADMIN_LOCALE, "admin-queue"),
+    fetchClientContacts((rows ?? []).map((row) => row.clerk_user_id)),
+  ])
   const weeks = groupIntoAgenda(bookings, now)
 
-  return <AdminQueue weeks={weeks} now={now} loadError={Boolean(error)} />
+  return (
+    <AdminQueue
+      weeks={weeks}
+      contacts={contacts}
+      now={now}
+      loadError={Boolean(error)}
+    />
+  )
 }

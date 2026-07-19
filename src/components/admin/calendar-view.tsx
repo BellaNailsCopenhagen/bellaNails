@@ -1,10 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { addMonths, buildMonthGrid } from "@/lib/admin/calendar"
+import { addMonths, buildMonthGrid, monthStartDayNumber } from "@/lib/admin/calendar"
 import {
   dayNumberToMs,
   formatStudioMonthYear,
@@ -15,9 +14,6 @@ import { ADMIN_LOCALE } from "@/config/admin"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
 
-const firstDayNumberOf = (year: number, month: number) =>
-  Date.UTC(year, month - 1, 1) / 86_400_000
-
 /**
  * Condensed month calendar — the high-level "plan ahead" glance. Same data as
  * the agenda (a day-number → count map derived from the fetched bookings), so
@@ -25,26 +21,30 @@ const firstDayNumberOf = (year: number, month: number) =>
  * quiet marker (dot for one, count for more) and are tappable to jump into the
  * agenda at that day. Empty days stay blank.
  *
- * Note: only upcoming bookings are loaded, so past months read as empty — this
- * is a forward planner, not a history browser.
+ * `offset` (months from the current one) is owned by the parent so the browsed
+ * month survives toggling between Agenda and Calendar. Only upcoming bookings
+ * are loaded, so past months read as empty — this is a forward planner.
  */
 export function CalendarView({
   dayCounts,
   now,
+  offset,
+  onOffsetChange,
   onSelectDay,
 }: {
   dayCounts: Map<number, number>
   now: number
+  offset: number
+  onOffsetChange: (next: number) => void
   onSelectDay: (dayNumber: number) => void
 }) {
   const nowDay = studioDayNumber(now)
   const base = studioYearMonth(now)
-  const [offset, setOffset] = useState(0)
 
   const { year, month } = addMonths(base.year, base.month, offset)
   const cells = buildMonthGrid(year, month)
   const monthLabel = formatStudioMonthYear(
-    dayNumberToMs(firstDayNumberOf(year, month)),
+    dayNumberToMs(monthStartDayNumber(year, month)),
     ADMIN_LOCALE,
   )
 
@@ -53,7 +53,7 @@ export function CalendarView({
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => setOffset((o) => o - 1)}
+          onClick={() => onOffsetChange(offset - 1)}
           aria-label="Previous month"
           className="flex size-9 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
         >
@@ -64,7 +64,7 @@ export function CalendarView({
         </span>
         <button
           type="button"
-          onClick={() => setOffset((o) => o + 1)}
+          onClick={() => onOffsetChange(offset + 1)}
           aria-label="Next month"
           className="flex size-9 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground"
         >
@@ -98,7 +98,11 @@ export function CalendarView({
               type="button"
               disabled={!has}
               onClick={() => onSelectDay(dayNumber)}
-              aria-label={`${date} — ${count} ${count === 1 ? "appointment" : "appointments"}`}
+              aria-label={
+                has
+                  ? `${date} — ${count} ${count === 1 ? "appointment" : "appointments"}`
+                  : String(date)
+              }
               className={cn(
                 "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-sm border font-functional text-sm transition-colors",
                 isToday ? "border-foreground" : "border-transparent",
