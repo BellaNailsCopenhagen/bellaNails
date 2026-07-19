@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import Cal, { getCalApi } from "@calcom/embed-react"
-import { useTranslations } from "next-intl"
 
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption } from "@/components/ui/typography"
@@ -21,19 +20,25 @@ type CalSuccessAction = "bookingSuccessfulV2" | "rescheduleBookingSuccessfulV2"
  * skeleton, singleton listener wiring, and the post-success "securing" hold.
  * When the success event fires, the shell covers the booker and runs
  * `onSuccess(uid)` — the caller settles the row and navigates.
+ *
+ * Locale-agnostic: the two labels come in as props so this works both in the
+ * localized client flow (next-intl) and the English-only admin (no provider).
  */
 export function CalEmbedShell({
   calLink,
   config,
   successAction,
   onSuccess,
+  loadingLabel,
+  securingLabel,
 }: {
   calLink: string
   config: React.ComponentProps<typeof Cal>["config"]
   successAction: CalSuccessAction
   onSuccess: (uid: string | undefined) => void | Promise<void>
+  loadingLabel: string
+  securingLabel: string
 }) {
-  const t = useTranslations("booking")
   const [ready, setReady] = React.useState(false)
   const [securing, setSecuring] = React.useState(false)
   // The latest onSuccess without re-running the boot effect per render.
@@ -89,9 +94,7 @@ export function CalEmbedShell({
             aria-hidden
             className="absolute inset-0 -z-10 flex items-center justify-center"
           >
-            <Caption className="tracking-widest-lux">
-              {t("embedLoading")}
-            </Caption>
+            <Caption className="tracking-widest-lux">{loadingLabel}</Caption>
           </TintedCard>
         )}
         {/* Post-success hold while the row settles (capped by the caller). */}
@@ -100,9 +103,7 @@ export function CalEmbedShell({
             role="status"
             className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border border-border bg-background/90 backdrop-blur-[2px]"
           >
-            <Caption className="tracking-widest-lux">
-              {t("securingBooking")}
-            </Caption>
+            <Caption className="tracking-widest-lux">{securingLabel}</Caption>
           </div>
         ) : null}
         <Cal

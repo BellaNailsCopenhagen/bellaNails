@@ -1,15 +1,20 @@
+import Link from "next/link"
 import { Mail, Phone } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
 import { TintedCard } from "@/components/ui/tinted-card"
+import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
 import type { ClientContact } from "@/lib/clerk/client-contacts"
 import { formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
-const telHref = (phone: string) => `tel:${phone.replace(/[\s()-]/g, "")}`
+// Keep only digits and a leading "+", so odd separators (dots, spaces, 00…)
+// can't produce an unparseable tel: URI.
+const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 
 /**
  * A booking in the admin queue — condensed vs the client's card. English-only
@@ -78,25 +83,41 @@ export function QueueBookingCard({
         </div>
       </div>
 
-      {contact?.phone || contact?.email ? (
-        <div className="flex flex-wrap gap-5 border-t border-border pt-3">
-          {contact.phone ? (
-            <a
-              href={telHref(contact.phone)}
-              className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
-            >
-              <Phone className="size-3.5" />
-              Call
-            </a>
-          ) : null}
-          {contact.email ? (
-            <a
-              href={`mailto:${contact.email}`}
-              className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
-            >
-              <Mail className="size-3.5" />
-              Email
-            </a>
+      {contact?.phone || contact?.email || row.cal_uid ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+          <div className="flex flex-wrap gap-5">
+            {contact?.phone ? (
+              <a
+                href={telHref(contact.phone)}
+                className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
+              >
+                <Phone className="size-3.5" />
+                Call
+              </a>
+            ) : null}
+            {contact?.email ? (
+              <a
+                href={`mailto:${contact.email}`}
+                className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
+              >
+                <Mail className="size-3.5" />
+                Email
+              </a>
+            ) : null}
+          </div>
+          {row.cal_uid ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {/* In-app reschedule-on-behalf (same Cal embed as the client). */}
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link href={`/admin/reschedule/${row.cal_uid}`} />}
+              >
+                Reschedule
+              </Button>
+              <AdminCancelButton uid={row.cal_uid} clientName={clientName} />
+            </div>
           ) : null}
         </div>
       ) : null}

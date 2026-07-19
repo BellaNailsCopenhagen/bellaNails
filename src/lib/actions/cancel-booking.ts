@@ -5,12 +5,9 @@ import { auth } from "@clerk/nextjs/server"
 
 import { canManageBooking } from "@/lib/booking-display"
 import { BOOKING_STATUS } from "@/lib/booking-status"
-import { CAL_UID_PATTERN, syncBookingFromCal } from "@/lib/booking-sync"
-import {
-  createAuthedSupabaseServerClient,
-  createSupabaseServiceRoleClient,
-} from "@/lib/supabase/server"
-import { CALCOM_API_BASE } from "@/config/calcom"
+import { CAL_UID_PATTERN } from "@/lib/booking-sync"
+import { cancelBookingAtCal } from "@/lib/booking-cancel"
+import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 
 type CancelResult =
   | { ok: true }
@@ -46,64 +43,11 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
     return { ok: false, error: "within_policy" }
   }
 
-  const apiKey = process.env.CALCOM_API_KEY
-  if (!apiKey) {
-    console.error("[cancel-booking] CALCOM_API_KEY not configured")
-    return { ok: false, error: "failed" }
-  }
-
-  let res: Response
-  try {
-    res = await fetch(`${CALCOM_API_BASE}/bookings/${uid}/cancel`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "cal-api-version": "2024-08-13",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        cancellationReason: "Cancelled by the client via the website",
-      }),
-    })
-  } catch (error) {
-    console.error(
-      "[cancel-booking] Cal API unreachable",
-      error instanceof Error ? error.message : error,
-    )
-    return { ok: false, error: "failed" }
-  }
-  if (res.status >= 400 && res.status < 500) {
-    // Usually "already cancelled" on Cal's side (our webhook missed it) —
-    // reconcile from the authoritative source instead of guessing.
-    console.error("[cancel-booking] Cal API 4xx — reconciling", uid, res.status)
-    await syncBookingFromCal(uid)
-    const { data: after } = await supabase
-      .from("bookings")
-      .select("status")
-      .eq("cal_uid", uid)
-      .maybeSingle()
-    if (after?.status === BOOKING_STATUS.cancelled) {
-      revalidatePath("/[locale]/bookings", "page")
-      return { ok: true }
-    }
-    return { ok: false, error: "failed" }
-  }
-  if (!res.ok) {
-    console.error("[cancel-booking] Cal API rejected", uid, res.status)
-    return { ok: false, error: "failed" }
-  }
-
-  // Cal has cancelled — mirror now so the UI reflects it without waiting
-  // for the webhook (which writes the same state again, harmlessly).
-  const service = createSupabaseServiceRoleClient()
-  const { error: mirrorError } = await service
-    .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_uid", uid)
-  if (mirrorError) {
-    // Cal-side cancel succeeded; the webhook will heal the row.
-    console.error("[cancel-booking] mirror failed", mirrorError.message)
-  }
+  const result = await cancelBookingAtCal(
+    uid,
+    "Cancelled by the client via the website",
+  )
+  if (!result.ok) return { ok: false, error: "failed" }
 
   revalidatePath("/[locale]/bookings", "page")
   return { ok: true }

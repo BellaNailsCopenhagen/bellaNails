@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { useRouter } from "@/i18n/navigation"
 import { CalEmbedShell } from "@/components/sections/cal-embed-shell"
 import { settleBookingRow } from "@/lib/booking-probe"
@@ -11,6 +13,7 @@ import { routes } from "@/config/routes"
  * (sync-first, capped), then back to /bookings with a fresh render.
  */
 export function RescheduleEmbed({ uid }: { uid: string }) {
+  const t = useTranslations("booking")
   const router = useRouter()
 
   const onSuccess = async (newUid: string | undefined) => {
@@ -27,6 +30,8 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
       successAction="rescheduleBookingSuccessfulV2"
       onSuccess={onSuccess}
       config={{ theme: "light" }}
+      loadingLabel={t("embedLoading")}
+      securingLabel={t("securingBooking")}
     />
   )
 }

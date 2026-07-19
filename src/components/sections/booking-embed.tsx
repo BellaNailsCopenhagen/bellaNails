@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { useRouter } from "@/i18n/navigation"
 import { CalEmbedShell } from "@/components/sections/cal-embed-shell"
 import type { BookingContact } from "@/lib/contact-validation"
@@ -37,6 +39,7 @@ export function BookingEmbed({
   notesSummary: string
   metadata: BookingMetadata
 }) {
+  const t = useTranslations("booking")
   const router = useRouter()
 
   const onSuccess = async (uid: string | undefined) => {
@@ -82,6 +85,8 @@ export function BookingEmbed({
             }
           : {}),
       }}
+      loadingLabel={t("embedLoading")}
+      securingLabel={t("securingBooking")}
     />
   )
 }

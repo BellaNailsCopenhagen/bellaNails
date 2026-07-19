@@ -34,16 +34,22 @@ export function CancelBookingButton({
 
   const confirm = () =>
     startTransition(async () => {
-      const result = await cancelBooking(uid)
-      if (result.ok) {
-        toast.success(t("cancelDone"))
-      } else if (result.error === "within_policy") {
-        // Retrying can never succeed inside the window — point at the studio.
-        toast.error(t("within24h"))
-      } else {
+      try {
+        const result = await cancelBooking(uid)
+        if (result.ok) {
+          toast.success(t("cancelDone"))
+        } else if (result.error === "within_policy") {
+          // Retrying can never succeed inside the window — point at the studio.
+          toast.error(t("within24h"))
+        } else {
+          toast.error(t("cancelFailed"))
+        }
+      } catch {
+        // A thrown action must still resolve the UI, not leave it stuck.
         toast.error(t("cancelFailed"))
+      } finally {
+        setOpen(false)
       }
-      setOpen(false)
     })
 
   return (
