@@ -7,10 +7,7 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm } from "@/components/ui/typography"
 import {
   BOOKING_DISPLAY_COLUMNS,
-  fetchBookingCatalog,
-  metaOf,
-  toDisplayBooking,
-  type BookingCatalog,
+  toDisplayBookings,
   type DisplayBooking,
 } from "@/lib/booking-display"
 import { isActiveBookingStatus } from "@/lib/booking-status"
@@ -37,23 +34,13 @@ export async function MyBookings({ notice = null }: { notice?: string | null }) 
     console.error("[my-bookings] read failed", error.message)
   }
 
-  // One catalog query for all names; failure degrades every row to the
-  // generic session label rather than failing the page.
-  let catalog: BookingCatalog = new Map()
-  try {
-    catalog = await fetchBookingCatalog(
-      supabase,
-      (rows ?? []).map((row) => metaOf(row).serviceId),
-    )
-  } catch (catalogError) {
-    console.error(
-      "[my-bookings] catalog resolution failed",
-      catalogError instanceof Error ? catalogError.message : catalogError,
-    )
-  }
-
-  const display = (rows ?? []).map(
-    (row): DisplayBooking => toDisplayBooking(row, catalog, locale),
+  // Shared resolver: one catalog query for all names, degrading to the generic
+  // session label on failure rather than failing the page.
+  const display = await toDisplayBookings(
+    supabase,
+    rows ?? [],
+    locale,
+    "my-bookings",
   )
 
   // Request time — the one "now" for the split, policy, and countdowns.

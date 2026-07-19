@@ -104,6 +104,35 @@ export async function fetchBookingCatalog(
   return new Map((data ?? []).map((entry) => [entry.id, entry]))
 }
 
+/**
+ * Resolve a set of booking rows to display shape in one pass: fetch the name
+ * catalog once, then map each row. A catalog failure degrades every row to the
+ * generic session label rather than throwing. Shared by the client list
+ * (`my-bookings`) and the admin queue so the catalog+map boilerplate lives in
+ * one place. Client-safe (works with either Supabase client).
+ */
+export async function toDisplayBookings(
+  supabase: SupabaseClient<Database>,
+  rows: BookingRow[],
+  locale: string,
+  /** Log context so a catalog failure names the calling surface. */
+  context = "bookings",
+): Promise<DisplayBooking[]> {
+  let catalog: BookingCatalog = new Map()
+  try {
+    catalog = await fetchBookingCatalog(
+      supabase,
+      rows.map((row) => metaOf(row).serviceId),
+    )
+  } catch (error) {
+    console.error(
+      `[${context}] catalog resolution failed`,
+      error instanceof Error ? error.message : error,
+    )
+  }
+  return rows.map((row) => toDisplayBooking(row, catalog, locale))
+}
+
 export function toDisplayBooking(
   row: BookingRow,
   catalog: BookingCatalog,

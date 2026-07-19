@@ -1,17 +1,14 @@
 import type { Metadata } from "next"
-import { currentUser } from "@clerk/nextjs/server"
 
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
-import { formatStudioDate } from "@/lib/studio-time"
 import {
-  Body,
-  Display,
-  Eyebrow,
-  HeadingLine,
-  HeadingMuted,
-} from "@/components/ui/typography"
-import { TintedCard } from "@/components/ui/tinted-card"
+  BOOKING_DISPLAY_COLUMNS,
+  toDisplayBookings,
+} from "@/lib/booking-display"
+import { groupIntoAgenda } from "@/lib/admin/agenda"
+import { AdminQueue } from "@/components/admin/admin-queue"
+import { ADMIN_LOCALE } from "@/config/admin"
 
 export const metadata: Metadata = { title: "Queue" }
 
@@ -20,55 +17,36 @@ export const metadata: Metadata = { title: "Queue" }
 export const dynamic = "force-dynamic"
 
 /**
- * Admin dashboard (Queue placeholder). Proves the whole chain end to end:
- * owner-gated route → authed Supabase read under the new owner-reads-all RLS →
- * a real upcoming-booking count. The live queue itself lands in Task 02.
+ * Admin queue (home) — the forward agenda across ALL clients (owner-reads-all
+ * RLS). Fetches upcoming bookings, resolves display names, groups by week →
+ * day, and hands the result to the client AdminQueue for collapse/expand.
+ *
+ * Increment 1: server-fetched + grouped. Realtime, the Agenda↔Calendar toggle,
+ * owner cancel, and client contact land in later increments.
  */
-export default async function AdminDashboardPage() {
-  const now = new Date()
+export default async function AdminQueuePage() {
+  // eslint-disable-next-line react-hooks/purity -- request-time clock read
+  const now = Date.now()
   const supabase = createAuthedSupabaseServerClient()
 
-  const [user, { count, error }] = await Promise.all([
-    currentUser(),
-    supabase
-      .from("bookings")
-      .select("id", { count: "exact", head: true })
-      .in("status", [...ACTIVE_BOOKING_STATUSES])
-      .gt("start_time", now.toISOString()),
-  ])
+  // Upcoming = not yet ENDED, so an in-progress appointment stays in the queue
+  // (matches the client list's isUpcoming). Grouping still keys off start_time.
+  const { data: rows, error } = await supabase
+    .from("bookings")
+    .select(BOOKING_DISPLAY_COLUMNS)
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .gte("end_time", new Date(now).toISOString())
+    .order("start_time", { ascending: true })
 
-  const upcoming = error ? null : (count ?? 0)
-  const firstName = user?.firstName?.trim() || "Studio"
+  if (error) console.error("[admin-queue] read failed", error.message)
 
-  return (
-    <div className="space-y-10">
-      <div className="space-y-2">
-        <Eyebrow>{formatStudioDate(now.toISOString(), "en")}</Eyebrow>
-        <Display>
-          <HeadingLine>Good day</HeadingLine>
-          <HeadingMuted>{firstName}</HeadingMuted>
-        </Display>
-      </div>
-
-      <TintedCard className="flex items-baseline justify-between">
-        <div className="space-y-1">
-          <Eyebrow>Upcoming</Eyebrow>
-          <Body className="text-muted-foreground">
-            {upcoming === null
-              ? "Couldn’t load your bookings just now."
-              : upcoming === 1
-                ? "appointment ahead"
-                : "appointments ahead"}
-          </Body>
-        </div>
-        <span className="font-editorial text-5xl leading-none">
-          {upcoming ?? "—"}
-        </span>
-      </TintedCard>
-
-      <Body className="text-muted-foreground">
-        The live queue with client cards and realtime updates arrives next.
-      </Body>
-    </div>
+  const bookings = await toDisplayBookings(
+    supabase,
+    rows ?? [],
+    ADMIN_LOCALE,
+    "admin-queue",
   )
+  const weeks = groupIntoAgenda(bookings, now)
+
+  return <AdminQueue weeks={weeks} now={now} loadError={Boolean(error)} />
 }

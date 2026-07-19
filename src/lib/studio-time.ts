@@ -39,11 +39,41 @@ const STUDIO_DAY_FORMAT = new Intl.DateTimeFormat("en", {
 /** Days since epoch of the instant's calendar date IN THE STUDIO TIMEZONE —
     the unit people mean by "in 3 days". Extracted via formatToParts so no
     locale's date ordering is involved: year/month/day are read by name. */
-function studioDayNumber(ms: number): number {
+export function studioDayNumber(ms: number): number {
   const parts = STUDIO_DAY_FORMAT.formatToParts(new Date(ms))
   const get = (type: "year" | "month" | "day") =>
     Number(parts.find((part) => part.type === type)?.value)
   return Date.UTC(get("year"), get("month") - 1, get("day")) / 86_400_000
+}
+
+/** Day-number of the Monday starting the studio-week that contains `dayNumber`.
+    Weeks start Monday (Copenhagen convention). Epoch day 0 (1970-01-01) was a
+    Thursday, so the Monday-based weekday index is `(dayNumber + 3) % 7`. */
+export function studioWeekStartDayNumber(dayNumber: number): number {
+  return dayNumber - ((dayNumber + 3) % 7)
+}
+
+/** Noon-UTC instant for a studio day-number — safe to format as that calendar
+    day in the studio timezone regardless of DST (never near a midnight edge). */
+export function dayNumberToMs(dayNumber: number): number {
+  return dayNumber * 86_400_000 + 43_200_000
+}
+
+/** Weekday name in studio time — "Saturday" / "lørdag". */
+export function formatStudioWeekday(ms: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    timeZone: STUDIO_TIME_ZONE,
+  }).format(new Date(ms))
+}
+
+/** Short day + month in studio time — "18 Jul". */
+export function formatStudioDayMonth(ms: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    timeZone: STUDIO_TIME_ZONE,
+  }).format(new Date(ms))
 }
 
 /**
