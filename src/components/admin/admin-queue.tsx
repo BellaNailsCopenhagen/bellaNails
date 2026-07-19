@@ -1,21 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { CalendarDays, ChevronDown, List } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
+import { CalendarView } from "@/components/admin/calendar-view"
 import type { AgendaWeek } from "@/lib/admin/agenda"
 import {
   dayNumberToMs,
   formatStudioDayMonth,
   formatStudioWeekday,
   studioDayNumber,
+  studioWeekStartDayNumber,
 } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
+
+type QueueView = "agenda" | "calendar"
+
+const VIEWS = [
+  ["agenda", List, "Agenda"],
+  ["calendar", CalendarDays, "Calendar"],
+] as const
 
 function weekLabel(week: AgendaWeek): string {
   if (week.offset === 0) return "This week"
@@ -35,12 +44,13 @@ function countLabel(count: number): string {
 }
 
 /**
- * The admin queue — a forward agenda grouped by week → day. The current week
- * is expanded by default; future weeks collapse to a header (range + count).
+ * The admin queue — a forward agenda grouped by week → day, with a toggle to a
+ * condensed month calendar. The current week is expanded by default; future
+ * weeks collapse. Tapping a day in the calendar jumps back into the agenda,
+ * scrolled to (and expanding) that day.
  *
- * Increment 1: static data from the RSC (`weeks`), client-side only for the
- * collapse/expand interaction. Realtime + the Agenda↔Calendar toggle + owner
- * cancel + client contact land in later increments.
+ * Increment 1+3: static data from the RSC (`weeks`); client-side for
+ * collapse/expand + view switching. Realtime lands in a later increment.
  */
 export function AdminQueue({
   weeks,
@@ -52,11 +62,25 @@ export function AdminQueue({
   loadError?: boolean
 }) {
   const nowDay = studioDayNumber(now)
+  const [view, setView] = useState<QueueView>("agenda")
   const [open, setOpen] = useState<Set<number>>(
     () => new Set(weeks.filter((w) => w.isCurrent).map((w) => w.weekStartDay)),
   )
+  // A pending day to scroll to after a calendar → agenda jump. A ref (not
+  // state) so clearing it doesn't trigger a re-render inside the effect.
+  const scrollTargetRef = useRef<number | null>(null)
 
-  const toggle = (weekStartDay: number) =>
+  // day-number → booking count, for the calendar. Booking days are always
+  // emitted in `weeks` (only empty far weeks are dropped), so this is complete.
+  const dayCounts = useMemo(() => {
+    const counts = new Map<number, number>()
+    for (const week of weeks) {
+      for (const day of week.days) counts.set(day.dayNumber, day.bookings.length)
+    }
+    return counts
+  }, [weeks])
+
+  const toggleWeek = (weekStartDay: number) =>
     setOpen((prev) => {
       const next = new Set(prev)
       if (next.has(weekStartDay)) next.delete(weekStartDay)
@@ -64,16 +88,56 @@ export function AdminQueue({
       return next
     })
 
+  // From the calendar: open the day's week, switch to the agenda, scroll to it.
+  // selectDay always runs from the calendar view, so `view` transitions to
+  // "agenda" and the effect below fires.
+  const selectDay = (dayNumber: number) => {
+    setOpen((prev) => new Set(prev).add(studioWeekStartDayNumber(dayNumber)))
+    scrollTargetRef.current = dayNumber
+    setView("agenda")
+  }
+
+  useEffect(() => {
+    if (view !== "agenda" || scrollTargetRef.current === null) return
+    const dayNumber = scrollTargetRef.current
+    scrollTargetRef.current = null
+    document
+      .getElementById(`admin-day-${dayNumber}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [view])
+
   const isEmpty = weeks.every((w) => w.count === 0)
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1">
-        <Eyebrow>
-          {formatStudioWeekday(now, ADMIN_LOCALE)} ·{" "}
-          {formatStudioDayMonth(now, ADMIN_LOCALE)}
-        </Eyebrow>
-        <H2>Queue</H2>
+      <div className="flex items-end justify-between gap-4">
+        <div className="space-y-1">
+          <Eyebrow>
+            {formatStudioWeekday(now, ADMIN_LOCALE)} ·{" "}
+            {formatStudioDayMonth(now, ADMIN_LOCALE)}
+          </Eyebrow>
+          <H2>Queue</H2>
+        </div>
+
+        <div className="flex items-center gap-0.5 rounded-sm border border-border p-0.5">
+          {VIEWS.map(([value, Icon, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setView(value)}
+              aria-pressed={view === value}
+              aria-label={label}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-[2px] transition-colors",
+                view === value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-4" />
+            </button>
+          ))}
+        </div>
       </div>
 
       {loadError ? (
@@ -81,6 +145,8 @@ export function AdminQueue({
           title="Couldn’t load the queue"
           body="Something went wrong reaching your bookings. Try again in a moment."
         />
+      ) : view === "calendar" ? (
+        <CalendarView dayCounts={dayCounts} now={now} onSelectDay={selectDay} />
       ) : isEmpty ? (
         <EmptyState
           title="Nothing booked"
@@ -94,7 +160,7 @@ export function AdminQueue({
               <section key={week.weekStartDay}>
                 <button
                   type="button"
-                  onClick={() => toggle(week.weekStartDay)}
+                  onClick={() => toggleWeek(week.weekStartDay)}
                   aria-expanded={isOpen}
                   className="flex w-full items-center justify-between gap-4 border-b border-border py-3 text-left"
                 >
@@ -120,7 +186,11 @@ export function AdminQueue({
                   ) : (
                     <div className="space-y-6 pt-4">
                       {week.days.map((day) => (
-                        <div key={day.dayNumber} className="space-y-3">
+                        <div
+                          key={day.dayNumber}
+                          id={`admin-day-${day.dayNumber}`}
+                          className="scroll-mt-20 space-y-3"
+                        >
                           <Eyebrow>
                             {dayLabel(day.dayNumber, nowDay)} ·{" "}
                             {formatStudioDayMonth(

@@ -76,6 +76,23 @@ export function formatStudioDayMonth(ms: number, locale: string): string {
   }).format(new Date(ms))
 }
 
+/** Studio-local year and 1-based month of an instant (for the calendar grid). */
+export function studioYearMonth(ms: number): { year: number; month: number } {
+  const parts = STUDIO_DAY_FORMAT.formatToParts(new Date(ms))
+  const get = (type: "year" | "month") =>
+    Number(parts.find((part) => part.type === type)?.value)
+  return { year: get("year"), month: get("month") }
+}
+
+/** Full month + year in studio time — "July 2026". */
+export function formatStudioMonthYear(ms: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: STUDIO_TIME_ZONE,
+  }).format(new Date(ms))
+}
+
 /**
  * Localized countdown to an instant — "in 3 days" / "om 3 dage",
  * "in 11 hours", "in 40 minutes". Under an hour → minutes; under 24 h →
