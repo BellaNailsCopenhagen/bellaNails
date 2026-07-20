@@ -11,7 +11,7 @@
 
 ## 1. What it is
 
-**Bella Nails** is a *bilingual (Danish / English) premium nail-salon booking & management platform.*
+**Bella Nails** is a *bilingual (Danish / English) premium nail-studio booking & management platform.*
 
 - **Repo:** `git@github.com:BellaNailsCopenhagen/bellaNails.git` (private)
 - **Local:** `/Users/raul.albu/Documents/Claude/Projects/bellaNails`

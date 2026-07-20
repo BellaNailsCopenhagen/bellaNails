@@ -1,5 +1,10 @@
 import type { DisplayBooking } from "@/lib/booking-display"
-import { studioDayNumber, studioWeekStartDayNumber } from "@/lib/studio-time"
+import {
+  dayNumberToMs,
+  studioDayNumber,
+  studioWeekStartDayNumber,
+  studioYearMonth,
+} from "@/lib/studio-time"
 
 /**
  * Groups upcoming bookings into the admin queue's forward agenda: by week
@@ -87,4 +92,89 @@ export function groupIntoAgenda(
   }
 
   return weeks
+}
+
+/** A week of bookings for the Bookings browse. `offset` is weeks from the
+    current one (0 = this week, >0 future, <0 past). */
+export type BookingWeek = {
+  weekStartDay: number
+  offset: number
+  bookings: DisplayBooking[]
+}
+
+/**
+ * Groups bookings by week (Monday-start, studio timezone), only weeks that
+ * contain bookings (no gap-fill). `order` sets both the week and within-week
+ * sort: "asc" for the Upcoming section (soonest first), "desc" for Past
+ * (most-recent first).
+ */
+export function groupBookingsByWeek(
+  bookings: DisplayBooking[],
+  now: number,
+  order: "asc" | "desc",
+): BookingWeek[] {
+  const currentWeekStart = studioWeekStartDayNumber(studioDayNumber(now))
+  const dir = order === "asc" ? 1 : -1
+
+  const byWeek = new Map<number, DisplayBooking[]>()
+  for (const booking of bookings) {
+    const week = studioWeekStartDayNumber(studioDayNumber(startMs(booking)))
+    const list = byWeek.get(week) ?? []
+    list.push(booking)
+    byWeek.set(week, list)
+  }
+
+  return [...byWeek.entries()]
+    .sort(([a], [b]) => (a - b) * dir)
+    .map(([weekStartDay, list]) => ({
+      weekStartDay,
+      offset: Math.round((weekStartDay - currentWeekStart) / 7),
+      bookings: list.sort((a, b) => (startMs(a) - startMs(b)) * dir),
+    }))
+}
+
+/** A month of bookings. `monthKey` = year*12 + (month-1) for sorting/equality;
+    `ms` is an instant in the month, for labelling ("July 2026"). */
+export type BookingMonth = {
+  monthKey: number
+  ms: number
+  bookings: DisplayBooking[]
+}
+
+/** year*12 + (month-1) for the studio-local month of an instant — a sortable,
+    comparable month key. */
+export function studioMonthKey(ms: number): number {
+  const { year, month } = studioYearMonth(ms)
+  return year * 12 + (month - 1)
+}
+
+/**
+ * Groups bookings by studio month (only months with bookings), sorted and
+ * within-month sorted by `order`.
+ */
+export function groupBookingsByMonth(
+  bookings: DisplayBooking[],
+  order: "asc" | "desc",
+): BookingMonth[] {
+  const dir = order === "asc" ? 1 : -1
+
+  const byMonth = new Map<number, DisplayBooking[]>()
+  for (const booking of bookings) {
+    const key = studioMonthKey(startMs(booking))
+    const list = byMonth.get(key) ?? []
+    list.push(booking)
+    byMonth.set(key, list)
+  }
+
+  return [...byMonth.entries()]
+    .sort(([a], [b]) => (a - b) * dir)
+    .map(([monthKey, list]) => {
+      const year = Math.floor(monthKey / 12)
+      const month = (monthKey % 12) + 1
+      return {
+        monthKey,
+        ms: dayNumberToMs(Date.UTC(year, month - 1, 1) / 86_400_000),
+        bookings: list.sort((a, b) => (startMs(a) - startMs(b)) * dir),
+      }
+    })
 }

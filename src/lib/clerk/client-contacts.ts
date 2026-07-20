@@ -2,17 +2,14 @@ import "server-only"
 
 import { clerkClient } from "@clerk/nextjs/server"
 
+import type { ClientContact } from "@/lib/clerk/contact"
+
 /**
- * Client contact resolved live from Clerk — never persisted (the no-PII rule:
- * our DB holds only the pseudonymous `clerk_user_id`). Used by the admin queue
- * to show who each appointment is with + tap-to-call/email.
+ * Resolves client contact live from Clerk — never persisted (the no-PII rule:
+ * our DB holds only the pseudonymous `clerk_user_id`). Used by admin lists to
+ * show who each appointment is with + tap-to-call/email. `server-only`; the
+ * client-safe `ClientContact` type + `contactDisplayName` live in `contact.ts`.
  */
-export type ClientContact = {
-  firstName: string | null
-  fullName: string | null
-  email: string | null
-  phone: string | null
-}
 
 // Clerk's getUserList caps a page at 500; a studio's upcoming-queue client set
 // is far below that. If it ever isn't, contacts beyond the first page won't

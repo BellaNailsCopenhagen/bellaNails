@@ -76,6 +76,16 @@ export function formatStudioDayMonth(ms: number, locale: string): string {
   }).format(new Date(ms))
 }
 
+/** Day, short month, and year in studio time — "18 Jul 2026" (history rows). */
+export function formatStudioDayMonthYear(ms: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: STUDIO_TIME_ZONE,
+  }).format(new Date(ms))
+}
+
 /** Studio-local year and 1-based month of an instant (for the calendar grid). */
 export function studioYearMonth(ms: number): { year: number; month: number } {
   const parts = STUDIO_DAY_FORMAT.formatToParts(new Date(ms))

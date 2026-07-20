@@ -1,3 +1,4 @@
+import type * as React from "react"
 import Link from "next/link"
 import { Mail, Phone } from "lucide-react"
 
@@ -8,7 +9,7 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
-import type { ClientContact } from "@/lib/clerk/client-contacts"
+import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
 import { formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -17,25 +18,28 @@ import { ADMIN_LOCALE } from "@/config/admin"
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 
 /**
- * A booking in the admin queue — condensed vs the client's card. English-only
- * (the admin has no next-intl context), reusing the shared display shapes.
- *
- * Client name + contact come from Clerk (resolved in the RSC, never persisted).
- * The name is a distinct element so Task 07 can wrap it in a link to the client
- * page without reworking the card. Cancel lands in a later increment.
+ * A booking card — the queue's list item and the Bookings view's expanded
+ * detail. English-only (the admin has no next-intl context), reusing the shared
+ * display shapes. Client name + contact come from Clerk (resolved in the RSC,
+ * never persisted). `actionable` gates reschedule/cancel — off for past or
+ * cancelled bookings; `as` lets it render outside a <ul> (Bookings view).
  */
 export function QueueBookingCard({
   booking,
   contact,
+  actionable = true,
+  as = "li",
 }: {
   booking: DisplayBooking
   contact?: ClientContact
+  actionable?: boolean
+  as?: React.ElementType
 }) {
   const { row } = booking
-  const clientName = contact?.firstName || contact?.fullName || "Client"
+  const clientName = contactDisplayName(contact)
 
   return (
-    <TintedCard as="li" className="space-y-3 p-4 sm:p-5">
+    <TintedCard as={as} className="space-y-3 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1.5">
           <p className="font-editorial text-xl leading-none text-foreground">
@@ -83,7 +87,7 @@ export function QueueBookingCard({
         </div>
       </div>
 
-      {contact?.phone || contact?.email || row.cal_uid ? (
+      {contact?.phone || contact?.email || (actionable && row.cal_uid) ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
           <div className="flex flex-wrap gap-5">
             {contact?.phone ? (
@@ -105,7 +109,7 @@ export function QueueBookingCard({
               </a>
             ) : null}
           </div>
-          {row.cal_uid ? (
+          {actionable && row.cal_uid ? (
             <div className="flex flex-wrap items-center gap-2">
               {/* In-app reschedule-on-behalf (same Cal embed as the client). */}
               <Button

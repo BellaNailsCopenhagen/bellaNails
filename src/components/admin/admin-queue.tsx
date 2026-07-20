@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CalendarDays, ChevronDown, List } from "lucide-react"
 
@@ -10,7 +11,7 @@ import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { CalendarView } from "@/components/admin/calendar-view"
 import type { AgendaWeek } from "@/lib/admin/agenda"
-import type { ClientContact } from "@/lib/clerk/client-contacts"
+import type { ClientContact } from "@/lib/clerk/contact"
 import {
   dayNumberToMs,
   formatStudioDayMonth,
@@ -124,8 +125,15 @@ export function AdminQueue({
           <H2>Queue</H2>
         </div>
 
-        <div className="flex items-center gap-0.5 rounded-sm border border-border p-0.5">
-          {VIEWS.map(([value, Icon, label]) => (
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/appointments"
+            className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Appointments
+          </Link>
+          <div className="flex items-center gap-0.5 rounded-sm border border-border p-0.5">
+            {VIEWS.map(([value, Icon, label]) => (
             <button
               key={value}
               type="button"
@@ -142,6 +150,7 @@ export function AdminQueue({
               <Icon className="size-4" />
             </button>
           ))}
+          </div>
         </div>
       </div>
 

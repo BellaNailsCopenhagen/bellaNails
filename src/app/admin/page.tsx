@@ -2,14 +2,10 @@ import type { Metadata } from "next"
 
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
-import {
-  BOOKING_DISPLAY_COLUMNS,
-  toDisplayBookings,
-} from "@/lib/booking-display"
-import { fetchClientContacts } from "@/lib/clerk/client-contacts"
+import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
+import { resolveAdminBookings } from "@/lib/admin/bookings"
 import { groupIntoAgenda } from "@/lib/admin/agenda"
 import { AdminQueue } from "@/components/admin/admin-queue"
-import { ADMIN_LOCALE } from "@/config/admin"
 
 export const metadata: Metadata = { title: "Queue" }
 
@@ -41,12 +37,11 @@ export default async function AdminQueuePage() {
 
   if (error) console.error("[admin-queue] read failed", error.message)
 
-  // Resolve display names (Supabase catalog) and client contact (Clerk) in
-  // parallel — both only need the fetched rows.
-  const [bookings, contacts] = await Promise.all([
-    toDisplayBookings(supabase, rows ?? [], ADMIN_LOCALE, "admin-queue"),
-    fetchClientContacts((rows ?? []).map((row) => row.clerk_user_id)),
-  ])
+  const { bookings, contacts } = await resolveAdminBookings(
+    supabase,
+    rows ?? [],
+    "admin-queue",
+  )
   const weeks = groupIntoAgenda(bookings, now)
 
   return (
