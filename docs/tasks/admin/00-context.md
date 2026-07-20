@@ -76,6 +76,7 @@ design direction** for every task in this folder:
 ```
 01 shell+auth+PWA ─▶ 02 queue+realtime ─▶ 05 push notifications
                  │                    └─▶ 06 studio bookings ─▶ 07 clients ─▶ 08 photo consent ─▶ 09 client voice
+                 │                    └─▶ 10 insights (financial + occupancy)
                  └─▶ 03 services CRUD + Cal sync
                  └─▶ 04 gallery + testimonials ──────────────────────────▶ 08, 09
 ```
@@ -87,7 +88,9 @@ media upload reuses 04's Cloudinary plumbing. 08 (publication consent) needs
 07's client media and 04's gallery, and adds a client-facing card on
 `/bookings`. 09 (client testimonials + "my photos" transparency) builds on
 04's testimonials table and 08's consent/withdraw — mostly client-facing on
-`/bookings`. ⚠️ 04 and 09 must agree on ONE testimonials status model
+`/bookings`. 10 (insights) reads the same booking data owner-reads-all exposes
+for 02, and needs the studio's working hours defined (occupancy denominator).
+⚠️ 04 and 09 must agree on ONE testimonials status model
 (`pending|published|declined`, not a bare boolean) — see both briefs.
 
 ## Prerequisites (owner, before Task 01 merges)

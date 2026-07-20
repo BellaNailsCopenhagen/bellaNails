@@ -53,6 +53,15 @@ cancel on a client's behalf.
   action (role re-checked; no 24 h policy for the owner) + confirm dialog.
   Reschedule-on-behalf links out to Cal's dashboard for now (owner is
   logged into Cal anyway) — in-app owner reschedule can come later.
+- **Mark no-show** (studio-side only): a card action to flag a client no-show,
+  **eligible only once `now >= start_time + 1h`** (covers past appointments and
+  long in-progress ones). Stored as the separate `no_show_at` marker
+  ([supabase/booking-no-show.sql](../../../supabase/booking-no-show.sql)) — NOT
+  a `status` value, so the Cal webhook can't clobber it and clients never see
+  it. Owner-verified server action (service-role write; eligibility re-checked
+  server-side; toggle to undo). No-show shows a studio-side "No-show" badge on
+  the card; it earns no revenue in Task 10 unless an income override records a
+  fee. Migration + type regen before use.
 - History view (past bookings, simple list, search by client name later).
 - **Leave room for Task 06**: the card layout should accommodate an
   "awaiting reply" marker + acceptance toggle for studio-created bookings
