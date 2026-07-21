@@ -9,6 +9,7 @@ import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
+import { QueueRealtime } from "@/components/admin/queue-realtime"
 import { CalendarView } from "@/components/admin/calendar-view"
 import type { AgendaWeek } from "@/lib/admin/agenda"
 import type { ClientContact } from "@/lib/clerk/contact"
@@ -116,6 +117,7 @@ export function AdminQueue({
 
   return (
     <div className="space-y-8">
+      <QueueRealtime />
       <div className="flex items-end justify-between gap-4">
         <div className="space-y-1">
           <Eyebrow>
