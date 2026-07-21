@@ -127,6 +127,8 @@ export type Database = {
           created_at: string | null
           end_time: string
           id: string
+          income_override_cents: number | null
+          no_show_at: string | null
           reschedule_url: string
           rescheduled_from_uid: string | null
           selected_addons: Json | null
@@ -143,6 +145,8 @@ export type Database = {
           created_at?: string | null
           end_time: string
           id?: string
+          income_override_cents?: number | null
+          no_show_at?: string | null
           reschedule_url: string
           rescheduled_from_uid?: string | null
           selected_addons?: Json | null
@@ -159,6 +163,8 @@ export type Database = {
           created_at?: string | null
           end_time?: string
           id?: string
+          income_override_cents?: number | null
+          no_show_at?: string | null
           reschedule_url?: string
           rescheduled_from_uid?: string | null
           selected_addons?: Json | null
