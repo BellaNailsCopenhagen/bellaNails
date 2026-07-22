@@ -160,10 +160,12 @@ function Segmented<T extends string>({
 export function AdminBookings({
   bookings,
   contacts,
+  noShowCounts,
   now,
 }: {
   bookings: DisplayBooking[]
   contacts: Record<string, ClientContact>
+  noShowCounts: Record<string, number>
   now: number
 }) {
   const [mode, setMode] = useState<ViewMode>("all")
@@ -250,6 +252,7 @@ export function AdminBookings({
                         key={booking.row.cal_booking_id}
                         booking={booking}
                         contact={contacts[booking.row.clerk_user_id]}
+                        clientNoShowCount={noShowCounts[booking.row.clerk_user_id]}
                         upcoming={endMs(booking) >= now}
                         now={now}
                       />

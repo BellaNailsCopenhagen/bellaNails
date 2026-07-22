@@ -48,7 +48,7 @@ export default async function AdminAppointmentsPage() {
   const error = upcomingRes.error ?? pastRes.error
   if (error) console.error("[admin-appointments] read failed", error.message)
 
-  const { bookings, contacts } = await resolveAdminBookings(
+  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
     supabase,
     [...(upcomingRes.data ?? []), ...(pastRes.data ?? [])],
     "admin-appointments",
@@ -81,6 +81,7 @@ export default async function AdminAppointmentsPage() {
         <AdminBookings
           bookings={bookings}
           contacts={contacts}
+          noShowCounts={noShowCounts}
           now={now.getTime()}
         />
       )}

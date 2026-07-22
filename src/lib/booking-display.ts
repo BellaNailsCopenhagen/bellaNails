@@ -72,9 +72,7 @@ export function canManageBooking(
     its start (covers finished appointments and long in-progress ones). This is
     studio-side only; it never applies to cancelled bookings. Both the card
     (which reveals the action) and the owner action ask this. */
-// TEMP (visual inspection): negative so every upcoming appointment is eligible
-// and the no-show toggle/badge render. Restore to `60 * 60 * 1000` before ship.
-export const NO_SHOW_GRACE_MS = -100 * 365 * 24 * 60 * 60 * 1000
+export const NO_SHOW_GRACE_MS = 60 * 60 * 1000
 
 export function canMarkNoShow(
   row: Pick<BookingRow, "status" | "start_time">,

@@ -8,7 +8,12 @@ import { BookingAddons } from "@/components/sections/booking-addons"
 import { BookingConfirm } from "@/components/sections/booking-confirm"
 import { BookingDetails } from "@/components/sections/booking-details"
 import { BookingServicePicker } from "@/components/sections/booking-service-picker"
-import { isCompleteContact } from "@/lib/contact-validation"
+import {
+  isCompleteContact,
+  MAX_NAME_LENGTH,
+  MAX_NOTES_LENGTH,
+  sanitizeContactText,
+} from "@/lib/contact-validation"
 import { sanitizeSelectedAddonIds } from "@/lib/services/booking-totals"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import { singleParam } from "@/lib/search-params"
@@ -64,11 +69,15 @@ export default async function BookPage({
       )
     : []
 
+  // HTML constraints are bypassable via a hand-edited GET URL — re-clamp here.
   const contact = {
-    name: singleParam(query.name),
-    email: singleParam(query.email),
-    phone: singleParam(query.phone),
-    notes: singleParam(query.notes),
+    name: sanitizeContactText(singleParam(query.name), MAX_NAME_LENGTH) ?? undefined,
+    email: singleParam(query.email)?.trim(),
+    phone: singleParam(query.phone)?.trim(),
+    notes:
+      sanitizeContactText(singleParam(query.notes), MAX_NOTES_LENGTH, {
+        allowNewlines: true,
+      }) ?? undefined,
   }
 
   // Confirm needs the Cal identity to exist — a null slug or missing Cal

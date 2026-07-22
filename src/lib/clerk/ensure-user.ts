@@ -2,6 +2,8 @@ import "server-only"
 
 import { clerkClient } from "@clerk/nextjs/server"
 
+import { toE164 } from "@/lib/contact-validation"
+
 type ClerkClient = Awaited<ReturnType<typeof clerkClient>>
 
 type EnsureClerkUserInput = {
@@ -27,14 +29,15 @@ async function tryAttachPhone(
   userId: string,
   phone: string | undefined,
 ) {
-  if (!phone) return
+  const normalized = toE164(phone)
+  if (!normalized) return
   try {
     await client.phoneNumbers.createPhoneNumber({
       userId,
-      phoneNumber: phone.replace(/[\s()-]/g, ""),
+      phoneNumber: normalized,
     })
   } catch {
-    // Unparseable/duplicate phone — the booking sync proceeds without it.
+    // Duplicate/rejected phone — the booking sync proceeds without it.
   }
 }
 
@@ -70,6 +73,8 @@ export async function ensureClerkUser({
         ...(firstName ? { firstName } : {}),
         ...(lastName ? { lastName } : {}),
         skipPasswordRequirement: true,
+        // Distinguish booking-provisioned accounts from client-created ones.
+        privateMetadata: { source: "booking-auto" },
       })
       await tryAttachPhone(client, user.id, phone)
       return user.id

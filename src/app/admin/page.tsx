@@ -37,7 +37,7 @@ export default async function AdminQueuePage() {
 
   if (error) console.error("[admin-queue] read failed", error.message)
 
-  const { bookings, contacts } = await resolveAdminBookings(
+  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
     supabase,
     rows ?? [],
     "admin-queue",
@@ -48,6 +48,7 @@ export default async function AdminQueuePage() {
     <AdminQueue
       weeks={weeks}
       contacts={contacts}
+      noShowCounts={noShowCounts}
       now={now}
       loadError={Boolean(error)}
     />

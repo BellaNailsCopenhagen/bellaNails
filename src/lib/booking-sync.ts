@@ -2,6 +2,12 @@ import "server-only"
 
 import { ensureClerkUser } from "@/lib/clerk/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
+import { calBookingPhone } from "@/lib/cal-phone"
+import {
+  MAX_NAME_LENGTH,
+  MAX_NOTES_LENGTH,
+  sanitizeContactText,
+} from "@/lib/contact-validation"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
@@ -71,7 +77,8 @@ export async function persistCalBooking(
     try {
       clerkUserId = await ensureClerkUser({
         email: snapshot.attendeeEmail,
-        name: snapshot.attendeeName,
+        // Client-typed via Cal — clamp before it reaches Clerk.
+        name: sanitizeContactText(snapshot.attendeeName, MAX_NAME_LENGTH) ?? undefined,
         phone: snapshot.attendeePhone,
       })
     } catch (error) {
@@ -116,7 +123,11 @@ export async function persistCalBooking(
         reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${snapshot.uid}`,
         cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${snapshot.uid}?cancel=true`,
         total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
-        client_notes: metaString(meta.clientNotes),
+        client_notes: sanitizeContactText(
+          metaString(meta.clientNotes),
+          MAX_NOTES_LENGTH,
+          { allowNewlines: true },
+        ),
         selected_addons: {
           serviceId: metaString(meta.serviceId),
           addonIds,
@@ -229,11 +240,7 @@ export async function syncBookingFromCal(
     endTime: data.end,
     attendeeEmail: attendee.email,
     attendeeName: attendee.name,
-    // Same precedence as the webhook: the form answer wins over Cal's
-    // attendee record.
-    attendeePhone:
-      metaString(data.bookingFieldsResponses?.attendeePhoneNumber) ??
-      attendee.phoneNumber,
+    attendeePhone: calBookingPhone(data),
     rescheduleUid: data.rescheduledFromUid ?? null,
     metadata: data.metadata ?? {},
     status,

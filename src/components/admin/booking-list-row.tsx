@@ -42,11 +42,13 @@ function statusBadge(
 export function BookingListRow({
   booking,
   contact,
+  clientNoShowCount,
   upcoming,
   now,
 }: {
   booking: DisplayBooking
   contact?: ClientContact
+  clientNoShowCount?: number
   upcoming: boolean
   now: number
 }) {
@@ -94,6 +96,7 @@ export function BookingListRow({
             as="div"
             booking={booking}
             contact={contact}
+            clientNoShowCount={clientNoShowCount}
             actionable={actionable}
             noShowEligible={canMarkNoShow(row, now)}
           />

@@ -59,11 +59,13 @@ function countLabel(count: number): string {
 export function AdminQueue({
   weeks,
   contacts,
+  noShowCounts,
   now,
   loadError = false,
 }: {
   weeks: AgendaWeek[]
   contacts: Record<string, ClientContact>
+  noShowCounts: Record<string, number>
   now: number
   loadError?: boolean
 }) {
@@ -227,6 +229,9 @@ export function AdminQueue({
                                 key={booking.row.cal_booking_id}
                                 booking={booking}
                                 contact={contacts[booking.row.clerk_user_id]}
+                                clientNoShowCount={
+                                  noShowCounts[booking.row.clerk_user_id]
+                                }
                                 noShowEligible={canMarkNoShow(booking.row, now)}
                               />
                             ))}

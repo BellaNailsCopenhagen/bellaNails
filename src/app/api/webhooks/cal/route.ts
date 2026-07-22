@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 
 import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
 import { persistCalBooking } from "@/lib/booking-sync"
+import { calBookingPhone } from "@/lib/cal-phone"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 /**
@@ -118,8 +119,7 @@ async function handleBooking(
     endTime,
     attendeeEmail: attendee.email,
     attendeeName: attendee.name,
-    attendeePhone:
-      payload.responses?.attendeePhoneNumber?.value ?? attendee.phoneNumber,
+    attendeePhone: calBookingPhone(payload),
     rescheduleUid: payload.rescheduleUid ?? null,
     metadata: payload.metadata ?? {},
     status,

@@ -14,14 +14,12 @@ import { BodySm } from "@/components/ui/typography"
 import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import {
   EMAIL_HTML_PATTERN,
+  MAX_NOTES_LENGTH,
   PHONE_HTML_PATTERN,
   type BookingContact,
 } from "@/lib/contact-validation"
 import { localizeSelection } from "@/lib/services/localize-selection"
 import { routes } from "@/config/routes"
-
-/** Keep GET URLs (and the Cal notes prefill) comfortably bounded. */
-const NOTES_MAX_LENGTH = 500
 
 type Field = {
   id: "name" | "email" | "phone"
@@ -67,7 +65,9 @@ export async function BookingDetails({
   const defaults = {
     name: prefill.name ?? clerkName,
     email: prefill.email ?? clerkEmail,
-    phone: prefill.phone ?? clerkPhone,
+    // Seed the +45 country code so clients enter a full E.164 number, not a
+    // bare 8-digit local one (toE164 still backstops mis-entries).
+    phone: prefill.phone ?? clerkPhone ?? "+45 ",
     notes: prefill.notes,
   }
 
@@ -216,7 +216,7 @@ export async function BookingDetails({
                 id="notes"
                 name="notes"
                 placeholder={t("fields.notesPlaceholder")}
-                maxLength={NOTES_MAX_LENGTH}
+                maxLength={MAX_NOTES_LENGTH}
                 defaultValue={defaults.notes}
               />
             </div>

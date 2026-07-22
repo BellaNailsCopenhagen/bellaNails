@@ -1,6 +1,6 @@
 import type * as React from "react"
 import Link from "next/link"
-import { Mail, Phone, User } from "lucide-react"
+import { Mail, Phone, TriangleAlert, User } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
+import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
 import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
@@ -30,18 +31,22 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 export function QueueBookingCard({
   booking,
   contact,
+  clientNoShowCount = 0,
   actionable = true,
   noShowEligible = false,
   as = "li",
 }: {
   booking: DisplayBooking
   contact?: ClientContact
+  /** Client's total no-shows across all bookings — flags repeat offenders. */
+  clientNoShowCount?: number
   actionable?: boolean
   noShowEligible?: boolean
   as?: React.ElementType
 }) {
   const { row } = booking
   const clientName = contactDisplayName(contact)
+  const isRepeatNoShow = clientNoShowCount >= NO_SHOW_ALERT_THRESHOLD
   // The pseudonymous Clerk id is the client's stable key — links to their
   // profile + booking history. Route is /admin/clients/[id] (built separately).
   const clientHref = row.clerk_user_id
@@ -49,12 +54,10 @@ export function QueueBookingCard({
     : null
   const hasUid = Boolean(row.cal_uid)
   const isNoShow = Boolean(row.no_show_at)
-  // Reschedule doubles as "rebook" — offered on a no-show so a client who
-  // reached out for a new date can be moved rather than left as a no-show.
-  const canReschedule = hasUid && (actionable || isNoShow)
-  // Never cancel a no-show — it already happened; it's rebooked or left as-is.
-  const canCancel = hasUid && actionable && !isNoShow
   const canToggleNoShow = hasUid && noShowEligible
+  // Future-only, and gone once the booking is a no-show.
+  const canReschedule = hasUid && actionable && !isNoShow
+  const canCancel = hasUid && actionable && !isNoShow
   const hasActions = canReschedule || canCancel || canToggleNoShow
 
   return (
@@ -84,7 +87,7 @@ export function QueueBookingCard({
           {clientHref ? (
             <Link
               href={clientHref}
-              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+              className={cardActionNeutral("ml-auto gap-1 text-[0.625rem]")}
             >
               <User className="size-3" />
               View client
@@ -111,6 +114,14 @@ export function QueueBookingCard({
               {clientName}
             </p>
           )}
+          {/* Client-level reputation — distinct from this booking's own
+              No-show badge below. */}
+          {isRepeatNoShow ? (
+            <Badge variant="destructive" size="xs" className="gap-1">
+              <TriangleAlert className="size-3" />
+              {clientNoShowCount} no-shows
+            </Badge>
+          ) : null}
           {/* Contact details in plain text — the artist sees who this is at a
               glance; the Call/Email actions above are the tap targets. */}
           {contact?.phone || contact?.email ? (
@@ -177,15 +188,14 @@ export function QueueBookingCard({
             ) : null}
           </div>
           {canReschedule ? (
-            /* In-app reschedule-on-behalf (same Cal embed as the client); on a
-               no-show this is the "rebook" path. */
+            /* In-app reschedule-on-behalf — same Cal embed as the client. */
             <Button
               variant="outline"
               size="sm"
               nativeButton={false}
               render={<Link href={`/admin/reschedule/${row.cal_uid}`} />}
             >
-              {isNoShow ? "Rebook" : "Reschedule"}
+              Reschedule
             </Button>
           ) : null}
         </div>
