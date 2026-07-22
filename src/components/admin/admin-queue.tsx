@@ -11,6 +11,7 @@ import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { QueueRealtime } from "@/components/admin/queue-realtime"
 import { CalendarView } from "@/components/admin/calendar-view"
+import { canMarkNoShow } from "@/lib/booking-display"
 import type { AgendaWeek } from "@/lib/admin/agenda"
 import type { ClientContact } from "@/lib/clerk/contact"
 import {
@@ -226,6 +227,7 @@ export function AdminQueue({
                                 key={booking.row.cal_booking_id}
                                 booking={booking}
                                 contact={contacts[booking.row.clerk_user_id]}
+                                noShowEligible={canMarkNoShow(booking.row, now)}
                               />
                             ))}
                           </ul>

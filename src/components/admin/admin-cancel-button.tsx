@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { X } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -12,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { cardActionDestructive } from "@/components/admin/card-action"
 import { cancelBookingAsOwner } from "@/lib/actions/cancel-booking-admin"
 
 /**
@@ -57,7 +59,10 @@ export function AdminCancelButton({
         if (!pending) setOpen(next)
       }}
     >
-      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+      <AlertDialogTrigger
+        render={<button type="button" className={cardActionDestructive()} />}
+      >
+        <X className="size-3.5" />
         Cancel
       </AlertDialogTrigger>
       <AlertDialogContent>

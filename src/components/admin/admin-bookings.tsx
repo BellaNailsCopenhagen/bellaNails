@@ -251,6 +251,7 @@ export function AdminBookings({
                         booking={booking}
                         contact={contacts[booking.row.clerk_user_id]}
                         upcoming={endMs(booking) >= now}
+                        now={now}
                       />
                     ))}
                   </ul>

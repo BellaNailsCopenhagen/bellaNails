@@ -14,7 +14,7 @@ import type { Database } from "@/lib/supabase/types"
     is the pseudonymous client id (not PII); the admin queue resolves it to
     name/phone/email via Clerk, the client list simply ignores it. */
 export const BOOKING_DISPLAY_COLUMNS =
-  "cal_booking_id, cal_uid, clerk_user_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url"
+  "cal_booking_id, cal_uid, clerk_user_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url, no_show_at"
 
 export type BookingRow = Pick<
   Database["public"]["Tables"]["bookings"]["Row"],
@@ -29,6 +29,7 @@ export type BookingRow = Pick<
   | "client_notes"
   | "reschedule_url"
   | "cancel_url"
+  | "no_show_at"
 >
 
 /** IDs-only payload the webhook stored from the embed handoff. */
@@ -64,6 +65,24 @@ export function canManageBooking(
   return (
     isActiveBookingStatus(row.status) &&
     new Date(row.start_time).getTime() - now >= POLICY_WINDOW_MS
+  )
+}
+
+/** No-show is markable only once an appointment is well underway — an hour past
+    its start (covers finished appointments and long in-progress ones). This is
+    studio-side only; it never applies to cancelled bookings. Both the card
+    (which reveals the action) and the owner action ask this. */
+// TEMP (visual inspection): negative so every upcoming appointment is eligible
+// and the no-show toggle/badge render. Restore to `60 * 60 * 1000` before ship.
+export const NO_SHOW_GRACE_MS = -100 * 365 * 24 * 60 * 60 * 1000
+
+export function canMarkNoShow(
+  row: Pick<BookingRow, "status" | "start_time">,
+  now: number,
+): boolean {
+  return (
+    isActiveBookingStatus(row.status) &&
+    now >= new Date(row.start_time).getTime() + NO_SHOW_GRACE_MS
   )
 }
 

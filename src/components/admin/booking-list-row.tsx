@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BOOKING_STATUS } from "@/lib/booking-status"
-import type { DisplayBooking } from "@/lib/booking-display"
+import { canMarkNoShow, type DisplayBooking } from "@/lib/booking-display"
 import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
 import { formatStudioDayMonthYear, formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -19,9 +19,15 @@ type StatusBadge = {
 
 /** Cancelled wins; otherwise past = completed, upcoming-rescheduled = moved,
     upcoming-confirmed shows nothing (the section header says "Upcoming"). */
-function statusBadge(upcoming: boolean, status: string): StatusBadge | null {
+function statusBadge(
+  upcoming: boolean,
+  status: string,
+  noShow: boolean,
+): StatusBadge | null {
   if (status === BOOKING_STATUS.cancelled)
     return { label: "Cancelled", variant: "destructive" }
+  // A no-show is more specific than "completed" — surface it in the summary.
+  if (noShow) return { label: "No-show", variant: "destructive" }
   if (!upcoming) return { label: "Completed", variant: "success" }
   if (status === BOOKING_STATUS.rescheduled)
     return { label: "Rescheduled", variant: "warning" }
@@ -37,15 +43,17 @@ export function BookingListRow({
   booking,
   contact,
   upcoming,
+  now,
 }: {
   booking: DisplayBooking
   contact?: ClientContact
   upcoming: boolean
+  now: number
 }) {
   const [open, setOpen] = useState(false)
   const { row } = booking
   const startMs = new Date(row.start_time).getTime()
-  const badge = statusBadge(upcoming, row.status)
+  const badge = statusBadge(upcoming, row.status, Boolean(row.no_show_at))
   const actionable = upcoming && row.status !== BOOKING_STATUS.cancelled
 
   return (
@@ -87,6 +95,7 @@ export function BookingListRow({
             booking={booking}
             contact={contact}
             actionable={actionable}
+            noShowEligible={canMarkNoShow(row, now)}
           />
         </div>
       ) : null}

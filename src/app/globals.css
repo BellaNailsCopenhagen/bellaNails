@@ -94,3 +94,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-functional);
 }
+
+/* Tailwind v4's Preflight dropped the default `cursor: pointer` on buttons —
+   restore it for every interactive control (links already get it). Enabled
+   only, so disabled controls keep the default arrow. A `cursor-*` utility on
+   an element still wins over this base rule. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

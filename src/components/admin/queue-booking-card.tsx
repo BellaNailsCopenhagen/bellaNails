@@ -1,12 +1,14 @@
 import type * as React from "react"
 import Link from "next/link"
-import { Mail, Phone } from "lucide-react"
+import { Mail, Phone, User } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
+import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
+import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
 import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
@@ -22,34 +24,103 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
  * detail. English-only (the admin has no next-intl context), reusing the shared
  * display shapes. Client name + contact come from Clerk (resolved in the RSC,
  * never persisted). `actionable` gates reschedule/cancel — off for past or
- * cancelled bookings; `as` lets it render outside a <ul> (Bookings view).
+ * cancelled bookings; `noShowEligible` reveals the studio-side no-show toggle
+ * (an hour past start); `as` lets it render outside a <ul> (Bookings view).
  */
 export function QueueBookingCard({
   booking,
   contact,
   actionable = true,
+  noShowEligible = false,
   as = "li",
 }: {
   booking: DisplayBooking
   contact?: ClientContact
   actionable?: boolean
+  noShowEligible?: boolean
   as?: React.ElementType
 }) {
   const { row } = booking
   const clientName = contactDisplayName(contact)
+  // The pseudonymous Clerk id is the client's stable key — links to their
+  // profile + booking history. Route is /admin/clients/[id] (built separately).
+  const clientHref = row.clerk_user_id
+    ? `/admin/clients/${row.clerk_user_id}`
+    : null
+  const hasUid = Boolean(row.cal_uid)
+  const isNoShow = Boolean(row.no_show_at)
+  // Reschedule doubles as "rebook" — offered on a no-show so a client who
+  // reached out for a new date can be moved rather than left as a no-show.
+  const canReschedule = hasUid && (actionable || isNoShow)
+  // Never cancel a no-show — it already happened; it's rebooked or left as-is.
+  const canCancel = hasUid && actionable && !isNoShow
+  const canToggleNoShow = hasUid && noShowEligible
+  const hasActions = canReschedule || canCancel || canToggleNoShow
 
   return (
     <TintedCard as={as} className="space-y-3 p-4 sm:p-5">
+      {/* Contact + client actions — first thing on the card, reaching the
+          client or opening their profile/history. */}
+      {contact?.phone || contact?.email || clientHref ? (
+        <div className="flex flex-wrap items-center gap-4">
+          {contact?.phone ? (
+            <a
+              href={telHref(contact.phone)}
+              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+            >
+              <Phone className="size-3" />
+              Call
+            </a>
+          ) : null}
+          {contact?.email ? (
+            <a
+              href={`mailto:${contact.email}`}
+              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+            >
+              <Mail className="size-3" />
+              Email
+            </a>
+          ) : null}
+          {clientHref ? (
+            <Link
+              href={clientHref}
+              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+            >
+              <User className="size-3" />
+              View client
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1.5">
           <p className="font-editorial text-xl leading-none text-foreground">
             {formatStudioTime(row.start_time, ADMIN_LOCALE)}–
             {formatStudioTime(row.end_time, ADMIN_LOCALE)}
           </p>
-          {/* Distinct element — Task 07 wraps this in a link to /admin/clients. */}
-          <p className="font-functional text-sm font-medium text-foreground">
-            {clientName}
-          </p>
+          {clientHref ? (
+            <Link
+              href={clientHref}
+              className="block font-functional text-sm font-medium text-foreground hover:underline"
+            >
+              {clientName}
+            </Link>
+          ) : (
+            <p className="font-functional text-sm font-medium text-foreground">
+              {clientName}
+            </p>
+          )}
+          {/* Contact details in plain text — the artist sees who this is at a
+              glance; the Call/Email actions above are the tap targets. */}
+          {contact?.phone || contact?.email ? (
+            <div className="font-functional text-xs text-muted-foreground">
+              {contact?.phone ? <p>{contact.phone}</p> : null}
+              {contact?.email ? (
+                <p className="truncate">{contact.email}</p>
+              ) : null}
+            </div>
+          ) : null}
           <p className="font-functional text-sm text-muted-foreground">
             {booking.serviceName ?? "Session"}
           </p>
@@ -63,6 +134,11 @@ export function QueueBookingCard({
           {row.status === BOOKING_STATUS.rescheduled ? (
             <Badge variant="warning" size="xs">
               Rescheduled
+            </Badge>
+          ) : null}
+          {row.no_show_at ? (
+            <Badge variant="destructive" size="xs">
+              No-show
             </Badge>
           ) : null}
           {booking.clientNotes ? (
@@ -87,41 +163,30 @@ export function QueueBookingCard({
         </div>
       </div>
 
-      {contact?.phone || contact?.email || (actionable && row.cal_uid) ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-          <div className="flex flex-wrap gap-5">
-            {contact?.phone ? (
-              <a
-                href={telHref(contact.phone)}
-                className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
-              >
-                <Phone className="size-3.5" />
-                Call
-              </a>
+      {/* Card actions — the destructive one (Cancel or No-show, never both) sits
+          left; Reschedule/Rebook is the primary action, kept right. Contact
+          actions live at the top of the card, by the client's name. */}
+      {hasActions ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border pt-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {canCancel ? (
+              <AdminCancelButton uid={row.cal_uid!} clientName={clientName} />
             ) : null}
-            {contact?.email ? (
-              <a
-                href={`mailto:${contact.email}`}
-                className="flex items-center gap-1.5 font-functional text-xs uppercase tracking-widest-lux text-foreground/70 transition-colors hover:text-foreground"
-              >
-                <Mail className="size-3.5" />
-                Email
-              </a>
+            {canToggleNoShow ? (
+              <AdminNoShowButton uid={row.cal_uid!} marked={isNoShow} />
             ) : null}
           </div>
-          {actionable && row.cal_uid ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {/* In-app reschedule-on-behalf (same Cal embed as the client). */}
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                render={<Link href={`/admin/reschedule/${row.cal_uid}`} />}
-              >
-                Reschedule
-              </Button>
-              <AdminCancelButton uid={row.cal_uid} clientName={clientName} />
-            </div>
+          {canReschedule ? (
+            /* In-app reschedule-on-behalf (same Cal embed as the client); on a
+               no-show this is the "rebook" path. */
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/admin/reschedule/${row.cal_uid}`} />}
+            >
+              {isNoShow ? "Rebook" : "Reschedule"}
+            </Button>
           ) : null}
         </div>
       ) : null}
