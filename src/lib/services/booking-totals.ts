@@ -1,4 +1,11 @@
-import type { BookingLineItem } from "@/components/sections/appointment-summary"
+/** Localized, display-ready line item — resolved from `_en`/`_dk` upstream.
+    Lives in the domain layer so lib and UI share one definition. */
+export type BookingLineItem = {
+  id: string
+  name: string
+  priceCents: number
+  durationMins: number
+}
 
 type BookingTotals = {
   /** Real treatment price, base + selected add-ons. */

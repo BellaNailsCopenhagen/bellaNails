@@ -1,4 +1,4 @@
-import type { BookingLineItem } from "@/components/sections/appointment-summary"
+import type { BookingLineItem } from "@/lib/services/booking-totals"
 import type {
   BookableService,
   ServiceAddon,

@@ -5,10 +5,8 @@ import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 import { Link } from "@/i18n/navigation"
-import {
-  AppointmentSummary,
-  type BookingLineItem,
-} from "@/components/sections/appointment-summary"
+import { AppointmentSummary } from "@/components/sections/appointment-summary"
+import type { BookingLineItem } from "@/lib/services/booking-totals"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PriceTag } from "@/components/ui/price-tag"

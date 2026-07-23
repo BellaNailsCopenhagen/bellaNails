@@ -5,15 +5,10 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography"
-import { computeBookingTotals } from "@/lib/services/booking-totals"
-
-/** Localized, display-ready line item — resolved from `_en`/`_dk` upstream. */
-type BookingLineItem = {
-  id: string
-  name: string
-  priceCents: number
-  durationMins: number
-}
+import {
+  computeBookingTotals,
+  type BookingLineItem,
+} from "@/lib/services/booking-totals"
 
 /**
  * AppointmentSummary — the tinted running-total card shared by the booking
@@ -106,4 +101,3 @@ function AppointmentSummary({
 }
 
 export { AppointmentSummary }
-export type { BookingLineItem }
