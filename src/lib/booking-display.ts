@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { isActiveBookingStatus } from "@/lib/booking-status"
+import { BOOKING_STATUS, isActiveBookingStatus } from "@/lib/booking-status"
 import { pickLocalized } from "@/lib/i18n/localized"
 import type { Database } from "@/lib/supabase/types"
 
@@ -82,6 +82,23 @@ export function canMarkNoShow(
     isActiveBookingStatus(row.status) &&
     now >= new Date(row.start_time).getTime() + NO_SHOW_GRACE_MS
   )
+}
+
+/** The one exclusive, lifecycle-aware state a booking is in — the vocabulary the
+    admin status filters classify by. No-show and cancelled win over the
+    active statuses; an active booking is `open` until it has happened, then
+    `completed` (so an upcoming confirmed booking is never labelled "completed").
+    Rescheduled folds into open/completed by date — the "moved" fact stays on
+    the card's badge. */
+export type BookingState = "open" | "completed" | "cancelled" | "no-show"
+
+export function bookingState(
+  row: Pick<BookingRow, "status" | "no_show_at" | "end_time">,
+  now: number,
+): BookingState {
+  if (row.no_show_at) return "no-show"
+  if (row.status === BOOKING_STATUS.cancelled) return "cancelled"
+  return new Date(row.end_time).getTime() >= now ? "open" : "completed"
 }
 
 export const metaOf = (row: Pick<BookingRow, "selected_addons">) =>

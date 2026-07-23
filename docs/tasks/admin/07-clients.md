@@ -3,6 +3,13 @@
 > Read [`00-context.md`](./00-context.md) first. Depends on Task 01 (shell)
 > and Task 02 (queue cards link into client pages). Strong synergy with
 > Task 06 (new-booking flow prefilled from a client page).
+>
+> **Status (v1 shipped):** `/admin/clients/[id]` detail page exists — header
+> (Clerk contact + Cal phone), Call/Email actions, no-show reputation, and full
+> booking history (reusing the shared admin resolve). **Deferred** (this doc's
+> larger scope): the `/admin/clients` directory + search, notes CRUD, client
+> media/photos, record editing via Clerk, and GDPR erasure — each needs its own
+> DB migration / Cloudinary / server-action work.
 
 ## Goal
 

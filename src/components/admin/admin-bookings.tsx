@@ -5,15 +5,21 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Eyebrow } from "@/components/ui/typography"
-import { FilterMenu } from "@/components/admin/filter-menu"
+import {
+  ALL_BOOKING_STATES,
+  StatusFilter,
+} from "@/components/admin/status-filter"
 import { BookingListRow } from "@/components/admin/booking-list-row"
 import {
   groupBookingsByMonth,
   groupBookingsByWeek,
   studioMonthKey,
 } from "@/lib/admin/agenda"
-import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
-import type { DisplayBooking } from "@/lib/booking-display"
+import {
+  bookingState,
+  type BookingState,
+  type DisplayBooking,
+} from "@/lib/booking-display"
 import type { ClientContact } from "@/lib/clerk/contact"
 import {
   dayNumberToMs,
@@ -25,20 +31,11 @@ import {
 import { ADMIN_LOCALE } from "@/config/admin"
 
 type ViewMode = "all" | "weekly" | "monthly"
-type StatusFilter = "all" | BookingStatus
 
 const MODES: [ViewMode, string][] = [
   ["all", "All"],
   ["weekly", "Weekly"],
   ["monthly", "Monthly"],
-]
-
-// "Completed" is the studio's term for the confirmed status.
-const STATUS_FILTERS: [StatusFilter, string][] = [
-  ["all", "Any status"],
-  [BOOKING_STATUS.confirmed, "Completed"],
-  [BOOKING_STATUS.rescheduled, "Rescheduled"],
-  [BOOKING_STATUS.cancelled, "Cancelled"],
 ]
 
 type Section = {
@@ -169,17 +166,24 @@ export function AdminBookings({
   now: number
 }) {
   const [mode, setMode] = useState<ViewMode>("all")
-  const [status, setStatus] = useState<StatusFilter>("all")
+  const [states, setStates] = useState<Set<BookingState>>(
+    () => new Set(ALL_BOOKING_STATES),
+  )
   // Keys the user toggled away from their default open/closed state.
   const [overrides, setOverrides] = useState<Set<string>>(new Set())
 
   const sections = useMemo(() => {
-    const filtered =
-      status === "all"
-        ? bookings
-        : bookings.filter((b) => b.row.status === status)
+    const filtered = bookings.filter((b) => states.has(bookingState(b.row, now)))
     return buildSections(mode, filtered, now)
-  }, [mode, status, bookings, now])
+  }, [mode, states, bookings, now])
+
+  const toggleState = (state: BookingState, checked: boolean) =>
+    setStates((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(state)
+      else next.delete(state)
+      return next
+    })
 
   const switchMode = (next: ViewMode) => {
     setMode(next)
@@ -202,12 +206,7 @@ export function AdminBookings({
           dropdown) reads clearly and stays tidy on a phone. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Segmented options={MODES} value={mode} onChange={switchMode} />
-        <FilterMenu
-          value={status}
-          options={STATUS_FILTERS}
-          onChange={setStatus}
-          ariaLabel="Filter by status"
-        />
+        <StatusFilter selected={states} onToggle={toggleState} />
       </div>
 
       {sections.length === 0 ? (
