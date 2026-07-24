@@ -10,8 +10,11 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { QueueRealtime } from "@/components/admin/queue-realtime"
-import { CalendarView } from "@/components/admin/calendar-view"
-import { canMarkNoShow } from "@/lib/booking-display"
+import {
+  CalendarView,
+  type DayStateCounts,
+} from "@/components/admin/calendar-view"
+import { bookingState, canMarkNoShow } from "@/lib/booking-display"
 import type { AgendaWeek } from "@/lib/admin/agenda"
 import type { ClientContact } from "@/lib/clerk/contact"
 import {
@@ -80,15 +83,22 @@ export function AdminQueue({
   // state) so clearing it doesn't trigger a re-render inside the effect.
   const scrollTargetRef = useRef<number | null>(null)
 
-  // day-number → booking count, for the calendar. Booking days are always
-  // emitted in `weeks` (only empty far weeks are dropped), so this is complete.
+  // day-number → per-state booking counts, for the calendar. Booking days are
+  // always emitted in `weeks` (only empty far weeks are dropped), so complete.
   const dayCounts = useMemo(() => {
-    const counts = new Map<number, number>()
+    const counts = new Map<number, DayStateCounts>()
     for (const week of weeks) {
-      for (const day of week.days) counts.set(day.dayNumber, day.bookings.length)
+      for (const day of week.days) {
+        const perState: DayStateCounts = {}
+        for (const booking of day.bookings) {
+          const state = bookingState(booking.row, now)
+          perState[state] = (perState[state] ?? 0) + 1
+        }
+        counts.set(day.dayNumber, perState)
+      }
     }
     return counts
-  }, [weeks])
+  }, [weeks, now])
 
   const toggleWeek = (weekStartDay: number) =>
     setOpen((prev) => {

@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { addMonths, buildMonthGrid, monthStartDayNumber } from "@/lib/admin/calendar"
+import type { BookingState } from "@/lib/booking-display"
 import {
   dayNumberToMs,
   formatStudioMonthYear,
@@ -14,16 +15,32 @@ import { ADMIN_LOCALE } from "@/config/admin"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
 
+/** Per-day booking counts, split by state so a day's composition shows at a
+    glance (a completed + a no-show read as two coloured marks). */
+export type DayStateCounts = Partial<Record<BookingState, number>>
+
+// Fixed order + colour per state. A single booking shows a coloured dot; more
+// than one shows the coloured count.
+const STATE_MARKERS = [
+  ["open", "bg-primary", "text-primary"],
+  ["completed", "bg-success", "text-success"],
+  ["cancelled", "bg-muted-foreground", "text-muted-foreground"],
+  ["no-show", "bg-destructive", "text-destructive"],
+] as const satisfies readonly (readonly [BookingState, string, string])[]
+
+const dayTotal = (counts: DayStateCounts) =>
+  STATE_MARKERS.reduce((sum, [state]) => sum + (counts[state] ?? 0), 0)
+
 /**
- * Condensed month calendar — the high-level "plan ahead" glance. Same data as
- * the agenda (a day-number → count map derived from the fetched bookings), so
- * no separate fetch. Monday-start; today is ringed; days with bookings show a
- * quiet marker (dot for one, count for more) and are tappable to jump into the
- * agenda at that day. Empty days stay blank.
+ * Condensed month calendar — a high-level glance over a day-number → count map
+ * the caller supplies (no fetch of its own). Monday-start; today is ringed;
+ * days with bookings show a quiet marker (dot for one, count for more). Which
+ * months have data depends on the bookings passed: the queue loads only
+ * upcoming (a forward planner), a client page passes full history (a pattern
+ * view). Tappable only when `onSelectDay` is given; otherwise read-only.
  *
  * `offset` (months from the current one) is owned by the parent so the browsed
- * month survives toggling between Agenda and Calendar. Only upcoming bookings
- * are loaded, so past months read as empty — this is a forward planner.
+ * month survives toggling.
  */
 export function CalendarView({
   dayCounts,
@@ -32,12 +49,15 @@ export function CalendarView({
   onOffsetChange,
   onSelectDay,
 }: {
-  dayCounts: Map<number, number>
+  dayCounts: Map<number, DayStateCounts>
   now: number
   offset: number
   onOffsetChange: (next: number) => void
-  onSelectDay: (dayNumber: number) => void
+  /** Omit for a read-only calendar (e.g. a client's pattern glance) — days
+      then show their counts but aren't tappable. */
+  onSelectDay?: (dayNumber: number) => void
 }) {
+  const interactive = Boolean(onSelectDay)
   const nowDay = studioDayNumber(now)
   const base = studioYearMonth(now)
 
@@ -87,8 +107,9 @@ export function CalendarView({
         {cells.map((dayNumber, index) => {
           if (dayNumber === null) return <div key={index} aria-hidden />
 
-          const count = dayCounts.get(dayNumber) ?? 0
-          const has = count > 0
+          const counts = dayCounts.get(dayNumber) ?? {}
+          const total = dayTotal(counts)
+          const has = total > 0
           const isToday = dayNumber === nowDay
           const date = new Date(dayNumberToMs(dayNumber)).getUTCDate()
 
@@ -96,27 +117,41 @@ export function CalendarView({
             <button
               key={index}
               type="button"
-              disabled={!has}
-              onClick={() => onSelectDay(dayNumber)}
+              disabled={!has || !interactive}
+              onClick={onSelectDay ? () => onSelectDay(dayNumber) : undefined}
               aria-label={
                 has
-                  ? `${date} — ${count} ${count === 1 ? "appointment" : "appointments"}`
+                  ? `${date} — ${total} ${total === 1 ? "appointment" : "appointments"}`
                   : String(date)
               }
               className={cn(
                 "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-sm border font-functional text-sm transition-colors",
                 isToday ? "border-foreground" : "border-transparent",
-                has
-                  ? "cursor-pointer bg-muted/60 text-foreground hover:bg-muted"
-                  : "text-muted-foreground/50",
+                has ? "bg-muted/60 text-foreground" : "text-muted-foreground/50",
+                has && interactive && "cursor-pointer hover:bg-muted",
               )}
             >
               <span>{date}</span>
-              {count === 1 ? (
-                <span className="size-1 rounded-full bg-primary" aria-hidden />
-              ) : count > 1 ? (
-                <span className="text-[0.5625rem] leading-none text-primary">
-                  {count}
+              {has ? (
+                <span className="flex items-center justify-center gap-0.5">
+                  {STATE_MARKERS.map(([state, dotClass, textClass]) => {
+                    const n = counts[state] ?? 0
+                    if (n === 0) return null
+                    return n === 1 ? (
+                      <span
+                        key={state}
+                        className={cn("size-1 rounded-full", dotClass)}
+                        aria-hidden
+                      />
+                    ) : (
+                      <span
+                        key={state}
+                        className={cn("text-[0.5625rem] leading-none", textClass)}
+                      >
+                        {n}
+                      </span>
+                    )
+                  })}
                 </span>
               ) : (
                 <span className="size-1" aria-hidden />
