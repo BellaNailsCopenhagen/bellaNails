@@ -8,6 +8,10 @@ export type ClientContact = {
   fullName: string | null
   email: string | null
   phone: string | null
+  /** The client has signed into their own account (not just a booking-
+      provisioned passwordless one) — so outreach outside a booking is on
+      firmer footing. Derived from Clerk's `lastSignInAt`. */
+  activated: boolean
 }
 
 /** Preferred display name for a booking's client: first name, then full name,

@@ -82,7 +82,15 @@ export async function resolveAdminBookings(
   for (const [clerkId, { phone }] of Object.entries(latestPhone)) {
     const existing = contacts[clerkId]
     if (existing) existing.phone ??= phone
-    else contacts[clerkId] = { firstName: null, fullName: null, email: null, phone }
+    // No Clerk record resolved — treat as unactivated (booking-only).
+    else
+      contacts[clerkId] = {
+        firstName: null,
+        fullName: null,
+        email: null,
+        phone,
+        activated: false,
+      }
   }
 
   return { bookings, contacts, noShowCounts }

@@ -4,8 +4,9 @@ import { notFound } from "next/navigation"
 import { ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Eyebrow, H2 } from "@/components/ui/typography"
+import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { ClientBookings } from "@/components/admin/client-bookings"
+import { ClientStatusBadge } from "@/components/admin/client-status-badge"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
@@ -69,12 +70,21 @@ export default async function AdminClientPage({
 
         <div className="space-y-1.5">
           <Eyebrow>Client</Eyebrow>
-          <H2>{clientName}</H2>
+          <div className="flex flex-wrap items-center gap-3">
+            <H2>{clientName}</H2>
+            <ClientStatusBadge activated={Boolean(contact?.activated)} />
+          </div>
           {contact?.phone || contact?.email ? (
             <div className="font-functional text-sm text-muted-foreground">
               {contact?.phone ? <p>{contact.phone}</p> : null}
               {contact?.email ? <p>{contact.email}</p> : null}
             </div>
+          ) : null}
+          {!contact?.activated ? (
+            <BodySm className="text-xs">
+              Booking-only account — reach out for appointment matters, not
+              general outreach.
+            </BodySm>
           ) : null}
         </div>
 

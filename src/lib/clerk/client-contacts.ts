@@ -52,6 +52,13 @@ export async function fetchClientContacts(
         fullName,
         email,
         phone,
+        // The client owns this account — signed in at least once, or set up a
+        // password / linked a social login — vs a passwordless booking stub we
+        // provisioned. `Boolean(...)` guards a null/undefined lastSignInAt.
+        activated:
+          Boolean(user.lastSignInAt) ||
+          user.passwordEnabled ||
+          user.externalAccounts.length > 0,
       }
     }
   } catch (error) {

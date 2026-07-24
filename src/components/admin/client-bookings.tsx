@@ -1,10 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
+import { CollapsibleSection } from "@/components/admin/collapsible-section"
 import {
   ALL_BOOKING_STATES,
   StatusFilter,
@@ -21,45 +20,6 @@ import type { ClientContact } from "@/lib/clerk/contact"
 
 const endMs = (b: DisplayBooking) => new Date(b.row.end_time).getTime()
 const startMs = (b: DisplayBooking) => new Date(b.row.start_time).getTime()
-
-function Section({
-  label,
-  count,
-  open,
-  onToggle,
-  children,
-}: {
-  label: string
-  count: number
-  open: boolean
-  onToggle: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <section className="space-y-2">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 text-left"
-      >
-        <Eyebrow as="span">{label}</Eyebrow>
-        <span className="flex items-center gap-3">
-          <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-            {count}
-          </span>
-          <ChevronDown
-            className={cn(
-              "size-4 text-muted-foreground transition-transform",
-              open && "rotate-180",
-            )}
-          />
-        </span>
-      </button>
-      {open ? children : null}
-    </section>
-  )
-}
 
 /**
  * A client's booking history: the next appointment expanded on top, then the
@@ -128,7 +88,7 @@ export function ClientBookings({
         <StatusFilter selected={selected} onToggle={toggleState} />
       </div>
 
-      <Section
+      <CollapsibleSection
         label="Upcoming"
         count={filteredUpcoming.length}
         open={openUpcoming}
@@ -150,9 +110,9 @@ export function ClientBookings({
         ) : (
           <BodySm className="py-2">Nothing upcoming.</BodySm>
         )}
-      </Section>
+      </CollapsibleSection>
 
-      <Section
+      <CollapsibleSection
         label="History"
         count={filteredPast.length}
         open={openHistory}
@@ -174,7 +134,7 @@ export function ClientBookings({
         ) : (
           <BodySm className="py-2">No past appointments.</BodySm>
         )}
-      </Section>
+      </CollapsibleSection>
     </div>
   )
 }
