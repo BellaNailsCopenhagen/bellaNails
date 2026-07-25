@@ -1,24 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bella Nails
 
-## Getting Started
+Next.js nail-studio site: public booking (Cal.com), an owner-only `/admin` CRM,
+and GDPR-compliant client media. Stack: Clerk · Supabase · Cal.com EU · Stripe
+(via Cal.com) · Scaleway · Zoho · Vercel.
 
-First, run the development server:
+## Getting started
+
+**→ Follow [docs/SETUP.md](docs/SETUP.md)** — the from-zero runbook: prerequisites,
+every vendor account + exact settings + where each env var goes, database
+bootstrap, owner setup, run, and deploy. Written so any dev can stand the project
+up without prior context.
+
+Quick version once `.env.local` is filled and the DB is bootstrapped:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+corepack enable      # use the pinned pnpm
+pnpm install
+pnpm dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key docs
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [docs/SETUP.md](docs/SETUP.md) — setup / restart runbook
+- [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) — vendor details, schema, auth gotchas
+- [docs/PLAN.md](docs/PLAN.md) — build roadmap
+- [PROJECT_BIBLE.md](PROJECT_BIBLE.md) — decisions & architecture
 
 ## Learn More
 

@@ -11,6 +11,9 @@
     "deploy:prod": "bash scripts/deploy.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1094.0",
+    "@aws-sdk/s3-presigned-post": "^3.1094.0",
+    "@aws-sdk/s3-request-presigner": "^3.1094.0",
     "@base-ui/react": "^1.6.0",
     "@calcom/embed-react": "^1.5.3",
     "@clerk/localizations": "^4.11.1",

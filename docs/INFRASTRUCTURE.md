@@ -13,11 +13,11 @@
 | Service | Plan | Role | Provides | App-side install |
 |---|---|---|---|---|
 | **Vercel** | Hobby (free) | Hosting / CI / preview deploys | Edge + serverless runtime, env mgmt | — |
-| **Supabase** | Free | Postgres + Auth bridge + Realtime + Storage(unused, Cloudinary instead) | DB, RLS, Realtime | `@supabase/supabase-js` |
+| **Supabase** | Free | Postgres + Auth bridge + Realtime + Storage(unused, Scaleway instead) | DB, RLS, Realtime | `@supabase/supabase-js` |
 | **Clerk** | Free | Authentication + user mgmt | Sign-in/up, `role` metadata, JWT for Supabase | `@clerk/nextjs` |
 | **Cal.com** | Cloud Free | Scheduling | Availability, booking, reschedule/cancel URLs, webhooks | `@calcom/embed-react` |
 | **Stripe** | Pay-as-you-go (no fixed fee) | No-show card holds | SetupIntents via Cal.com | (none in app — via Cal.com) |
-| **Cloudinary** | Free | Media CDN | Image/video hosting + `q_auto,f_auto` transforms | unsigned/signed upload widget or REST |
+| **Scaleway Object Storage** | Free tier (75 GB) | EU-sovereign media storage (fr-par) | S3-compatible image/video hosting; private-by-default, publish-on-consent | `@aws-sdk/client-s3` + presigners |
 | **next-intl** | OSS | i18n | Routing + message loading | `next-intl` |
 
 ---
@@ -43,11 +43,13 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL=/da/sign-up
 NEXT_PUBLIC_CALCOM_LINK=bellanails/session
 CALCOM_WEBHOOK_SECRET=              # validates /api/webhooks/cal signature
 
-# ── Cloudinary ──────────────────────────────────────────
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=   # if using unsigned widget
-CLOUDINARY_API_KEY=                     # server, for signed uploads
-CLOUDINARY_API_SECRET=                  # server-only
+# ── Scaleway Object Storage (media) ─────────────────────
+SCALEWAY_ACCESS_KEY=                    # server-only
+SCALEWAY_SECRET_KEY=                    # server-only
+SCALEWAY_REGION=fr-par
+SCALEWAY_ENDPOINT=https://s3.fr-par.scw.cloud
+SCALEWAY_BUCKET=bellanails-media
+NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL=https://bellanails-media.s3.fr-par.scw.cloud
 
 # ── App ─────────────────────────────────────────────────
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -226,11 +228,18 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 
 ---
 
-## Cloudinary
+## Scaleway Object Storage (media)
 
-- Client-side signed upload (admin only); store the resulting **URL** in `gallery_items` / `services.image_url` — never the binary.
-- Apply `q_auto,f_auto` transforms on delivery for automatic format/quality.
-- Signing endpoint (if signed): a small route handler using `CLOUDINARY_API_SECRET` server-side.
+EU-sovereign (France, fr-par), S3-compatible. Full design + runbook:
+[docs/tasks/storage-scaleway-migration.md](tasks/storage-scaleway-migration.md) ·
+[infra/scaleway/](../infra/scaleway/).
+
+- **Private-by-default**: uploads land in `private/`; the bucket is Private and stays that way.
+- **Browser upload** = server issues a short-lived **presigned POST** (role-scoped size/type limits); bytes go straight to the bucket, never through our function.
+- **Publish-on-consent** = `CopyObject` `private/`→`public/` with **`ACL: public-read`** (⚠️ never a bucket policy — it locks the owner's key out). Withdraw/erase = `DeleteObject`.
+- **Private reads** = short-lived **presigned GET** (rendered with plain `<img>`, not `next/image`). Consented `public/` objects use the stable public URL and are allowed in `next/image`.
+- **No transforms** (unlike Cloudinary): clients strip EXIF + crop 4:5 + downscale in the browser before upload; owner uploads (incl. demo video) are stored as-is.
+- All access is via `src/lib/storage/scaleway.ts`, env-guarded — absent keys → `not_configured`, app still boots.
 
 ---
 
@@ -260,6 +269,6 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 - [ ] Supabase project (URL, anon key, service-role key) + schema applied + Realtime publication.
 - [ ] Clerk app (publishable + secret keys) + native Supabase integration configured + owner set up per **Admin owner setup** above (role + session-token claim + RLS) — repeat on the prod instance.
 - [ ] Cal.com account, event type(s) matching `cal_event_id`, webhook → prod URL, signing secret, Stripe connected.
-- [ ] Cloudinary account (cloud name, API key/secret, upload preset).
+- [ ] Scaleway Object Storage: bucket `bellanails-media` (fr-par, Private), API key (Object Storage), CORS applied, **no bucket policy** (public via per-object ACL). See [infra/scaleway/](../infra/scaleway/).
 - [ ] Vercel project linked to the GitHub repo, all env vars set for Preview + Production.
 - [ ] `.env.local` filled locally; `.env.example` committed (no secrets).

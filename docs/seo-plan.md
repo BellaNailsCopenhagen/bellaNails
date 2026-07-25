@@ -115,7 +115,7 @@ description: "Bella Nails is an intimate nail salon in Ørestad by Bella Kvarter
 
 ### 4.4 Plumbing
 - **Sitemap** with hreflang annotations + **robots.txt** (Next can generate both).
-- **Core Web Vitals** — the dark hero is large; serve it via Cloudinary `f_auto,q_auto`, use `next/image` with `priority`, and keep it mobile-fast. Speed is a local ranking factor.
+- **Core Web Vitals** — the dark hero is large; store a pre-sized/compressed asset (Scaleway has no on-the-fly transforms), use `next/image` with `priority`, and keep it mobile-fast. Speed is a local ranking factor.
 
 ---
 

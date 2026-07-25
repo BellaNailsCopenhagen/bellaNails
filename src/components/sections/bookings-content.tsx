@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
 import type { DisplayBooking } from "@/lib/booking-display"
+import type { ClientMediaItem } from "@/lib/media"
 import { routes } from "@/config/routes"
+
+type PhotosByBooking = Record<string, ClientMediaItem[]>
 
 /** One guard-clause return per page state: load failure, nothing booked
     yet, or the upcoming/history sections. */
@@ -18,11 +21,13 @@ function BookingsContent({
   upcoming,
   past,
   now,
+  photosByBooking,
 }: {
   failed: boolean
   upcoming: DisplayBooking[]
   past: DisplayBooking[]
   now: number
+  photosByBooking: PhotosByBooking
 }) {
   const t = useTranslations("bookings")
 
@@ -41,7 +46,7 @@ function BookingsContent({
   return (
     <div className="space-y-16">
       <UpcomingSection bookings={upcoming} now={now} />
-      <PastSection bookings={past} />
+      <PastSection bookings={past} photosByBooking={photosByBooking} />
     </div>
   )
 }
@@ -86,7 +91,13 @@ function UpcomingSection({
   )
 }
 
-function PastSection({ bookings }: { bookings: DisplayBooking[] }) {
+function PastSection({
+  bookings,
+  photosByBooking,
+}: {
+  bookings: DisplayBooking[]
+  photosByBooking: PhotosByBooking
+}) {
   const t = useTranslations("bookings")
 
   if (bookings.length === 0) return null
@@ -96,7 +107,11 @@ function PastSection({ bookings }: { bookings: DisplayBooking[] }) {
       <Eyebrow>{t("past")}</Eyebrow>
       <ul>
         {bookings.map((booking) => (
-          <BookingsPastRow key={booking.row.cal_booking_id} booking={booking} />
+          <BookingsPastRow
+            key={booking.row.cal_booking_id}
+            booking={booking}
+            photos={photosByBooking[booking.row.id] ?? []}
+          />
         ))}
       </ul>
     </div>

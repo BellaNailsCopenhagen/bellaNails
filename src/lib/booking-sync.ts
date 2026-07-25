@@ -1,5 +1,7 @@
 import "server-only"
 
+import type { SupabaseClient } from "@supabase/supabase-js"
+
 import { ensureClerkUser } from "@/lib/clerk/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
 import { calBookingPhone } from "@/lib/cal-phone"
@@ -9,6 +11,7 @@ import {
   sanitizeContactText,
 } from "@/lib/contact-validation"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import type { Database } from "@/lib/supabase/types"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
 /**
@@ -32,6 +35,60 @@ function metaInt(value: unknown): number | null {
 
 function metaString(value: unknown): string | null {
   return typeof value === "string" && value.length ? value : null
+}
+
+type ProductSnapshot = {
+  serviceNameEn?: string
+  serviceNameDk?: string | null
+  serviceDescriptionEn?: string | null
+  serviceDescriptionDk?: string | null
+  addonSnapshots?: { id: string; nameEn: string; nameDk: string | null }[]
+}
+
+/**
+ * Read the current catalog names/descriptions for the booked service + add-ons,
+ * to store on the booking as a historic snapshot. Degrades to an empty snapshot
+ * (the display then falls back to the live catalog) — never fails a persist.
+ */
+async function fetchProductSnapshot(
+  supabase: SupabaseClient<Database>,
+  serviceId: string | null,
+  addonIds: string[],
+): Promise<ProductSnapshot> {
+  const snapshot: ProductSnapshot = {}
+  try {
+    if (serviceId) {
+      const { data } = await supabase
+        .from("services")
+        .select("name_en, name_dk, description_en, description_dk")
+        .eq("id", serviceId)
+        .maybeSingle()
+      if (data) {
+        snapshot.serviceNameEn = data.name_en
+        snapshot.serviceNameDk = data.name_dk
+        snapshot.serviceDescriptionEn = data.description_en
+        snapshot.serviceDescriptionDk = data.description_dk
+      }
+    }
+    if (addonIds.length) {
+      const { data } = await supabase
+        .from("addons")
+        .select("id, name_en, name_dk")
+        .in("id", addonIds)
+      const byId = new Map((data ?? []).map((a) => [a.id, a]))
+      // Preserve the booked order.
+      snapshot.addonSnapshots = addonIds.flatMap((id) => {
+        const a = byId.get(id)
+        return a ? [{ id: a.id, nameEn: a.name_en, nameDk: a.name_dk }] : []
+      })
+    }
+  } catch (error) {
+    console.error(
+      "[booking-sync] product snapshot failed",
+      error instanceof Error ? error.message : error,
+    )
+  }
+  return snapshot
 }
 
 export type CalBookingSnapshot = {
@@ -92,6 +149,14 @@ export async function persistCalBooking(
     const addonIds =
       metaString(meta.addonIds)?.split(",").filter(Boolean) ?? []
 
+    // Snapshot the product AS BOOKED (name/description) alongside the price
+    // we already store, so a later catalog edit can't rewrite this booking.
+    const productSnapshot = await fetchProductSnapshot(
+      supabase,
+      metaString(meta.serviceId),
+      addonIds,
+    )
+
     // Cal blocking fewer minutes than the treatment needs means the event
     // type lacks that slot length — the booking is real, log loudly.
     const bookedMins = Math.round(
@@ -133,6 +198,7 @@ export async function persistCalBooking(
           addonIds,
           totalDurationMins: metaInt(meta.totalDurationMins),
           locale: metaString(meta.locale),
+          ...productSnapshot,
         },
       },
       { onConflict: "cal_booking_id" },

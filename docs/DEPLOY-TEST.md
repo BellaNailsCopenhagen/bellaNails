@@ -50,7 +50,9 @@ add to the **Production** environment:
 | `CALCOM_WEBHOOK_SECRET` | must equal the secret set on the Cal webhook |
 | `CALCOM_API_KEY` | optional for now (not read by deployed code yet) |
 
-Cloudinary keys: skip — nothing in `src/` reads them yet.
+Scaleway keys (the 6 `SCALEWAY_*` vars): required for media upload/publish/erasure.
+Absent, the media flow degrades to "not configured" and the rest of the app still
+works — so optional for a first smoke test, required to exercise photos.
 
 ## Phase 2 — first deploy + smoke test
 

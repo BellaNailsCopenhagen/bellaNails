@@ -2,10 +2,12 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { BookingStatusBadge } from "@/components/sections/booking-status-badge"
+import { BookingPhotos } from "@/components/sections/booking-photos"
 import { PriceTag } from "@/components/ui/price-tag"
 import { BodySm, Caption } from "@/components/ui/typography"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import { metaOf, type DisplayBooking } from "@/lib/booking-display"
+import type { ClientMediaItem } from "@/lib/media"
 import { formatStudioDate } from "@/lib/studio-time"
 import { routes } from "@/config/routes"
 
@@ -14,7 +16,13 @@ import { routes } from "@/config/routes"
  * badge), stored total, and a "book again" deep link into the booking flow
  * with the service preselected.
  */
-function BookingsPastRow({ booking }: { booking: DisplayBooking }) {
+function BookingsPastRow({
+  booking,
+  photos,
+}: {
+  booking: DisplayBooking
+  photos: ClientMediaItem[]
+}) {
   const t = useTranslations("bookings")
   const locale = useLocale()
   const { row } = booking
@@ -63,6 +71,14 @@ function BookingsPastRow({ booking }: { booking: DisplayBooking }) {
           ) : null}
         </div>
       </div>
+
+      {/* Client adds photos of the finished set (shared with the artist). Only
+          for real (non-cancelled) appointments. */}
+      {row.status !== BOOKING_STATUS.cancelled ? (
+        <div className="pb-5">
+          <BookingPhotos bookingId={row.id} photos={photos} />
+        </div>
+      ) : null}
     </li>
   )
 }

@@ -2,6 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import type { MenuService } from "@/lib/services/get-service-menu"
+import {
+  fetchIncompatiblePairs,
+  flattenServiceAddons,
+} from "@/lib/services/service-addons"
 import type { Database } from "@/lib/supabase/types"
 
 type ServiceAddon = Pick<
@@ -41,12 +45,10 @@ export async function getServiceWithAddons(
   const { data, error } = await supabase
     .from("services")
     .select(
-      "id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_id, cal_event_slug, addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins)",
+      "id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_id, cal_event_slug, service_addons(addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins, archived_at))",
     )
     .eq("id", serviceId)
     .is("archived_at", null)
-    .is("addons.archived_at", null)
-    .order("extra_price_cents", { referencedTable: "addons", ascending: true })
     .maybeSingle()
 
   if (error) {
@@ -54,32 +56,22 @@ export async function getServiceWithAddons(
   }
   if (!data) return null
 
-  const { addons, ...service } = data as BookableService & {
-    addons: ServiceAddon[]
+  // Add-ons are linked via the service_addons join now; flatten, drop archived,
+  // and sort by price here (nested filters/order aren't available through the
+  // double embed).
+  const { service_addons, ...service } = data as unknown as BookableService & {
+    service_addons: { addons: (ServiceAddon & { archived_at: string | null }) | null }[]
   }
+  const addons: ServiceAddon[] = flattenServiceAddons<
+    ServiceAddon & { archived_at: string | null }
+  >(service_addons, { dropArchived: true }).sort(
+    (a, b) => a.extra_price_cents - b.extra_price_cents,
+  )
 
-  let incompatiblePairs: [string, string][] = []
-  if (addons.length > 1) {
-    const addonIds = addons.map((addon) => addon.id)
-    // Both endpoints constrained in the query, so only this service's pairs
-    // come back — no client-side re-filtering needed.
-    const { data: pairs, error: pairsError } = await supabase
-      .from("addon_incompatibilities")
-      .select("addon_id_a, addon_id_b")
-      .in("addon_id_a", addonIds)
-      .in("addon_id_b", addonIds)
-
-    if (pairsError) {
-      throw new Error(
-        `Failed to load add-on incompatibilities: ${pairsError.message}`,
-      )
-    }
-
-    incompatiblePairs = (pairs ?? []).map((pair) => [
-      pair.addon_id_a,
-      pair.addon_id_b,
-    ])
-  }
+  const incompatiblePairs = await fetchIncompatiblePairs(
+    supabase,
+    addons.map((addon) => addon.id),
+  )
 
   return { service, addons, incompatiblePairs }
 }

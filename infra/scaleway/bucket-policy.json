@@ -1,0 +1,12 @@
+{
+  "Version": "2023-04-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadPublicPrefixOnly",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": ["bellanails-media/public/*"]
+    }
+  ]
+}

@@ -4,10 +4,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      // Only consented, published images live under public/ — private objects are
+      // served via short-lived presigned URLs and rendered with plain <img>.
       {
         protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**",
+        hostname: "bellanails-media.s3.fr-par.scw.cloud",
+        pathname: "/public/**",
       },
     ],
   },

@@ -98,22 +98,157 @@ export type Database = {
       }
       assets: {
         Row: {
+          cloudinary_public_id: string | null
           created_at: string | null
           id: string
           media_type: string
+          storage_key: string | null
+          storage_provider: string
           url: string
         }
         Insert: {
+          cloudinary_public_id?: string | null
           created_at?: string | null
           id?: string
           media_type: string
+          storage_key?: string | null
+          storage_provider?: string
           url: string
         }
         Update: {
+          cloudinary_public_id?: string | null
           created_at?: string | null
           id?: string
           media_type?: string
+          storage_key?: string | null
+          storage_provider?: string
           url?: string
+        }
+        Relationships: []
+      }
+      client_consents: {
+        Row: {
+          clerk_user_id: string
+          declined_at: string | null
+          granted_at: string | null
+          id: string
+          purpose: string
+          requested_at: string
+          status: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          clerk_user_id: string
+          declined_at?: string | null
+          granted_at?: string | null
+          id?: string
+          purpose: string
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          clerk_user_id?: string
+          declined_at?: string | null
+          granted_at?: string | null
+          id?: string
+          purpose?: string
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
+      client_media: {
+        Row: {
+          archived_at: string | null
+          booking_id: string | null
+          caption: string | null
+          clerk_user_id: string
+          cloudinary_public_id: string | null
+          created_at: string
+          id: string
+          in_gallery: boolean
+          is_feature: boolean
+          kind: string
+          service_id: string | null
+          source: string
+          storage_key: string | null
+          storage_provider: string
+          url: string
+        }
+        Insert: {
+          archived_at?: string | null
+          booking_id?: string | null
+          caption?: string | null
+          clerk_user_id: string
+          cloudinary_public_id?: string | null
+          created_at?: string
+          id?: string
+          in_gallery?: boolean
+          is_feature?: boolean
+          kind?: string
+          service_id?: string | null
+          source: string
+          storage_key?: string | null
+          storage_provider?: string
+          url: string
+        }
+        Update: {
+          archived_at?: string | null
+          booking_id?: string | null
+          caption?: string | null
+          clerk_user_id?: string
+          cloudinary_public_id?: string | null
+          created_at?: string
+          id?: string
+          in_gallery?: boolean
+          is_feature?: boolean
+          kind?: string
+          service_id?: string | null
+          source?: string
+          storage_key?: string | null
+          storage_provider?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      media_consents: {
+        Row: {
+          client_media_id: string
+          clerk_user_id: string
+          declined_at: string | null
+          granted_at: string | null
+          id: string
+          published_asset_id: string | null
+          purpose: string
+          requested_at: string
+          status: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          client_media_id: string
+          clerk_user_id: string
+          declined_at?: string | null
+          granted_at?: string | null
+          id?: string
+          published_asset_id?: string | null
+          purpose: string
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          client_media_id?: string
+          clerk_user_id?: string
+          declined_at?: string | null
+          granted_at?: string | null
+          id?: string
+          published_asset_id?: string | null
+          purpose?: string
+          requested_at?: string
+          status?: string
+          withdrawn_at?: string | null
         }
         Relationships: []
       }
@@ -257,6 +392,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_addons: {
+        Row: {
+          addon_id: string
+          created_at: string
+          service_id: string
+        }
+        Insert: {
+          addon_id: string
+          created_at?: string
+          service_id: string
+        }
+        Update: {
+          addon_id?: string
+          created_at?: string
+          service_id?: string
+        }
+        Relationships: []
       }
       services: {
         Row: {

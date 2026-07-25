@@ -7,7 +7,7 @@ import { ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm } from "@/components/ui/typography"
-import { CollapsibleSection } from "@/components/admin/collapsible-section"
+import { TabBar } from "@/components/admin/tab-bar"
 import { formatStudioDayMonthYear } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -59,63 +59,73 @@ function ClientRows({ clients }: { clients: ClientRosterEntry[] }) {
 }
 
 /**
- * The client directory — every client who has ever booked, split into activated
- * (own account, contactable outside a booking) and booking-only collapsible
- * sections. Client-side search over name + email (the roster is small at studio
- * scale); when searching, both sections open so matches aren't hidden.
+ * The client directory — every client who has ever booked, split by whether
+ * they've activated their own account (Active = reachable outside a booking) or
+ * are booking-only. Tabs with counts + a one-line explanation each; client-side
+ * search over name + email (the roster is small at studio scale).
  */
+type ClientTab = "active" | "booking-only"
+
+const TAB_HELP: Record<ClientTab, string> = {
+  active: "Signed into their own account — fine to contact outside a booking.",
+  "booking-only": "Account created from a booking — contact for appointment matters only.",
+}
+
 export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
   const [query, setQuery] = useState("")
-  const [openActivated, setOpenActivated] = useState(true)
-  const [openBookingOnly, setOpenBookingOnly] = useState(true)
+  const [tab, setTab] = useState<ClientTab>("active")
 
-  const { activated, bookingOnly, matches } = useMemo(() => {
+  const { activated, bookingOnly } = useMemo(() => {
     const needle = query.trim().toLowerCase()
     const matches = needle
       ? clients.filter((c) => c.search.includes(needle))
       : clients
     return {
-      matches,
       activated: matches.filter((c) => c.activated),
       bookingOnly: matches.filter((c) => !c.activated),
     }
   }, [query, clients])
 
-  const searching = query.trim().length > 0
+  const shown = tab === "active" ? activated : bookingOnly
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <Input
         type="search"
         placeholder="Search name or email"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onValueChange={setQuery}
         aria-label="Search clients"
       />
 
-      {searching && !matches.length ? (
-        <EmptyState title="No matches" body="No client matches that search." />
-      ) : (
-        <div className="space-y-8">
-          <CollapsibleSection
-            label="Activated"
-            count={activated.length}
-            open={searching || openActivated}
-            onToggle={() => setOpenActivated((o) => !o)}
-          >
-            <ClientRows clients={activated} />
-          </CollapsibleSection>
+      <TabBar
+        tabs={[
+          { value: "active", label: "Active", count: activated.length },
+          {
+            value: "booking-only",
+            label: "Booking-only",
+            count: bookingOnly.length,
+          },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
 
-          <CollapsibleSection
-            label="Booking-only"
-            count={bookingOnly.length}
-            open={searching || openBookingOnly}
-            onToggle={() => setOpenBookingOnly((o) => !o)}
-          >
-            <ClientRows clients={bookingOnly} />
-          </CollapsibleSection>
-        </div>
-      )}
+      <div className="space-y-2 pl-2">
+        <BodySm className="text-xs">{TAB_HELP[tab]}</BodySm>
+        {shown.length ? (
+          <ClientRows clients={shown} />
+        ) : (
+          <EmptyState
+            title="No clients"
+            body={
+              query
+                ? "No client matches that search."
+                : "No clients in this group yet."
+            }
+          />
+        )}
+      </div>
     </div>
   )
 }

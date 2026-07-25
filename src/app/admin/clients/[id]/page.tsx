@@ -6,12 +6,14 @@ import { ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { ClientBookings } from "@/components/admin/client-bookings"
+import { ClientMediaSection } from "@/components/admin/client-media-section"
 import { ClientStatusBadge } from "@/components/admin/client-status-badge"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { contactDisplayName } from "@/lib/clerk/contact"
+import { getClientDataConsents, getClientMedia } from "@/lib/media"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = { title: "Client" }
@@ -57,8 +59,14 @@ export default async function AdminClientPage({
   const clientName = contactDisplayName(contact)
   const noShowCount = noShowCounts[id] ?? 0
 
+  // Media + consent tables may not be migrated yet — degrade to empty.
+  const [media, dataConsents] = await Promise.all([
+    getClientMedia(supabase, id).catch(() => []),
+    getClientDataConsents(supabase, id).catch(() => []),
+  ])
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-14">
       <div className="space-y-3">
         <Link
           href="/admin"
@@ -119,6 +127,12 @@ export default async function AdminClientPage({
         contact={contact}
         clientNoShowCount={noShowCount}
         now={now}
+      />
+
+      <ClientMediaSection
+        clerkUserId={id}
+        media={media}
+        dataConsents={dataConsents}
       />
     </div>
   )

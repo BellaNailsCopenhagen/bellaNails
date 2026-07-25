@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { BOOKING_STATUS, isActiveBookingStatus } from "@/lib/booking-status"
 import { pickLocalized } from "@/lib/i18n/localized"
+import { flattenServiceAddons } from "@/lib/services/service-addons"
 import type { Database } from "@/lib/supabase/types"
 
 /**
@@ -14,10 +15,11 @@ import type { Database } from "@/lib/supabase/types"
     is the pseudonymous client id (not PII); the admin queue resolves it to
     name/phone/email via Clerk, the client list simply ignores it. */
 export const BOOKING_DISPLAY_COLUMNS =
-  "cal_booking_id, cal_uid, clerk_user_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url, no_show_at"
+  "id, cal_booking_id, cal_uid, clerk_user_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url, no_show_at"
 
 export type BookingRow = Pick<
   Database["public"]["Tables"]["bookings"]["Row"],
+  | "id"
   | "cal_booking_id"
   | "cal_uid"
   | "clerk_user_id"
@@ -32,11 +34,19 @@ export type BookingRow = Pick<
   | "no_show_at"
 >
 
-/** IDs-only payload the webhook stored from the embed handoff. */
+/** The metadata blob on a booking: the embed's id payload plus a snapshot of
+    the product AS BOOKED, so editing the catalog never rewrites old bookings.
+    Old bookings have no snapshot — display falls back to the live catalog. */
 export type BookingMeta = {
   serviceId?: string | null
   addonIds?: string[] | null
   totalDurationMins?: number | null
+  // Historic product snapshot (captured at persist time).
+  serviceNameEn?: string | null
+  serviceNameDk?: string | null
+  serviceDescriptionEn?: string | null
+  serviceDescriptionDk?: string | null
+  addonSnapshots?: { id: string; nameEn: string; nameDk: string | null }[] | null
 }
 
 /** Display-ready booking: row + localized names resolved from the catalog. */
@@ -134,11 +144,31 @@ export async function fetchBookingCatalog(
 
   const { data, error } = await supabase
     .from("services")
-    .select("id, name_en, name_dk, addons(id, name_en, name_dk)")
+    .select(
+      "id, name_en, name_dk, service_addons(addons(id, name_en, name_dk))",
+    )
     .in("id", ids)
   if (error) throw new Error(error.message)
 
-  return new Map((data ?? []).map((entry) => [entry.id, entry]))
+  // Add-ons come through the service_addons join now — flatten to the catalog
+  // entry shape.
+  type Row = {
+    id: string
+    name_en: string
+    name_dk: string | null
+    service_addons: { addons: CatalogEntry["addons"][number] | null }[]
+  }
+  return new Map(
+    ((data ?? []) as unknown as Row[]).map((entry) => [
+      entry.id,
+      {
+        id: entry.id,
+        name_en: entry.name_en,
+        name_dk: entry.name_dk,
+        addons: flattenServiceAddons(entry.service_addons),
+      },
+    ]),
+  )
 }
 
 /**
@@ -179,17 +209,32 @@ export function toDisplayBooking(
   const entry = meta.serviceId ? catalog.get(meta.serviceId) : undefined
   const addonById = new Map((entry?.addons ?? []).map((a) => [a.id, a]))
 
+  // Prefer the historic snapshot; fall back to the live catalog for old
+  // bookings (persisted before snapshots), which may show current names.
+  const snapshotName = meta.serviceNameEn
+    ? pickLocalized(locale, meta.serviceNameEn, meta.serviceNameDk ?? null)
+    : null
+  const serviceName =
+    snapshotName ??
+    (entry
+      ? (pickLocalized(locale, entry.name_en, entry.name_dk) ?? entry.name_en)
+      : null)
+
+  const addonNames = meta.addonSnapshots?.length
+    ? meta.addonSnapshots.map(
+        (a) => pickLocalized(locale, a.nameEn, a.nameDk ?? null) ?? a.nameEn,
+      )
+    : (meta.addonIds ?? []).flatMap((id) => {
+        const addon = addonById.get(id)
+        return addon
+          ? [pickLocalized(locale, addon.name_en, addon.name_dk) ?? addon.name_en]
+          : []
+      })
+
   return {
     row,
-    serviceName: entry
-      ? (pickLocalized(locale, entry.name_en, entry.name_dk) ?? entry.name_en)
-      : null,
-    addonNames: (meta.addonIds ?? []).flatMap((id) => {
-      const addon = addonById.get(id)
-      return addon
-        ? [pickLocalized(locale, addon.name_en, addon.name_dk) ?? addon.name_en]
-        : []
-    }),
+    serviceName,
+    addonNames,
     durationMins: meta.totalDurationMins ?? null,
     clientNotes: row.client_notes,
     rebookable: Boolean(entry),
