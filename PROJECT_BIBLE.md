@@ -35,7 +35,7 @@
 | Scheduling | **Cal.com** Cloud Free via `@calcom/embed-react` | `calLink: "bellanails/session"`. Invisible/native-themed embed. |
 | Payments | **Stripe**, wired *through* Cal.com | No-show card holds via SetupIntents. App stores no card data. |
 | Database | **Supabase Postgres** | Soft-delete via `archived_at` (never hard `DELETE`). Prices in **cents**. |
-| Media | **Scaleway Object Storage** (EU, fr-par; S3-compatible) | Presigned-POST upload, private-by-default, publish-on-consent via `public-read` ACL. No CDN transforms — browser strips/crops/downscales. |
+| Media | **Scaleway Object Storage** (EU, fr-par; S3-compatible) | Presigned-POST upload, private-by-default, publish-on-consent via `public-read` ACL. No CDN transforms — browser strips EXIF + downscales (no crop). |
 | Client data/cache | **TanStack Query v5** | Hydrated from RSC via `HydrationBoundary`. No double-fetch. |
 | Live updates | **Supabase Realtime** → `invalidateQueries` | Per-table publication; respects RLS. |
 

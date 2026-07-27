@@ -10,8 +10,8 @@ export const VIDEO_TYPES = ["video/mp4", "video/webm"]
 export const CLIENT_MAX_BYTES = 5 * 1024 * 1024 // post-optimisation an image is tiny
 export const OWNER_MAX_BYTES = 200 * 1024 * 1024 // room for a short demo clip
 
-/** Gallery crop ratio (width/height) — 4:5 portrait; clients are cropped to it. */
-export const GALLERY_RATIO = 4 / 5
+/** Longest-side cap for client image downscale (aspect ratio preserved — we
+    never crop a client's photo). */
 export const IMAGE_MAX_DIM = 2000
 
 export function uploadPolicy(owner: boolean): {

@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
-import { cropAndDownscale } from "@/lib/client/process-image"
+import { downscaleImage } from "@/lib/client/process-image"
 import { addOwnBookingMedia, deleteOwnMedia } from "@/lib/actions/client-media"
 import type { ClientMediaItem } from "@/lib/media"
 
@@ -36,7 +36,7 @@ export function BookingPhotos({
     try {
       let blob: Blob
       try {
-        blob = await cropAndDownscale(file)
+        blob = await downscaleImage(file)
       } catch {
         toast.error("Couldn’t process that image.")
         return

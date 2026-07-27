@@ -41,11 +41,11 @@
 |---|---|---|
 | Allowed types | `image/jpeg`, `image/png`, `image/webp` only | images **+ video** (`video/mp4`, `video/webm`) — the "demo video" exception |
 | Files per action | **one at a time** (no multi-select) | one at a time (video is large; keep it simple) |
-| Client-side processing | **required**: strip EXIF → downscale → **crop to the gallery ratio** (canvas pass) before upload | none forced — owner controls their own content; video is stored as-is (we have no transform layer) |
+| Client-side processing | **required**: strip EXIF → downscale (canvas pass), **aspect ratio preserved — no crop** | none forced — owner controls their own content; video is stored as-is (we have no transform layer) |
 | Max size (presigned-POST `content-length-range`) | small — post-optimisation an image is well under **~5 MB** | large — **video cap ~200 MB** (a knob; watch the 75 GB free tier) |
 | Rendered as | `<img>` (private via presigned GET; public via CDN URL) | `<img>` for images, **`<video controls>`** for video |
 
-- **Gallery ratio:** default **4:5 portrait** (`GALLERY_RATIO`, one constant) — Instagram-friendly and flattering for nail shots; square `1:1` is the alternate. Client images are cropped to it client-side so the site/SoMe grid is uniform. Owner uploads are exempt.
+- **No cropping.** Client photos keep their original aspect ratio — clients don't shoot to a fixed frame, so cropping would chop their set. The gallery grid handles varied ratios in CSS instead. (Client images are still downscaled + EXIF-stripped; owner uploads untouched.)
 - The route picks the policy by role; a client requesting a `video/*` presign is rejected server-side (never trust the client-side gate alone).
 - **Rationale:** the client path is the abuse/cost surface (public booking flow) → tight caps + forced optimisation. The owner is trusted and occasionally needs a heavier demo asset → wider allowance. Both still go through the same presigned-upload machinery; only the policy differs.
 
@@ -86,7 +86,7 @@
 ## Phase 3 — Upload route handler + client flow ✅
 
 - ⬜ Rework `src/app/api/media/sign/route.ts` to return **Scaleway presigned upload params** instead of Cloudinary signed params. Keep the auth guard (`await auth()` → 401) and **branch on `isOwner`** to pick the role policy (decision 9): resolve `{ allowedTypes, maxBytes }`, validate the requested content-type against them, and **reject a client requesting `video/*`** (403). Pass the resolved values into `presignedUpload`.
-- ⬜ Update `src/components/sections/booking-photos.tsx` (client): **single-file** picker (no `multiple`), run the strip→downscale→crop pass (Phase 7) → request presign → upload (`POST` multipart) → send the returned `key` + detected `kind` to the insert action.
+- ⬜ Update `src/components/sections/booking-photos.tsx` (client): **single-file** picker (no `multiple`), run the strip→downscale pass (Phase 7, no crop) → request presign → upload (`POST` multipart) → send the returned `key` + detected `kind` to the insert action.
 - ⬜ Update `src/components/admin/client-media-section.tsx` (owner): new upload UI (currently URL-paste) accepting images **and video**, no forced crop. Same presign → upload → insert flow.
 - ⬜ Persist the returned object **`key`** (not a Cloudinary public id) into the media row (see Phase 5).
 
@@ -111,9 +111,9 @@
   - Branch on `kind`: `image` → `<img>`; `video` → `<video controls preload="metadata">` (owner demo videos). Same presigned-GET rule for private, public URL for consented.
 - ⬜ Public gallery (`src/app/[locale]/gallery/page.tsx`, `assets`/`gallery_items`) builds URLs from `NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL` + `storage_key`.
 
-## Phase 7 — Metadata stripping + validation ✅ (client crop/downscale/strip)
+## Phase 7 — Metadata stripping + validation ✅ (client downscale/strip, no crop)
 
-- ⬜ **Client images only** — one canvas pass does everything: strip EXIF/GPS (GDPR data-minimisation) → **crop to `GALLERY_RATIO` (4:5)** → **downscale** to a max dimension → re-encode (webp/jpeg). Doing it client-side means raw metadata never leaves the device and the 10 MB-file problem disappears. ⚠️ A canvas re-encode **drops the EXIF orientation flag**, so read orientation first and bake the rotation in, or portrait photos land sideways.
+- ⬜ **Client images only** — one canvas pass: strip EXIF/GPS (GDPR data-minimisation) → **downscale** (longest side ≤ `IMAGE_MAX_DIM`, **aspect ratio preserved — no crop**) → re-encode webp. Doing it client-side means raw metadata never leaves the device and the 10 MB-file problem disappears. ⚠️ A canvas re-encode **drops the EXIF orientation flag**, so `createImageBitmap(file, { imageOrientation: "from-image" })` bakes rotation in first, or portrait photos land sideways.
 - ⬜ **Owner uploads are exempt** from crop/downscale. Images: optional light re-encode is fine; **video is stored as-is** (no client transform layer). Still strip nothing server-side for video — just enforce type + size via the presign policy.
 - ⬜ Validate content-type + size on **both** sides: client-side gate for UX, presigned-POST `content-length-range` + content-type for enforcement. Types per role policy (decision 9): client = `image/jpeg|png|webp`; owner = those **+ `video/mp4|webm`**.
 
@@ -127,7 +127,7 @@
 ## Phase 9 — Verification ⬜
 
 - ⬜ Upload (client + admin) → object lands in `private/`, bucket blocks anonymous read.
-- ⬜ Role policy holds: client images crop to 4:5 + downscale before upload; a **client `video/*` presign is rejected (403)**; owner can upload an image **and a demo video**, video renders via `<video>`; oversized files are refused by the presign policy, not just the client gate.
+- ⬜ Role policy holds: client images downscale (no crop) + EXIF-strip before upload; a **client `video/*` presign is rejected (403)**; owner can upload an image **and a demo video**, video renders via `<video>`; oversized files are refused by the presign policy, not just the client gate.
 - ⬜ Consent publish → object appears in `public/`, renders via `next/image` public URL.
 - ⬜ Presigned GET → private image viewable by owner/authorised client, URL expires.
 - ⬜ Erasure → `purgeMediaArtifacts` removes both private and public copies; confirm 404 on the bucket afterward.

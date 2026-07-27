@@ -238,7 +238,7 @@ EU-sovereign (France, fr-par), S3-compatible. Full design + runbook:
 - **Browser upload** = server issues a short-lived **presigned POST** (role-scoped size/type limits); bytes go straight to the bucket, never through our function.
 - **Publish-on-consent** = `CopyObject` `private/`→`public/` with **`ACL: public-read`** (⚠️ never a bucket policy — it locks the owner's key out). Withdraw/erase = `DeleteObject`.
 - **Private reads** = short-lived **presigned GET** (rendered with plain `<img>`, not `next/image`). Consented `public/` objects use the stable public URL and are allowed in `next/image`.
-- **No transforms** (unlike Cloudinary): clients strip EXIF + crop 4:5 + downscale in the browser before upload; owner uploads (incl. demo video) are stored as-is.
+- **No transforms** (unlike Cloudinary): clients strip EXIF + downscale in the browser before upload (aspect ratio preserved — no crop); owner uploads (incl. demo video) are stored as-is.
 - All access is via `src/lib/storage/scaleway.ts`, env-guarded — absent keys → `not_configured`, app still boots.
 
 ---
