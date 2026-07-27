@@ -29,6 +29,13 @@ const isAdminRoute = createRouteMatcher(["/admin(.*)"])
  * next-intl does locale routing. Only ONE proxy file may exist, hence the merge.
  */
 export default clerkMiddleware(async (auth, req) => {
+  // API routes opted into the matcher (e.g. /api/media/*) run through here only
+  // so Clerk establishes the auth context their `auth()` call needs — then pass
+  // straight through, skipping i18n/admin gating. Webhooks aren't matched.
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next()
+  }
+
   // Admin: owner-only, non-localized. Gate here and skip i18n routing so the
   // path stays /admin (never /da/admin). Signed-out → sign-in; signed-in but
   // not the owner → home (don't confirm the route exists with a 403/404).
@@ -63,9 +70,11 @@ export default clerkMiddleware(async (auth, req) => {
 })
 
 export const config = {
-  // Skip API routes, Next internals, and files with an extension (assets).
-  // The PWA manifest (/manifest.webmanifest) and icons (/icons/*.png) all
-  // carry a dot, so they're excluded here and served without locale routing;
-  // the admin apple-touch icon lives under /admin (owner-gated above).
-  matcher: "/((?!api|_next|_vercel|.*\\..*).*)",
+  // First entry: pages — skip API routes, Next internals, and files with an
+  // extension (assets). The PWA manifest (/manifest.webmanifest) and icons
+  // (/icons/*.png) carry a dot, so they're excluded and served without locale
+  // routing; the admin apple-touch icon lives under /admin (owner-gated above).
+  // Second entry: opt the authed media API into Clerk so its `auth()` works
+  // (webhooks + other /api stay excluded — they don't use Clerk).
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)", "/api/media/:path*"],
 }
