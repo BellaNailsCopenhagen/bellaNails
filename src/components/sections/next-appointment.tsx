@@ -95,7 +95,7 @@ export function NextAppointment() {
             accent={t("nextHeadingAccent")}
             accentTone="secondary"
           />
-          <ArrowLink href={routes.bookings}>{t("nextCta")}</ArrowLink>
+          <ArrowLink href={routes.appointments}>{t("nextCta")}</ArrowLink>
         </div>
 
         <TintedCard className="mt-6">

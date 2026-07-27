@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { kindForType } from "@/lib/media-policy"
+import { uploadMedia } from "@/lib/client/upload-media"
 import type {
   ClientMediaItem,
   ConsentStatus,
@@ -35,28 +36,30 @@ function consentVariant(status: ConsentStatus) {
   return "outline" as const
 }
 
-const DATA_PURPOSES: {
-  purpose: "testimonial_site" | "testimonial_some" | "name_site" | "name_some"
-  label: string
-}[] = [
-  { purpose: "name_site", label: "Name · site" },
-  { purpose: "name_some", label: "Name · social" },
-  { purpose: "testimonial_site", label: "Testimonial · site" },
-  { purpose: "testimonial_some", label: "Testimonial · social" },
-]
+export type BookingOption = { id: string; label: string }
 
-export function ClientMediaSection({
+/**
+ * The owner's image/video gallery for a client — upload (optionally attached to
+ * a booking) + the grid with per-image publish-consent requests. Lives in the
+ * admin client page's Gallery tab.
+ */
+export function ClientMediaGallery({
   clerkUserId,
   media,
-  dataConsents,
+  bookings = [],
+  defaultBookingId = null,
 }: {
   clerkUserId: string
   media: ClientMediaItem[]
-  dataConsents: DataConsentItem[]
+  /** This client's bookings, newest first — the optional "attach to" picker. */
+  bookings?: BookingOption[]
+  /** Pre-selected booking (ongoing, else most recent ended). Empty = none. */
+  defaultBookingId?: string | null
 }) {
   const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
   const [caption, setCaption] = useState("")
+  const [bookingId, setBookingId] = useState(defaultBookingId ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
@@ -71,43 +74,24 @@ export function ClientMediaSection({
     if (!file) return
     setUploading(true)
     try {
-      const signRes = await fetch("/api/media/sign", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ contentType: file.type }),
-      })
-      if (signRes.status === 503) {
-        toast.info("Storage isn’t set up yet.")
-        return
-      }
-      if (signRes.status === 400) {
-        toast.error("That file type isn’t allowed.")
-        return
-      }
-      if (!signRes.ok) {
-        toast.error("Couldn’t start the upload.")
-        return
-      }
-      const { url, key, fields } = (await signRes.json()) as {
-        url: string
-        key: string
-        fields: Record<string, string>
-      }
-
-      const form = new FormData()
-      for (const [k, v] of Object.entries(fields)) form.set(k, v)
-      form.set("file", file)
-      const up = await fetch(url, { method: "POST", body: form })
+      const up = await uploadMedia(file, file.type)
       if (!up.ok) {
-        toast.error("Upload failed.")
+        toast.error(
+          up.reason === "not_configured"
+            ? "Storage isn’t set up yet."
+            : up.reason === "unsupported"
+              ? "That file type isn’t allowed."
+              : "Upload failed.",
+        )
         return
       }
 
       const result = await addClientMedia({
         clerkUserId,
         source: "owner",
-        storageKey: key,
+        storageKey: up.key,
         kind: kindForType(file.type),
+        bookingId: bookingId || null,
         caption: caption.trim() || null,
       })
       if (result.ok) {
@@ -125,18 +109,8 @@ export function ClientMediaSection({
   const request = (mediaId: string, purpose: MediaPurpose) =>
     run(() => requestMediaPublish(mediaId, clerkUserId, purpose))
 
-  const dataStatus = (purpose: string): ConsentStatus =>
-    (dataConsents.find((c) => c.purpose === purpose)?.status ?? "none") as ConsentStatus
-
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Eyebrow as="h3">Images</Eyebrow>
-          <span className={subLabel}>{media.length}</span>
-        </div>
-      </div>
-
       {/* Upload an image or a demo video (owner exception). */}
       <div className="flex flex-wrap items-end gap-2">
         <div className="min-w-0 flex-1 space-y-1">
@@ -145,6 +119,26 @@ export function ClientMediaSection({
           </label>
           <Input id="media-caption" value={caption} onValueChange={setCaption} />
         </div>
+        {bookings.length ? (
+          <div className="min-w-0 flex-1 space-y-1">
+            <label htmlFor="media-booking" className={subLabel}>
+              Attach to booking (optional)
+            </label>
+            <select
+              id="media-booking"
+              value={bookingId}
+              onChange={(e) => setBookingId(e.target.value)}
+              className="w-full min-w-0 border-b border-border bg-transparent px-0 py-3 font-functional text-base text-foreground outline-none focus-visible:border-foreground"
+            >
+              <option value="">No booking</option>
+              {bookings.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
         <input
           ref={inputRef}
           type="file"
@@ -229,41 +223,73 @@ export function ClientMediaSection({
       ) : (
         <BodySm className="text-xs">No images yet.</BodySm>
       )}
+    </section>
+  )
+}
 
-      {/* Data-use consent (name / testimonial). */}
-      <div className="space-y-2 pt-4">
-        <Eyebrow as="h4">Data-use consent</Eyebrow>
-        <ul className="space-y-2">
-          {DATA_PURPOSES.map(({ purpose, label }) => {
-            const status = dataStatus(purpose)
-            return (
-              <li
-                key={purpose}
-                className="flex items-center justify-between gap-3"
-              >
-                <span className="flex items-center gap-2 font-functional text-sm text-foreground">
-                  {label}
-                  <Badge variant={consentVariant(status)} size="xs">
-                    {status}
-                  </Badge>
-                </span>
-                {canRequest(status) ? (
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() =>
-                      run(() => requestDataConsent(clerkUserId, purpose))
-                    }
-                    className={`${subLabel} hover:text-foreground`}
-                  >
-                    Request
-                  </button>
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
-      </div>
+const DATA_PURPOSES: {
+  purpose: "testimonial_site" | "testimonial_some" | "name_site" | "name_some"
+  label: string
+}[] = [
+  { purpose: "name_site", label: "Name · site" },
+  { purpose: "name_some", label: "Name · social" },
+  { purpose: "testimonial_site", label: "Testimonial · site" },
+  { purpose: "testimonial_some", label: "Testimonial · social" },
+]
+
+/**
+ * Data-use consent (name / testimonial on site / social). Stays on the client
+ * page's main body, outside the Appointment/Gallery tabs.
+ */
+export function ClientDataConsent({
+  clerkUserId,
+  dataConsents,
+}: {
+  clerkUserId: string
+  dataConsents: DataConsentItem[]
+}) {
+  const [pending, startTransition] = useTransition()
+
+  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
+    startTransition(async () => {
+      const result = await fn()
+      if (!result.ok) toast.error(result.error || "Something went wrong.")
+    })
+
+  const dataStatus = (purpose: string): ConsentStatus =>
+    (dataConsents.find((c) => c.purpose === purpose)?.status ??
+      "none") as ConsentStatus
+
+  return (
+    <section className="space-y-2">
+      <Eyebrow as="h3">Data-use consent</Eyebrow>
+      <ul className="space-y-2">
+        {DATA_PURPOSES.map(({ purpose, label }) => {
+          const status = dataStatus(purpose)
+          return (
+            <li key={purpose} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 font-functional text-sm text-foreground">
+                {label}
+                <Badge variant={consentVariant(status)} size="xs">
+                  {status}
+                </Badge>
+              </span>
+              {canRequest(status) ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    run(() => requestDataConsent(clerkUserId, purpose))
+                  }
+                  className={`${subLabel} hover:text-foreground`}
+                >
+                  Request
+                </button>
+              ) : null}
+            </li>
+          )
+        })}
+      </ul>
     </section>
   )
 }

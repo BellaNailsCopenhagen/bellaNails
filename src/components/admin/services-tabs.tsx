@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react"
 
-import { TabBar } from "@/components/admin/tab-bar"
+import { TabBar } from "@/components/ui/tab-bar"
 import { CreateServiceSheet } from "@/components/admin/create-service-sheet"
 import { EditAddonSheet } from "@/components/admin/edit-addon-sheet"
 

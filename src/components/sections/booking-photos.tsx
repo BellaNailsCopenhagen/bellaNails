@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
 import { downscaleImage } from "@/lib/client/process-image"
+import { uploadMedia } from "@/lib/client/upload-media"
 import { addOwnBookingMedia, deleteOwnMedia } from "@/lib/actions/client-media"
 import type { ClientMediaItem } from "@/lib/media"
 
@@ -42,35 +43,17 @@ export function BookingPhotos({
         return
       }
 
-      const signRes = await fetch("/api/media/sign", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ contentType: "image/webp" }),
-      })
-      if (signRes.status === 503) {
-        toast.info("Photo upload isn’t set up yet — check back soon.")
-        return
-      }
-      if (!signRes.ok) {
-        toast.error("Couldn’t start the upload.")
-        return
-      }
-      const { url, key, fields } = (await signRes.json()) as {
-        url: string
-        key: string
-        fields: Record<string, string>
-      }
-
-      const form = new FormData()
-      for (const [k, v] of Object.entries(fields)) form.set(k, v)
-      form.set("file", blob)
-      const up = await fetch(url, { method: "POST", body: form })
+      const up = await uploadMedia(blob, "image/webp")
       if (!up.ok) {
-        toast.error("An image failed to upload.")
+        if (up.reason === "not_configured") {
+          toast.info("Photo upload isn’t set up yet — check back soon.")
+        } else {
+          toast.error("An image failed to upload.")
+        }
         return
       }
 
-      const result = await addOwnBookingMedia({ bookingId, storageKey: key })
+      const result = await addOwnBookingMedia({ bookingId, storageKey: up.key })
       if (result.ok) {
         toast.success("Photo added")
         router.refresh()
@@ -139,9 +122,19 @@ export function BookingPhotos({
       </div>
 
       <BodySm className="text-xs text-muted-foreground">
-        Loved your set? Share a photo with Bella Nails. Your photos stay private
-        to the studio and are never published without your permission — you can
-        remove them any time.
+        {photos.length ? (
+          <>
+            Thank you for sharing — it means the world to us. Your photos stay
+            private to the studio and are never published without your
+            permission; you can remove them any time.
+          </>
+        ) : (
+          <>
+            Loved your set? Share a photo with Bella Nails. Your photos stay
+            private to the studio and are never published without your
+            permission — you can remove them any time.
+          </>
+        )}
       </BodySm>
     </div>
   )

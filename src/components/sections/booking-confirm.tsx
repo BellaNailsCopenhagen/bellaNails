@@ -58,7 +58,7 @@ export async function BookingConfirm({
     .join(" + ")
     .concat(
       ` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`,
-      `\n${t("manageOnline")}: ${SITE_URL}/${locale}${routes.bookings}`,
+      `\n${t("manageOnline")}: ${SITE_URL}/${locale}${routes.appointments}`,
     )
 
   // Carry the contact fields back so the details form re-renders filled —

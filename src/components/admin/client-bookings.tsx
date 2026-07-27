@@ -126,6 +126,7 @@ export function ClientBookings({
             contact={contact}
             clientNoShowCount={clientNoShowCount}
             noShowEligible={canMarkNoShow(next.row, now)}
+            now={now}
           />
         </div>
       ) : null}

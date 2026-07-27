@@ -26,7 +26,7 @@ export async function RescheduleBooking({
     <Section>
       <Container className="max-w-4xl">
         <div className="pb-8">
-          <ArrowLink back href={routes.bookings}>
+          <ArrowLink back href={routes.appointments}>
             {t("backToBookings")}
           </ArrowLink>
         </div>

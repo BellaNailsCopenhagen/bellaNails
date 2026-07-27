@@ -14,7 +14,7 @@ export const routes = {
   services: "/services",
   gallery: "/gallery",
   lookbook: "/lookbook",
-  bookings: "/bookings",
+  appointments: "/appointments",
   book: "/book",
   confirmation: "/confirmation",
   terms: "/terms",
@@ -38,17 +38,17 @@ type FooterLabelKey = keyof (typeof enMessages)["footer"]
 /** A primary nav entry. `labelKey` resolves against the `nav` i18n namespace. */
 export type NavItem = { href: Route; labelKey: NavLabelKey }
 
-/** In-app reschedule for one booking (dynamic — hence a builder, not a
-    constant; the segment must match app/[locale]/bookings/reschedule/[uid]). */
+/** In-app reschedule for one appointment (dynamic — hence a builder, not a
+    constant; the segment must match app/[locale]/appointments/reschedule/[uid]). */
 export function rescheduleBookingPath(uid: string): string {
-  return `${routes.bookings}/reschedule/${encodeURIComponent(uid)}`
+  return `${routes.appointments}/reschedule/${encodeURIComponent(uid)}`
 }
 
 /** Primary header navigation. Lookbook returns when its page ships. */
 export const headerNav: NavItem[] = [
   { href: routes.services, labelKey: "services" },
   { href: routes.gallery, labelKey: "gallery" },
-  { href: routes.bookings, labelKey: "bookings" },
+  { href: routes.appointments, labelKey: "space" },
 ]
 
 /**

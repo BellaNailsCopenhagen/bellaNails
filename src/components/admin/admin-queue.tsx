@@ -243,6 +243,7 @@ export function AdminQueue({
                                   noShowCounts[booking.row.clerk_user_id]
                                 }
                                 noShowEligible={canMarkNoShow(booking.row, now)}
+                                now={now}
                               />
                             ))}
                           </ul>

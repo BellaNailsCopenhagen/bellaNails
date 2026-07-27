@@ -1,8 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { BookingsContent } from "@/components/sections/bookings-content"
-import { Container, Section } from "@/components/layout/container"
-import { PageHeader } from "@/components/ui/page-header"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm } from "@/components/ui/typography"
 import {
@@ -76,28 +74,20 @@ export async function MyBookings({
   const past = display.filter((b) => !isUpcoming(b))
 
   return (
-    <Section>
-      <Container className="max-w-4xl">
-        <PageHeader
-          eyebrow={t("eyebrow")}
-          lead={t("headingLine1")}
-          muted={t("headingLine2")}
-          intro={t("intro")}
-        />
-        {/* e.g. bounced off an ineligible reschedule — say why. */}
-        {notice === "policy" ? (
-          <TintedCard className="mb-10">
-            <BodySm>{t("noticePolicy")}</BodySm>
-          </TintedCard>
-        ) : null}
-        <BookingsContent
-          failed={Boolean(error)}
-          upcoming={upcoming}
-          past={past}
-          now={now}
-          photosByBooking={photosByBooking}
-        />
-      </Container>
-    </Section>
+    <>
+      {/* e.g. bounced off an ineligible reschedule — say why. */}
+      {notice === "policy" ? (
+        <TintedCard className="mb-8">
+          <BodySm>{t("noticePolicy")}</BodySm>
+        </TintedCard>
+      ) : null}
+      <BookingsContent
+        failed={Boolean(error)}
+        upcoming={upcoming}
+        past={past}
+        now={now}
+        photosByBooking={photosByBooking}
+      />
+    </>
   )
 }

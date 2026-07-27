@@ -99,6 +99,7 @@ export function BookingListRow({
             clientNoShowCount={clientNoShowCount}
             actionable={actionable}
             noShowEligible={canMarkNoShow(row, now)}
+            now={now}
           />
         </div>
       ) : null}

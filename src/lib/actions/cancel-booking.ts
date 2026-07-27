@@ -36,7 +36,7 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
   if (booking.status === BOOKING_STATUS.cancelled) {
     // Already cancelled out-of-band — refresh the stale card that offered
     // the button.
-    revalidatePath("/[locale]/bookings", "page")
+    revalidatePath("/[locale]/appointments", "page")
     return { ok: true }
   }
   if (!canManageBooking(booking, Date.now())) {
@@ -49,6 +49,6 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
   )
   if (!result.ok) return { ok: false, error: "failed" }
 
-  revalidatePath("/[locale]/bookings", "page")
+  revalidatePath("/[locale]/appointments", "page")
   return { ok: true }
 }

@@ -31,7 +31,7 @@ export async function generateMetadata({
     /bookings with a notice. */
 export default async function ReschedulePage({
   params,
-}: PageProps<"/[locale]/bookings/reschedule/[uid]">) {
+}: PageProps<"/[locale]/appointments/reschedule/[uid]">) {
   const { locale, uid } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
@@ -48,7 +48,7 @@ export default async function ReschedulePage({
   const now = Date.now()
   if (!canManageBooking(booking, now)) {
     redirect({
-      href: { pathname: routes.bookings, query: { notice: "policy" } },
+      href: { pathname: routes.appointments, query: { notice: "policy" } },
       locale,
     })
   }

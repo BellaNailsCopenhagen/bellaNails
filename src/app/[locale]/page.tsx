@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
 import { Hero } from "@/components/sections/hero"
+import { RequestsBanner } from "@/components/sections/requests-banner"
 import { NextAppointment } from "@/components/sections/next-appointment"
 import { ServicesPreview } from "@/components/sections/services-preview"
 import { Formula } from "@/components/sections/formula"
@@ -25,6 +26,9 @@ export default async function Home({
 
   return (
     <main className="flex flex-1 flex-col">
+      {/* Signed-in clients with pending consent requests get a banner here;
+          everyone else renders nothing (client-side, so the page stays static). */}
+      <RequestsBanner />
       <Hero />
       {/* Signed-in clients with an upcoming booking get their personal
           band here; everyone else renders nothing (client-side, so the

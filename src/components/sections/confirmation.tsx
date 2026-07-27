@@ -95,7 +95,7 @@ export async function Confirmation({
                 <BodySm className="max-w-md">{t("signedInBody")}</BodySm>
                 <Button
                   nativeButton={false}
-                  render={<Link href={routes.bookings} />}
+                  render={<Link href={routes.appointments} />}
                 >
                   {t("viewBookings")}
                 </Button>

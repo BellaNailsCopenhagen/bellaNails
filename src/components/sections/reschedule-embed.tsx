@@ -18,7 +18,7 @@ export function RescheduleEmbed({ uid }: { uid: string }) {
 
   const onSuccess = async (newUid: string | undefined) => {
     if (newUid) await settleBookingRow(newUid)
-    router.replace(routes.bookings)
+    router.replace(routes.appointments)
     // Bust the client router cache — /bookings was likely just visited; a
     // plain replace would serve the stale payload.
     router.refresh()

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
 import { TintedCard } from "@/components/ui/tinted-card"
+import { AddBookingMediaButton } from "@/components/admin/add-booking-media-button"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
@@ -28,12 +29,17 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
  * cancelled bookings; `noShowEligible` reveals the studio-side no-show toggle
  * (an hour past start); `as` lets it render outside a <ul> (Bookings view).
  */
+// The artist can add media from 30 min before the appointment onward (and any
+// time after — result photos are shot during/after).
+const ADD_MEDIA_LEAD_MS = 30 * 60 * 1000
+
 export function QueueBookingCard({
   booking,
   contact,
   clientNoShowCount = 0,
   actionable = true,
   noShowEligible = false,
+  now,
   as = "li",
 }: {
   booking: DisplayBooking
@@ -42,6 +48,8 @@ export function QueueBookingCard({
   clientNoShowCount?: number
   actionable?: boolean
   noShowEligible?: boolean
+  /** Request-time clock. When given, reveals "Add media" ≥30min before start. */
+  now?: number
   as?: React.ElementType
 }) {
   const { row } = booking
@@ -59,12 +67,16 @@ export function QueueBookingCard({
   const canReschedule = hasUid && actionable && !isNoShow
   const canCancel = hasUid && actionable && !isNoShow
   const hasActions = canReschedule || canCancel || canToggleNoShow
+  const canAddMedia =
+    now != null &&
+    Boolean(row.clerk_user_id) &&
+    now >= new Date(row.start_time).getTime() - ADD_MEDIA_LEAD_MS
 
   return (
     <TintedCard as={as} className="space-y-3 p-4 sm:p-5">
       {/* Contact + client actions — first thing on the card, reaching the
           client or opening their profile/history. */}
-      {contact?.phone || contact?.email || clientHref ? (
+      {contact?.phone || contact?.email || clientHref || canAddMedia ? (
         <div className="flex flex-wrap items-center gap-4">
           {contact?.phone ? (
             <a
@@ -83,6 +95,12 @@ export function QueueBookingCard({
               <Mail className="size-3" />
               Email
             </a>
+          ) : null}
+          {canAddMedia && row.clerk_user_id ? (
+            <AddBookingMediaButton
+              bookingId={row.id}
+              clerkUserId={row.clerk_user_id}
+            />
           ) : null}
           {clientHref ? (
             <Link

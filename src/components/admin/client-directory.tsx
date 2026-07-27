@@ -7,7 +7,7 @@ import { ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm } from "@/components/ui/typography"
-import { TabBar } from "@/components/admin/tab-bar"
+import { TabBar } from "@/components/ui/tab-bar"
 import { formatStudioDayMonthYear } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

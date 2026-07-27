@@ -11,11 +11,11 @@ import { isOwner } from "./lib/admin/owner"
 const handleI18nRouting = createMiddleware(routing)
 
 // Routes that require a signed-in user. `/account` is the user profile;
-// `/bookings` is the client's appointment list. `/admin` is handled
+// `/appointments` is the client's appointment list. `/admin` is handled
 // separately below — it is a non-localized, owner-only surface.
 const isProtectedRoute = createRouteMatcher([
   "/(da|en)/account(.*)",
-  "/(da|en)/bookings(.*)",
+  "/(da|en)/appointments(.*)",
 ])
 
 // The admin PWA is English-only and NOT locale-prefixed, so it must bypass

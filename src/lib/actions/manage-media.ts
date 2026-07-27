@@ -37,20 +37,40 @@ export async function addClientMedia(input: {
   if (!supabase) return { ok: false, error: "unauthorized" }
   if (!input.storageKey) return { ok: false, error: "No file uploaded." }
 
+  // Optional booking link: verify it's this client's booking, and inherit its
+  // service so the image also associates to the product. A mismatched/unknown
+  // booking is dropped (the link is optional) rather than failing the upload.
+  let serviceId = input.serviceId ?? null
+  let bookingId = input.bookingId ?? null
+  if (bookingId) {
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("id, clerk_user_id, selected_addons")
+      .eq("id", bookingId)
+      .maybeSingle()
+    if (!booking || booking.clerk_user_id !== input.clerkUserId) {
+      bookingId = null
+    } else if (!serviceId) {
+      serviceId =
+        (booking.selected_addons as { serviceId?: string } | null)?.serviceId ??
+        null
+    }
+  }
+
   const { error } = await supabase.from("client_media").insert({
     clerk_user_id: input.clerkUserId,
     source: input.source,
     kind: input.kind,
     storage_key: input.storageKey,
     url: objectUrl(input.storageKey) ?? "",
-    service_id: input.serviceId ?? null,
-    booking_id: input.bookingId ?? null,
+    service_id: serviceId,
+    booking_id: bookingId,
     caption: input.caption ?? null,
   })
   if (error) return { ok: false, error: "Couldn’t add the image." }
 
   revalidatePath(`/admin/clients/${input.clerkUserId}`)
-  if (input.serviceId) revalidatePath(`/admin/services/${input.serviceId}`)
+  if (serviceId) revalidatePath(`/admin/services/${serviceId}`)
   return { ok: true }
 }
 
