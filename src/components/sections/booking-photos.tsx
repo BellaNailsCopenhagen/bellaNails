@@ -1,15 +1,26 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
+import { DeleteOwnMediaButton } from "@/components/sections/delete-own-media-button"
 import { downscaleImage } from "@/lib/client/process-image"
 import { uploadMedia } from "@/lib/client/upload-media"
-import { addOwnBookingMedia, deleteOwnMedia } from "@/lib/actions/client-media"
+import { addOwnBookingMedia } from "@/lib/actions/client-media"
 import type { ClientMediaItem } from "@/lib/media"
+
+// English copy (this widget isn't localized yet — matches its other strings).
+const DELETE_LABELS = {
+  title: "Remove this photo?",
+  body: "This permanently deletes it from Bella Nails — including any copy shared to the website or social. This can’t be undone.",
+  confirm: "Remove",
+  confirming: "Removing…",
+  cancel: "Keep it",
+  failed: "Couldn’t remove the photo.",
+}
 
 /**
  * The client adds a photo to their own past booking, from /bookings. One image
@@ -26,7 +37,6 @@ export function BookingPhotos({
   photos: ClientMediaItem[]
 }) {
   const router = useRouter()
-  const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -66,13 +76,6 @@ export function BookingPhotos({
     }
   }
 
-  const remove = (id: string) =>
-    startTransition(async () => {
-      const result = await deleteOwnMedia(id)
-      if (result.ok) router.refresh()
-      else toast.error("Couldn’t remove the photo.")
-    })
-
   return (
     <div className="space-y-3">
       {photos.length ? (
@@ -85,15 +88,21 @@ export function BookingPhotos({
                 alt="Your photo"
                 className="size-16 rounded-sm border border-border object-cover"
               />
-              <button
-                type="button"
-                onClick={() => remove(photo.id)}
-                disabled={pending}
-                aria-label="Remove photo"
-                className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-border bg-background text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                ×
-              </button>
+              {photo.source === "client" ? (
+                <DeleteOwnMediaButton
+                  mediaId={photo.id}
+                  labels={DELETE_LABELS}
+                  trigger={
+                    <button
+                      type="button"
+                      aria-label="Remove photo"
+                      className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-border bg-background text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      ×
+                    </button>
+                  }
+                />
+              ) : null}
             </li>
           ))}
         </ul>

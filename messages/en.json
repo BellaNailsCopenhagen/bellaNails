@@ -145,7 +145,16 @@
     "galleryEmptyTitle": "No photos yet",
     "galleryEmptyBody": "Photos from your appointments will appear here.",
     "requestsEmptyTitle": "Nothing to review",
-    "requestsEmptyBody": "Requests from Bella Nails will appear here."
+    "requestsEmptyBody": "Requests from Bella Nails will appear here.",
+    "shareWebsite": "Website",
+    "shareSocial": "Social",
+    "shareShared": "Shared",
+    "sharePrivate": "Private",
+    "deleteTitle": "Remove this photo?",
+    "deleteBody": "This permanently deletes it from Bella Nails — including any copy shared to the website or social. This can’t be undone.",
+    "deleteConfirm": "Remove",
+    "deleteConfirming": "Removing…",
+    "deleteCancel": "Keep it"
   },
   "gallery": {
     "metaTitle": "Gallery",

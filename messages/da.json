@@ -145,7 +145,16 @@
     "galleryEmptyTitle": "Ingen billeder endnu",
     "galleryEmptyBody": "Billeder fra dine aftaler vises her.",
     "requestsEmptyTitle": "Intet at gennemgå",
-    "requestsEmptyBody": "Forespørgsler fra Bella Nails vises her."
+    "requestsEmptyBody": "Forespørgsler fra Bella Nails vises her.",
+    "shareWebsite": "Hjemmeside",
+    "shareSocial": "Social",
+    "shareShared": "Delt",
+    "sharePrivate": "Privat",
+    "deleteTitle": "Fjern dette billede?",
+    "deleteBody": "Dette sletter det permanent hos Bella Nails — inklusive en kopi delt på hjemmesiden eller sociale medier. Det kan ikke fortrydes.",
+    "deleteConfirm": "Fjern",
+    "deleteConfirming": "Fjerner…",
+    "deleteCancel": "Behold"
   },
   "gallery": {
     "metaTitle": "Galleri",

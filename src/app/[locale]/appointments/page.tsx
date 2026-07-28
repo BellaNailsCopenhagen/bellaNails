@@ -92,13 +92,7 @@ export default async function BookingsPage({
                 media={media}
               />
             }
-            gallery={
-              <ClientGallery
-                media={media}
-                emptyTitle={t("galleryEmptyTitle")}
-                emptyBody={t("galleryEmptyBody")}
-              />
-            }
+            gallery={<ClientGallery media={media} />}
             requests={
               media.length || dataConsents.length ? (
                 <ConsentCentre media={media} dataConsents={dataConsents} />
