@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server"
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { BookingsContent } from "@/components/sections/bookings-content"
@@ -25,15 +26,20 @@ export async function MyBookings({
   notice?: string | null
   media?: ClientMediaItem[]
 }) {
-  const [t, locale] = await Promise.all([
+  const [t, locale, { userId }] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
+    auth(),
   ])
 
+  // Personal surface: always the signed-in user's OWN bookings, even for the
+  // owner (whose owner-reads-all RLS would otherwise surface the whole studio
+  // here — that view belongs to /admin). Explicit filter, not RLS-scoped.
   const supabase = createAuthedSupabaseServerClient()
   const { data: rows, error } = await supabase
     .from("bookings")
     .select(BOOKING_DISPLAY_COLUMNS)
+    .eq("clerk_user_id", userId ?? "")
     .order("start_time", { ascending: false })
 
   if (error) {
