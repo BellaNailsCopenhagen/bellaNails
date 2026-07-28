@@ -67,7 +67,10 @@ export async function addClientMedia(input: {
     booking_id: bookingId,
     caption: input.caption ?? null,
   })
-  if (error) return { ok: false, error: "Couldn’t add the image." }
+  if (error) {
+    console.error("[addClientMedia] insert failed:", error.message)
+    return { ok: false, error: "Couldn’t add the image." }
+  }
 
   revalidatePath(`/admin/clients/${input.clerkUserId}`)
   if (serviceId) revalidatePath(`/admin/services/${serviceId}`)

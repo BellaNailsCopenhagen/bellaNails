@@ -36,6 +36,10 @@ export async function addOwnBookingMedia(input: {
     .eq("id", input.bookingId)
     .maybeSingle()
   if (!booking || booking.clerk_user_id !== userId) {
+    console.error("[addOwnBookingMedia] booking not found/owned", {
+      bookingId: input.bookingId,
+      found: Boolean(booking),
+    })
     return { ok: false, error: "not_found" }
   }
 
@@ -52,7 +56,10 @@ export async function addOwnBookingMedia(input: {
     service_id: serviceId,
     caption: input.caption ?? null,
   })
-  if (error) return { ok: false, error: "Couldn’t save the photo." }
+  if (error) {
+    console.error("[addOwnBookingMedia] insert failed:", error.message)
+    return { ok: false, error: "Couldn’t save the photo." }
+  }
   return { ok: true }
 }
 
