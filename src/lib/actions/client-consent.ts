@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { auth } from "@clerk/nextjs/server"
 
+import { notifyOwner } from "@/lib/admin/notify"
 import { deleteObject, publishToPublic } from "@/lib/storage/scaleway"
 import type { MediaPurpose } from "@/lib/media"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -156,11 +157,11 @@ export async function withdrawMediaConsent(
     .eq("id", consent.id)
 
   // Tell the studio: the site copy is auto-removed, but a SOCIAL post has to be
-  // taken down by hand. Degrade-safe — a missing table must not fail withdrawal.
-  await supabase.from("owner_notifications").insert({
+  // taken down by hand.
+  await notifyOwner(supabase, {
     kind: "media_consent_withdrawn",
-    clerk_user_id: userId,
-    client_media_id: mediaId,
+    clerkUserId: userId,
+    clientMediaId: mediaId,
     purpose,
   })
 

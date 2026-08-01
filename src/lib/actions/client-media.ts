@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server"
 
+import { notifyOwner } from "@/lib/admin/notify"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
 import { objectUrl } from "@/lib/storage/scaleway"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -97,10 +98,7 @@ export async function deleteOwnMedia(
     .eq("id", mediaId)
 
   if (sharedCount && sharedCount > 0) {
-    await supabase.from("owner_notifications").insert({
-      kind: "shared_image_deleted",
-      clerk_user_id: userId,
-    })
+    await notifyOwner(supabase, { kind: "shared_image_deleted", clerkUserId: userId })
   }
   return { ok: true }
 }

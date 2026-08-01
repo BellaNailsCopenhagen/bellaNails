@@ -12,17 +12,8 @@ import {
   addAssetUsage,
   removeAssetUsage,
 } from "@/lib/actions/manage-asset-usages"
+import { SURFACE_LABELS, surfacesForPurpose } from "@/lib/asset-surfaces"
 import type { AssetUsage } from "@/lib/admin/assets"
-
-const LABELS: Record<string, string> = {
-  clients_gallery: "Clients gallery",
-  showcase: "Showcase",
-  testimonial: "Testimonial",
-  some: "Social",
-}
-// Website surfaces need SITE consent; social needs SoMe consent.
-const WEBSITE = ["clients_gallery", "showcase", "testimonial"]
-const SOCIAL = ["some"]
 
 /**
  * Assign a shared asset to use-cases. Only surfaces the consent covers are
@@ -40,7 +31,7 @@ export function AssetUsageManager({
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
-  const surfaces = purpose === "some" ? SOCIAL : WEBSITE
+  const surfaces = surfacesForPurpose(purpose)
   const usageBySurface = new Map(usages.map((u) => [u.surface, u]))
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
@@ -76,7 +67,7 @@ export function AssetUsageManager({
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
-              {LABELS[surface]}
+              {SURFACE_LABELS[surface]}
             </button>
           )
         })}

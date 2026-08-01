@@ -1,31 +1,15 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
-import { isOwner } from "@/lib/admin/owner"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { requireOwner } from "@/lib/admin/require-owner"
+import { isAssetSurface, surfacesForPurpose } from "@/lib/asset-surfaces"
 
 export type AssetUsageResult = { ok: true } | { ok: false; error: string }
 
-// Website surfaces need SITE consent; social needs SoMe consent — enforced by
-// the caller passing only allowed surfaces, and re-listed here as the source of
-// truth for valid values.
-export const SURFACES = [
-  "clients_gallery",
-  "showcase",
-  "testimonial",
-  "some",
-] as const
-export type Surface = (typeof SURFACES)[number]
-
-async function requireOwner() {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) return null
-  return createSupabaseServiceRoleClient()
-}
-
-/** Place an asset on a surface (or update its link) — idempotent per surface. */
+/** Place an asset on a surface (or update its link) — idempotent per surface.
+    Enforces consent scope server-side: the surface must be one the client's
+    consent purpose allows (site → website surfaces, some → social). */
 export async function addAssetUsage(
   assetId: string,
   surface: string,
@@ -33,8 +17,21 @@ export async function addAssetUsage(
 ): Promise<AssetUsageResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!SURFACES.includes(surface as Surface)) {
-    return { ok: false, error: "Unknown use-case." }
+  if (!isAssetSurface(surface)) return { ok: false, error: "Unknown use-case." }
+
+  // The asset must be a published copy, and the surface must fall within what
+  // the client actually consented to — never trust the UI's gating alone.
+  const { data: consent } = await supabase
+    .from("media_consents")
+    .select("purpose")
+    .eq("published_asset_id", assetId)
+    .maybeSingle()
+  if (!consent) return { ok: false, error: "Asset not found." }
+  if (!surfacesForPurpose(consent.purpose).includes(surface)) {
+    return {
+      ok: false,
+      error: "That use-case isn’t covered by the client’s consent.",
+    }
   }
 
   const { error } = await supabase

@@ -1,18 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
-import { isOwner } from "@/lib/admin/owner"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { requireOwner } from "@/lib/admin/require-owner"
 
 export type NotificationActionResult = { ok: true } | { ok: false; error: string }
-
-async function requireOwner() {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) return null
-  return createSupabaseServiceRoleClient()
-}
 
 /** Mark every unread owner notification read (from the notifications page). */
 export async function markAllNotificationsRead(): Promise<NotificationActionResult> {

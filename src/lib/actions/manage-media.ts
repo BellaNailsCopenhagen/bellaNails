@@ -1,13 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
-import { isOwner } from "@/lib/admin/owner"
+import { requireOwner } from "@/lib/admin/require-owner"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
 import type { MediaPurpose } from "@/lib/media"
 import { objectUrl } from "@/lib/storage/scaleway"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 /**
  * Owner-side media + consent management: record a client's image, archive it,
@@ -17,12 +15,6 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
  */
 
 export type MediaActionResult = { ok: true } | { ok: false; error: string }
-
-async function requireOwner() {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) return null
-  return createSupabaseServiceRoleClient()
-}
 
 export async function addClientMedia(input: {
   clerkUserId: string

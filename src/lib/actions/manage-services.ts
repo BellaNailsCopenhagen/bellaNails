@@ -1,10 +1,9 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { isOwner } from "@/lib/admin/owner"
+import { requireOwner } from "@/lib/admin/require-owner"
 import {
   createCalEventType,
   patchCalEventType,
@@ -14,7 +13,6 @@ import {
   fetchIncompatiblePairs,
   flattenServiceAddons,
 } from "@/lib/services/service-addons"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
 
 /**
@@ -31,12 +29,6 @@ export type ServiceActionResult =
   | { ok: false; error: string }
 
 type Client = SupabaseClient<Database>
-
-async function requireOwner(): Promise<Client | null> {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) return null
-  return createSupabaseServiceRoleClient()
-}
 
 function revalidateService(id: string) {
   revalidatePath("/admin/services")
