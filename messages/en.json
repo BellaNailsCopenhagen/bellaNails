@@ -154,7 +154,14 @@
     "deleteBody": "This permanently deletes it from Bella Nails — including any copy shared to the website or social. This can’t be undone.",
     "deleteConfirm": "Remove",
     "deleteConfirming": "Removing…",
-    "deleteCancel": "Keep it"
+    "deleteCancel": "Keep it",
+    "galleryYours": "Your photos",
+    "galleryFromStudio": "From Bella Nails",
+    "stopSharing": "Stop sharing",
+    "withdrawTitle": "Stop sharing this photo?",
+    "withdrawBody": "It will be removed from where Bella Nails uses it. You can allow it again later.",
+    "withdrawConfirm": "Stop sharing",
+    "withdrawConfirming": "Updating…"
   },
   "gallery": {
     "metaTitle": "Gallery",

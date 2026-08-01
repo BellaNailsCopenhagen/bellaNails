@@ -55,7 +55,7 @@ export default async function AdminAssetsPage() {
               <img
                 src={asset.url}
                 alt="Shared asset"
-                className="aspect-square w-full shrink-0 rounded-sm border border-border object-cover sm:size-28"
+                className="h-auto w-full shrink-0 rounded-sm border border-border object-contain sm:w-28"
               />
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">

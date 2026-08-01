@@ -8,6 +8,7 @@ import { UserButton } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { adminTabs, isTabActive } from "@/components/admin/admin-nav"
+import { AdminReviewBanner } from "@/components/admin/admin-review-banner"
 
 // Desktop nav excludes the primary "New" action — on ≥md it's a dedicated
 // button (top-right), not a tab. On mobile "New" stays the centered action in
@@ -88,6 +89,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+
+      <AdminReviewBanner />
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-24 pt-8 md:pb-12">
         {children}

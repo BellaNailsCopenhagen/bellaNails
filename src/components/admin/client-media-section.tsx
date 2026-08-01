@@ -156,22 +156,22 @@ export function ClientMediaGallery({
       </div>
 
       {media.length ? (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <ul className="columns-2 gap-4 sm:columns-3">
           {media.map((item) => (
-            <li key={item.id} className="space-y-2">
+            <li key={item.id} className="mb-4 break-inside-avoid space-y-2">
               {item.kind === "video" ? (
                 <video
                   src={item.url}
                   controls
                   preload="metadata"
-                  className="aspect-square w-full rounded-sm border border-border object-cover"
+                  className="w-full rounded-sm border border-border"
                 />
               ) : (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={item.url}
                   alt={item.caption ?? "Client image"}
-                  className="aspect-square w-full rounded-sm border border-border object-cover"
+                  className="w-full rounded-sm border border-border"
                 />
               )}
               <div className="flex flex-wrap items-center gap-1">

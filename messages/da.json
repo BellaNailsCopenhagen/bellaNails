@@ -154,7 +154,14 @@
     "deleteBody": "Dette sletter det permanent hos Bella Nails — inklusive en kopi delt på hjemmesiden eller sociale medier. Det kan ikke fortrydes.",
     "deleteConfirm": "Fjern",
     "deleteConfirming": "Fjerner…",
-    "deleteCancel": "Behold"
+    "deleteCancel": "Behold",
+    "galleryYours": "Dine billeder",
+    "galleryFromStudio": "Fra Bella Nails",
+    "stopSharing": "Stop deling",
+    "withdrawTitle": "Stop deling af dette billede?",
+    "withdrawBody": "Det fjernes, hvor Bella Nails bruger det. Du kan tillade det igen senere.",
+    "withdrawConfirm": "Stop deling",
+    "withdrawConfirming": "Opdaterer…"
   },
   "gallery": {
     "metaTitle": "Galleri",
