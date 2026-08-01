@@ -1,9 +1,12 @@
 import type { Metadata } from "next"
+import Link from "next/link"
+import { Bell } from "lucide-react"
 
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
+import { getUnreadNotificationCount } from "@/lib/admin/notifications"
 import { groupIntoAgenda } from "@/lib/admin/agenda"
 import { AdminQueue } from "@/components/admin/admin-queue"
 
@@ -37,20 +40,33 @@ export default async function AdminQueuePage() {
 
   if (error) console.error("[admin-queue] read failed", error.message)
 
-  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
-    supabase,
-    rows ?? [],
-    "admin-queue",
-  )
+  const [{ bookings, contacts, noShowCounts }, unread] = await Promise.all([
+    resolveAdminBookings(supabase, rows ?? [], "admin-queue"),
+    getUnreadNotificationCount(),
+  ])
   const weeks = groupIntoAgenda(bookings, now)
 
   return (
-    <AdminQueue
-      weeks={weeks}
-      contacts={contacts}
-      noShowCounts={noShowCounts}
-      now={now}
-      loadError={Boolean(error)}
-    />
+    <div className="space-y-4">
+      {unread > 0 ? (
+        <Link
+          href="/admin/notifications"
+          className="flex items-center gap-2 rounded-sm border border-border bg-secondary/10 px-4 py-2.5 font-functional text-sm text-foreground transition-colors hover:bg-secondary/20"
+        >
+          <Bell className="size-4 shrink-0 text-secondary" />
+          {unread === 1 ? "1 new notification" : `${unread} new notifications`}
+          <span className="ml-auto text-xs uppercase tracking-widest-lux text-muted-foreground">
+            Review
+          </span>
+        </Link>
+      ) : null}
+      <AdminQueue
+        weeks={weeks}
+        contacts={contacts}
+        noShowCounts={noShowCounts}
+        now={now}
+        loadError={Boolean(error)}
+      />
+    </div>
   )
 }

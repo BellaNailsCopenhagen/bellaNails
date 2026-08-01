@@ -3,6 +3,7 @@ import Link from "next/link"
 import {
   ArrowUpRight,
   BarChart3,
+  Bell,
   CalendarRange,
   ChevronRight,
   ExternalLink,
@@ -12,9 +13,11 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { H2 } from "@/components/ui/typography"
+import { getUnreadNotificationCount } from "@/lib/admin/notifications"
 import { CALCOM_ORIGIN } from "@/config/calcom"
 
 export const metadata: Metadata = { title: "More" }
+export const dynamic = "force-dynamic"
 
 type MoreItem = {
   label: string
@@ -29,6 +32,12 @@ type MoreItem = {
 // The hub for everything that isn't a primary tab. Availability stays in Cal
 // (owner decision); gallery + insights are planned (Tasks 04, 10).
 const ITEMS: MoreItem[] = [
+  {
+    label: "Notifications",
+    description: "Consent withdrawals and studio alerts",
+    icon: Bell,
+    href: "/admin/notifications",
+  },
   {
     label: "Appointments",
     description: "Full history, filters, and past bookings",
@@ -56,7 +65,7 @@ const ITEMS: MoreItem[] = [
   },
 ]
 
-function ItemBody({ item }: { item: MoreItem }) {
+function ItemBody({ item, count = 0 }: { item: MoreItem; count?: number }) {
   const Icon = item.icon
   return (
     <>
@@ -75,16 +84,29 @@ function ItemBody({ item }: { item: MoreItem }) {
         <Badge variant="outline" size="xs">
           Soon
         </Badge>
-      ) : item.external ? (
-        <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" />
       ) : (
-        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        <span className="flex items-center gap-2">
+          {count > 0 ? (
+            <Badge variant="warning" size="xs">
+              {count}
+            </Badge>
+          ) : null}
+          {item.external ? (
+            <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          )}
+        </span>
       )}
     </>
   )
 }
 
-export default function AdminMorePage() {
+export default async function AdminMorePage() {
+  const unread = await getUnreadNotificationCount()
+  const countFor = (item: MoreItem) =>
+    item.href === "/admin/notifications" ? unread : 0
+
   return (
     <div className="space-y-8">
       <H2>More</H2>
@@ -94,7 +116,7 @@ export default function AdminMorePage() {
           <li key={item.label} className="border-b border-border">
             {item.soon ? (
               <div className="flex items-center justify-between gap-3 py-3 opacity-60">
-                <ItemBody item={item} />
+                <ItemBody item={item} count={countFor(item)} />
               </div>
             ) : item.external ? (
               <a
@@ -103,14 +125,14 @@ export default function AdminMorePage() {
                 rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 py-3"
               >
-                <ItemBody item={item} />
+                <ItemBody item={item} count={countFor(item)} />
               </a>
             ) : (
               <Link
                 href={item.href ?? "#"}
                 className="flex items-center justify-between gap-3 py-3"
               >
-                <ItemBody item={item} />
+                <ItemBody item={item} count={countFor(item)} />
               </Link>
             )}
           </li>

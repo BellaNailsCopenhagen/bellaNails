@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useTransition } from "react"
+import { ArrowUpRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -178,9 +179,24 @@ export function ClientMediaGallery({
                 <Badge variant="outline" size="xs">
                   {item.source === "client" ? "Client" : "Studio"}
                 </Badge>
-                <Badge variant={consentVariant(item.site)} size="xs">
-                  site: {item.site}
-                </Badge>
+                {item.site === "granted" ? (
+                  /* Published to the website — link to where it actually shows. */
+                  <a
+                    href="/gallery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex"
+                  >
+                    <Badge variant="success" size="xs" className="gap-1">
+                      site: live
+                      <ArrowUpRight className="size-3" />
+                    </Badge>
+                  </a>
+                ) : (
+                  <Badge variant={consentVariant(item.site)} size="xs">
+                    site: {item.site}
+                  </Badge>
+                )}
                 <Badge variant={consentVariant(item.some)} size="xs">
                   social: {item.some}
                 </Badge>

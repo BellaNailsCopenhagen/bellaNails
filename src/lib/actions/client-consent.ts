@@ -157,6 +157,16 @@ export async function withdrawMediaConsent(
       published_asset_id: null,
     })
     .eq("id", consent.id)
+
+  // Tell the studio: the site copy is auto-removed, but a SOCIAL post has to be
+  // taken down by hand. Degrade-safe — a missing table must not fail withdrawal.
+  await supabase.from("owner_notifications").insert({
+    kind: "media_consent_withdrawn",
+    clerk_user_id: userId,
+    client_media_id: mediaId,
+    purpose,
+  })
+
   revalidatePath(`/admin/clients/${userId}`)
   return { ok: true }
 }

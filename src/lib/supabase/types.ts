@@ -252,6 +252,36 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_notifications: {
+        Row: {
+          client_media_id: string | null
+          clerk_user_id: string
+          created_at: string
+          id: string
+          kind: string
+          purpose: string | null
+          read_at: string | null
+        }
+        Insert: {
+          client_media_id?: string | null
+          clerk_user_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          purpose?: string | null
+          read_at?: string | null
+        }
+        Update: {
+          client_media_id?: string | null
+          clerk_user_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          purpose?: string | null
+          read_at?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           cal_booking_id: number
