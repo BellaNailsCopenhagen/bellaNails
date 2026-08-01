@@ -24,6 +24,9 @@ function describe(n: OwnerNotification): string {
     const where = PURPOSE_LABEL[n.purpose ?? ""] ?? "publishing"
     return `withdrew ${where} permission for a photo`
   }
+  if (n.kind === "shared_image_deleted") {
+    return "deleted a photo they had shared"
+  }
   return "sent an update"
 }
 
@@ -74,7 +77,12 @@ export default async function AdminNotificationsPage() {
                       <span className="ml-2 inline-block size-1.5 rounded-full bg-secondary align-middle" />
                     ) : null}
                   </p>
-                  {n.purpose === "some" ? (
+                  {n.kind === "shared_image_deleted" ? (
+                    <BodySm className="text-xs text-destructive/80">
+                      Fully removed — check any showcases or social posts that
+                      used it.
+                    </BodySm>
+                  ) : n.purpose === "some" ? (
                     <BodySm className="text-xs text-destructive/80">
                       Remove it from your social posts — the website copy is
                       already gone.

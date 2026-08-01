@@ -81,10 +81,26 @@ export async function deleteOwnMedia(
     return { ok: false, error: "not_found" }
   }
 
+  // Was this image published anywhere? If so, deleting it fully erases the
+  // published copy too (and its use-cases cascade away) — so leave the studio a
+  // note to check their showcases / social posts.
+  const { count: sharedCount } = await supabase
+    .from("media_consents")
+    .select("id", { count: "exact", head: true })
+    .eq("client_media_id", mediaId)
+    .not("published_asset_id", "is", null)
+
   await purgeMediaArtifacts(mediaId)
   await supabase
     .from("client_media")
     .update({ archived_at: new Date().toISOString() })
     .eq("id", mediaId)
+
+  if (sharedCount && sharedCount > 0) {
+    await supabase.from("owner_notifications").insert({
+      kind: "shared_image_deleted",
+      clerk_user_id: userId,
+    })
+  }
   return { ok: true }
 }

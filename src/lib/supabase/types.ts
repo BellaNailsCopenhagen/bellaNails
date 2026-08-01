@@ -252,6 +252,38 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_usages: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          surface: string
+          url: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          surface: string
+          url?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          surface?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_usages_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       owner_notifications: {
         Row: {
           client_media_id: string | null

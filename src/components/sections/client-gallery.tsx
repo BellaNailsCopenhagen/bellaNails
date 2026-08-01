@@ -1,14 +1,12 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { ArrowUpRight, X } from "lucide-react"
+import { X } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { DeleteOwnMediaButton } from "@/components/sections/delete-own-media-button"
-import { Link } from "@/i18n/navigation"
 import type { ClientMediaItem, ConsentStatus } from "@/lib/media"
-import { routes } from "@/config/routes"
 
 /**
  * The client's own Gallery tab: a grid of their images/videos. Each shows
@@ -38,30 +36,9 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
     failed: t("loadError"),
   }
 
-  // Website: when shared, link to the public gallery where it actually appears
-  // (showing consent alone isn't enough — the client sees where it's used).
-  // Social posts are manual and not linked, so that badge is status-only.
-  const websiteBadge = (status: ConsentStatus) => {
-    if (status !== "granted") {
-      return (
-        <Badge variant="outline" size="xs">
-          {t("shareWebsite")}: {t("sharePrivate")}
-        </Badge>
-      )
-    }
-    return (
-      <Link href={routes.gallery} className="inline-flex">
-        <Badge variant="success" size="xs" className="gap-1">
-          {t("shareWebsite")}: {t("shareShared")}
-          <ArrowUpRight className="size-3" />
-        </Badge>
-      </Link>
-    )
-  }
-
-  const socialBadge = (status: ConsentStatus) => (
+  const shareBadge = (label: string, status: ConsentStatus) => (
     <Badge variant={status === "granted" ? "success" : "outline"} size="xs">
-      {t("shareSocial")}: {status === "granted" ? t("shareShared") : t("sharePrivate")}
+      {label}: {status === "granted" ? t("shareShared") : t("sharePrivate")}
     </Badge>
   )
 
@@ -102,8 +79,8 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
             ) : null}
           </div>
           <div className="flex flex-wrap gap-1">
-            {websiteBadge(item.site)}
-            {socialBadge(item.some)}
+            {shareBadge(t("shareWebsite"), item.site)}
+            {shareBadge(t("shareSocial"), item.some)}
           </div>
         </li>
       ))}

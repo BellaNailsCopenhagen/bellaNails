@@ -85,13 +85,10 @@ export async function decideMediaConsent(
         })
         .select("id")
         .single()
+      // A published studio copy now exists but is placed NOWHERE — it shows up
+      // in the admin Assets overview as "shared, unlinked" until the artist
+      // assigns it a use-case (asset_usages). No auto-placement.
       publishedAssetId = asset?.id ?? null
-      if (publishedAssetId && purpose === "site") {
-        await supabase.from("gallery_items").insert({
-          primary_asset_id: publishedAssetId,
-          display_mode: "single",
-        })
-      }
     } else if (published.error === "not_configured") {
       note = "Consent saved — the image will publish once storage is set up."
     } else {

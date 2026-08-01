@@ -52,6 +52,12 @@ const ITEMS: MoreItem[] = [
     external: true,
   },
   {
+    label: "Shared assets",
+    description: "Place approved client photos into use-cases",
+    icon: Images,
+    href: "/admin/assets",
+  },
+  {
     label: "Gallery & testimonials",
     description: "Curate the public gallery and reviews",
     icon: Images,
