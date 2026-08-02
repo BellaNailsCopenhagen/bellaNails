@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@clerk/nextjs/server"
 
 import { notifyOwner } from "@/lib/admin/notify"
+import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
 import { deleteObject, publishToPublic } from "@/lib/storage/scaleway"
 import type { MediaPurpose } from "@/lib/media"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -186,6 +187,7 @@ export async function withdrawMediaConsent(
 
   revalidatePath(`/admin/clients/${userId}`)
   revalidatePath("/admin/assets")
+  revalidatePublicSurfaces() // withdrawal drops any public placements
   return { ok: true }
 }
 

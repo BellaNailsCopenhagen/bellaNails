@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
-import { isAssetSurface, surfacesForPurpose } from "@/lib/asset-surfaces"
+import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
+import {
+  isAssetSurface,
+  isPublicSurface,
+  surfacesForPurpose,
+} from "@/lib/asset-surfaces"
 
 export type AssetUsageResult = { ok: true } | { ok: false; error: string }
 
@@ -43,6 +48,7 @@ export async function addAssetUsage(
   if (error) return { ok: false, error: "Couldn’t save the use-case." }
 
   revalidatePath("/admin/assets")
+  if (isPublicSurface(surface)) revalidatePublicSurfaces()
   return { ok: true }
 }
 
@@ -53,12 +59,17 @@ export async function removeAssetUsage(
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
-  const { error } = await supabase
+  // Return the removed row's surface so we only churn the public pages when the
+  // placement was one they actually render.
+  const { data, error } = await supabase
     .from("asset_usages")
     .delete()
     .eq("id", usageId)
+    .select("surface")
+    .maybeSingle()
   if (error) return { ok: false, error: "Couldn’t remove the use-case." }
 
   revalidatePath("/admin/assets")
+  if (data && isPublicSurface(data.surface)) revalidatePublicSurfaces()
   return { ok: true }
 }

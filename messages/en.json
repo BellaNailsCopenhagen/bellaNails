@@ -185,7 +185,11 @@
     "headingMuted": "Inside Bella Nails",
     "intro": "A first look inside the studio — the space where every session happens, one client at a time. The full portfolio of nail work is being curated and will live here soon.",
     "comingSoon": "The complete portfolio — sets, before & afters, and signature looks — is on its way. In the meantime, the chair is ready.",
-    "bookCta": "Book a session"
+    "bookCta": "Book a session",
+    "clientWorkEyebrow": "Client Work",
+    "clientWorkLead": "Fresh from",
+    "clientWorkAccent": "the Chair",
+    "clientWorkAlt": "Nail work by Bella Nails"
   },
   "confirmation": {
     "metaTitle": "Appointment Confirmed – Bella Nails, Ørestad, Copenhagen",
@@ -315,5 +319,11 @@
     "label": "Language",
     "da": "Dansk",
     "en": "English"
+  },
+  "showcase": {
+    "eyebrow": "Featured",
+    "headingLead": "Recent",
+    "headingAccent": "Client Work",
+    "alt": "Nail work by Bella Nails"
   }
 }

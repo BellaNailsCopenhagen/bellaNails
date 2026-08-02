@@ -30,3 +30,12 @@ export function surfacesForPurpose(purpose: string): AssetSurface[] {
 export function isAssetSurface(value: string): value is AssetSurface {
   return (ASSET_SURFACES as readonly string[]).includes(value)
 }
+
+// Surfaces the public site actually renders (home showcase + /gallery). SoMe is
+// manual social; testimonial has no public render yet. Placing on anything else
+// shouldn't churn the public pages.
+const PUBLIC_SURFACES: readonly AssetSurface[] = ["clients_gallery", "showcase"]
+
+export function isPublicSurface(value: string): boolean {
+  return (PUBLIC_SURFACES as readonly string[]).includes(value)
+}

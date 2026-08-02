@@ -185,7 +185,11 @@
     "headingMuted": "Indenfor hos Bella Nails",
     "intro": "Et første kig ind i studiet — rummet hvor hver session foregår, én kunde ad gangen. Den fulde portefølje af neglearbejde er ved at blive kurateret og kommer snart til at bo her.",
     "comingSoon": "Den komplette portefølje — sæt, før & efter og signaturlooks — er på vej. Indtil da står stolen klar.",
-    "bookCta": "Book en session"
+    "bookCta": "Book en session",
+    "clientWorkEyebrow": "Kundearbejde",
+    "clientWorkLead": "Friskt fra",
+    "clientWorkAccent": "stolen",
+    "clientWorkAlt": "Neglearbejde af Bella Nails"
   },
   "confirmation": {
     "metaTitle": "Tid bekræftet – Bella Nails, Ørestad, København",
@@ -315,5 +319,11 @@
     "label": "Sprog",
     "da": "Dansk",
     "en": "English"
+  },
+  "showcase": {
+    "eyebrow": "Fremhævet",
+    "headingLead": "Seneste",
+    "headingAccent": "kundearbejde",
+    "alt": "Neglearbejde af Bella Nails"
   }
 }
