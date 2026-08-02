@@ -9,7 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
 import { AssetUsageManager } from "@/components/admin/asset-usage-manager"
-import { requestMediaPublish } from "@/lib/actions/manage-media"
+import {
+  requestBothPublish,
+  requestMediaPublish,
+} from "@/lib/actions/manage-media"
 import { confirmTakedown, setMediaDismissed } from "@/lib/actions/manage-assets"
 import type { HubAsset, HubState } from "@/lib/admin/asset-hub"
 import type { MediaPurpose } from "@/lib/media"
@@ -98,6 +101,19 @@ export function HubAssetCard({
           <BodySm className="text-xs">
             {clientName} · {asset.source === "client" ? "client upload" : "studio"}
           </BodySm>
+
+          {canRequest(asset.consents.site?.status) &&
+          canRequest(asset.consents.some?.status) ? (
+            <Button
+              size="sm"
+              disabled={pending}
+              onClick={() =>
+                run(() => requestBothPublish(asset.mediaId, asset.clerkUserId))
+              }
+            >
+              Request website &amp; social
+            </Button>
+          ) : null}
 
           {PURPOSES.map(({ key, label, request }) => {
             const consent = asset.consents[key]

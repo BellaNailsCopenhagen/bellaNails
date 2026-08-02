@@ -91,8 +91,27 @@ export async function setFeatureMedia(
   return { ok: true }
 }
 
-/** Ask the client to consent to publishing an image for a purpose. Resets a
-    previously declined/withdrawn request back to `requested`. */
+// A fresh "requested" consent row — resets any prior declined/withdrawn state.
+function requestedConsentRow(
+  mediaId: string,
+  clerkUserId: string,
+  purpose: MediaPurpose,
+) {
+  return {
+    client_media_id: mediaId,
+    clerk_user_id: clerkUserId,
+    purpose,
+    status: "requested",
+    requested_at: new Date().toISOString(),
+    granted_at: null,
+    declined_at: null,
+    withdrawn_at: null,
+    needs_takedown_at: null,
+    published_asset_id: null,
+  }
+}
+
+/** Ask the client to consent to publishing an image for a purpose. */
 export async function requestMediaPublish(
   mediaId: string,
   clerkUserId: string,
@@ -101,18 +120,31 @@ export async function requestMediaPublish(
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
+  const { error } = await supabase
+    .from("media_consents")
+    .upsert(requestedConsentRow(mediaId, clerkUserId, purpose), {
+      onConflict: "client_media_id,purpose",
+    })
+  if (error) return { ok: false, error: "Couldn’t request consent." }
+
+  revalidatePath(`/admin/clients/${clerkUserId}`)
+  return { ok: true }
+}
+
+/** Request BOTH website + social in one go (from the hub's New tab, so the card
+    doesn't jump to Awaiting after only one purpose). */
+export async function requestBothPublish(
+  mediaId: string,
+  clerkUserId: string,
+): Promise<MediaActionResult> {
+  const supabase = await requireOwner()
+  if (!supabase) return { ok: false, error: "unauthorized" }
+
   const { error } = await supabase.from("media_consents").upsert(
-    {
-      client_media_id: mediaId,
-      clerk_user_id: clerkUserId,
-      purpose,
-      status: "requested",
-      requested_at: new Date().toISOString(),
-      granted_at: null,
-      declined_at: null,
-      withdrawn_at: null,
-      published_asset_id: null,
-    },
+    [
+      requestedConsentRow(mediaId, clerkUserId, "site"),
+      requestedConsentRow(mediaId, clerkUserId, "some"),
+    ],
     { onConflict: "client_media_id,purpose" },
   )
   if (error) return { ok: false, error: "Couldn’t request consent." }
