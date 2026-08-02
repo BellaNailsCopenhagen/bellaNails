@@ -23,6 +23,11 @@ export type ConfirmLabels = {
   failed: string
 }
 
+// Small red "only touch if you mean to" pill — the shared trigger style for the
+// destructive withdraw / delete actions this button guards.
+export const withdrawPill =
+  "self-start rounded-full border border-destructive/40 px-2.5 py-1 font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/80 transition-colors hover:border-destructive hover:text-destructive"
+
 /**
  * Confirm-then-run for a destructive client action (delete, withdraw sharing).
  * The caller supplies the styled trigger, the labels (for localization), and

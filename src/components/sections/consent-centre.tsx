@@ -1,14 +1,15 @@
 "use client"
 
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import { ConfirmActionButton } from "@/components/sections/confirm-action-button"
+import {
+  ConfirmActionButton,
+  withdrawPill,
+} from "@/components/sections/confirm-action-button"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import type {
   ClientMediaItem,
   DataConsentItem,
@@ -18,12 +19,7 @@ import {
   decideDataConsent,
   decideMediaConsent,
   withdrawDataConsent,
-  withdrawMediaConsent,
 } from "@/lib/actions/client-consent"
-
-// Small red "only touch if you mean to" pill for the destructive withdraw.
-const withdrawPill =
-  "self-start rounded-full border border-destructive/40 px-2.5 py-1 font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/80 transition-colors hover:border-destructive hover:text-destructive"
 
 const PURPOSE_TEXT: Record<MediaPurpose, string> = {
   site: "our website",
@@ -51,16 +47,16 @@ export function ConsentCentre({
   media: ClientMediaItem[]
   dataConsents: DataConsentItem[]
 }) {
-  const [pending, startTransition] = useTransition()
-  const router = useRouter()
   const t = useTranslations("bookings")
+  const { pending, run: act } = useActionRunner("Something went wrong. Try again.")
 
-  // Flatten media into per-purpose requests the client can act on.
+  // Only photos still AWAITING a decision live here — once granted, the client
+  // manages sharing from the photo itself in the Gallery (a quieter, more
+  // considered place for withdrawal). Requests stays a clean to-decide inbox.
   const requests: MediaRequest[] = []
   for (const item of media) {
     for (const purpose of ["site", "some"] as MediaPurpose[]) {
-      const status = item[purpose]
-      if (status === "requested" || status === "granted") {
+      if (item[purpose] === "requested") {
         requests.push({ media: item, purpose })
       }
     }
@@ -70,17 +66,6 @@ export function ConsentCentre({
   )
 
   if (!requests.length && !dataRequests.length) return null
-
-  const act = (fn: () => Promise<{ ok: boolean; note?: string; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) {
-        toast.error("Something went wrong. Try again.")
-        return
-      }
-      if (result.note) toast.success(result.note)
-      router.refresh()
-    })
 
   return (
     <section className="space-y-4">
@@ -108,60 +93,28 @@ export function ConsentCentre({
               <p className="font-functional text-sm text-foreground">
                 Share this photo on {PURPOSE_TEXT[purpose]}?
               </p>
-              {item[purpose] === "granted" ? (
-                <p className="font-functional text-xs text-success">
-                  Shared — thank you
-                </p>
-              ) : null}
             </div>
-            {item[purpose] === "granted" ? (
-              <ConfirmActionButton
-                action={() => withdrawMediaConsent(item.id, purpose)}
-                labels={{
-                  title:
-                    purpose === "site"
-                      ? t("withdrawSiteTitle")
-                      : t("withdrawSomeTitle"),
-                  body:
-                    purpose === "site"
-                      ? t("withdrawSiteBody")
-                      : t("withdrawSomeBody"),
-                  confirm: t("withdrawConfirm"),
-                  confirming: t("withdrawConfirming"),
-                  cancel: t("deleteCancel"),
-                  failed: t("loadError"),
-                }}
-                trigger={
-                  <button type="button" className={withdrawPill}>
-                    {purpose === "site"
-                      ? t("removeFromWebsite")
-                      : t("removeFromSocial")}
-                  </button>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={pending}
+                onClick={() =>
+                  act(() => decideMediaConsent(item.id, purpose, "declined"))
                 }
-              />
-            ) : (
-              <div className="flex shrink-0 gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    act(() => decideMediaConsent(item.id, purpose, "declined"))
-                  }
-                >
-                  No
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    act(() => decideMediaConsent(item.id, purpose, "granted"))
-                  }
-                >
-                  Allow
-                </Button>
-              </div>
-            )}
+              >
+                No
+              </Button>
+              <Button
+                size="sm"
+                disabled={pending}
+                onClick={() =>
+                  act(() => decideMediaConsent(item.id, purpose, "granted"))
+                }
+              >
+                Allow
+              </Button>
+            </div>
           </TintedCard>
         ))}
 

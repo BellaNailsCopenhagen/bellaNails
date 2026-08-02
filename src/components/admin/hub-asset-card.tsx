@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { useState } from "react"
 
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,16 +44,8 @@ export function HubAssetCard({
   asset: HubAsset
   clientName: string
 }) {
-  const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [pending, startTransition] = useTransition()
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (result.ok) router.refresh()
-      else toast.error(result.error || "Something went wrong.")
-    })
+  const { pending, run } = useActionRunner()
 
   return (
     <li
