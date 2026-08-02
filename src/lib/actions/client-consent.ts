@@ -129,35 +129,54 @@ export async function withdrawMediaConsent(
     return { ok: false, error: "not_found" }
   }
 
-  // Unpublish: delete the gallery item, the public copy row, and the stored
-  // file. The private original in client_media is untouched.
-  if (consent.published_asset_id) {
-    const { data: asset } = await supabase
-      .from("assets")
-      .select("storage_key")
-      .eq("id", consent.published_asset_id)
-      .maybeSingle()
-    await supabase
-      .from("gallery_items")
-      .delete()
-      .eq("primary_asset_id", consent.published_asset_id)
-    await supabase.from("assets").delete().eq("id", consent.published_asset_id)
-    if (asset?.storage_key) {
-      await deleteObject(asset.storage_key)
-    }
+  const now = new Date().toISOString()
+
+  // Is the published copy live on a MANUAL surface (social)? We can't take the
+  // post down for them, so keep the copy + flag it for takedown ("Used &
+  // withdrawn" in the hub); the artist erases it once the post is removed.
+  const assetId = consent.published_asset_id
+  let hasManualUse = false
+  if (assetId) {
+    const { data: usages } = await supabase
+      .from("asset_usages")
+      .select("surface")
+      .eq("asset_id", assetId)
+    hasManualUse = (usages ?? []).some((u) => u.surface === "some")
   }
 
-  await supabase
-    .from("media_consents")
-    .update({
-      status: "withdrawn",
-      withdrawn_at: new Date().toISOString(),
-      published_asset_id: null,
-    })
-    .eq("id", consent.id)
+  if (assetId && hasManualUse) {
+    // Keep the asset + its social usage; drop any auto (site) placements.
+    await supabase
+      .from("asset_usages")
+      .delete()
+      .eq("asset_id", assetId)
+      .neq("surface", "some")
+    await supabase
+      .from("media_consents")
+      .update({ status: "withdrawn", withdrawn_at: now, needs_takedown_at: now })
+      .eq("id", consent.id)
+  } else {
+    // Nothing manual to take down — fully unpublish now (asset delete cascades
+    // its placements; the private original in client_media is untouched).
+    if (assetId) {
+      const { data: asset } = await supabase
+        .from("assets")
+        .select("storage_key")
+        .eq("id", assetId)
+        .maybeSingle()
+      await supabase
+        .from("gallery_items")
+        .delete()
+        .eq("primary_asset_id", assetId)
+      await supabase.from("assets").delete().eq("id", assetId)
+      if (asset?.storage_key) await deleteObject(asset.storage_key)
+    }
+    await supabase
+      .from("media_consents")
+      .update({ status: "withdrawn", withdrawn_at: now, published_asset_id: null })
+      .eq("id", consent.id)
+  }
 
-  // Tell the studio: the site copy is auto-removed, but a SOCIAL post has to be
-  // taken down by hand.
   await notifyOwner(supabase, {
     kind: "media_consent_withdrawn",
     clerkUserId: userId,
@@ -166,6 +185,7 @@ export async function withdrawMediaConsent(
   })
 
   revalidatePath(`/admin/clients/${userId}`)
+  revalidatePath("/admin/assets")
   return { ok: true }
 }
 

@@ -13,7 +13,8 @@ import {
   removeAssetUsage,
 } from "@/lib/actions/manage-asset-usages"
 import { SURFACE_LABELS, surfacesForPurpose } from "@/lib/asset-surfaces"
-import type { AssetUsage } from "@/lib/admin/assets"
+
+export type AssetUsage = { id: string; surface: string; url: string | null }
 
 /**
  * Assign a shared asset to use-cases. Only surfaces the consent covers are

@@ -195,14 +195,14 @@ export function QueueBookingCard({
         </div>
       </div>
 
-      {/* Attached media — tap a thumbnail to open the client's gallery there. */}
-      {photos.length && clientHref ? (
+      {/* Attached media — tap a thumbnail to open it in the Assets hub. */}
+      {photos.length ? (
         <div className="flex flex-wrap gap-1.5">
           {photos.slice(0, 6).map((photo) => (
             <Link
               key={photo.id}
-              href={`${clientHref}?tab=gallery#media-${photo.id}`}
-              aria-label="Open in gallery"
+              href={`/admin/assets?highlight=${photo.id}`}
+              aria-label="Open in assets"
               className="block shrink-0"
             >
               {photo.kind === "video" ? (

@@ -157,11 +157,14 @@
     "deleteCancel": "Behold",
     "galleryYours": "Dine billeder",
     "galleryFromStudio": "Fra Bella Nails",
-    "stopSharing": "Stop deling",
-    "withdrawTitle": "Stop deling af dette billede?",
-    "withdrawBody": "Det fjernes, hvor Bella Nails bruger det. Du kan tillade det igen senere.",
-    "withdrawConfirm": "Stop deling",
-    "withdrawConfirming": "Opdaterer…"
+    "withdrawConfirm": "Fjern",
+    "withdrawConfirming": "Opdaterer…",
+    "removeFromWebsite": "Fjern fra hjemmeside",
+    "removeFromSocial": "Fjern fra social",
+    "withdrawSiteTitle": "Fjern fra vores hjemmeside?",
+    "withdrawSiteBody": "Dit billede fjernes fra vores hjemmeside automatisk med det samme. Det deles ikke andre steder herfra og bliver i dit eget galleri. Du kan tillade det igen når som helst.",
+    "withdrawSomeTitle": "Fjern fra vores sociale medier?",
+    "withdrawSomeBody": "Vi fjerner dit billede fra vores opslag manuelt — normalt inden for få dage. Det bliver i dit eget galleri, og du kan tillade det igen når som helst."
   },
   "gallery": {
     "metaTitle": "Galleri",

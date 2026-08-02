@@ -15,8 +15,9 @@ import type {
   MediaPurpose,
 } from "@/lib/media"
 
-const stopLink =
-  "font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-destructive"
+// Small red "only touch if you mean to" pill for the destructive withdraw.
+const withdrawPill =
+  "self-start rounded-full border border-destructive/40 px-2 py-0.5 font-functional text-[0.5625rem] uppercase tracking-widest-lux text-destructive/80 transition-colors hover:border-destructive hover:text-destructive"
 
 /**
  * The client's Gallery tab, split into "Your photos" and "From Bella Nails"
@@ -45,15 +46,6 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
     cancel: t("deleteCancel"),
     failed: t("loadError"),
   }
-  const withdrawLabels = {
-    title: t("withdrawTitle"),
-    body: t("withdrawBody"),
-    confirm: t("withdrawConfirm"),
-    confirming: t("withdrawConfirming"),
-    cancel: t("deleteCancel"),
-    failed: t("loadError"),
-  }
-
   const shareCell = (
     label: string,
     purpose: MediaPurpose,
@@ -61,16 +53,25 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
     mediaId: string,
   ) =>
     status === "granted" ? (
-      <span className="inline-flex items-center gap-2">
+      <span className="inline-flex flex-wrap items-center gap-2">
         <Badge variant="success" size="xs">
           {label}: {t("shareShared")}
         </Badge>
         <ConfirmActionButton
           action={() => withdrawMediaConsent(mediaId, purpose)}
-          labels={withdrawLabels}
+          labels={{
+            title: purpose === "site" ? t("withdrawSiteTitle") : t("withdrawSomeTitle"),
+            body: purpose === "site" ? t("withdrawSiteBody") : t("withdrawSomeBody"),
+            confirm: t("withdrawConfirm"),
+            confirming: t("withdrawConfirming"),
+            cancel: t("deleteCancel"),
+            failed: t("loadError"),
+          }}
           trigger={
-            <button type="button" className={stopLink}>
-              {t("stopSharing")}
+            <button type="button" className={withdrawPill}>
+              {purpose === "site"
+                ? t("removeFromWebsite")
+                : t("removeFromSocial")}
             </button>
           }
         />

@@ -167,6 +167,7 @@ export type Database = {
           clerk_user_id: string
           cloudinary_public_id: string | null
           created_at: string
+          dismissed_at: string | null
           id: string
           in_gallery: boolean
           is_feature: boolean
@@ -184,6 +185,7 @@ export type Database = {
           clerk_user_id: string
           cloudinary_public_id?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           in_gallery?: boolean
           is_feature?: boolean
@@ -201,6 +203,7 @@ export type Database = {
           clerk_user_id?: string
           cloudinary_public_id?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           in_gallery?: boolean
           is_feature?: boolean
@@ -220,6 +223,7 @@ export type Database = {
           declined_at: string | null
           granted_at: string | null
           id: string
+          needs_takedown_at: string | null
           published_asset_id: string | null
           purpose: string
           requested_at: string
@@ -232,6 +236,7 @@ export type Database = {
           declined_at?: string | null
           granted_at?: string | null
           id?: string
+          needs_takedown_at?: string | null
           published_asset_id?: string | null
           purpose: string
           requested_at?: string
@@ -241,6 +246,7 @@ export type Database = {
         Update: {
           client_media_id?: string
           clerk_user_id?: string
+          needs_takedown_at?: string | null
           declined_at?: string | null
           granted_at?: string | null
           id?: string

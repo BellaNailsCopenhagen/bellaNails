@@ -157,11 +157,14 @@
     "deleteCancel": "Keep it",
     "galleryYours": "Your photos",
     "galleryFromStudio": "From Bella Nails",
-    "stopSharing": "Stop sharing",
-    "withdrawTitle": "Stop sharing this photo?",
-    "withdrawBody": "It will be removed from where Bella Nails uses it. You can allow it again later.",
-    "withdrawConfirm": "Stop sharing",
-    "withdrawConfirming": "Updating…"
+    "withdrawConfirm": "Remove it",
+    "withdrawConfirming": "Updating…",
+    "removeFromWebsite": "Remove from website",
+    "removeFromSocial": "Remove from social",
+    "withdrawSiteTitle": "Remove from our website?",
+    "withdrawSiteBody": "Your photo comes off our website automatically, right away. It isn't shared anywhere else from here and stays in your own gallery. You can allow it again anytime.",
+    "withdrawSomeTitle": "Remove from our social?",
+    "withdrawSomeBody": "We take your photo down from our social posts by hand — usually within a few days. It stays in your own gallery, and you can allow it again anytime."
   },
   "gallery": {
     "metaTitle": "Gallery",

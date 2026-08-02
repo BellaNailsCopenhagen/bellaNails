@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -13,13 +13,10 @@ import type {
   ClientMediaItem,
   ConsentStatus,
   DataConsentItem,
-  MediaPurpose,
 } from "@/lib/media"
 import {
   addClientMedia,
-  archiveClientMedia,
   requestDataConsent,
-  requestMediaPublish,
 } from "@/lib/actions/manage-media"
 
 const subLabel =
@@ -56,32 +53,10 @@ export function ClientMediaGallery({
   /** Pre-selected booking (ongoing, else most recent ended). Empty = none. */
   defaultBookingId?: string | null
 }) {
-  const [pending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
   const [caption, setCaption] = useState("")
   const [bookingId, setBookingId] = useState(defaultBookingId ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
-
-  // Deep-link from a booking card: scroll to (and briefly highlight) the image.
-  useEffect(() => {
-    const hash = window.location.hash
-    if (!hash.startsWith("#media-")) return
-    const el = document.getElementById(hash.slice(1))
-    if (!el) return
-    el.scrollIntoView({ behavior: "smooth", block: "center" })
-    el.classList.add("ring-2", "ring-foreground", "ring-offset-2")
-    const timer = setTimeout(
-      () => el.classList.remove("ring-2", "ring-foreground", "ring-offset-2"),
-      2200,
-    )
-    return () => clearTimeout(timer)
-  }, [])
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) toast.error(result.error || "Something went wrong.")
-    })
 
   // Owner upload: images or a demo video, no crop (decision 9).
   const onFile = async (files: FileList | null) => {
@@ -120,9 +95,6 @@ export function ClientMediaGallery({
       if (inputRef.current) inputRef.current.value = ""
     }
   }
-
-  const request = (mediaId: string, purpose: MediaPurpose) =>
-    run(() => requestMediaPublish(mediaId, clerkUserId, purpose))
 
   return (
     <section className="space-y-4">
@@ -173,11 +145,7 @@ export function ClientMediaGallery({
       {media.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
           {media.map((item) => (
-            <li
-              key={item.id}
-              id={`media-${item.id}`}
-              className="mb-4 break-inside-avoid space-y-2 rounded-sm transition-shadow"
-            >
+            <li key={item.id} className="mb-4 break-inside-avoid space-y-2">
               {item.kind === "video" ? (
                 <video
                   src={item.url}
@@ -203,38 +171,6 @@ export function ClientMediaGallery({
                 <Badge variant={consentVariant(item.some)} size="xs">
                   social: {item.some}
                 </Badge>
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1">
-                {canRequest(item.site) ? (
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => request(item.id, "site")}
-                    className={`${subLabel} hover:text-foreground`}
-                  >
-                    Request site
-                  </button>
-                ) : null}
-                {canRequest(item.some) ? (
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => request(item.id, "some")}
-                    className={`${subLabel} hover:text-foreground`}
-                  >
-                    Request social
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => archiveClientMedia(item.id, clerkUserId))
-                  }
-                  className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/70 transition-colors hover:text-destructive"
-                >
-                  Remove
-                </button>
               </div>
             </li>
           ))}

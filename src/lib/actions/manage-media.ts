@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
-import { purgeMediaArtifacts } from "@/lib/media-erasure"
 import type { MediaPurpose } from "@/lib/media"
 import { objectUrl } from "@/lib/storage/scaleway"
 
@@ -66,25 +65,6 @@ export async function addClientMedia(input: {
 
   revalidatePath(`/admin/clients/${input.clerkUserId}`)
   if (serviceId) revalidatePath(`/admin/services/${serviceId}`)
-  return { ok: true }
-}
-
-export async function archiveClientMedia(
-  id: string,
-  clerkUserId: string,
-): Promise<MediaActionResult> {
-  const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-
-  // Real erasure: destroy the stored files, then archive the row.
-  await purgeMediaArtifacts(id)
-  const { error } = await supabase
-    .from("client_media")
-    .update({ archived_at: new Date().toISOString() })
-    .eq("id", id)
-  if (error) return { ok: false, error: "Couldn’t remove the image." }
-
-  revalidatePath(`/admin/clients/${clerkUserId}`)
   return { ok: true }
 }
 

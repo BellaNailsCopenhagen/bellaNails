@@ -2,28 +2,53 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { EmptyState } from "@/components/ui/empty-state"
-import { AssetUsageManager } from "@/components/admin/asset-usage-manager"
-import { getSharedAssets } from "@/lib/admin/assets"
+import { AssetHubTabs } from "@/components/admin/asset-hub-tabs"
+import { getHubAssets, type HubState } from "@/lib/admin/asset-hub"
 import { fetchClientContacts } from "@/lib/clerk/client-contacts"
 import { contactDisplayName } from "@/lib/clerk/contact"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
-import { ADMIN_LOCALE } from "@/config/admin"
 
 export const metadata: Metadata = { title: "Assets" }
 export const dynamic = "force-dynamic"
 
+const STATES: HubState[] = [
+  "new",
+  "awaiting",
+  "unlinked",
+  "in_use",
+  "takedown",
+  "declined",
+  "withdrawn",
+  "dismissed",
+]
+
 /**
- * Shared-asset overview — every image a client has approved for publishing,
- * newest first. Each is "unlinked" until the artist places it on a use-case
- * (clients gallery, showcase, social). Owner-gated by the proxy.
+ * The asset hub — every client image across all clients, tabbed by state. The
+ * single place the artist manages consent + placement; the per-client gallery
+ * is just an overview. Owner-gated by the proxy.
  */
-export default async function AdminAssetsPage() {
-  const assets = await getSharedAssets()
+export default async function AdminAssetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; highlight?: string }>
+}) {
+  const { tab, highlight } = await searchParams
+  const assets = await getHubAssets()
+
   const ids = [...new Set(assets.map((a) => a.clerkUserId))]
   const contacts = ids.length ? await fetchClientContacts(ids) : {}
+  const clientNames: Record<string, string> = {}
+  for (const id of ids) clientNames[id] = contactDisplayName(contacts[id])
+
+  // Deep-link from a booking card lands on the highlighted asset's own tab.
+  const highlighted = highlight
+    ? assets.find((a) => a.mediaId === highlight)
+    : undefined
+  const defaultTab: HubState = highlighted
+    ? highlighted.state
+    : STATES.includes(tab as HubState)
+      ? (tab as HubState)
+      : "new"
 
   return (
     <div className="space-y-6">
@@ -37,63 +62,19 @@ export default async function AdminAssetsPage() {
 
       <div className="space-y-1">
         <Eyebrow>Studio</Eyebrow>
-        <H2>Shared assets</H2>
+        <H2>Assets</H2>
         <BodySm className="text-xs">
-          Images clients have approved for publishing. Place each where you want
-          it used — nothing is published until you do.
+          Every client photo, across all clients. Tap one to manage consent and
+          where it&rsquo;s used.
         </BodySm>
       </div>
 
-      {assets.length ? (
-        <ul className="space-y-6">
-          {assets.map((asset) => (
-            <li
-              key={asset.assetId}
-              className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={asset.url}
-                alt="Shared asset"
-                className="h-auto w-full shrink-0 rounded-sm border border-border object-contain sm:w-28"
-              />
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-functional text-sm font-medium text-foreground">
-                    {contactDisplayName(contacts[asset.clerkUserId])}
-                  </span>
-                  <Badge variant="outline" size="xs">
-                    {asset.purpose === "some" ? "social" : "website"}
-                  </Badge>
-                  {asset.usages.length === 0 ? (
-                    <Badge variant="warning" size="xs">
-                      unlinked
-                    </Badge>
-                  ) : null}
-                  {asset.grantedAt ? (
-                    <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-                      {formatStudioDayMonthYear(
-                        new Date(asset.grantedAt).getTime(),
-                        ADMIN_LOCALE,
-                      )}
-                    </span>
-                  ) : null}
-                </div>
-                <AssetUsageManager
-                  assetId={asset.assetId}
-                  purpose={asset.purpose}
-                  usages={asset.usages}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <EmptyState
-          title="No shared assets yet"
-          body="When a client approves a photo for publishing, it appears here to place."
-        />
-      )}
+      <AssetHubTabs
+        assets={assets}
+        clientNames={clientNames}
+        defaultTab={defaultTab}
+        highlight={highlight ?? null}
+      />
     </div>
   )
 }
