@@ -2,11 +2,13 @@
 
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
+import { ConfirmActionButton } from "@/components/sections/confirm-action-button"
 import type {
   ClientMediaItem,
   DataConsentItem,
@@ -18,6 +20,10 @@ import {
   withdrawDataConsent,
   withdrawMediaConsent,
 } from "@/lib/actions/client-consent"
+
+// Small red "only touch if you mean to" pill for the destructive withdraw.
+const withdrawPill =
+  "self-start rounded-full border border-destructive/40 px-2.5 py-1 font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/80 transition-colors hover:border-destructive hover:text-destructive"
 
 const PURPOSE_TEXT: Record<MediaPurpose, string> = {
   site: "our website",
@@ -47,6 +53,7 @@ export function ConsentCentre({
 }) {
   const [pending, startTransition] = useTransition()
   const router = useRouter()
+  const t = useTranslations("bookings")
 
   // Flatten media into per-purpose requests the client can act on.
   const requests: MediaRequest[] = []
@@ -108,14 +115,30 @@ export function ConsentCentre({
               ) : null}
             </div>
             {item[purpose] === "granted" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() => act(() => withdrawMediaConsent(item.id, purpose))}
-              >
-                Withdraw
-              </Button>
+              <ConfirmActionButton
+                action={() => withdrawMediaConsent(item.id, purpose)}
+                labels={{
+                  title:
+                    purpose === "site"
+                      ? t("withdrawSiteTitle")
+                      : t("withdrawSomeTitle"),
+                  body:
+                    purpose === "site"
+                      ? t("withdrawSiteBody")
+                      : t("withdrawSomeBody"),
+                  confirm: t("withdrawConfirm"),
+                  confirming: t("withdrawConfirming"),
+                  cancel: t("deleteCancel"),
+                  failed: t("loadError"),
+                }}
+                trigger={
+                  <button type="button" className={withdrawPill}>
+                    {purpose === "site"
+                      ? t("removeFromWebsite")
+                      : t("removeFromSocial")}
+                  </button>
+                }
+              />
             ) : (
               <div className="flex shrink-0 gap-2">
                 <Button
@@ -156,20 +179,26 @@ export function ConsentCentre({
               ) : null}
             </div>
             {consent.status === "granted" ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  act(() =>
-                    withdrawDataConsent(
-                      consent.purpose as Parameters<typeof withdrawDataConsent>[0],
-                    ),
+              <ConfirmActionButton
+                action={() =>
+                  withdrawDataConsent(
+                    consent.purpose as Parameters<typeof withdrawDataConsent>[0],
                   )
                 }
-              >
-                Withdraw
-              </Button>
+                labels={{
+                  title: t("withdrawDataTitle"),
+                  body: t("withdrawDataBody"),
+                  confirm: t("withdrawConfirm"),
+                  confirming: t("withdrawConfirming"),
+                  cancel: t("deleteCancel"),
+                  failed: t("loadError"),
+                }}
+                trigger={
+                  <button type="button" className={withdrawPill}>
+                    {t("stopUsingCta")}
+                  </button>
+                }
+              />
             ) : (
               <div className="flex shrink-0 gap-2">
                 <Button

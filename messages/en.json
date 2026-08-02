@@ -164,7 +164,10 @@
     "withdrawSiteTitle": "Take your photo off our website?",
     "withdrawSiteBody": "We really love this photo of your set — honestly, we'd love to keep showing it off, and we hope you feel the same. But it's completely your call. Remove it and it comes off our website automatically, right away. It always stays in your own gallery, and you're welcome to share it with us again anytime.",
     "withdrawSomeTitle": "Take your photo off our social?",
-    "withdrawSomeBody": "We really love this photo of your set — honestly, we'd love to keep sharing it, and we hope you feel the same. But it's completely your call. Remove it and we'll take it down from our social posts by hand, usually within a few days. It always stays in your own gallery, and you can share it with us again whenever you like."
+    "withdrawSomeBody": "We really love this photo of your set — honestly, we'd love to keep sharing it, and we hope you feel the same. But it's completely your call. Remove it and we'll take it down from our social posts by hand, usually within a few days. It always stays in your own gallery, and you can share it with us again whenever you like.",
+    "stopUsingCta": "Stop using",
+    "withdrawDataTitle": "Ask us to stop using this?",
+    "withdrawDataBody": "We'll stop using it. Our website updates right away; anything on social we take down by hand, usually within a few days. You can allow it again whenever you like."
   },
   "gallery": {
     "metaTitle": "Gallery",
