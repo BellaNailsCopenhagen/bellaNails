@@ -40,6 +40,7 @@ export function QueueBookingCard({
   actionable = true,
   noShowEligible = false,
   now,
+  photos = [],
   as = "li",
 }: {
   booking: DisplayBooking
@@ -50,6 +51,8 @@ export function QueueBookingCard({
   noShowEligible?: boolean
   /** Request-time clock. When given, reveals "Add media" ≥30min before start. */
   now?: number
+  /** Attached media thumbnails — tap to open the gallery at that image. */
+  photos?: { id: string; url: string; kind: string }[]
   as?: React.ElementType
 }) {
   const { row } = booking
@@ -191,6 +194,33 @@ export function QueueBookingCard({
           ) : null}
         </div>
       </div>
+
+      {/* Attached media — tap a thumbnail to open the client's gallery there. */}
+      {photos.length && clientHref ? (
+        <div className="flex flex-wrap gap-1.5">
+          {photos.slice(0, 6).map((photo) => (
+            <Link
+              key={photo.id}
+              href={`${clientHref}?tab=gallery#media-${photo.id}`}
+              aria-label="Open in gallery"
+              className="block shrink-0"
+            >
+              {photo.kind === "video" ? (
+                <span className="flex size-12 items-center justify-center rounded-sm border border-border bg-muted font-functional text-xs text-muted-foreground">
+                  ▶
+                </span>
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={photo.url}
+                  alt=""
+                  className="size-12 rounded-sm border border-border object-cover"
+                />
+              )}
+            </Link>
+          ))}
+        </div>
+      ) : null}
 
       {/* Card actions — the destructive one (Cancel or No-show, never both) sits
           left; Reschedule/Rebook is the primary action, kept right. Contact

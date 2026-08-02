@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -61,6 +61,21 @@ export function ClientMediaGallery({
   const [caption, setCaption] = useState("")
   const [bookingId, setBookingId] = useState(defaultBookingId ?? "")
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Deep-link from a booking card: scroll to (and briefly highlight) the image.
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith("#media-")) return
+    const el = document.getElementById(hash.slice(1))
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "center" })
+    el.classList.add("ring-2", "ring-foreground", "ring-offset-2")
+    const timer = setTimeout(
+      () => el.classList.remove("ring-2", "ring-foreground", "ring-offset-2"),
+      2200,
+    )
+    return () => clearTimeout(timer)
+  }, [])
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     startTransition(async () => {
@@ -158,7 +173,11 @@ export function ClientMediaGallery({
       {media.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
           {media.map((item) => (
-            <li key={item.id} className="mb-4 break-inside-avoid space-y-2">
+            <li
+              key={item.id}
+              id={`media-${item.id}`}
+              className="mb-4 break-inside-avoid space-y-2 rounded-sm transition-shadow"
+            >
               {item.kind === "video" ? (
                 <video
                   src={item.url}

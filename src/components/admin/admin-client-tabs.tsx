@@ -14,12 +14,14 @@ export function AdminClientTabs({
   appointment,
   gallery,
   galleryCount,
+  defaultTab = "appointment",
 }: {
   appointment: ReactNode
   gallery: ReactNode
   galleryCount: number
+  defaultTab?: AdminClientTabKey
 }) {
-  const [tab, setTab] = useState<AdminClientTabKey>("appointment")
+  const [tab, setTab] = useState<AdminClientTabKey>(defaultTab)
 
   return (
     <div className="space-y-6">

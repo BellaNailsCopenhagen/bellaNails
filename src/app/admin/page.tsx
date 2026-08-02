@@ -4,6 +4,7 @@ import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
+import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 import { groupIntoAgenda } from "@/lib/admin/agenda"
 import { AdminQueue } from "@/components/admin/admin-queue"
 
@@ -37,11 +38,14 @@ export default async function AdminQueuePage() {
 
   if (error) console.error("[admin-queue] read failed", error.message)
 
-  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
-    supabase,
-    rows ?? [],
-    "admin-queue",
-  )
+  const [{ bookings, contacts, noShowCounts }, photosByBooking] =
+    await Promise.all([
+      resolveAdminBookings(supabase, rows ?? [], "admin-queue"),
+      getBookingMediaThumbs(
+        supabase,
+        (rows ?? []).map((r) => r.id),
+      ),
+    ])
   const weeks = groupIntoAgenda(bookings, now)
 
   return (
@@ -50,6 +54,7 @@ export default async function AdminQueuePage() {
       contacts={contacts}
       noShowCounts={noShowCounts}
       now={now}
+      photosByBooking={photosByBooking}
       loadError={Boolean(error)}
     />
   )

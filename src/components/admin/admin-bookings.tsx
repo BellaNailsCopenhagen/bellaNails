@@ -159,11 +159,13 @@ export function AdminBookings({
   contacts,
   noShowCounts,
   now,
+  photosByBooking = {},
 }: {
   bookings: DisplayBooking[]
   contacts: Record<string, ClientContact>
   noShowCounts: Record<string, number>
   now: number
+  photosByBooking?: Record<string, { id: string; url: string; kind: string }[]>
 }) {
   const [mode, setMode] = useState<ViewMode>("all")
   const [states, setStates] = useState<Set<BookingState>>(
@@ -254,6 +256,7 @@ export function AdminBookings({
                         clientNoShowCount={noShowCounts[booking.row.clerk_user_id]}
                         upcoming={endMs(booking) >= now}
                         now={now}
+                        photos={photosByBooking[booking.row.id]}
                       />
                     ))}
                   </ul>

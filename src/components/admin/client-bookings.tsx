@@ -51,11 +51,13 @@ export function ClientBookings({
   contact,
   clientNoShowCount,
   now,
+  photosByBooking = {},
 }: {
   bookings: DisplayBooking[]
   contact?: ClientContact
   clientNoShowCount?: number
   now: number
+  photosByBooking?: Record<string, { id: string; url: string; kind: string }[]>
 }) {
   const [selected, setSelected] = useState<Set<BookingState>>(
     () => new Set(ALL_BOOKING_STATES),
@@ -127,6 +129,7 @@ export function ClientBookings({
             clientNoShowCount={clientNoShowCount}
             noShowEligible={canMarkNoShow(next.row, now)}
             now={now}
+            photos={photosByBooking[next.row.id]}
           />
         </div>
       ) : null}
@@ -198,6 +201,7 @@ export function ClientBookings({
                     clientNoShowCount={clientNoShowCount}
                     upcoming
                     now={now}
+                    photos={photosByBooking[booking.row.id]}
                   />
                 ))}
               </ul>
@@ -222,6 +226,7 @@ export function ClientBookings({
                     clientNoShowCount={clientNoShowCount}
                     upcoming={false}
                     now={now}
+                    photos={photosByBooking[booking.row.id]}
                   />
                 ))}
               </ul>

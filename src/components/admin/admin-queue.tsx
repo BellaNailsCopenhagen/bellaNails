@@ -9,6 +9,7 @@ import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
+import type { BookingThumb } from "@/lib/admin/booking-media"
 import { QueueRealtime } from "@/components/admin/queue-realtime"
 import {
   CalendarView,
@@ -64,12 +65,14 @@ export function AdminQueue({
   contacts,
   noShowCounts,
   now,
+  photosByBooking = {},
   loadError = false,
 }: {
   weeks: AgendaWeek[]
   contacts: Record<string, ClientContact>
   noShowCounts: Record<string, number>
   now: number
+  photosByBooking?: Record<string, BookingThumb[]>
   loadError?: boolean
 }) {
   const nowDay = studioDayNumber(now)
@@ -244,6 +247,7 @@ export function AdminQueue({
                                 }
                                 noShowEligible={canMarkNoShow(booking.row, now)}
                                 now={now}
+                                photos={photosByBooking[booking.row.id]}
                               />
                             ))}
                           </ul>

@@ -45,12 +45,14 @@ export function BookingListRow({
   clientNoShowCount,
   upcoming,
   now,
+  photos,
 }: {
   booking: DisplayBooking
   contact?: ClientContact
   clientNoShowCount?: number
   upcoming: boolean
   now: number
+  photos?: { id: string; url: string; kind: string }[]
 }) {
   const [open, setOpen] = useState(false)
   const { row } = booking
@@ -100,6 +102,7 @@ export function BookingListRow({
             actionable={actionable}
             noShowEligible={canMarkNoShow(row, now)}
             now={now}
+            photos={photos}
           />
         </div>
       ) : null}

@@ -9,6 +9,7 @@ import { AdminBookings } from "@/components/admin/admin-bookings"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
+import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 
 export const metadata: Metadata = { title: "Appointments" }
 
@@ -48,11 +49,15 @@ export default async function AdminAppointmentsPage() {
   const error = upcomingRes.error ?? pastRes.error
   if (error) console.error("[admin-appointments] read failed", error.message)
 
-  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
-    supabase,
-    [...(upcomingRes.data ?? []), ...(pastRes.data ?? [])],
-    "admin-appointments",
-  )
+  const allRows = [...(upcomingRes.data ?? []), ...(pastRes.data ?? [])]
+  const [{ bookings, contacts, noShowCounts }, photosByBooking] =
+    await Promise.all([
+      resolveAdminBookings(supabase, allRows, "admin-appointments"),
+      getBookingMediaThumbs(
+        supabase,
+        allRows.map((r) => r.id),
+      ),
+    ])
 
   return (
     <div className="space-y-8">
@@ -83,6 +88,7 @@ export default async function AdminAppointmentsPage() {
           contacts={contacts}
           noShowCounts={noShowCounts}
           now={now.getTime()}
+          photosByBooking={photosByBooking}
         />
       )}
     </div>

@@ -16,6 +16,7 @@ import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { isActiveBookingStatus } from "@/lib/booking-status"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
+import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { contactDisplayName } from "@/lib/clerk/contact"
 import { getClientDataConsents, getClientMedia } from "@/lib/media"
@@ -39,10 +40,13 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
  */
 export default async function AdminClientPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
 }) {
-  const { id } = await params
+  const [{ id }, { tab }] = await Promise.all([params, searchParams])
+  const defaultTab = tab === "gallery" ? "gallery" : "appointment"
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
   const supabase = createAuthedSupabaseServerClient()
@@ -67,9 +71,13 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [media, dataConsents] = await Promise.all([
+  const [media, dataConsents, photosByBooking] = await Promise.all([
     getClientMedia(supabase, id).catch(() => []),
     getClientDataConsents(supabase, id).catch(() => []),
+    getBookingMediaThumbs(
+      supabase,
+      rows.map((r) => r.id),
+    ).catch(() => ({})),
   ])
 
   // Booking picker for owner uploads (optional): default to an ongoing booking,
@@ -149,12 +157,14 @@ export default async function AdminClientPage({
           stays on the page body below. */}
       <AdminClientTabs
         galleryCount={media.length}
+        defaultTab={defaultTab}
         appointment={
           <ClientBookings
             bookings={bookings}
             contact={contact}
             clientNoShowCount={noShowCount}
             now={now}
+            photosByBooking={photosByBooking}
           />
         }
         gallery={
