@@ -161,10 +161,10 @@
     "withdrawConfirming": "Opdaterer…",
     "removeFromWebsite": "Fjern fra hjemmeside",
     "removeFromSocial": "Fjern fra social",
-    "withdrawSiteTitle": "Fjern fra vores hjemmeside?",
-    "withdrawSiteBody": "Dit billede fjernes fra vores hjemmeside automatisk med det samme. Det deles ikke andre steder herfra og bliver i dit eget galleri. Du kan tillade det igen når som helst.",
-    "withdrawSomeTitle": "Fjern fra vores sociale medier?",
-    "withdrawSomeBody": "Vi fjerner dit billede fra vores opslag manuelt — normalt inden for få dage. Det bliver i dit eget galleri, og du kan tillade det igen når som helst."
+    "withdrawSiteTitle": "Fjern dit billede fra vores hjemmeside?",
+    "withdrawSiteBody": "Vi elsker virkelig dette billede af dit sæt — helt ærligt vil vi rigtig gerne blive ved med at vise det frem, og vi håber, du har det på samme måde. Men det er helt dit valg. Fjerner du det, ryger det af vores hjemmeside automatisk med det samme. Det bliver altid i dit eget galleri, og du er velkommen til at dele det med os igen når som helst.",
+    "withdrawSomeTitle": "Fjern dit billede fra vores sociale medier?",
+    "withdrawSomeBody": "Vi elsker virkelig dette billede af dit sæt — helt ærligt vil vi rigtig gerne blive ved med at dele det, og vi håber, du har det på samme måde. Men det er helt dit valg. Fjerner du det, tager vi det ned fra vores opslag manuelt, normalt inden for få dage. Det bliver altid i dit eget galleri, og du kan dele det med os igen når som helst."
   },
   "gallery": {
     "metaTitle": "Galleri",

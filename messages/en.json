@@ -161,10 +161,10 @@
     "withdrawConfirming": "Updating…",
     "removeFromWebsite": "Remove from website",
     "removeFromSocial": "Remove from social",
-    "withdrawSiteTitle": "Remove from our website?",
-    "withdrawSiteBody": "Your photo comes off our website automatically, right away. It isn't shared anywhere else from here and stays in your own gallery. You can allow it again anytime.",
-    "withdrawSomeTitle": "Remove from our social?",
-    "withdrawSomeBody": "We take your photo down from our social posts by hand — usually within a few days. It stays in your own gallery, and you can allow it again anytime."
+    "withdrawSiteTitle": "Take your photo off our website?",
+    "withdrawSiteBody": "We really love this photo of your set — honestly, we'd love to keep showing it off, and we hope you feel the same. But it's completely your call. Remove it and it comes off our website automatically, right away. It always stays in your own gallery, and you're welcome to share it with us again anytime.",
+    "withdrawSomeTitle": "Take your photo off our social?",
+    "withdrawSomeBody": "We really love this photo of your set — honestly, we'd love to keep sharing it, and we hope you feel the same. But it's completely your call. Remove it and we'll take it down from our social posts by hand, usually within a few days. It always stays in your own gallery, and you can share it with us again whenever you like."
   },
   "gallery": {
     "metaTitle": "Gallery",
