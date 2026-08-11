@@ -175,7 +175,21 @@
     "withdrawKeepCta": "Keep it shared",
     "viewPhoto": "View photo",
     "withdrawDoneNote": "That's done — this photo is private again. You're welcome to share it with us again anytime.",
-    "closeCta": "Close"
+    "closeCta": "Close",
+    "permsEyebrow": "Your permissions",
+    "permsIntro": "Bella Nails asks before sharing anything of yours. You can change your mind any time.",
+    "acceptAll": "Accept all",
+    "photoAlt": "Your appointment photo",
+    "sharePromptSite": "Share this photo on our website?",
+    "sharePromptSome": "Share this photo on social media?",
+    "useNameSite": "Use your first name on our website?",
+    "useNameSome": "Use your first name on social media?",
+    "useTestimonialSite": "Use your words as a testimonial on our website?",
+    "useTestimonialSome": "Use your words as a testimonial on social media?",
+    "consentAllow": "Allow",
+    "consentDecline": "No",
+    "dataAllowed": "Allowed",
+    "actionError": "Something went wrong. Try again."
   },
   "gallery": {
     "metaTitle": "Gallery",

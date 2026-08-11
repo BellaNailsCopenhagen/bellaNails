@@ -175,7 +175,21 @@
     "withdrawKeepCta": "Behold det delt",
     "viewPhoto": "Se billede",
     "withdrawDoneNote": "Så er det gjort — billedet er privat igen. Du er velkommen til at dele det med os igen når som helst.",
-    "closeCta": "Luk"
+    "closeCta": "Luk",
+    "permsEyebrow": "Dine tilladelser",
+    "permsIntro": "Bella Nails spørger, før vi deler noget af dit. Du kan altid ombestemme dig.",
+    "acceptAll": "Accepter alle",
+    "photoAlt": "Dit billede fra behandlingen",
+    "sharePromptSite": "Del dette billede på vores hjemmeside?",
+    "sharePromptSome": "Del dette billede på sociale medier?",
+    "useNameSite": "Brug dit fornavn på vores hjemmeside?",
+    "useNameSome": "Brug dit fornavn på sociale medier?",
+    "useTestimonialSite": "Brug dine ord som en udtalelse på vores hjemmeside?",
+    "useTestimonialSome": "Brug dine ord som en udtalelse på sociale medier?",
+    "consentAllow": "Tillad",
+    "consentDecline": "Nej",
+    "dataAllowed": "Tilladt",
+    "actionError": "Noget gik galt. Prøv igen."
   },
   "gallery": {
     "metaTitle": "Galleri",

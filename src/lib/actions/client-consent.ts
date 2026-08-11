@@ -28,9 +28,64 @@ type DataPurpose =
   | "name_site"
   | "name_some"
 
+type ServiceClient = ReturnType<typeof createSupabaseServiceRoleClient>
+
 async function callerId(): Promise<string | null> {
   const { userId } = await auth()
   return userId ?? null
+}
+
+/**
+ * Grant one media consent: run copy-on-consent (a public copy in `assets`,
+ * placed nowhere until the artist assigns a use-case) and mark the row granted.
+ * Returns an optional note when publishing was deferred or failed — the consent
+ * is still recorded either way. Shared by the single-decision and accept-all
+ * paths so the publish logic lives in one place.
+ */
+async function grantMediaConsentRow(
+  supabase: ServiceClient,
+  consentId: string,
+  mediaId: string,
+): Promise<{ note?: string }> {
+  let publishedAssetId: string | null = null
+  let note: string | undefined
+  const { data: media } = await supabase
+    .from("client_media")
+    .select("storage_key, kind")
+    .eq("id", mediaId)
+    .maybeSingle()
+
+  if (media?.storage_key) {
+    const published = await publishToPublic(media.storage_key)
+    if (published.ok) {
+      const { data: asset } = await supabase
+        .from("assets")
+        .insert({
+          url: published.data.url,
+          media_type: media.kind ?? "image",
+          storage_key: published.data.key,
+        })
+        .select("id")
+        .single()
+      publishedAssetId = asset?.id ?? null
+    } else if (published.error === "not_configured") {
+      note = "Consent saved — the image will publish once storage is set up."
+    } else {
+      note = "Consent saved — publishing the image failed, we’ll retry."
+    }
+  }
+
+  await supabase
+    .from("media_consents")
+    .update({
+      status: "granted",
+      granted_at: new Date().toISOString(),
+      declined_at: null,
+      withdrawn_at: null,
+      published_asset_id: publishedAssetId,
+    })
+    .eq("id", consentId)
+  return { note }
 }
 
 export async function decideMediaConsent(
@@ -66,48 +121,51 @@ export async function decideMediaConsent(
     return { ok: true }
   }
 
-  // Granted → publish a public copy (copy-on-consent).
-  let publishedAssetId: string | null = null
-  let note: string | undefined
-  const { data: media } = await supabase
-    .from("client_media")
-    .select("storage_key, kind")
-    .eq("id", mediaId)
-    .maybeSingle()
+  // Granted → publish a public copy (copy-on-consent), placed nowhere yet.
+  const { note } = await grantMediaConsentRow(supabase, consent.id, mediaId)
+  revalidatePath(`/admin/clients/${userId}`)
+  return { ok: true, note }
+}
 
-  if (media?.storage_key) {
-    const published = await publishToPublic(media.storage_key)
-    if (published.ok) {
-      const { data: asset } = await supabase
-        .from("assets")
-        .insert({
-          url: published.data.url,
-          media_type: media.kind ?? "image",
-          storage_key: published.data.key,
-        })
-        .select("id")
-        .single()
-      // A published studio copy now exists but is placed NOWHERE — it shows up
-      // in the admin Assets overview as "shared, unlinked" until the artist
-      // assigns it a use-case (asset_usages). No auto-placement.
-      publishedAssetId = asset?.id ?? null
-    } else if (published.error === "not_configured") {
-      note = "Consent saved — the image will publish once storage is set up."
-    } else {
-      note = "Consent saved — publishing the image failed, we’ll retry."
-    }
+/**
+ * Accept every pending request in one go from the client's Requests tab: grant
+ * all still-requested photo consents (copy-on-consent each) and all requested
+ * data consents. A convenience over deciding one by one — declines stay a
+ * deliberate, per-item choice.
+ */
+export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
+  const userId = await callerId()
+  if (!userId) return { ok: false, error: "unauthorized" }
+  const supabase = createSupabaseServiceRoleClient()
+
+  const { data: mediaRows } = await supabase
+    .from("media_consents")
+    .select("id, client_media_id")
+    .eq("clerk_user_id", userId)
+    .eq("status", "requested")
+
+  let note: string | undefined
+  for (const row of mediaRows ?? []) {
+    const result = await grantMediaConsentRow(
+      supabase,
+      row.id,
+      row.client_media_id,
+    )
+    if (result.note) note = result.note // surface the last deferral, if any
   }
 
+  const now = new Date().toISOString()
   await supabase
-    .from("media_consents")
+    .from("client_consents")
     .update({
       status: "granted",
-      granted_at: new Date().toISOString(),
+      granted_at: now,
       declined_at: null,
       withdrawn_at: null,
-      published_asset_id: publishedAssetId,
     })
-    .eq("id", consent.id)
+    .eq("clerk_user_id", userId)
+    .eq("status", "requested")
+
   revalidatePath(`/admin/clients/${userId}`)
   return { ok: true, note }
 }

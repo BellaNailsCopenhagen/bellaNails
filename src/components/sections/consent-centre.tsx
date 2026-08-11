@@ -16,29 +16,19 @@ import type {
   MediaPurpose,
 } from "@/lib/media"
 import {
+  acceptAllPendingConsents,
   decideDataConsent,
   decideMediaConsent,
   withdrawDataConsent,
 } from "@/lib/actions/client-consent"
 
-const PURPOSE_TEXT: Record<MediaPurpose, string> = {
-  site: "our website",
-  some: "social media",
-}
-
-const DATA_TEXT: Record<string, string> = {
-  name_site: "your first name on our website",
-  name_some: "your first name on social media",
-  testimonial_site: "your words as a testimonial on our website",
-  testimonial_some: "your words as a testimonial on social media",
-}
-
 type MediaRequest = { media: ClientMediaItem; purpose: MediaPurpose }
 
 /**
- * The client's consent centre on /bookings — every request the studio has made
- * to publish a photo or use their data, with Approve / Decline / Withdraw. The
- * client is always in control; nothing is published without an explicit grant.
+ * The client's consent centre on /appointments — every request the studio has
+ * made to publish a photo or use their data, with Allow / No, plus an
+ * accept-all for the whole list. The client is always in control; nothing is
+ * published without an explicit grant, and declines stay per-item.
  */
 export function ConsentCentre({
   media,
@@ -48,7 +38,24 @@ export function ConsentCentre({
   dataConsents: DataConsentItem[]
 }) {
   const t = useTranslations("bookings")
-  const { pending, run: act } = useActionRunner("Something went wrong. Try again.")
+  const { pending, run: act } = useActionRunner(t("actionError"))
+
+  // Localized prompt for a data-use request. Literal keys keep it type-safe;
+  // an unknown purpose falls back to its raw value rather than throwing.
+  const dataPrompt = (purpose: string) => {
+    switch (purpose) {
+      case "name_site":
+        return t("useNameSite")
+      case "name_some":
+        return t("useNameSome")
+      case "testimonial_site":
+        return t("useTestimonialSite")
+      case "testimonial_some":
+        return t("useTestimonialSome")
+      default:
+        return purpose
+    }
+  }
 
   // Only photos still AWAITING a decision live here — once granted, the client
   // manages sharing from the photo itself in the Gallery (a quieter, more
@@ -67,14 +74,28 @@ export function ConsentCentre({
 
   if (!requests.length && !dataRequests.length) return null
 
+  // Accept-all is a convenience — only worth showing with 2+ pending decisions.
+  const pendingCount =
+    requests.length + dataRequests.filter((c) => c.status === "requested").length
+
   return (
     <section className="space-y-4">
-      <div className="space-y-1">
-        <Eyebrow>Your permissions</Eyebrow>
-        <BodySm className="text-xs">
-          Bella Nails asks before sharing anything of yours. You can change your
-          mind any time.
-        </BodySm>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <Eyebrow>{t("permsEyebrow")}</Eyebrow>
+          <BodySm className="text-xs">{t("permsIntro")}</BodySm>
+        </div>
+        {pendingCount >= 2 ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            className="shrink-0"
+            onClick={() => act(() => acceptAllPendingConsents())}
+          >
+            {t("acceptAll")}
+          </Button>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -86,12 +107,12 @@ export function ConsentCentre({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={item.url}
-              alt="Your appointment photo"
+              alt={t("photoAlt")}
               className="size-16 shrink-0 rounded-sm border border-border object-cover"
             />
             <div className="min-w-0 flex-1">
               <p className="font-functional text-sm text-foreground">
-                Share this photo on {PURPOSE_TEXT[purpose]}?
+                {t(purpose === "site" ? "sharePromptSite" : "sharePromptSome")}
               </p>
             </div>
             <div className="flex shrink-0 gap-2">
@@ -103,7 +124,7 @@ export function ConsentCentre({
                   act(() => decideMediaConsent(item.id, purpose, "declined"))
                 }
               >
-                No
+                {t("consentDecline")}
               </Button>
               <Button
                 size="sm"
@@ -112,7 +133,7 @@ export function ConsentCentre({
                   act(() => decideMediaConsent(item.id, purpose, "granted"))
                 }
               >
-                Allow
+                {t("consentAllow")}
               </Button>
             </div>
           </TintedCard>
@@ -125,10 +146,12 @@ export function ConsentCentre({
           >
             <div className="min-w-0 flex-1">
               <p className="font-functional text-sm text-foreground">
-                Use {DATA_TEXT[consent.purpose] ?? consent.purpose}?
+                {dataPrompt(consent.purpose)}
               </p>
               {consent.status === "granted" ? (
-                <p className="font-functional text-xs text-success">Allowed</p>
+                <p className="font-functional text-xs text-success">
+                  {t("dataAllowed")}
+                </p>
               ) : null}
             </div>
             {consent.status === "granted" ? (
@@ -167,7 +190,7 @@ export function ConsentCentre({
                     )
                   }
                 >
-                  No
+                  {t("consentDecline")}
                 </Button>
                 <Button
                   size="sm"
@@ -181,7 +204,7 @@ export function ConsentCentre({
                     )
                   }
                 >
-                  Allow
+                  {t("consentAllow")}
                 </Button>
               </div>
             )}
