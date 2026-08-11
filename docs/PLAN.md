@@ -58,6 +58,10 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 
 ## Phase 4 — Auth (Clerk + Supabase native) ✅
 
+> ⚠️ **Superseded by [Phase 11](#phase-11--in-house-scheduling--identity-retire-calcom--clerk)**
+> (August 2026): Clerk is being replaced by Supabase Auth + an own `clients` table. Everything
+> below still describes the live system — don't build *new* Clerk surface area on it.
+
 - ✅ Installed `@clerk/nextjs@7.5` (peer-supports Next 16). `ClerkProvider` added inside `[locale]/layout.tsx` (`<body>`), composed with `NextIntlClientProvider`, with locale-aware `signInUrl`/`signUpUrl`.
 - ✅ `clerkMiddleware` merged into `src/proxy.ts` alongside next-intl (Next 16 supports `clerkMiddleware` from `proxy.ts` on the Node runtime — verified in the SDK). `/[locale]/admin` matcher present with `auth.protect()` (owner-role refinement deferred to the admin shell, Phase 8).
 - ✅ Locale-aware `sign-in`/`sign-up` catch-all pages under `[locale]/`; auth controls (`Show`/`SignInButton`/`SignUpButton`/`UserButton`, brand-styled) on the home page. Home page is now dynamic (auth state per request).
@@ -84,6 +88,13 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ⬜ (Later) shadcn data-table for the admin queue.
 
 ## Phase 6 — Booking flow (Cal.com + Stripe)
+
+> ⚠️ **Engine superseded by [Phase 11](#phase-11--in-house-scheduling--identity-retire-calcom--clerk)**
+> (August 2026): scheduling comes in-house and Cal.com is removed. The **domain decisions below
+> survive unchanged** (add-on duration model, round-up rule, 24 h notice, 30-min buffer,
+> metadata shape, localization split) — they are the spec the new engine must satisfy. Treat
+> anything Cal-*mechanical* (event types, API v2 sync, embed, webhook) as scheduled for
+> deletion; don't invest further in it.
 
 ### Cal.com account state (done July 2026)
 
@@ -150,7 +161,7 @@ Found while running the E2E scenario on the test deployment (`test.bellanails.dk
 
 - ✅ **Home page featured services should be clickable** — the ServicesPreview rows on the main page don't link anywhere; clicking a service should deep-link to `/book?service=<uuid>` and land on the add-on step, same as the `/services` menu rows already do.
 - ✅ (router.replace shipped; completed-marker deemed unnecessary) **Reset the flow after a completed booking** — the whole flow state lives in the URL, so after a successful booking, browser-back (today: back from the `/confirmation` 404) restores the confirm step fully armed and the user can double-book in two clicks. On `bookingSuccessfulV2`, navigate with **`router.replace`** (not `push`) so the confirm URL drops out of history, and consider marking the completed booking (e.g. session flag keyed by uid) so a revisited confirm step redirects to step 1 / the confirmation page instead of re-arming the embed.
-- ⬜ **Branded transactional emails for every stage** — Cal's default emails are generic and off-brand. Cover: booking confirmation, reminder(s) before the appointment, cancellation, and reschedule. Options to evaluate: Cal **Workflows** (built-in email reminders/templates — check EU-instance availability and customisation limits) vs. sending our own branded emails from the webhook (we already receive every lifecycle event) via Zoho's SMTP/API to stay within the adopted vendor stack. Decide per-stage: reminders may be fine in Cal; confirmation/cancellation likely want the branded route.
+- ⬜ **Branded transactional emails for every stage** — Cal's default emails are generic and off-brand. Cover: booking confirmation, reminder(s) before the appointment, cancellation, and reschedule. **Decided August 2026 → [Phase 11](#phase-11--in-house-scheduling--identity-retire-calcom--clerk) step 1–2: we send our own** (ZeptoMail + `scheduled_emails` + Cron). Cal **Workflows** is dropped — it can't fix the off-brand manage-links and it's machinery we're deleting anyway. This is the phase's *first* step precisely because it's the owner's actual complaint and it's additive/zero-risk.
 
 ## Phase 7 — Public site features 🔼
 
@@ -315,6 +326,226 @@ Full strategy, keyword map, copy and schema snippets in [seo-plan.md](./seo-plan
 ⚠️ Blocked on: public phone, final domain, geo coordinates, social URLs (for NAP + schema).
 Measure: Search Console (Tier-1 query positions), GBP insights, local-pack rank for "neglesalon Ørestad".
 
+## Phase 11 — In-house scheduling & identity (retire Cal.com + Clerk)
+
+> **Decided (August 2026, owner):** bring scheduling and identity in-house. Cal.com and Clerk
+> are removed; **Scaleway stays** (free EU object storage) and **Supabase stays** (see the
+> platform decision below). This supersedes Phase 4's vendor choice and Phase 6's booking
+> engine — the *domain* decisions in Phase 6 (add-on duration model, round-up rule, 24 h
+> notice, 30-min buffer, metadata shape) all carry over unchanged; only the engine moves.
+>
+> Investigation brief (answer before writing code): [`tasks/in-house/00-investigation.md`](./tasks/in-house/00-investigation.md).
+
+### Why (the honest reasons — recorded so they aren't re-litigated)
+
+1. **Email ownership** — the real driver. Cal owns confirmation/reminder/cancel/reschedule
+   emails today; they're off-brand, their timing isn't ours, and their manage-buttons point at
+   `cal.eu` and are **not customizable on cloud** (already flagged in Phase 7's in-app manage
+   note). Owning the send is the only fix.
+2. **Shrinking the processor chain (GDPR).** Client PII lives in **Clerk (US)**, media in
+   **Scaleway (EU)**, bookings in **Supabase (EU)** — so erasure is a three-vendor dance
+   ([`lib/media-erasure.ts`](../src/lib/media-erasure.ts)) and one leg is a US transfer, while
+   the rest of the stack was deliberately chosen EU-sovereign. With Task 07/08 (client records,
+   photo consent) we are already a full controller of identifiable client data; consolidating
+   PII into our own EU Postgres makes Art. 15 / 17 a single transaction instead of a
+   cross-vendor orchestration.
+3. **Cal.com is now a thin slice of a thick flow.** We already own service/add-on selection,
+   totals, duration math, the request flow, no-show marking, reschedule tracking and the
+   sync-first persist routine. Cal provides exactly four things: slot computation from
+   availability, the double-booking guarantee, transactional emails, and the artist's calendar.
+4. **Platform-margin insurance** (secondary, if this ever becomes a product): Cal.com's
+   multi-tenant tier and Clerk's MAU pricing both scale with the *client's clients*. Removing
+   them now removes a structural cost we'd otherwise inherit.
+
+⚠️ **Not a reason: perceived lag.** The suspicion that Cal/Clerk cause the intermittent
+slowness is unverified and probably wrong. Honest ranking of suspects: (a) **Scaleway media —
+no CDN, no size variants**, one stored object served direct from `s3.fr-par` (Phase 7/10 both
+note this; a gallery of phone photos is the likely dominant cost and it survives this
+migration untouched); (b) the Cal **embed iframe** — a whole second app with its own JS/fonts,
+real but confined to `/book`; (c) Clerk middleware on every request + provider bundle,
+moderate; (d) our own RSC waterfalls / missing indices (Phase 3 deferred them) / free-tier cold
+starts. **Do the measurement as its own task** — this migration must not be sold as a perf fix.
+
+- ⬜ **Perf baseline before any of this** — record LCP/TTFB per route (`/`, `/services`,
+  `/gallery`, `/book`) and the transferred bytes for gallery media. Then decide the CDN /
+  image-variant work on its own merits. Without a baseline we can't tell whether the
+  re-platform helped, hurt, or did nothing.
+
+### What actually has to move (measured, August 2026)
+
+**Cal.com — 42 references across 16 files. Contained.**
+
+- DB: `services.cal_event_id` (**not null unique**), `bookings.cal_booking_id` (**not null
+  unique**), `cal_uid`, `rescheduled_from_uid`, `reschedule_url`, `cancel_url`. All become
+  ours or disappear → schema migration, not just a code change.
+- Code: [`config/calcom.ts`](../src/config/calcom.ts), [`lib/cal-event-types.ts`](../src/lib/cal-event-types.ts),
+  [`lib/cal-phone.ts`](../src/lib/cal-phone.ts), [`lib/booking-sync.ts`](../src/lib/booking-sync.ts),
+  [`lib/booking-cancel.ts`](../src/lib/booking-cancel.ts), [`api/webhooks/cal`](../src/app/api/webhooks/cal/route.ts),
+  `sections/cal-embed-shell.tsx`, `sections/booking-embed.tsx`, `admin/more` (dashboard deep-link),
+  `admin/create-service-sheet.tsx` (event-type sync).
+
+**Clerk — 250 references across 60 files. This is the big one, and not because of auth.**
+
+- `clerk_user_id` is on **six tables**: `bookings`, `booking_requests`, `client_media`,
+  `media_consents`, `client_consents`, `owner_notifications` — and it appears in the `using ()`
+  clause of **every** user-scoped RLS policy ([rls.sql](../supabase/rls.sql),
+  [media-and-consent.sql](../supabase/media-and-consent.sql), [booking-requests.sql](../supabase/booking-requests.sql)).
+- [`lib/clerk/ensure-user.ts`](../src/lib/clerk/ensure-user.ts), [`contact.ts`](../src/lib/clerk/contact.ts),
+  [`client-contacts.ts`](../src/lib/clerk/client-contacts.ts) mean **Clerk is our client CRM**,
+  not just our auth: names, emails and phones live there and the admin client directory reads
+  them live. So the work is *build a `clients` table → migrate PII → rewrite 60 files → then*
+  swap auth. Auth is the small part.
+- Also: `sign-in`/`sign-up`/`account` catch-all routes, the `/admin*` owner gate in
+  [`proxy.ts`](../src/proxy.ts), `@clerk/localizations` (da/en), the `@clerk/ui` shadcn theme,
+  and the Supabase **Third-Party Auth** wiring in both Supabase clients.
+
+### Decided — what replaces what
+
+**Scheduling (ours).** Two new tables: `availability_windows` (weekday + local start/end +
+effective date range) and `availability_overrides` (closures, holidays, one-off open blocks).
+Slots are generated **in `Europe/Copenhagen` then stored UTC** — never generated in UTC with
+offsets added, which breaks on the two DST transitions. Extends the existing
+[`lib/studio-time.ts`](../src/lib/studio-time.ts). Phase 6's rules carry over verbatim: 15-min
+grid, base→base+max-addon duration range, **round up never down**, 24 h minimum notice, 30-min
+after-buffer applied once per booking.
+
+> ✅ **Side benefit:** this resolves the open prerequisite Task 10 (Insights) flagged — studio
+> working hours currently live only in Cal's availability schedule, so occupancy % has no
+> denominator. After this phase they're a first-class table.
+
+**The double-booking guarantee = one Postgres constraint.** This is the single thing Cal was
+really underwriting, and it belongs at the only layer that can honour it under concurrency:
+
+```sql
+create extension if not exists btree_gist;
+alter table public.bookings add column if not exists period tstzrange
+  generated always as (tstzrange(start_time, end_time, '[)')) stored;
+-- the predicate must mirror lib/booking-status.ts:isActiveBookingStatus — one truth
+alter table public.bookings add constraint bookings_no_overlap
+  exclude using gist (period with &&) where (status <> 'cancelled' and status <> 'declined');
+```
+
+⚠️ The buffer is **not** in `end_time` (clients see 105 min, the calendar blocks 135). Decide
+explicitly whether `period` spans the buffer — if it doesn't, the constraint permits
+back-to-back bookings the artist can't actually work. Recommendation: add a stored
+`blocked_period` covering duration + buffer and constrain on that.
+
+**Booking identity (ours).** `bookings.id` (uuid) becomes the only identity; the six `cal_*`
+columns drop. `cancel_url` / `reschedule_url` are replaced by **our own signed, expiring
+tokens**, which also fixes the emailed-links-point-at-cal.eu problem for good. Existing
+`/appointments/reschedule/[uid]` route shape can stay. The client's phone — currently collected
+by Cal as a booking field ([`lib/cal-phone.ts`](../src/lib/cal-phone.ts)) — moves onto our own
+booking form and the `clients` table.
+
+**The artist's calendar is the load-bearing loss.** Phase 6 recorded that the **Cal.com
+dashboard IS the artist's booking calendar** (Zoho sync was skipped). Removing Cal leaves her
+with no day/week view. Therefore: **Phase 8 Task 02** (agenda grouped by week → day, + the
+month-grid toggle) is promoted from a queue nicety to a **hard prerequisite of the Cal
+cutover** and must ship and be lived-in *before* the switch. Expect this to be the largest
+single chunk of the phase — it's UI work, not scheduling logic.
+
+**Identity (Supabase Auth — not hand-rolled, not another vendor).** Same project, same EU
+region, and `auth.uid()` works natively in RLS, which retires the Third-Party-Auth / JWT
+indirection entirely. New `clients` table (`id uuid` = `auth.users.id`, email, name, phone,
+timestamps).
+
+- ⚠️ **This reverses the Phase 3 locked decision "clients keyed to Clerk, no PII in our DB."**
+  Deliberate: with Task 07 notes and Task 08 photo consent we hold identifiable client data
+  anyway, so the PII-free-DB posture bought pseudonymity on one table while costing a
+  cross-vendor erasure path. Recorded here so the reversal is a decision, not a drift.
+- RLS rewrite on six tables: `(select auth.jwt() ->> 'sub') = clerk_user_id` → `auth.uid() =
+  client_id`. Owner-reads-all moves from a Clerk metadata role claim to an `owner` flag /
+  `is_owner()` SQL function.
+- **Passwordless (email code / magic link) for clients; password for the owner only.** This
+  eliminates password-reset flows, session-hash migration, and most of the account portal we'd
+  otherwise rebuild to replace `[locale]/account/[[...rest]]`. It also matches what
+  `ensureClerkUser` already does (create-or-find, passwordless) — so the *behaviour* is
+  unchanged, only the provider.
+- ⬜ **Verify before committing:** whether Clerk exports password hashes. If not, existing
+  clients need re-onboarding — trivial at current volume, but it must be a planned step, not a
+  launch-day surprise. Passwordless sidesteps it entirely.
+
+**Email (ours — build this first).** **ZeptoMail** (Zoho's transactional product, EU DC) —
+stays inside the adopted vendor stack, over Resend/Postmark/SES. Plus a `scheduled_emails`
+table drained by a **Vercel Cron** job using `for update skip locked`, with a unique
+`(booking_id, kind)` for idempotency. Reminders need this machinery regardless — Cal was doing
+them. Stages to cover: confirmation, reminder(s), cancellation, reschedule, request
+accept/decline (Phase 8 B), photo-consent requests (Task 08), and auth codes.
+
+> This **supersedes** the open Phase 6 item "Branded transactional emails for every stage" —
+> the Cal Workflows option is dropped, we send our own.
+
+**Stripe loose end.** Phase 6 routes no-show card holds *through* Cal.com ("can be enabled
+later with zero app changes"). That is no longer true: after this phase, holds mean **our own
+Stripe SetupIntents**. Still deferred (owner undecided), but re-scope it before promising it.
+
+### Platform: stay on Supabase (decided August 2026 — don't revisit without a named trigger)
+
+Owner asked whether AWS would be better/cheaper on paid tiers. Answer: no, at this scale.
+
+- **Cost.** Supabase Pro (~$25/mo) bundles Postgres + Auth + Storage + Realtime + REST +
+  dashboard. AWS equivalent: RDS `t4g.micro` ~$12–15 plus storage and backups (or Aurora
+  Serverless v2 at ~$40+/mo *idling*), plus Cognito, plus ~$32/mo for a NAT gateway the moment
+  anything goes VPC-private. AWS wins at large scale with reserved capacity and an operator —
+  neither applies.
+- **Support.** AWS support is a paid add-on (Developer ≈ $29/mo, business-hours email, no
+  meaningful SLA; Business starts ~$100/mo). The premise that AWS support is better for a solo
+  developer is backwards.
+- **Sovereignty.** AWS is also a US company — moving there improves the GDPR story by zero.
+  Supabase on an EU region with a DPA + SCCs is the standard defensible posture. If sovereignty
+  ever becomes a hard requirement, the consistent move is **Scaleway Managed Postgres** (EU,
+  account already exists, ~€10–15/mo) — but that means rebuilding Auth, Realtime and the
+  storage API ourselves. Given Realtime already backs the admin live queue, don't.
+- **AWS gives primitives, not a product.** This phase is already replacing two vendors; adding
+  a third rebuild is how it never ships.
+- ⬜ **Do verify** the Supabase project is in an **EU region**. If it landed in `us-east-1`
+  that undercuts the whole sovereignty argument and should be fixed regardless of this phase.
+- **Revisit trigger:** a *named* Postgres limitation we've hit, or a contractual sovereignty
+  requirement. Not "AWS might be cheaper."
+
+### Migration order — strict, and not concurrent
+
+Each step is independently shippable and independently revertible. Do not overlap them.
+
+1. ⬜ **Email infrastructure, additive.** ZeptoMail + `scheduled_emails` + Cron + branded
+   localized templates, while Cal still runs everything. Zero risk: nothing depends on it yet.
+2. ⬜ **Switch Cal's own emails off; send ours from the existing webhook.** Cal still owns
+   booking. This proves the email layer under real traffic with a one-line rollback, and it
+   delivers the owner's actual complaint *before* the risky work starts.
+3. ⬜ **Artist calendar (Phase 8 Task 02) shipped and lived-in.** Prerequisite, above.
+4. ⬜ **Scheduling engine behind a flag → cut over → delete Cal.com.** Own availability +
+   slots + overlap constraint + signed manage tokens + booking form (incl. phone). Run both
+   engines read-only in parallel for a week and diff offered slots before flipping.
+5. ⬜ **`clients` table + PII migration off Clerk**, then **Supabase Auth swap** (passwordless
+   clients, owner password, RLS rewrite on six tables, `owner` flag). Last, because it has the
+   highest blast radius and is the least likely cause of anything currently felt.
+
+⚠️ Phase 6's **end-to-end test scenario** and Phase 7's in-app-manage hardening list are both
+written against Cal semantics — both need rewriting as part of step 4, not after.
+
+### What gets worse (accept knowingly)
+
+- **We own auth security**: session rotation and revocation, rate limiting, lockout, signup
+  abuse, account enumeration, breach detection. The legal chain gets simpler; the engineering
+  responsibility grows. Not a pure win.
+- **We own scheduling correctness**: DST, overlap under concurrency, buffer arithmetic. The
+  exclusion constraint covers the scariest case; the rest is tests.
+- **We own deliverability**: SPF/DKIM/DMARC on the sending domain, bounce/complaint handling.
+- **No vendor to blame at 09:00 on a Saturday.**
+
+### Open questions for the owner
+
+- ⬜ Are clients ever expected to sign in with **Google/Apple**, or is email-code enough
+  forever? (Passwordless-only is materially less work; adding OAuth later is easy.)
+- ⬜ Should the artist's calendar ever sync **out** to a phone calendar (ICS feed / Google)?
+  Cal was the de-facto answer; if yes, a read-only signed ICS feed is the cheap version.
+- ⬜ Any appetite for a **waitlist / cancellation backfill** once we own slots? (Cheap once the
+  engine is ours; listed in the client-PWA exploration.)
+
+- ⬜ **TASK: investigate solution implementation** → [`tasks/in-house/00-investigation.md`](./tasks/in-house/00-investigation.md).
+  Nothing above is a build instruction yet. The brief defines the spikes, the questions that
+  must be answered with code or vendor docs (not assumption), and the go/no-go per step.
+
 ---
 
 ## Critical-path dependencies
@@ -327,3 +558,15 @@ Design system ─▶ i18n/routes ─▶ Supabase schema ─▶ Auth ─▶ Query
 
 Auth must land before RLS-protected Realtime is meaningful; schema before any data feature;
 i18n route structure before features so pages are born localized.
+
+**Phase 11 re-platform (Cal.com + Clerk out)** — strictly sequential, each step revertible:
+
+```
+Email infra ─▶ our emails (Cal still books) ─▶ artist calendar (Task 02) ─▶ own scheduling ─▶ clients+Supabase Auth
+   additive        owner's actual complaint       prerequisite: replaces      delete Cal.com      biggest blast
+   zero risk       solved before risky work        the Cal dashboard                              radius → last
+```
+
+The artist calendar is the true gate: Cal's dashboard is currently her only day/week view, so
+the cutover cannot precede its replacement. Identity moves last because it touches six tables'
+RLS and 60 files, and is the least likely cause of any problem felt today.
