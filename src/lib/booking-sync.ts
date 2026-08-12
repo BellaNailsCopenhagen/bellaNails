@@ -12,6 +12,7 @@ import {
 } from "@/lib/contact-validation"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
+import { recordTermsAcceptance } from "@/lib/terms-acceptance"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
 /**
@@ -174,37 +175,53 @@ export async function persistCalBooking(
       })
     }
 
-    const { error } = await supabase.from("bookings").upsert(
-      {
-        cal_booking_id: snapshot.bookingId,
-        cal_uid: snapshot.uid,
-        // Keep the old→new chain even when the snapshot is cancelled.
-        rescheduled_from_uid: snapshot.rescheduleUid ?? null,
-        clerk_user_id: clerkUserId,
-        status: snapshot.status,
-        start_time: snapshot.startTime,
-        end_time: snapshot.endTime,
-        // Canonical Cal cloud URL forms — the payloads carry no ready links.
-        reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${snapshot.uid}`,
-        cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${snapshot.uid}?cancel=true`,
-        total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
-        client_notes: sanitizeContactText(
-          metaString(meta.clientNotes),
-          MAX_NOTES_LENGTH,
-          { allowNewlines: true },
-        ),
-        selected_addons: {
-          serviceId: metaString(meta.serviceId),
-          addonIds,
-          totalDurationMins: metaInt(meta.totalDurationMins),
-          locale: metaString(meta.locale),
-          ...productSnapshot,
+    const { data: upserted, error } = await supabase
+      .from("bookings")
+      .upsert(
+        {
+          cal_booking_id: snapshot.bookingId,
+          cal_uid: snapshot.uid,
+          // Keep the old→new chain even when the snapshot is cancelled.
+          rescheduled_from_uid: snapshot.rescheduleUid ?? null,
+          clerk_user_id: clerkUserId,
+          status: snapshot.status,
+          start_time: snapshot.startTime,
+          end_time: snapshot.endTime,
+          // Canonical Cal cloud URL forms — the payloads carry no ready links.
+          reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${snapshot.uid}`,
+          cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${snapshot.uid}?cancel=true`,
+          total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
+          client_notes: sanitizeContactText(
+            metaString(meta.clientNotes),
+            MAX_NOTES_LENGTH,
+            { allowNewlines: true },
+          ),
+          selected_addons: {
+            serviceId: metaString(meta.serviceId),
+            addonIds,
+            totalDurationMins: metaInt(meta.totalDurationMins),
+            locale: metaString(meta.locale),
+            ...productSnapshot,
+          },
         },
-      },
-      { onConflict: "cal_booking_id" },
-    )
+        { onConflict: "cal_booking_id" },
+      )
+      .select("id")
+      .single()
     if (error) {
       return { ok: false, message: `bookings upsert failed: ${error.message}` }
+    }
+
+    // Booking a session accepts the current service terms (implicit consent, per
+    // the confirm-step fine print). Not on a cancellation persist — that's not a
+    // booking. Best-effort + idempotent per booking.
+    if (upserted?.id && snapshot.status !== BOOKING_STATUS.cancelled) {
+      await recordTermsAcceptance(supabase, {
+        clerkUserId,
+        kind: "service",
+        context: "booking",
+        referenceId: upserted.id,
+      })
     }
   }
 

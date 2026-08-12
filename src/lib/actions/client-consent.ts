@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server"
 
 import { notifyOwner } from "@/lib/admin/notify"
 import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
+import { recordTermsAcceptance } from "@/lib/terms-acceptance"
 import { deleteObject, publishToPublic } from "@/lib/storage/scaleway"
 import type { MediaPurpose } from "@/lib/media"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
@@ -44,6 +45,7 @@ async function callerId(): Promise<string | null> {
  */
 async function grantMediaConsentRow(
   supabase: ServiceClient,
+  clerkUserId: string,
   consentId: string,
   mediaId: string,
 ): Promise<{ note?: string }> {
@@ -85,6 +87,15 @@ async function grantMediaConsentRow(
       published_asset_id: publishedAssetId,
     })
     .eq("id", consentId)
+
+  // Granting publish consent accepts the current data-use terms for this photo —
+  // record it at the media level so the studio can see exactly when. Best-effort.
+  await recordTermsAcceptance(supabase, {
+    clerkUserId,
+    kind: "data",
+    context: "media_consent",
+    referenceId: mediaId,
+  })
   return { note }
 }
 
@@ -122,7 +133,12 @@ export async function decideMediaConsent(
   }
 
   // Granted → publish a public copy (copy-on-consent), placed nowhere yet.
-  const { note } = await grantMediaConsentRow(supabase, consent.id, mediaId)
+  const { note } = await grantMediaConsentRow(
+    supabase,
+    userId,
+    consent.id,
+    mediaId,
+  )
   revalidatePath(`/admin/clients/${userId}`)
   return { ok: true, note }
 }
@@ -148,6 +164,7 @@ export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
   for (const row of mediaRows ?? []) {
     const result = await grantMediaConsentRow(
       supabase,
+      userId,
       row.id,
       row.client_media_id,
     )

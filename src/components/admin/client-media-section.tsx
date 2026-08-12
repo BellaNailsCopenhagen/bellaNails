@@ -1,23 +1,24 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Globe, ImagePlus, Share2, Store, User } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { kindForType } from "@/lib/media-policy"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { uploadMedia } from "@/lib/client/upload-media"
 import type {
   ClientMediaItem,
   ConsentStatus,
   DataConsentItem,
 } from "@/lib/media"
-import {
-  addClientMedia,
-  requestDataConsent,
-} from "@/lib/actions/manage-media"
+import { addClientMedia, requestDataConsent } from "@/lib/actions/manage-media"
 
 const subLabel =
   "font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground"
@@ -33,12 +34,25 @@ function consentVariant(status: ConsentStatus) {
   return "outline" as const
 }
 
+// Icon tint for a consent state — used on the gallery overlays.
+// green = granted · amber = requested · red = declined · faint = none/withdrawn
+function consentIconClass(status: ConsentStatus) {
+  if (status === "granted") return "text-success"
+  if (status === "declined") return "text-destructive"
+  if (status === "requested") return "text-warning"
+  return "text-muted-foreground/40"
+}
+
+const overlayChip =
+  "flex size-6 items-center justify-center rounded-full border border-border bg-background/85 backdrop-blur-sm"
+
 export type BookingOption = { id: string; label: string }
 
 /**
- * The owner's image/video gallery for a client — upload (optionally attached to
- * a booking) + the grid with per-image publish-consent requests. Lives in the
- * admin client page's Gallery tab.
+ * The owner's image/video gallery for a client. Upload happens in a dialog
+ * (optionally attached to a past/current booking); each thumbnail carries its
+ * source + publish-consent state as corner icons rather than a badge row, so
+ * the grid reads as a gallery. Lives in the admin client page's Gallery tab.
  */
 export function ClientMediaGallery({
   clerkUserId,
@@ -48,11 +62,13 @@ export function ClientMediaGallery({
 }: {
   clerkUserId: string
   media: ClientMediaItem[]
-  /** This client's bookings, newest first — the optional "attach to" picker. */
+  /** This client's attachable bookings (past/current), newest first. */
   bookings?: BookingOption[]
-  /** Pre-selected booking (ongoing, else most recent ended). Empty = none. */
+  /** Pre-selected booking (ongoing, else most recent). Empty = none. */
   defaultBookingId?: string | null
 }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [caption, setCaption] = useState("")
   const [bookingId, setBookingId] = useState(defaultBookingId ?? "")
@@ -87,6 +103,8 @@ export function ClientMediaGallery({
       if (result.ok) {
         toast.success("Added")
         setCaption("")
+        setOpen(false)
+        router.refresh() // show the new image without a manual reload
       } else {
         toast.error(result.error || "Couldn’t add.")
       }
@@ -98,79 +116,54 @@ export function ClientMediaGallery({
 
   return (
     <section className="space-y-4">
-      {/* Upload an image or a demo video (owner exception). */}
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="min-w-0 flex-1 space-y-1">
-          <label htmlFor="media-caption" className={subLabel}>
-            Caption (optional)
-          </label>
-          <Input id="media-caption" value={caption} onValueChange={setCaption} />
-        </div>
-        {bookings.length ? (
-          <div className="min-w-0 flex-1 space-y-1">
-            <label htmlFor="media-booking" className={subLabel}>
-              Attach to booking (optional)
-            </label>
-            <select
-              id="media-booking"
-              value={bookingId}
-              onChange={(e) => setBookingId(e.target.value)}
-              className="w-full min-w-0 border-b border-border bg-transparent px-0 py-3 font-functional text-base text-foreground outline-none focus-visible:border-foreground"
-            >
-              <option value="">No booking</option>
-              {bookings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
-          hidden
-          onChange={(e) => onFile(e.target.files)}
-        />
-        <Button
-          size="sm"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading ? "Uploading…" : "Upload"}
+      <div className="flex items-center justify-between gap-3">
+        <Eyebrow as="h3">Photos</Eyebrow>
+        <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+          <ImagePlus className="size-4" />
+          Upload media
         </Button>
       </div>
 
       {media.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
           {media.map((item) => (
-            <li key={item.id} className="mb-4 break-inside-avoid space-y-2">
-              {item.kind === "video" ? (
-                <video
-                  src={item.url}
-                  controls
-                  preload="metadata"
-                  className="w-full rounded-sm border border-border"
-                />
-              ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={item.url}
-                  alt={item.caption ?? "Client image"}
-                  className="w-full rounded-sm border border-border"
-                />
-              )}
-              <div className="flex flex-wrap items-center gap-1">
-                <Badge variant="outline" size="xs">
-                  {item.source === "client" ? "Client" : "Studio"}
-                </Badge>
-                <Badge variant={consentVariant(item.site)} size="xs">
-                  site: {item.site}
-                </Badge>
-                <Badge variant={consentVariant(item.some)} size="xs">
-                  social: {item.some}
-                </Badge>
+            <li key={item.id} className="mb-4 break-inside-avoid">
+              <div className="relative overflow-hidden rounded-sm border border-border">
+                {item.kind === "video" ? (
+                  <video
+                    src={item.url}
+                    controls
+                    preload="metadata"
+                    className="w-full"
+                  />
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={item.url}
+                    alt={item.caption ?? "Client image"}
+                    className="w-full"
+                  />
+                )}
+                <span
+                  className={`absolute top-1.5 left-1.5 ${overlayChip}`}
+                  title={item.source === "client" ? "Client upload" : "Studio"}
+                >
+                  {item.source === "client" ? (
+                    <User className="size-3.5 text-muted-foreground" />
+                  ) : (
+                    <Store className="size-3.5 text-muted-foreground" />
+                  )}
+                </span>
+                <div className="absolute top-1.5 right-1.5 flex gap-1">
+                  <span className={overlayChip} title={`Website: ${item.site}`}>
+                    <Globe className={`size-3.5 ${consentIconClass(item.site)}`} />
+                  </span>
+                  <span className={overlayChip} title={`Social: ${item.some}`}>
+                    <Share2
+                      className={`size-3.5 ${consentIconClass(item.some)}`}
+                    />
+                  </span>
+                </div>
               </div>
             </li>
           ))}
@@ -178,6 +171,73 @@ export function ClientMediaGallery({
       ) : (
         <BodySm className="text-xs">No images yet.</BodySm>
       )}
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <SheetTitle>Upload media</SheetTitle>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="media-caption" className={subLabel}>
+              Caption (optional)
+            </label>
+            <Input
+              id="media-caption"
+              value={caption}
+              onValueChange={setCaption}
+            />
+          </div>
+
+          {bookings.length ? (
+            <div className="space-y-1">
+              <label htmlFor="media-booking" className={subLabel}>
+                Attach to booking (optional)
+              </label>
+              <select
+                id="media-booking"
+                value={bookingId}
+                onChange={(e) => setBookingId(e.target.value)}
+                className="w-full min-w-0 border-b border-border bg-transparent px-0 py-3 font-functional text-base text-foreground outline-none focus-visible:border-foreground"
+              >
+                <option value="">No booking</option>
+                {bookings.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+              <BodySm className="text-[0.625rem] text-muted-foreground">
+                Only past or current completed sessions can receive photos.
+              </BodySm>
+            </div>
+          ) : null}
+
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+            hidden
+            onChange={(e) => onFile(e.target.files)}
+          />
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+            >
+              {uploading ? "Uploading…" : "Choose file & upload"}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }
@@ -203,13 +263,7 @@ export function ClientDataConsent({
   clerkUserId: string
   dataConsents: DataConsentItem[]
 }) {
-  const [pending, startTransition] = useTransition()
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) toast.error(result.error || "Something went wrong.")
-    })
+  const { pending, run } = useActionRunner()
 
   const dataStatus = (purpose: string): ConsentStatus =>
     (dataConsents.find((c) => c.purpose === purpose)?.status ??

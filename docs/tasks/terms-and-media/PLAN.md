@@ -37,8 +37,30 @@ Autonomous build (owner away). Every phase: `tsc` + `eslint` + `build` → **rev
 - **E** — upload Sheet + booking filter.
 
 ## Progress
-- **Phase A+B — DONE** (committed + deployed). Terms system + public pages live.
-- Phase C/D/E — pending.
+- **Phase A+B — DONE** (committed `124949f` + deployed). Terms system + public pages live.
+- **Phase C/D/E — built**, reviewed, committed together.
+
+## Versioning note (owner-confirmed)
+Terms are **never edited in place** — every save publishes a NEW version
+(`saveTermsVersion` inserts version+1 and swaps `is_current`). History is
+immutable, so `terms_acceptances` pinning `terms_id` + `version` + `accepted_at`
+to a `clerk_user_id` gives one source of truth with historic accuracy: we can
+show exactly which text a client agreed to and when.
+
+### Phase C/D/E test plan
+7. Book a session (Cal webhook/sync) → `terms_acceptances` gets a `service` row
+   for that booking (version = current). Admin client page → "Terms accepted"
+   shows `Service terms · v{n} · {date}`.
+8. Client grants a photo publish consent (single or Accept-all) → a `data` row
+   per photo. Panel shows `Data-use terms · N photos · latest {date}`.
+9. Both recordings are best-effort: with the migration unapplied, booking +
+   consent still succeed (no crash), panel shows "Not recorded".
+10. Admin client Gallery: each thumbnail shows corner icons — source (studio/
+    client), website (globe) + social (share) tinted by consent state (green/
+    amber/red/faint). Hover title spells out the state.
+11. "Upload media" opens a dialog (caption + attach-to-booking + file). Booking
+    picker lists ONLY past/current, non-cancelled, non-no-show sessions. Upload
+    closes the dialog and the new photo appears (router.refresh).
 
 ## Test plan
 ### Phase A+B (terms system + public pages)
@@ -64,6 +86,14 @@ Autonomous build (owner away). Every phase: `tsc` + `eslint` + `build` → **rev
 - `src/config/routes.ts` — `privacy` route + Legal footer column.
 - `src/components/sections/booking-confirm.tsx` — `<privacy>` link chunk.
 - `messages/{en,da}.json` — `legal` ns, `nav.terms/privacy`, `footer.legal`, updated `booking.consent`.
+
+### Phase C/D/E
+- `src/lib/terms-acceptance.ts` (new) — `recordTermsAcceptance` (best-effort, idempotent) + `getTermsAcceptances`.
+- `src/lib/booking-sync.ts` — record `service` acceptance on booking persist (captures booking id).
+- `src/lib/actions/client-consent.ts` — `grantMediaConsentRow` takes clerkUserId, records `data` acceptance per photo (single + accept-all).
+- `src/components/admin/client-terms-panel.tsx` (new) — admin "Terms accepted" overview.
+- `src/app/admin/clients/[id]/page.tsx` — load acceptances + render panel; booking picker filtered to attachable (started, active, non-no-show) sessions.
+- `src/components/admin/client-media-section.tsx` — icon overlays on thumbnails; upload moved into a Sheet dialog (+ router.refresh on success).
 
 ## Migrations to apply
 - [ ] `supabase/terms.sql` — creates `terms` + `terms_acceptances`, seeds v1 drafts. Apply, then regenerate/confirm types.ts.

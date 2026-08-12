@@ -12,6 +12,7 @@ import {
   ClientDataConsent,
 } from "@/components/admin/client-media-section"
 import { ClientStatusBadge } from "@/components/admin/client-status-badge"
+import { ClientTermsPanel } from "@/components/admin/client-terms-panel"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { isActiveBookingStatus } from "@/lib/booking-status"
@@ -20,6 +21,7 @@ import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { contactDisplayName } from "@/lib/clerk/contact"
 import { getClientDataConsents, getClientMedia } from "@/lib/media"
+import { getTermsAcceptances } from "@/lib/terms-acceptance"
 import { formatStudioDayMonthYear } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
@@ -71,30 +73,38 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [media, dataConsents, photosByBooking] = await Promise.all([
-    getClientMedia(supabase, id).catch(() => []),
-    getClientDataConsents(supabase, id).catch(() => []),
-    getBookingMediaThumbs(
-      supabase,
-      rows.map((r) => r.id),
-    ).catch(() => ({})),
-  ])
+  const [media, dataConsents, photosByBooking, termsAcceptances] =
+    await Promise.all([
+      getClientMedia(supabase, id).catch(() => []),
+      getClientDataConsents(supabase, id).catch(() => []),
+      getBookingMediaThumbs(
+        supabase,
+        rows.map((r) => r.id),
+      ).catch(() => ({})),
+      getTermsAcceptances(supabase, id).catch(() => []),
+    ])
 
-  // Booking picker for owner uploads (optional): default to an ongoing booking,
-  // else the most recent ended one (bookings are newest-first).
-  const bookingOptions = bookings.map((b) => ({
+  // Booking picker for owner uploads: only sessions that have started (past or
+  // current) and weren't cancelled/no-showed — you can't attach photos to a
+  // future or void session. Bookings are newest-first.
+  const attachableBookings = bookings.filter(
+    (b) =>
+      isActiveBookingStatus(b.row.status) &&
+      !b.row.no_show_at &&
+      new Date(b.row.start_time).getTime() <= now,
+  )
+  const bookingOptions = attachableBookings.map((b) => ({
     id: b.row.id,
     label: `${formatStudioDayMonthYear(new Date(b.row.start_time).getTime(), ADMIN_LOCALE)} · ${b.serviceName ?? "Session"}`,
   }))
-  const ongoing = bookings.find((b) => {
-    const start = new Date(b.row.start_time).getTime()
-    const end = new Date(b.row.end_time).getTime()
-    return isActiveBookingStatus(b.row.status) && start <= now && now <= end
-  })
-  const mostRecentEnded = bookings.find(
-    (b) => new Date(b.row.end_time).getTime() < now,
-  )
-  const defaultBookingId = ongoing?.row.id ?? mostRecentEnded?.row.id ?? null
+  // Default to an ongoing session (started, not yet ended), else the most recent
+  // attachable one.
+  const defaultBookingId =
+    attachableBookings.find(
+      (b) => new Date(b.row.end_time).getTime() >= now,
+    )?.row.id ??
+    attachableBookings[0]?.row.id ??
+    null
 
   return (
     <div className="space-y-14">
@@ -178,6 +188,8 @@ export default async function AdminClientPage({
       />
 
       <ClientDataConsent clerkUserId={id} dataConsents={dataConsents} />
+
+      <ClientTermsPanel acceptances={termsAcceptances} />
     </div>
   )
 }
