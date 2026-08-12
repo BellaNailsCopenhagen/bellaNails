@@ -11,7 +11,9 @@
     "signIn": "Sign in",
     "signUp": "Sign up",
     "account": "My account",
-    "space": "My Space"
+    "space": "My Space",
+    "terms": "Terms",
+    "privacy": "Privacy"
   },
   "hero": {
     "kicker": "Nail Salon in Ørestad · Copenhagen",
@@ -83,7 +85,7 @@
     "manageOnline": "Manage your appointment",
     "embedLoading": "Loading available times…",
     "securingBooking": "Securing your reservation…",
-    "consent": "By reserving a session you agree to our <terms>terms of service</terms>, including the 24-hour cancellation policy.",
+    "consent": "By reserving a session you agree to our <terms>terms of service</terms> and <privacy>privacy notice</privacy>, including the 24-hour cancellation policy.",
     "summaryLabel": "Appointment summary",
     "privateSession": "Studio — Private Session",
     "durationLabel": "Duration",
@@ -327,7 +329,8 @@
     "explore": "Explore",
     "social": "Social",
     "instagram": "Instagram",
-    "facebook": "Facebook"
+    "facebook": "Facebook",
+    "legal": "Legal"
   },
   "locale": {
     "label": "Language",
@@ -339,5 +342,21 @@
     "headingLead": "Recent",
     "headingAccent": "Client Work",
     "alt": "Nail work by Bella Nails"
+  },
+  "legal": {
+    "eyebrow": "Legal",
+    "updated": "Last updated {date}",
+    "service": {
+      "metaTitle": "Booking Terms",
+      "metaDescription": "The terms for booking and attending an appointment at Bella Nails.",
+      "fallbackTitle": "Booking Terms",
+      "fallbackBody": "Our booking terms are being prepared and will appear here shortly."
+    },
+    "data": {
+      "metaTitle": "Privacy & Data Use",
+      "metaDescription": "How Bella Nails handles your data and the photos of your work.",
+      "fallbackTitle": "Privacy & Data Use",
+      "fallbackBody": "Our privacy notice is being prepared and will appear here shortly."
+    }
   }
 }

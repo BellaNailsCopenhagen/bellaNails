@@ -18,6 +18,7 @@ export const routes = {
   book: "/book",
   confirmation: "/confirmation",
   terms: "/terms",
+  privacy: "/privacy",
   signIn: "/sign-in",
   account: "/account",
 } as const
@@ -77,6 +78,13 @@ export const footerNav: FooterColumn[] = [
   {
     headingKey: "session",
     links: [{ href: routes.book, labelKey: "reserve" }],
+  },
+  {
+    headingKey: "legal",
+    links: [
+      { href: routes.terms, labelKey: "terms" },
+      { href: routes.privacy, labelKey: "privacy" },
+    ],
   },
   {
     headingKey: "follow",

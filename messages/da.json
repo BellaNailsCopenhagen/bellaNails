@@ -11,7 +11,9 @@
     "signIn": "Log ind",
     "signUp": "Opret konto",
     "account": "Min konto",
-    "space": "Mit rum"
+    "space": "Mit rum",
+    "terms": "Betingelser",
+    "privacy": "Privatliv"
   },
   "hero": {
     "kicker": "Neglesalon i Ørestad · København",
@@ -83,7 +85,7 @@
     "manageOnline": "Administrér din tid",
     "embedLoading": "Henter ledige tider…",
     "securingBooking": "Bekræfter din reservation…",
-    "consent": "Ved at reservere en session accepterer du vores <terms>handelsbetingelser</terms>, herunder 24-timers afbudspolitikken.",
+    "consent": "Ved at reservere en session accepterer du vores <terms>handelsbetingelser</terms> og <privacy>privatlivsmeddelelse</privacy>, herunder 24-timers afbudspolitikken.",
     "summaryLabel": "Oversigt over din tid",
     "privateSession": "Studio — privat session",
     "durationLabel": "Varighed",
@@ -327,7 +329,8 @@
     "explore": "Udforsk",
     "social": "Sociale medier",
     "instagram": "Instagram",
-    "facebook": "Facebook"
+    "facebook": "Facebook",
+    "legal": "Juridisk"
   },
   "locale": {
     "label": "Sprog",
@@ -339,5 +342,21 @@
     "headingLead": "Seneste",
     "headingAccent": "kundearbejde",
     "alt": "Neglearbejde af Bella Nails"
+  },
+  "legal": {
+    "eyebrow": "Juridisk",
+    "updated": "Sidst opdateret {date}",
+    "service": {
+      "metaTitle": "Betingelser for booking",
+      "metaDescription": "Betingelserne for at booke og møde op til en tid hos Bella Nails.",
+      "fallbackTitle": "Betingelser for booking",
+      "fallbackBody": "Vores betingelser er ved at blive udarbejdet og vises her snart."
+    },
+    "data": {
+      "metaTitle": "Privatliv & databrug",
+      "metaDescription": "Hvordan Bella Nails håndterer dine data og billederne af dit arbejde.",
+      "fallbackTitle": "Privatliv & databrug",
+      "fallbackBody": "Vores privatlivsmeddelelse er ved at blive udarbejdet og vises her snart."
+    }
   }
 }

@@ -541,6 +541,83 @@ export type Database = {
           },
         ]
       }
+      terms: {
+        Row: {
+          body_dk: string | null
+          body_en: string | null
+          created_at: string
+          id: string
+          is_current: boolean
+          kind: string
+          title_dk: string | null
+          title_en: string | null
+          version: number
+        }
+        Insert: {
+          body_dk?: string | null
+          body_en?: string | null
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          kind: string
+          title_dk?: string | null
+          title_en?: string | null
+          version: number
+        }
+        Update: {
+          body_dk?: string | null
+          body_en?: string | null
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          kind?: string
+          title_dk?: string | null
+          title_en?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      terms_acceptances: {
+        Row: {
+          accepted_at: string
+          clerk_user_id: string
+          context: string | null
+          id: string
+          kind: string
+          reference_id: string
+          terms_id: string | null
+          version: number
+        }
+        Insert: {
+          accepted_at?: string
+          clerk_user_id: string
+          context?: string | null
+          id?: string
+          kind: string
+          reference_id?: string
+          terms_id?: string | null
+          version: number
+        }
+        Update: {
+          accepted_at?: string
+          clerk_user_id?: string
+          context?: string | null
+          id?: string
+          kind?: string
+          reference_id?: string
+          terms_id?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terms_acceptances_terms_id_fkey"
+            columns: ["terms_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

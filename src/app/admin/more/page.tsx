@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ExternalLink,
   Images,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react"
 
@@ -56,6 +57,12 @@ const ITEMS: MoreItem[] = [
     description: "Place approved client photos into use-cases",
     icon: Images,
     href: "/admin/assets",
+  },
+  {
+    label: "Terms",
+    description: "Booking terms and the data-use / privacy notice",
+    icon: ScrollText,
+    href: "/admin/terms",
   },
   {
     label: "Gallery & testimonials",
