@@ -93,13 +93,18 @@ export function HubAssetCard({
           }
           aria-label={asset.favorited ? "Remove favourite" : "Favourite"}
           title={asset.favorited ? "Favourited" : "Favourite"}
-          className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-background/85 backdrop-blur-sm transition-transform hover:scale-105"
+          className={cn(
+            "absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border shadow-sm backdrop-blur-sm transition-transform hover:scale-105",
+            asset.favorited
+              ? "border-transparent bg-secondary"
+              : "border-border bg-background/85",
+          )}
         >
           <Star
             className={cn(
               "size-3.5",
               asset.favorited
-                ? "fill-secondary text-secondary"
+                ? "fill-secondary-foreground text-secondary-foreground"
                 : "text-muted-foreground",
             )}
           />
