@@ -19,10 +19,20 @@ export function FloatingBookButton({
   const [shown, setShown] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setShown(window.scrollY > 320)
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
+    // Reveal after a little scroll — but always show on a short page that can't
+    // scroll (e.g. a service with no sections/photos), so Book is never absent.
+    const update = () => {
+      const notScrollable =
+        document.documentElement.scrollHeight <= window.innerHeight + 40
+      setShown(notScrollable || window.scrollY > 320)
+    }
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+    window.addEventListener("resize", update)
+    return () => {
+      window.removeEventListener("scroll", update)
+      window.removeEventListener("resize", update)
+    }
   }, [])
 
   return (

@@ -91,7 +91,8 @@
     "durationLabel": "Varighed",
     "timeNote": "Du vælger dato og tidspunkt i næste trin.",
     "totalLabel": "I alt",
-    "paymentNote": "Betaling foregår i studiet. Der gælder 24 timers afbudsfrist."
+    "paymentNote": "Betaling foregår i studiet. Der gælder 24 timers afbudsfrist.",
+    "termsLink": "Handelsbetingelser"
   },
   "bookings": {
     "metaTitle": "Mit rum – Bella Nails",

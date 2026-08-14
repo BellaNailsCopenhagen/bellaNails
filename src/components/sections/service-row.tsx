@@ -9,10 +9,11 @@ import { routes, serviceDetailPath } from "@/config/routes"
 
 /**
  * ServiceRow — the shared bookable service line (name + duration left, price +
- * hover CTA right, hairline below) used by the services menu and the booking
- * picker. The whole row links to /book?service=<id>. In the menu it also shows
- * a "Learn more" link to the service's detail page (a sibling link, never
- * nested); the booking picker omits it.
+ * hover CTA right) used by the services menu and the booking picker. The whole
+ * row books via a "stretched" overlay link; in the menu a quiet "learn more"
+ * link sits under the price ON TOP of that overlay, so tapping it opens the
+ * detail page instead of booking — a distinct secondary action, not nested
+ * inside the booking link. The booking picker omits it.
  */
 export function ServiceRow({
   service,
@@ -25,7 +26,7 @@ export function ServiceRow({
   locale: string
   minutesLabel: string
   ctaLabel: string
-  /** When set, render a "Learn more" link to the detail page (menu only). */
+  /** When set, render a "learn more" link to the detail page (menu only). */
   learnMoreLabel?: string
 }) {
   const name =
@@ -33,35 +34,39 @@ export function ServiceRow({
 
   return (
     <li>
-      <Link
-        href={{ pathname: routes.book, query: { service: service.id } }}
-        className="group -mx-4 flex items-center justify-between gap-6 rounded-sm px-4 py-5 outline-none transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40"
-      >
+      <div className="group relative -mx-4 flex items-start justify-between gap-6 rounded-sm px-4 py-5 transition-colors hover:bg-muted/60">
+        {/* Stretched link: the whole row books. It sits behind the learn-more
+            link (which is z-10), so that stays its own target. */}
+        <Link
+          href={{ pathname: routes.book, query: { service: service.id } }}
+          aria-label={`${name} — ${ctaLabel}`}
+          className="absolute inset-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        />
         <div className="space-y-1">
           <BodySm className="text-foreground">{name}</BodySm>
           <Caption className="block text-[11px] tracking-wide">
             {service.base_duration_mins} {minutesLabel}
           </Caption>
         </div>
-        <div className="flex items-baseline gap-5">
-          <PriceTag cents={service.base_price_cents} className="text-lg" />
-          {/* Always visible on touch; revealed on hover/focus on desktop
-              (opacity keeps the price from shifting). */}
-          <Caption className="inline-flex items-center gap-1.5 text-foreground transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-visible:opacity-100">
-            {ctaLabel}
-            <HoverArrow />
-          </Caption>
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex items-baseline gap-5">
+            <PriceTag cents={service.base_price_cents} className="text-lg" />
+            {/* Always visible on touch; revealed on hover/focus on desktop. */}
+            <Caption className="inline-flex items-center gap-1.5 text-foreground transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+              {ctaLabel}
+              <HoverArrow />
+            </Caption>
+          </div>
+          {learnMoreLabel ? (
+            <Link
+              href={serviceDetailPath(service.id)}
+              className="relative z-10 font-functional text-[11px] lowercase text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
+            >
+              {learnMoreLabel}
+            </Link>
+          ) : null}
         </div>
-      </Link>
-      {learnMoreLabel ? (
-        <Link
-          href={serviceDetailPath(service.id)}
-          className="-mt-2 mb-3 ml-1 inline-flex items-center gap-1 font-functional text-[11px] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {learnMoreLabel}
-          <HoverArrow />
-        </Link>
-      ) : null}
+      </div>
       <Separator />
     </li>
   )

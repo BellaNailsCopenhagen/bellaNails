@@ -86,12 +86,13 @@ export default async function ServiceDetailPage({
               return (
                 <article key={section.id} className="space-y-4">
                   {section.imageUrl ? (
+                    /* Hidden on mobile — text-first keeps small screens clean. */
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={section.imageUrl}
                       alt={title ?? ""}
                       loading="lazy"
-                      className="w-full rounded-sm border border-border"
+                      className="hidden w-full rounded-sm border border-border sm:block"
                     />
                   ) : null}
                   {title ? (

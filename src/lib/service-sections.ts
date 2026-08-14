@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import type { Database } from "@/lib/supabase/types"
-import { firstOf } from "@/lib/utils"
 
 type Client = SupabaseClient<Database>
 
@@ -16,43 +15,44 @@ export type ServiceSection = {
   imageUrl: string | null
 }
 
-type SectionRow = {
-  id: string
-  sort_order: number
-  title_en: string | null
-  title_dk: string | null
-  body_en: string | null
-  body_dk: string | null
-  asset_id: string | null
-  asset: { url: string } | { url: string }[] | null
-}
-
-/** A service's content sections, ordered — with each section's image URL. */
+/**
+ * A service's content sections, ordered, each with its image URL. Two plain
+ * queries (sections, then assets by id) rather than an `assets(url)` embed — a
+ * fragile FK embed can error at runtime and silently yield zero sections.
+ */
 export async function getServiceSections(
   supabase: Client,
   serviceId: string,
 ): Promise<ServiceSection[]> {
   const { data, error } = await supabase
     .from("service_sections")
-    .select(
-      "id, sort_order, title_en, title_dk, body_en, body_dk, asset_id, asset:assets(url)",
-    )
+    .select("id, sort_order, title_en, title_dk, body_en, body_dk, asset_id")
     .eq("service_id", serviceId)
     .order("sort_order", { ascending: true })
   if (error || !data) return []
-  return (data as SectionRow[]).map((row) => {
-    const asset = firstOf(row.asset)
-    return {
-      id: row.id,
-      sortOrder: row.sort_order,
-      titleEn: row.title_en,
-      titleDk: row.title_dk,
-      bodyEn: row.body_en,
-      bodyDk: row.body_dk,
-      assetId: row.asset_id,
-      imageUrl: asset?.url ?? null,
-    }
-  })
+
+  const assetIds = data
+    .map((row) => row.asset_id)
+    .filter((id): id is string => Boolean(id))
+  const urlById = new Map<string, string>()
+  if (assetIds.length) {
+    const { data: assets } = await supabase
+      .from("assets")
+      .select("id, url")
+      .in("id", assetIds)
+    for (const asset of assets ?? []) urlById.set(asset.id, asset.url)
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    sortOrder: row.sort_order,
+    titleEn: row.title_en,
+    titleDk: row.title_dk,
+    bodyEn: row.body_en,
+    bodyDk: row.body_dk,
+    assetId: row.asset_id,
+    imageUrl: row.asset_id ? (urlById.get(row.asset_id) ?? null) : null,
+  }))
 }
 
 export type PickableAsset = { id: string; url: string }

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
+import { Link } from "@/i18n/navigation"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { TintedCard } from "@/components/ui/tinted-card"
@@ -9,6 +10,7 @@ import {
   computeBookingTotals,
   type BookingLineItem,
 } from "@/lib/services/booking-totals"
+import { routes } from "@/config/routes"
 
 /**
  * AppointmentSummary — the tinted running-total card shared by the booking
@@ -93,7 +95,15 @@ function AppointmentSummary({
         </div>
 
         <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">
-          {t("paymentNote")}
+          {t("paymentNote")}{" "}
+          <Link
+            href={routes.terms}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 transition-colors hover:text-foreground"
+          >
+            {t("termsLink")}
+          </Link>
         </Caption>
       </div>
     </TintedCard>

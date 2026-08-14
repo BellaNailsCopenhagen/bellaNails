@@ -91,7 +91,8 @@
     "durationLabel": "Duration",
     "timeNote": "You'll choose the date and time in the next step.",
     "totalLabel": "Total",
-    "paymentNote": "Payment is collected at the studio. 24-hour cancellation policy applies."
+    "paymentNote": "Payment is collected at the studio. 24-hour cancellation policy applies.",
+    "termsLink": "Terms of service"
   },
   "bookings": {
     "metaTitle": "My Space – Bella Nails",
