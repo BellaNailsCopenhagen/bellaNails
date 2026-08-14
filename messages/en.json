@@ -6,7 +6,6 @@
   "nav": {
     "services": "Services",
     "gallery": "Gallery",
-    "lookbook": "Lookbook",
     "reserve": "Reserve session",
     "signIn": "Sign in",
     "signUp": "Sign up",
@@ -181,7 +180,6 @@
     "closeCta": "Close",
     "permsEyebrow": "Your permissions",
     "permsIntro": "Bella Nails asks before sharing anything of yours. You can change your mind any time.",
-    "acceptAll": "Accept all",
     "photoAlt": "Your appointment photo",
     "sharePromptSite": "Share this photo on our website?",
     "sharePromptSome": "Share this photo on social media?",
@@ -192,7 +190,21 @@
     "consentAllow": "Allow",
     "consentDecline": "No",
     "dataAllowed": "Allowed",
-    "actionError": "Something went wrong. Try again."
+    "actionError": "Something went wrong. Try again.",
+    "acceptAllPhotos": "Accept all photos",
+    "photoProcessFailed": "Couldn’t process that image.",
+    "photoUploadNotConfigured": "Photo upload isn’t set up yet — check back soon.",
+    "photoUploadFailed": "An image failed to upload.",
+    "photoAdded": "Photo added",
+    "photoSaveFailed": "Couldn’t save the photo.",
+    "removePhotoAria": "Remove photo",
+    "uploadingPhoto": "Uploading…",
+    "addAnotherPhoto": "Add another",
+    "shareSet": "Share your set",
+    "shareThanksBody": "Thank you for sharing — it means the world to us. Your photos stay private to the studio and are never published without your permission; you can remove them any time.",
+    "sharePromptBody": "Loved your set? Share a photo with Bella Nails. Your photos stay private to the studio and are never published without your permission — you can remove them any time.",
+    "requestBanner": "{count, plural, =1 {Bella Nails has a request for you} other {Bella Nails has # requests for you}}",
+    "requestBannerTap": "tap to review"
   },
   "gallery": {
     "metaTitle": "Gallery",

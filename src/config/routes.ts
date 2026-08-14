@@ -13,7 +13,6 @@ export const routes = {
   home: "/",
   services: "/services",
   gallery: "/gallery",
-  lookbook: "/lookbook",
   appointments: "/appointments",
   book: "/book",
   confirmation: "/confirmation",
@@ -50,7 +49,7 @@ export function serviceDetailPath(id: string): string {
   return `${routes.services}/${id}`
 }
 
-/** Primary header navigation. Lookbook returns when its page ships. */
+/** Primary header navigation. */
 export const headerNav: NavItem[] = [
   { href: routes.services, labelKey: "services" },
   { href: routes.gallery, labelKey: "gallery" },

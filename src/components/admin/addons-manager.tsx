@@ -1,15 +1,12 @@
 "use client"
 
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-
 import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import {
   EditAddonSheet,
   type EditableAddon,
 } from "@/components/admin/edit-addon-sheet"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { linkAddon, unlinkAddon } from "@/lib/actions/manage-services"
 
 /**
@@ -28,18 +25,10 @@ export function AddonsManager({
   /** Every add-on, for the "link existing" picker. */
   allAddons: (EditableAddon & { archived_at: string | null })[]
 }) {
-  const [pending, startTransition] = useTransition()
-  const router = useRouter()
+  const { pending, run } = useActionRunner()
 
   const linkedIds = new Set(addons.map((a) => a.id))
   const linkable = allAddons.filter((a) => !a.archived_at && !linkedIds.has(a.id))
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) toast.error(result.error || "Something went wrong.")
-      else router.refresh()
-    })
 
   return (
     <section className="space-y-2 pl-2">

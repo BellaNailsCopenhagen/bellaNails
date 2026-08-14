@@ -74,9 +74,9 @@ export function ConsentCentre({
 
   if (!requests.length && !dataRequests.length) return null
 
-  // Accept-all is a convenience — only worth showing with 2+ pending decisions.
-  const pendingCount =
-    requests.length + dataRequests.filter((c) => c.status === "requested").length
+  // Accept-all covers PHOTOS only (data/testimonial consent stays per-item) —
+  // show it only when there are 2+ pending photo requests to speed through.
+  const pendingPhotoCount = requests.length
 
   return (
     <section className="space-y-4">
@@ -85,7 +85,7 @@ export function ConsentCentre({
           <Eyebrow>{t("permsEyebrow")}</Eyebrow>
           <BodySm className="text-xs">{t("permsIntro")}</BodySm>
         </div>
-        {pendingCount >= 2 ? (
+        {pendingPhotoCount >= 2 ? (
           <Button
             variant="outline"
             size="sm"
@@ -93,7 +93,7 @@ export function ConsentCentre({
             className="shrink-0"
             onClick={() => act(() => acceptAllPendingConsents())}
           >
-            {t("acceptAll")}
+            {t("acceptAllPhotos")}
           </Button>
         ) : null}
       </div>

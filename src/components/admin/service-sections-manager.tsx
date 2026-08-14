@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { ImagePicker, type PickedImage } from "@/components/admin/image-picker"
 import {
   addSection,
@@ -34,16 +35,8 @@ export function ServiceSectionsManager({
   sections: ServiceSection[]
   consentedAssets: PickableAsset[]
 }) {
-  const router = useRouter()
   const [editing, setEditing] = useState<ServiceSection | "new" | null>(null)
-  const [pending, startTransition] = useTransition()
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) toast.error(result.error || "Something went wrong.")
-      else router.refresh()
-    })
+  const { pending, run } = useActionRunner()
 
   return (
     <section className="space-y-3 pl-2">

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
+import { firstOf } from "@/lib/utils"
 
 type GalleryPreviewItem = {
   id: string
@@ -43,9 +44,7 @@ export async function getGalleryPreviewItems(
   }
 
   return ((data ?? []) as GalleryPreviewQueryRow[]).flatMap((row) => {
-    const asset = Array.isArray(row.primary_asset)
-      ? row.primary_asset[0]
-      : row.primary_asset
+    const asset = firstOf(row.primary_asset)
 
     if (!asset?.url) return []
 

@@ -6,7 +6,6 @@
   "nav": {
     "services": "Behandlinger",
     "gallery": "Galleri",
-    "lookbook": "Lookbook",
     "reserve": "Reservér tid",
     "signIn": "Log ind",
     "signUp": "Opret konto",
@@ -181,7 +180,6 @@
     "closeCta": "Luk",
     "permsEyebrow": "Dine tilladelser",
     "permsIntro": "Bella Nails spørger, før vi deler noget af dit. Du kan altid ombestemme dig.",
-    "acceptAll": "Accepter alle",
     "photoAlt": "Dit billede fra behandlingen",
     "sharePromptSite": "Del dette billede på vores hjemmeside?",
     "sharePromptSome": "Del dette billede på sociale medier?",
@@ -192,7 +190,21 @@
     "consentAllow": "Tillad",
     "consentDecline": "Nej",
     "dataAllowed": "Tilladt",
-    "actionError": "Noget gik galt. Prøv igen."
+    "actionError": "Noget gik galt. Prøv igen.",
+    "acceptAllPhotos": "Accepter alle billeder",
+    "photoProcessFailed": "Kunne ikke behandle billedet.",
+    "photoUploadNotConfigured": "Billedupload er ikke klar endnu — kig forbi snart.",
+    "photoUploadFailed": "Et billede kunne ikke uploades.",
+    "photoAdded": "Billede tilføjet",
+    "photoSaveFailed": "Kunne ikke gemme billedet.",
+    "removePhotoAria": "Fjern billede",
+    "uploadingPhoto": "Uploader…",
+    "addAnotherPhoto": "Tilføj endnu et",
+    "shareSet": "Del dine negle",
+    "shareThanksBody": "Tak fordi du deler — det betyder alt for os. Dine billeder forbliver private for studiet og udgives aldrig uden din tilladelse; du kan fjerne dem når som helst.",
+    "sharePromptBody": "Elskede du dine negle? Del et billede med Bella Nails. Dine billeder forbliver private for studiet og udgives aldrig uden din tilladelse — du kan fjerne dem når som helst.",
+    "requestBanner": "{count, plural, =1 {Bella Nails har en anmodning til dig} other {Bella Nails har # anmodninger til dig}}",
+    "requestBannerTap": "tryk for at se"
   },
   "gallery": {
     "metaTitle": "Galleri",

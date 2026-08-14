@@ -1,15 +1,12 @@
 "use client"
 
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-
 import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import {
   EditAddonSheet,
   type EditableAddon,
 } from "@/components/admin/edit-addon-sheet"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { archiveAddon } from "@/lib/actions/manage-services"
 
 export type ManageableAddon = EditableAddon & { archived_at: string | null }
@@ -26,8 +23,7 @@ export function AddonsTab({
   addons: ManageableAddon[]
   incompatiblePairs: [string, string][]
 }) {
-  const [pending, startTransition] = useTransition()
-  const router = useRouter()
+  const { pending, run } = useActionRunner()
 
   const active = addons.filter((a) => !a.archived_at)
 
@@ -36,13 +32,6 @@ export function AddonsTab({
     incompatiblePairs
       .filter(([a, b]) => a === id || b === id)
       .map(([a, b]) => (a === id ? b : a))
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (!result.ok) toast.error(result.error || "Something went wrong.")
-      else router.refresh()
-    })
 
   return (
     <div className="space-y-8">

@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { ArrowUpRight } from "lucide-react"
-import { toast } from "sonner"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import {
   addAssetUsage,
   removeAssetUsage,
@@ -30,17 +29,9 @@ export function AssetUsageManager({
   purpose: string
   usages: AssetUsage[]
 }) {
-  const router = useRouter()
-  const [pending, startTransition] = useTransition()
+  const { pending, run } = useActionRunner()
   const surfaces = surfacesForPurpose(purpose)
   const usageBySurface = new Map(usages.map((u) => [u.surface, u]))
-
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
-    startTransition(async () => {
-      const result = await fn()
-      if (result.ok) router.refresh()
-      else toast.error(result.error || "Something went wrong.")
-    })
 
   const toggle = (surface: string) => {
     const existing = usageBySurface.get(surface)

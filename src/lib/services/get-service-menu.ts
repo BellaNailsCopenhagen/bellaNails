@@ -32,7 +32,7 @@ export async function getServiceMenu(
   const { data, error } = await supabase
     .from("categories")
     .select(
-      "id, name_en, name_dk, description_en, description_dk, image_url, services(id, name_en, name_dk, base_price_cents, base_duration_mins)",
+      "id, name_en, name_dk, description_en, description_dk, image_url, services(id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_slug)",
     )
     .is("archived_at", null)
     .is("services.archived_at", null)
@@ -43,9 +43,17 @@ export async function getServiceMenu(
     throw new Error(`Failed to load the service menu: ${error.message}`)
   }
 
-  return ((data ?? []) as MenuCategory[]).filter(
-    (category) => category.services.length > 0,
-  )
+  // A service with no Cal event slug isn't bookable — dropping it here keeps the
+  // menu from linking into a booking flow that silently dead-ends at confirm.
+  type RawCategory = Omit<MenuCategory, "services"> & {
+    services: (MenuService & { cal_event_slug: string | null })[]
+  }
+  return ((data ?? []) as RawCategory[])
+    .map((category) => ({
+      ...category,
+      services: category.services.filter((s) => s.cal_event_slug),
+    }))
+    .filter((category) => category.services.length > 0)
 }
 
 export type { MenuCategory, MenuService }

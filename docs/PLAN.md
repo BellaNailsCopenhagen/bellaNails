@@ -8,6 +8,21 @@ Legend: ✅ done · 🔼 in progress · ⬜ todo
 
 ---
 
+## Shipped since last plan update (August 2026)
+
+Large tranches landed that the phase sections below predate — recorded here so the plan reflects reality (feature docs in `docs/tasks/{terms-and-media,service-detail}/PLAN.md`):
+
+- ✅ **Legal**: `/terms` + `/privacy` pages (DB-backed, versioned, bilingual), admin `/admin/terms` management (each save publishes a new version), Legal footer column, terms linked at booking. **Supersedes the ⬜ items in Phase 7 (lines re: `/terms` 404) and the Phase 9 legal-page todo** — copy still needs the owner's final legal text.
+- ✅ **Photo consent + media + asset system** (Phase 8 Tasks 07/08/09 substantially built): private `client_media`, per-image `media_consents` (site/social), copy-on-consent publish to public `assets`, the `/admin/assets` hub (place consented photos onto surfaces via `asset_usages`), client Gallery with plain-language sharing + one-tap withdrawal, withdraw-in-use retention, owner notifications, real GDPR erasure. Client photos on `/gallery` + home showcase render from consented placements.
+- ✅ **Terms acceptance tracking**: `terms_acceptances` records service terms (at booking) + data-use terms (per photo consent) per client; shown on the admin client page.
+- ✅ **Service catalog depth**: unique service/add-on names (enforced), **price history**, add-on incompatibilities moved into the add-on edit dialog, service **content sections** (image+text) with a consented/upload image picker, per-service **detail pages** `/services/[id]` ("Learn more" → sections + "By the studio"/"What clients say" galleries + floating Book CTA), and **reviews**.
+
+⚠️ **Divergence from plan**: reviews shipped as a per-service **`reviews`** table (studio-entered), NOT the Phase 7/8 global **`testimonials`** table with client-submitted flow (Task 09). The home Testimonials section still reads i18n. Reconcile: either adopt `reviews` as the model or build the planned `testimonials` table + client submission — decision pending.
+
+Migrations applied: `terms.sql`, `price-history.sql`, `service-sections.sql`, `reviews.sql` (+ owner-notifications, asset-usages, asset-hub, storage-provider). Optional: `name-uniqueness.sql`.
+
+---
+
 ## Phase 0 — Scaffold & repo hygiene ✅
 
 - ✅ Next 16 + React 19 + Tailwind v4 + shadcn `base-luma` scaffolded; pnpm via corepack.
@@ -135,7 +150,7 @@ Goal: `/da` (default) + `/en`, server-rendered, no flicker. ⚠️ Next 16 uses 
 - ✅ Service/add-on selection UI → compute total (cents) + duration; handle `addon_incompatibilities`. Reads the `?service=<uuid>` preselect that the `/services` menu rows already send.
 - ✅ The app owns service/add-on selection and booking summary; **Cal.com owns availability search and date/time selection**. Do not build a separate first-party slot picker unless a later requirement proves Cal.com cannot satisfy the UX.
 - ✅ Hand off the chosen service/add-on context into Cal.com (`?duration=` + the prefills above) so users land directly in the smarter availability step rather than re-entering booking context.
-- ✅ (copy shipped on the confirm step — ⚠️ the `/terms` PAGE itself still 404s) Add booking consent copy linking to `/[locale]/terms` anywhere users submit or confirm a reservation (embed wrapper, booking CTA area, confirmation screen as needed).
+- ✅ Add booking consent copy linking to `/[locale]/terms` (+ `/privacy`) anywhere users submit or confirm a reservation. **The `/terms` + `/privacy` pages now exist** (Aug 2026 — DB-backed, see "Shipped since last plan update").
 - ⬜ Define the studio guarantee terms before promising them in booking copy: coverage window by treatment type, what counts as normal wear, exclusions, contact method, and proof/repair flow.
 - ✅ Redirect to own `/[locale]/confirmation` on success.
 - ✅ `/api/webhooks/cal` — validate signature, on `BOOKING_CREATED` upsert into `bookings`. ⚠️ Create the webhook in Cal (Settings → Developer → Webhooks, secret → `CALCOM_WEBHOOK_SECRET`) only once this endpoint exists; earlier deliveries would just fail.
@@ -170,7 +185,7 @@ Found while running the E2E scenario on the test deployment (`test.bellanails.dk
   - ✅ "The Formula" section — Didier Lab positioning (HEMA-free · vegan · cruelty-free · fiberglass-reinforced · Vitamin E + calcium), personal first-person framing.
   - ✅ **ServicesPreview** reads featured `services` from Supabase (localized, PriceTag).
   - ✅ **Full Services menu page** (`/services`, PR #17, July 2026) — "The Menu / Treatments & Care": data-driven category sections (`categories` + embedded `services`, ordered by `sort_order`; catalog restructured into Classic Manicure / Shellac & BIAB / Gel Extensions via [supabase/categories-menu.sql](../supabase/categories-menu.sql)), hoverable service rows deep-linking `/book?service=<uuid>`, SEO keyword intro copy (per [seo-plan.md](./seo-plan.md) Tier 2/3) + localized keyworded image alts, pricing/policy fine-print close. Also fixed the site-wide invisible `Separator` (classes targeted `data-horizontal`; base-ui emits `data-orientation`). Category images reuse the hero placeholder until real Scaleway photos land. Add-ons not shown on the menu yet — decide presentation with `/book`.
-  - 🔼 Gallery (`gallery_items`: portfolio + before/after; Scaleway `public/` objects, no CDN transforms) — home StudioGallery now reads DB-backed items; next step is replacing temporary reused imagery with curated live assets and finishing the full gallery page/admin flow. **Committed client-facing (July 2026): the /gallery page ships before launch** (nav already links it — currently 404s). Lookbook nav removed until its page exists.
+  - 🔼 Gallery (`gallery_items`: portfolio + before/after; Scaleway `public/` objects, no CDN transforms) — home StudioGallery now reads DB-backed items; next step is replacing temporary reused imagery with curated live assets and finishing the full gallery page/admin flow. **Committed client-facing (July 2026): the /gallery page ships before launch** (✅ page now exists — renders studio imagery + consented client work from the asset hub; owner curates via `/admin/assets`). Lookbook nav + route removed (Aug 2026).
   - ✅ **Contact area (July 2026): email-first, no messaging system.** `STUDIO_EMAIL = hello@bellanails.dk` shipped in FindUs, footer, and the within-24h note (now actionable). Phone to follow when supplied. Publish the studio's public email + phone as `src/config/studio.ts` constants (owner to supply values) and surface them in: the FindUs section (under hours), the footer contact/studio column, and make the bookings page's within-24h note actionable (it already says "call or write the studio" — currently with nowhere to click). `mailto:`/`tel:` links only; a /contact page is unnecessary while FindUs + footer carry the details.
   - 🔼 **Testimonials** — copy currently lives in i18n (da/en), fine for launch. Decision: move to a `testimonials` table (mirrors services/gallery: `quote_en/_dk`, `author_name`, `author_role_en/_dk`, `sort_order`, `is_published`, `archived_at`; public read via RLS) so the owner can manage them — build it with the admin (Phase 8). Note: real client quotes are given in one language, so consider storing as-given rather than translating.
   - ⬜ Follow-ups: real photos via Scaleway (hero + gallery), real map embed on FindUs, and the flaky-locale-switch Clerk re-init (deferred to Phase 9).
@@ -203,8 +218,8 @@ queue builds on the same action/eligibility/webhook machinery, so harden first.
 - ✅ Minor: surrogate-safe truncation for `clientNotes` (`[...notes].slice(0,500)`); ineligible-reschedule bounce is silent — carry a notice back to /bookings; `.env.example`: document `CALCOM_API_KEY` as required for in-app cancel + sync. (Done: shared `CAL_UID_PATTERN` guards recap API + cancel + sync + tightened to 12+ chars; persist path is resurrection-proof and heals failed old-row closes — replay-verified.)
 - ✅ **Branded localized 404 (July 2026)** — `[locale]/not-found.tsx` renders the editorial `sections/not-found.tsx` (PageHeader + recovery actions: home / menu / book) inside the site header/footer, localized da/en via a `notFound` message namespace. Because the root layout is a `[locale]` dynamic segment (no `app/layout.tsx`), unknown slugs need a `[locale]/[...rest]/page.tsx` catch-all that calls `notFound()` to force the branded page (Next would otherwise fall through to the bare root 404); a self-contained `app/not-found.tsx` (own `<html>`/`<body>`, no brand fonts/i18n) covers no-locale / bad-locale (`/fr/x`) / dotted-path routes. Live-verified: `/da|/en` unknown slugs + nested paths → 404 + branded localized body; `/fr/x` → root fallback; real routes still 200.
 - ✅ **Branded localized error boundaries (July 2026)** — companion to the 404 for the "route exists but threw" case (part of Phase 9's "error boundaries"). Shared `errors` message namespace + reusable `sections`/`ui` `ErrorState` (mirrors `EmptyState`), consumed by `[locale]/error.tsx` (`'use client'` boundary for the locale subtree: branded ErrorState + retry via Next 16.2 `unstable_retry` + home, renders inside header/footer) and a self-contained `app/global-error.tsx` (own `<html>`/`<body>`, bilingual) for root-layout throws. Live-verified: a forced throw under `/da|/en` → **500** + branded localized fallback with retry, header intact. `ErrorState` is reusable for in-component boundaries that swap a single failed section.
-- ⬜ Add localized `Terms of Service` page at `/[locale]/terms` with final studio booking, cancellation, lateness, no-show, payment, and studio guarantee terms.
-- ⬜ Surface `Terms of Service` in the footer, around booking entry points, and on post-booking/confirmation surfaces where consent or reference is useful.
+- ✅ Localized `/terms` + `/privacy` pages shipped (Aug 2026, DB-backed + versioned via `/admin/terms`). ⬜ Owner still to supply the **final legal text** (current content is an editable starter draft).
+- ✅ Terms surfaced in the footer (Legal column) and at the booking confirm step. ⬜ Consider a confirmation-screen reference if useful.
 
 ## Phase 8 — Admin
 

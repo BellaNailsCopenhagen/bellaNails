@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
 import type { AssetSurface } from "@/lib/asset-surfaces"
+import { firstOf } from "@/lib/utils"
 
 export type PublicAsset = { id: string; url: string; mediaType: string }
 
@@ -42,7 +43,7 @@ export async function getPublicAssetsBySurface(
   }
 
   return ((data ?? []) as PublicAssetRow[]).flatMap((row) => {
-    const asset = Array.isArray(row.asset) ? row.asset[0] : row.asset
+    const asset = firstOf(row.asset)
     if (!asset?.url) return []
     return [{ id: asset.id, url: asset.url, mediaType: asset.media_type }]
   })

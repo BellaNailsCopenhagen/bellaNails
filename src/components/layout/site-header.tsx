@@ -21,8 +21,8 @@ import { headerNav, routes } from "@/config/routes"
 /**
  * SiteHeader — sticky top bar matching the comp: wordmark, primary nav, the
  * Reserve CTA, the EN/DK toggle, and (when signed in) the account button.
- * Nav targets (`/services`, `/gallery`, `/lookbook`, `/bookings`, `/book`)
- * come online across Phases 6–7; the chrome is locale-aware now.
+ * Nav targets (`/services`, `/gallery`, `/appointments`, `/book`) are live;
+ * the chrome is locale-aware.
  */
 export async function SiteHeader() {
   const t = await getTranslations("nav")

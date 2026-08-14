@@ -2,6 +2,7 @@
 
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "@tanstack/react-query"
+import { useTranslations } from "next-intl"
 import { Bell, ChevronRight } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
@@ -17,6 +18,7 @@ import { routes } from "@/config/routes"
  */
 export function RequestsBanner() {
   const { user } = useUser()
+  const t = useTranslations("bookings")
   const supabase = useSupabaseBrowserClient()
 
   const { data: count = 0 } = useQuery({
@@ -34,10 +36,8 @@ export function RequestsBanner() {
     >
       <Bell className="size-4 shrink-0 text-secondary" />
       <span className="min-w-0 flex-1">
-        {count === 1
-          ? "Bella Nails has a request for you"
-          : `Bella Nails has ${count} requests for you`}
-        <span className="text-muted-foreground"> — tap to review</span>
+        {t("requestBanner", { count })}
+        <span className="text-muted-foreground"> — {t("requestBannerTap")}</span>
       </span>
       <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next"
+import { notFound } from "next/navigation"
 
 import {
   Display,
@@ -86,6 +87,9 @@ function GroupTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function StyleguidePage() {
+  // Dev-only reference — never reachable in production.
+  if (process.env.NODE_ENV === "production") notFound()
+
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-20 sm:py-28">
       <Eyebrow>Design System</Eyebrow>

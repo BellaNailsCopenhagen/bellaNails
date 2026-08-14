@@ -144,10 +144,10 @@ export async function decideMediaConsent(
 }
 
 /**
- * Accept every pending request in one go from the client's Requests tab: grant
- * all still-requested photo consents (copy-on-consent each) and all requested
- * data consents. A convenience over deciding one by one — declines stay a
- * deliberate, per-item choice.
+ * Accept every pending PHOTO request in one go from the client's Requests tab.
+ * Deliberately photo-only: personal-data / testimonial consent (name, words)
+ * stays a per-item decision — GDPR discourages bundling distinct purposes under
+ * one blanket accept. Declines are always per-item too.
  */
 export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
   const userId = await callerId()
@@ -170,18 +170,6 @@ export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
     )
     if (result.note) note = result.note // surface the last deferral, if any
   }
-
-  const now = new Date().toISOString()
-  await supabase
-    .from("client_consents")
-    .update({
-      status: "granted",
-      granted_at: now,
-      declined_at: null,
-      withdrawn_at: null,
-    })
-    .eq("clerk_user_id", userId)
-    .eq("status", "requested")
 
   revalidatePath(`/admin/clients/${userId}`)
   return { ok: true, note }

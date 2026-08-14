@@ -68,29 +68,6 @@ export async function addClientMedia(input: {
   return { ok: true }
 }
 
-/** Make an image the service's feature (one per service — clear the current). */
-export async function setFeatureMedia(
-  serviceId: string,
-  mediaId: string,
-): Promise<MediaActionResult> {
-  const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-
-  await supabase
-    .from("client_media")
-    .update({ is_feature: false })
-    .eq("service_id", serviceId)
-    .eq("is_feature", true)
-  const { error } = await supabase
-    .from("client_media")
-    .update({ is_feature: true })
-    .eq("id", mediaId)
-  if (error) return { ok: false, error: "Couldn’t set the feature image." }
-
-  revalidatePath(`/admin/services/${serviceId}`)
-  return { ok: true }
-}
-
 // A fresh "requested" consent row — resets any prior declined/withdrawn state.
 function requestedConsentRow(
   mediaId: string,

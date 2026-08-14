@@ -27,7 +27,6 @@ export type ClientMediaItem = {
   caption: string | null
   serviceId: string | null
   bookingId: string | null
-  isFeature: boolean
   inGallery: boolean
   createdAt: string
   site: ConsentStatus
@@ -43,7 +42,7 @@ export async function getClientMedia(
   const { data: media, error } = await supabase
     .from("client_media")
     .select(
-      "id, source, kind, url, storage_key, caption, service_id, booking_id, is_feature, in_gallery, created_at",
+      "id, source, kind, url, storage_key, caption, service_id, booking_id, in_gallery, created_at",
     )
     .eq("clerk_user_id", clerkUserId)
     .is("archived_at", null)
@@ -86,7 +85,6 @@ export async function getClientMedia(
         caption: m.caption,
         serviceId: m.service_id,
         bookingId: m.booking_id,
-        isFeature: m.is_feature,
         inGallery: m.in_gallery,
         createdAt: m.created_at,
         site: consents.get(m.id)?.site ?? "none",

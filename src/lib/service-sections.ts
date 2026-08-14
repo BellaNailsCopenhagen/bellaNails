@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import type { Database } from "@/lib/supabase/types"
+import { firstOf } from "@/lib/utils"
 
 type Client = SupabaseClient<Database>
 
@@ -40,7 +41,7 @@ export async function getServiceSections(
     .order("sort_order", { ascending: true })
   if (error || !data) return []
   return (data as SectionRow[]).map((row) => {
-    const asset = Array.isArray(row.asset) ? row.asset[0] : row.asset
+    const asset = firstOf(row.asset)
     return {
       id: row.id,
       sortOrder: row.sort_order,
