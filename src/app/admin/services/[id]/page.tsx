@@ -8,7 +8,11 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { AddonsManager } from "@/components/admin/addons-manager"
 import { EditServiceSheet } from "@/components/admin/edit-service-sheet"
+import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
+import { ServiceSectionsManager } from "@/components/admin/service-sections-manager"
 import { getAllAddons, getServiceDetail } from "@/lib/admin/catalog"
+import { requireOwner } from "@/lib/admin/require-owner"
+import { getConsentedAssets, getServiceSections } from "@/lib/service-sections"
 
 export const metadata: Metadata = { title: "Service" }
 
@@ -50,6 +54,15 @@ export default async function AdminServiceDetailPage({
   const { service, categoryName, validBookings } = detail
   const activeAddons = service.addons.filter((a) => !a.archived_at)
   const allAddons = await getAllAddons().catch(() => [])
+
+  // Sections + the consented-photo pool for their image picker (owner client).
+  const ownerClient = await requireOwner()
+  const [sections, consentedAssets] = ownerClient
+    ? await Promise.all([
+        getServiceSections(ownerClient, service.id).catch(() => []),
+        getConsentedAssets(ownerClient).catch(() => []),
+      ])
+    : [[], []]
 
   return (
     <div className="space-y-14">
@@ -126,17 +139,20 @@ export default async function AdminServiceDetailPage({
         allAddons={allAddons}
       />
 
-      <Placeholder
-        label="Price history"
-        body="Changes to this service's price will be logged here."
+      <ServiceSectionsManager
+        serviceId={service.id}
+        sections={sections}
+        consentedAssets={consentedAssets}
       />
+
+      <section className="space-y-2 pl-2">
+        <Eyebrow as="h3">Price history</Eyebrow>
+        <PriceHistoryPanel entityType="service" entityId={service.id} />
+      </section>
+
       <Placeholder
         label="Reviews"
         body="Reviews left for this service will appear here."
-      />
-      <Placeholder
-        label="Images"
-        body="A feature image plus a gallery — studio-owned and client-submitted (published only with the client's consent)."
       />
     </div>
   )

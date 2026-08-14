@@ -1,0 +1,144 @@
+"use client"
+
+import { useRef, useState } from "react"
+import { ImagePlus } from "lucide-react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import { uploadMedia } from "@/lib/client/upload-media"
+import { publishStudioImage } from "@/lib/actions/manage-service-sections"
+import type { PickableAsset } from "@/lib/service-sections"
+
+export type PickedImage = { assetId: string; url: string }
+
+/**
+ * Choose an image for a section: either pick a consented client photo from the
+ * shared gallery, or upload a fresh studio image (published to a public asset).
+ * Controlled — the parent owns the selected value.
+ */
+export function ImagePicker({
+  value,
+  consentedAssets,
+  onChange,
+}: {
+  value: PickedImage | null
+  consentedAssets: PickableAsset[]
+  onChange: (value: PickedImage | null) => void
+}) {
+  const [showGallery, setShowGallery] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const onFile = async (files: FileList | null) => {
+    const file = files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const up = await uploadMedia(file, file.type)
+      if (!up.ok) {
+        toast.error(
+          up.reason === "unsupported"
+            ? "That file type isn’t allowed."
+            : up.reason === "not_configured"
+              ? "Storage isn’t set up yet."
+              : "Upload failed.",
+        )
+        return
+      }
+      const published = await publishStudioImage(up.key)
+      if (!published.ok) {
+        toast.error(published.error)
+        return
+      }
+      onChange({ assetId: published.assetId, url: published.url })
+      setShowGallery(false)
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      {value ? (
+        <div className="flex items-start gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={value.url}
+            alt=""
+            className="size-20 shrink-0 rounded-sm border border-border object-cover"
+          />
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/70 transition-colors hover:text-destructive"
+          >
+            Remove
+          </button>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowGallery((s) => !s)}
+        >
+          {showGallery ? "Hide gallery" : "Choose from gallery"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          <ImagePlus className="size-4" />
+          {uploading ? "Uploading…" : "Upload new"}
+        </Button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          onChange={(e) => onFile(e.target.files)}
+        />
+      </div>
+
+      {showGallery ? (
+        consentedAssets.length ? (
+          <ul className="grid max-h-56 grid-cols-4 gap-1.5 overflow-y-auto">
+            {consentedAssets.map((asset) => (
+              <li key={asset.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange({ assetId: asset.id, url: asset.url })
+                    setShowGallery(false)
+                  }}
+                  className={`block w-full overflow-hidden rounded-sm border transition-colors ${
+                    value?.assetId === asset.id
+                      ? "border-foreground"
+                      : "border-border hover:border-foreground/50"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={asset.url}
+                    alt=""
+                    className="aspect-square w-full object-cover"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="font-functional text-xs text-muted-foreground">
+            No consented photos yet — upload a new image instead.
+          </p>
+        )
+      ) : null}
+    </div>
+  )
+}

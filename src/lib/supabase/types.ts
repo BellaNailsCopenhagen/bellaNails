@@ -565,6 +565,57 @@ export type Database = {
         }
         Relationships: []
       }
+      service_sections: {
+        Row: {
+          asset_id: string | null
+          body_dk: string | null
+          body_en: string | null
+          created_at: string
+          id: string
+          service_id: string
+          sort_order: number
+          title_dk: string | null
+          title_en: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          body_dk?: string | null
+          body_en?: string | null
+          created_at?: string
+          id?: string
+          service_id: string
+          sort_order?: number
+          title_dk?: string | null
+          title_en?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          body_dk?: string | null
+          body_en?: string | null
+          created_at?: string
+          id?: string
+          service_id?: string
+          sort_order?: number
+          title_dk?: string | null
+          title_en?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_sections_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_sections_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       terms: {
         Row: {
           body_dk: string | null
