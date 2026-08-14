@@ -31,15 +31,19 @@ export default async function AdminAssetsPage({
   for (const id of ids) clientNames[id] = contactDisplayName(contacts[id])
 
   // Deep-link from a booking card lands on the highlighted asset's own state;
-  // otherwise honour ?tab= if it's a valid simple state, else show All.
+  // else honour a valid ?tab=; else open on "Needs takedown" when any photo
+  // needs one (urgent — a client withdrew a live social photo); else All.
   const highlighted = highlight
     ? assets.find((a) => a.mediaId === highlight)
     : undefined
+  const hasTakedown = assets.some((a) => toSimpleState(a.state) === "takedown")
   const defaultTab: HubFilter = highlighted
     ? toSimpleState(highlighted.state)
     : (SIMPLE_ORDER as readonly string[]).includes(tab ?? "")
       ? (tab as HubFilter)
-      : "all"
+      : hasTakedown
+        ? "takedown"
+        : "all"
 
   return (
     <div className="space-y-6">

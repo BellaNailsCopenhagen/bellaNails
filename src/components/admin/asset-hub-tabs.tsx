@@ -1,15 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Star } from "lucide-react"
+import { Info, Star } from "lucide-react"
 
 import { TabBar } from "@/components/ui/tab-bar"
 import { EmptyState } from "@/components/ui/empty-state"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
 import type { HubAsset } from "@/lib/admin/asset-hub"
 import {
   SIMPLE_LABEL,
   SIMPLE_ORDER,
+  SIMPLE_TOOLTIP,
+  STATE_ICON,
   toSimpleState,
   type SimpleState,
 } from "@/lib/asset-state"
@@ -36,6 +39,7 @@ export function AssetHubTabs({
 }) {
   const [tab, setTab] = useState<HubFilter>(defaultTab)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
+  const [legendOpen, setLegendOpen] = useState(false)
 
   const countByState = new Map<SimpleState, number>()
   let favCount = 0
@@ -81,6 +85,15 @@ export function AssetHubTabs({
         </div>
         <button
           type="button"
+          onClick={() => setLegendOpen(true)}
+          aria-label="What the states mean"
+          title="What the states mean"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Info className="size-4" />
+        </button>
+        <button
+          type="button"
           onClick={() => setFavoritesOnly((v) => !v)}
           aria-pressed={favoritesOnly}
           title="Show favourites only"
@@ -95,6 +108,35 @@ export function AssetHubTabs({
           {favCount}
         </button>
       </div>
+
+      <Sheet open={legendOpen} onOpenChange={setLegendOpen}>
+        <SheetContent className="space-y-4">
+          <SheetTitle>What the states mean</SheetTitle>
+          <ul className="space-y-3">
+            {SIMPLE_ORDER.map((state) => {
+              const { Icon, className } = STATE_ICON[state]
+              return (
+                <li key={state} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-border">
+                    <Icon className={cn("size-3.5", className)} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-functional text-sm text-foreground">
+                      {SIMPLE_LABEL[state]}
+                    </p>
+                    <p className="font-functional text-xs text-muted-foreground">
+                      {SIMPLE_TOOLTIP[state]}
+                    </p>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="font-functional text-xs text-muted-foreground">
+            The ⭐ marks your favourites — set it on any photo, in any state.
+          </p>
+        </SheetContent>
+      </Sheet>
       {shown.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
           {shown.map((asset) => (

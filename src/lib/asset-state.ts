@@ -1,9 +1,19 @@
+import {
+  Ban,
+  Circle,
+  CircleCheck,
+  Clock,
+  Globe,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react"
+
 /**
  * Simplified asset states for the hub. The read model derives 8 fine-grained
  * states; the artist only needs to know what ACTION a photo wants, so we fold
  * them into 6 buckets (declined/withdrawn/dismissed → one "inactive"). Each is
  * an icon + tooltip in the UI. Favourites are orthogonal — a photo can be a
- * favourite in any state. Client-safe (no server imports).
+ * favourite in any state. Client-safe (lucide icons render fine in RSC too).
  */
 export type SimpleState =
   | "new"
@@ -38,6 +48,19 @@ export const SIMPLE_TOOLTIP: Record<SimpleState, string> = {
   live: "In use on the website or social",
   takedown: "Client withdrew a social photo — remove the post, then confirm",
   inactive: "Declined, withdrawn, or dismissed",
+}
+
+/** Icon + tint per simplified state — shared by the card and the legend. */
+export const STATE_ICON: Record<
+  SimpleState,
+  { Icon: LucideIcon; className: string }
+> = {
+  new: { Icon: Circle, className: "text-muted-foreground/50" },
+  awaiting: { Icon: Clock, className: "text-warning" },
+  ready: { Icon: CircleCheck, className: "text-secondary-foreground" },
+  live: { Icon: Globe, className: "text-success" },
+  takedown: { Icon: TriangleAlert, className: "text-destructive" },
+  inactive: { Icon: Ban, className: "text-muted-foreground/40" },
 }
 
 /** Map a fine-grained hub state (asset-hub.ts) to its simplified bucket. */

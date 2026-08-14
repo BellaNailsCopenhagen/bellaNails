@@ -1,16 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Ban,
-  Circle,
-  CircleCheck,
-  Clock,
-  Globe,
-  Star,
-  TriangleAlert,
-  type LucideIcon,
-} from "lucide-react"
+import { Star } from "lucide-react"
 
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -31,8 +22,8 @@ import type { HubAsset } from "@/lib/admin/asset-hub"
 import {
   SIMPLE_LABEL,
   SIMPLE_TOOLTIP,
+  STATE_ICON,
   toSimpleState,
-  type SimpleState,
 } from "@/lib/asset-state"
 import type { MediaPurpose } from "@/lib/media"
 import { cn } from "@/lib/utils"
@@ -41,15 +32,6 @@ const PURPOSES: { key: MediaPurpose; label: string; request: string }[] = [
   { key: "site", label: "Website", request: "Request website" },
   { key: "some", label: "Social", request: "Request social" },
 ]
-
-const STATE_ICON: Record<SimpleState, { Icon: LucideIcon; className: string }> = {
-  new: { Icon: Circle, className: "text-muted-foreground/50" },
-  awaiting: { Icon: Clock, className: "text-warning" },
-  ready: { Icon: CircleCheck, className: "text-secondary" },
-  live: { Icon: Globe, className: "text-success" },
-  takedown: { Icon: TriangleAlert, className: "text-destructive" },
-  inactive: { Icon: Ban, className: "text-muted-foreground/40" },
-}
 
 const canRequest = (status?: string) =>
   !status || status === "declined" || status === "withdrawn"
@@ -85,6 +67,12 @@ export function HubAssetCard({
             <img src={asset.url} alt="" className="w-full" />
           )}
         </button>
+        <span
+          title={SIMPLE_TOOLTIP[simple]}
+          className="absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-background/85 shadow-sm backdrop-blur-sm"
+        >
+          <StateIcon className={cn("size-3.5", stateClass)} />
+        </span>
         <button
           type="button"
           disabled={pending}
@@ -110,11 +98,7 @@ export function HubAssetCard({
           />
         </button>
       </div>
-      <div
-        className="flex items-center gap-1.5"
-        title={SIMPLE_TOOLTIP[simple]}
-      >
-        <StateIcon className={cn("size-3.5 shrink-0", stateClass)} />
+      <div className="flex items-center gap-1.5" title={SIMPLE_TOOLTIP[simple]}>
         <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
           {SIMPLE_LABEL[simple]}
         </span>
