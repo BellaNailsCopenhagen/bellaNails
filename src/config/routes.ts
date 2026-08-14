@@ -45,6 +45,11 @@ export function rescheduleBookingPath(uid: string): string {
   return `${routes.appointments}/reschedule/${encodeURIComponent(uid)}`
 }
 
+/** Public "learn more" detail page for one service (app/[locale]/services/[id]). */
+export function serviceDetailPath(id: string): string {
+  return `${routes.services}/${id}`
+}
+
 /** Primary header navigation. Lookbook returns when its page ships. */
 export const headerNav: NavItem[] = [
   { href: routes.services, labelKey: "services" },

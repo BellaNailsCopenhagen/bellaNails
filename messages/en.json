@@ -40,7 +40,8 @@
     "imageAlt": "{category} at Bella Nails — nail salon in Ørestad, Copenhagen",
     "pricingNoteLabel": "A note on pricing",
     "pricingNoteBody": "Our pricing reflects the full cost of premium-grade materials, private studio time, and the years of expertise behind each treatment. We do not operate discount structures or promotional pricing.",
-    "policyNote": "All prices include materials. Sessions are private and by appointment only, and a 24-hour cancellation policy applies."
+    "policyNote": "All prices include materials. Sessions are private and by appointment only, and a 24-hour cancellation policy applies.",
+    "rowLearnMore": "Learn more"
   },
   "booking": {
     "metaTitle": "Book Online – Nail Salon in Ørestad, Copenhagen",
@@ -358,5 +359,13 @@
       "fallbackTitle": "Privacy & Data Use",
       "fallbackBody": "Our privacy notice is being prepared and will appear here shortly."
     }
+  },
+  "serviceDetail": {
+    "byStudio": "By the studio",
+    "fromClients": "What clients say",
+    "book": "Book this service",
+    "minutes": "min",
+    "galleryAlt": "Nail work by Bella Nails",
+    "eyebrow": "The Service"
   }
 }

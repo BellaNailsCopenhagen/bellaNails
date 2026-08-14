@@ -32,7 +32,33 @@ Autonomous multi-phase build. Each phase: `tsc`+`eslint`+`build` → review → 
 5. **Service detail page** — `/services/[slug]`, Learn-more link, sections, two-part gallery, floating Book CTA, `?service=` deep link (consent-gated).
 6. **Reviews** — `reviews` table + admin entry + render in "What clients say".
 
-## Migrations to apply (as we go)
-- (phase 1) `supabase/name-uniqueness.sql` — optional hardening (after clearing dups).
+## Migrations to apply
+- `supabase/name-uniqueness.sql` — optional hardening (after clearing dups).
+- `supabase/price-history.sql` — required for price history.
+- `supabase/service-sections.sql` — required for sections + detail page.
+- `supabase/reviews.sql` — required for reviews.
 
-## Test plan / changed files — filled per phase below.
+## Status
+- **P1–P3 SHIPPED + deployed** (`d54838c`, `d09cfbf`). **P4 checkpoint** (`8f02f2c`). **P5+P6 built, reviewed, committing.**
+- Route: detail page is `/services/[id]` (service id, not a slug) — stable + reachable via the "Learn more" link; the page URL itself is the shareable per-service gallery (no separate `/gallery?service=` needed).
+- Detail page "By the studio" / "What clients say" = consented **site**-purpose photos for the service, split by originating source (owner vs client). Reviews are studio-entered text.
+
+## Known follow-ups (non-blocking)
+- `publishStudioImage` can orphan a public asset if the section save is then cancelled (harmless studio image; no cleanup path yet).
+- `moveSection` swap is two non-transactional updates (error-checked; a mid-failure self-heals on the next swap).
+- Reviews are studio-entered; a client-facing review submission flow could come later.
+
+## Changed files (P4–P6)
+- Migrations: `supabase/{price-history,service-sections,reviews,name-uniqueness}.sql`.
+- Reads/actions: `src/lib/{service-sections,reviews}.ts`, `src/lib/services/get-public-service.ts`, `src/lib/actions/{manage-service-sections,manage-reviews}.ts`, `src/lib/actions/manage-services.ts` (uniqueness + price history).
+- Admin: `src/components/admin/{price-history-panel,image-picker,service-sections-manager,reviews-manager}.tsx`, `edit-service-sheet.tsx`, `edit-addon-sheet.tsx`, `addons-tab.tsx`, `src/app/admin/services/[id]/page.tsx`.
+- Public: `src/app/[locale]/services/[id]/page.tsx`, `src/components/sections/{floating-book-button,service-row,service-menu}.tsx`, `src/config/routes.ts`, `messages/{en,da}.json`.
+- `src/lib/supabase/types.ts` — price_history, service_sections, reviews.
+
+## Test plan
+1. Apply the 3 required migrations. `/admin/services/[id]` shows Sections, Price history, and Reviews (no more placeholders).
+2. Add a section: pick a consented photo OR upload new; reorder up/down; edit; delete. Only **site**-consented photos appear in the picker.
+3. Add/remove a review (name, 1–5 rating, text).
+4. Public: services menu shows a **"Learn more"** link → `/services/[id]`. Detail page renders header + sections + "By the studio" + "What clients say" (reviews + client photos) + a floating **Book** CTA that appears on scroll and books that service. Never shows a private or social-only photo.
+5. Price history shows in both the edit dialog and the admin service page after a price change.
+6. Duplicate service/add-on names are rejected with a clear message.

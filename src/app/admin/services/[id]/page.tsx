@@ -5,14 +5,16 @@ import { ChevronLeft } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { PriceTag } from "@/components/ui/price-tag"
-import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
+import { Eyebrow, H2 } from "@/components/ui/typography"
 import { AddonsManager } from "@/components/admin/addons-manager"
 import { EditServiceSheet } from "@/components/admin/edit-service-sheet"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { ServiceSectionsManager } from "@/components/admin/service-sections-manager"
+import { ReviewsManager } from "@/components/admin/reviews-manager"
 import { getAllAddons, getServiceDetail } from "@/lib/admin/catalog"
 import { requireOwner } from "@/lib/admin/require-owner"
 import { getConsentedAssets, getServiceSections } from "@/lib/service-sections"
+import { getServiceReviews } from "@/lib/reviews"
 
 export const metadata: Metadata = { title: "Service" }
 
@@ -21,20 +23,6 @@ export const dynamic = "force-dynamic"
 
 const subLabel =
   "font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground"
-
-function Placeholder({ label, body }: { label: string; body: string }) {
-  return (
-    <section className="space-y-2 pl-2">
-      <div className="flex items-center gap-2">
-        <Eyebrow as="h3">{label}</Eyebrow>
-        <Badge variant="outline" size="xs">
-          Soon
-        </Badge>
-      </div>
-      <BodySm className="text-xs">{body}</BodySm>
-    </section>
-  )
-}
 
 export default async function AdminServiceDetailPage({
   params,
@@ -57,12 +45,13 @@ export default async function AdminServiceDetailPage({
 
   // Sections + the consented-photo pool for their image picker (owner client).
   const ownerClient = await requireOwner()
-  const [sections, consentedAssets] = ownerClient
+  const [sections, consentedAssets, reviews] = ownerClient
     ? await Promise.all([
         getServiceSections(ownerClient, service.id).catch(() => []),
         getConsentedAssets(ownerClient).catch(() => []),
+        getServiceReviews(service.id, ownerClient).catch(() => []),
       ])
-    : [[], []]
+    : [[], [], []]
 
   return (
     <div className="space-y-14">
@@ -150,10 +139,7 @@ export default async function AdminServiceDetailPage({
         <PriceHistoryPanel entityType="service" entityId={service.id} />
       </section>
 
-      <Placeholder
-        label="Reviews"
-        body="Reviews left for this service will appear here."
-      />
+      <ReviewsManager serviceId={service.id} reviews={reviews} />
     </div>
   )
 }

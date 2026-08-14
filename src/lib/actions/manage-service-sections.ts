@@ -156,14 +156,16 @@ export async function moveSection(
   const neighbor = neighbors?.[0]
   if (!neighbor) return { ok: true } // already at the edge
 
-  await supabase
+  const { error: firstError } = await supabase
     .from("service_sections")
     .update({ sort_order: neighbor.sort_order })
     .eq("id", section.id)
-  await supabase
+  if (firstError) return { ok: false, error: "Couldn’t reorder." }
+  const { error: secondError } = await supabase
     .from("service_sections")
     .update({ sort_order: section.sort_order })
     .eq("id", neighbor.id)
+  if (secondError) return { ok: false, error: "Couldn’t reorder." }
 
   revalidatePath(`/admin/services/${section.service_id}`)
   return { ok: true }

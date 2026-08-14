@@ -58,9 +58,10 @@ export type PickableAsset = { id: string; url: string }
 
 /**
  * The pool the image picker offers under "use one from the shared gallery":
- * public copies the client consented to publish. Two plain queries (consents →
- * asset ids → assets) rather than an embed, since the FK isn't declared in the
- * hand-maintained types. Deduplicated (site + social = two consents, one asset).
+ * public copies the client consented to publish ON THE WEBSITE (purpose = site).
+ * A social-only consent must NOT be pickable here — section images render on the
+ * public site. Two plain queries (consents → asset ids → assets) since the FK
+ * isn't in the hand-maintained types. Deduplicated across any duplicate rows.
  */
 export async function getConsentedAssets(
   supabase: Client,
@@ -68,6 +69,7 @@ export async function getConsentedAssets(
   const { data: consents } = await supabase
     .from("media_consents")
     .select("published_asset_id")
+    .eq("purpose", "site")
     .eq("status", "granted")
     .not("published_asset_id", "is", null)
 

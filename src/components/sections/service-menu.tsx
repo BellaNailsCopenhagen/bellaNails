@@ -57,6 +57,7 @@ async function CategorySection({
                 locale={locale}
                 minutesLabel={tCatalog("minutes")}
                 ctaLabel={t("rowCta")}
+                learnMoreLabel={t("rowLearnMore")}
               />
             ))}
           </ul>

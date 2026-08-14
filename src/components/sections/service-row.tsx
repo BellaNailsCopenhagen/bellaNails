@@ -5,24 +5,28 @@ import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption } from "@/components/ui/typography"
 import type { MenuService } from "@/lib/services/get-service-menu"
 import { pickLocalized } from "@/lib/i18n/localized"
-import { routes } from "@/config/routes"
+import { routes, serviceDetailPath } from "@/config/routes"
 
 /**
  * ServiceRow — the shared bookable service line (name + duration left, price +
  * hover CTA right, hairline below) used by the services menu and the booking
- * picker. The whole row links to /book?service=<id>: the booking page reads
- * the param to open that service's add-on step (Phase 6).
+ * picker. The whole row links to /book?service=<id>. In the menu it also shows
+ * a "Learn more" link to the service's detail page (a sibling link, never
+ * nested); the booking picker omits it.
  */
 export function ServiceRow({
   service,
   locale,
   minutesLabel,
   ctaLabel,
+  learnMoreLabel,
 }: {
   service: MenuService
   locale: string
   minutesLabel: string
   ctaLabel: string
+  /** When set, render a "Learn more" link to the detail page (menu only). */
+  learnMoreLabel?: string
 }) {
   const name =
     pickLocalized(locale, service.name_en, service.name_dk) ?? service.name_en
@@ -49,6 +53,15 @@ export function ServiceRow({
           </Caption>
         </div>
       </Link>
+      {learnMoreLabel ? (
+        <Link
+          href={serviceDetailPath(service.id)}
+          className="-mt-2 mb-3 ml-1 inline-flex items-center gap-1 font-functional text-[11px] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {learnMoreLabel}
+          <HoverArrow />
+        </Link>
+      ) : null}
       <Separator />
     </li>
   )
