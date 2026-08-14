@@ -17,9 +17,31 @@ Large tranches landed that the phase sections below predate — recorded here so
 - ✅ **Terms acceptance tracking**: `terms_acceptances` records service terms (at booking) + data-use terms (per photo consent) per client; shown on the admin client page.
 - ✅ **Service catalog depth**: unique service/add-on names (enforced), **price history**, add-on incompatibilities moved into the add-on edit dialog, service **content sections** (image+text) with a consented/upload image picker, per-service **detail pages** `/services/[id]` ("Learn more" → sections + "By the studio"/"What clients say" galleries + floating Book CTA), and **reviews**.
 
-⚠️ **Divergence from plan**: reviews shipped as a per-service **`reviews`** table (studio-entered), NOT the Phase 7/8 global **`testimonials`** table with client-submitted flow (Task 09). The home Testimonials section still reads i18n. Reconcile: either adopt `reviews` as the model or build the planned `testimonials` table + client submission — decision pending.
+**Reviews vs testimonials — decided (Aug 2026): keep BOTH as separate concepts.**
+- **`reviews`** = per-service, studio-entered, shown in "What clients say" on the service detail page. ✅ Built.
+- **`testimonials`** = global, client-submitted / studio-curated (Phase 7/8 Task 09 — `quote`, `author_name`, `author_role`, `status`, `sort_order`). ⬜ To build; the home Testimonials section reads i18n until then.
 
 Migrations applied: `terms.sql`, `price-history.sql`, `service-sections.sql`, `reviews.sql` (+ owner-notifications, asset-usages, asset-hub, storage-provider). Optional: `name-uniqueness.sql`.
+
+---
+
+## Feature flags (Aug 2026)
+
+`src/config/features.ts` is the on/off surface for optional features. **Base** features are always on; **optional** ones can be hidden per env (`NEXT_PUBLIC_FEATURE_<KEY>=off`) or by flipping `enabled`. Wiring is incremental — a flag gates only where it's checked. Owner to confirm the base/optional split:
+
+| Feature | Flag key | Base / Optional |
+|---|---|---|
+| Booking flow | `booking` | Base |
+| My Space / appointments | `appointments` | Base |
+| Client consent + media | `clientConsent` | Base |
+| Terms & privacy | `terms` | Base |
+| Admin catalog | `adminCatalog` | Base |
+| Service detail pages + sections | `serviceDetail` | Optional |
+| Consented client photos on service pages | `serviceGallery` | Optional |
+| Home "recent client work" showcase | `homeShowcase` | Optional |
+| Per-service reviews | `reviews` | Optional |
+| Global testimonials | `testimonials` | Optional (not built) |
+| Artist favourites | `favorites` | Optional |
 
 ---
 
