@@ -168,6 +168,7 @@ export type Database = {
           cloudinary_public_id: string | null
           created_at: string
           dismissed_at: string | null
+          favorited_at: string | null
           id: string
           in_gallery: boolean
           is_feature: boolean
@@ -186,6 +187,7 @@ export type Database = {
           cloudinary_public_id?: string | null
           created_at?: string
           dismissed_at?: string | null
+          favorited_at?: string | null
           id?: string
           in_gallery?: boolean
           is_feature?: boolean
@@ -204,6 +206,7 @@ export type Database = {
           cloudinary_public_id?: string | null
           created_at?: string
           dismissed_at?: string | null
+          favorited_at?: string | null
           id?: string
           in_gallery?: boolean
           is_feature?: boolean
@@ -218,6 +221,7 @@ export type Database = {
       }
       media_consents: {
         Row: {
+          auto_place: boolean
           client_media_id: string
           clerk_user_id: string
           declined_at: string | null
@@ -231,6 +235,7 @@ export type Database = {
           withdrawn_at: string | null
         }
         Insert: {
+          auto_place?: boolean
           client_media_id: string
           clerk_user_id: string
           declined_at?: string | null
@@ -244,6 +249,7 @@ export type Database = {
           withdrawn_at?: string | null
         }
         Update: {
+          auto_place?: boolean
           client_media_id?: string
           clerk_user_id?: string
           needs_takedown_at?: string | null

@@ -49,6 +49,25 @@ export async function confirmTakedown(
   return { ok: true }
 }
 
+/** Heart (or un-heart) a photo — the artist's curation shortlist, available in
+    any state, independent of consent. */
+export async function setMediaFavorite(
+  mediaId: string,
+  favorite: boolean,
+): Promise<AssetHubResult> {
+  const supabase = await requireOwner()
+  if (!supabase) return { ok: false, error: "unauthorized" }
+
+  const { error } = await supabase
+    .from("client_media")
+    .update({ favorited_at: favorite ? new Date().toISOString() : null })
+    .eq("id", mediaId)
+  if (error) return { ok: false, error: "Couldn’t update." }
+
+  revalidatePath("/admin/assets")
+  return { ok: true }
+}
+
 /** Set aside (or restore) a client upload without deleting it — keeps the New
     tab to real pending work. The client's photo is untouched. */
 export async function setMediaDismissed(

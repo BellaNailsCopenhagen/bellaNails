@@ -3,24 +3,14 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { AssetHubTabs } from "@/components/admin/asset-hub-tabs"
-import { getHubAssets, type HubState } from "@/lib/admin/asset-hub"
+import { AssetHubTabs, type HubFilter } from "@/components/admin/asset-hub-tabs"
+import { getHubAssets } from "@/lib/admin/asset-hub"
+import { SIMPLE_ORDER, toSimpleState } from "@/lib/asset-state"
 import { fetchClientContacts } from "@/lib/clerk/client-contacts"
 import { contactDisplayName } from "@/lib/clerk/contact"
 
 export const metadata: Metadata = { title: "Assets" }
 export const dynamic = "force-dynamic"
-
-const STATES: HubState[] = [
-  "new",
-  "awaiting",
-  "unlinked",
-  "in_use",
-  "takedown",
-  "declined",
-  "withdrawn",
-  "dismissed",
-]
 
 /**
  * The asset hub — every client image across all clients, tabbed by state. The
@@ -40,15 +30,16 @@ export default async function AdminAssetsPage({
   const clientNames: Record<string, string> = {}
   for (const id of ids) clientNames[id] = contactDisplayName(contacts[id])
 
-  // Deep-link from a booking card lands on the highlighted asset's own tab.
+  // Deep-link from a booking card lands on the highlighted asset's own state;
+  // otherwise honour ?tab= if it's a valid simple state, else show All.
   const highlighted = highlight
     ? assets.find((a) => a.mediaId === highlight)
     : undefined
-  const defaultTab: HubState = highlighted
-    ? highlighted.state
-    : STATES.includes(tab as HubState)
-      ? (tab as HubState)
-      : "new"
+  const defaultTab: HubFilter = highlighted
+    ? toSimpleState(highlighted.state)
+    : (SIMPLE_ORDER as readonly string[]).includes(tab ?? "")
+      ? (tab as HubFilter)
+      : "all"
 
   return (
     <div className="space-y-6">

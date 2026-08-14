@@ -39,6 +39,7 @@ export type HubAsset = {
   createdAt: string
   source: string
   dismissed: boolean
+  favorited: boolean
   state: HubState
   /** Consent by purpose ('site' / 'some'). */
   consents: Record<string, HubConsent>
@@ -58,17 +59,40 @@ function deriveState(
   return "new"
 }
 
+type MediaRow = {
+  id: string
+  clerk_user_id: string
+  url: string
+  storage_key: string | null
+  kind: string
+  caption: string | null
+  created_at: string
+  source: string
+  dismissed_at: string | null
+  favorited_at?: string | null
+}
+
 export async function getHubAssets(): Promise<HubAsset[]> {
   const supabase = createSupabaseServiceRoleClient()
 
-  const { data: media, error } = await supabase
+  // favorited_at may not exist pre-migration — retry without it so the hub keeps
+  // working (favourites simply stay inert until asset-hub-v2.sql is applied).
+  const cols =
+    "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at"
+  const primary = await supabase
     .from("client_media")
-    .select(
-      "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at",
-    )
+    .select(`${cols}, favorited_at`)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
-  if (error || !media?.length) return []
+  const { data, error } = primary.error
+    ? await supabase
+        .from("client_media")
+        .select(cols)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+    : primary
+  const media = (data ?? []) as MediaRow[]
+  if (error || !media.length) return []
 
   const mediaIds = media.map((m) => m.id)
   const { data: consents } = await supabase
@@ -138,6 +162,7 @@ export async function getHubAssets(): Promise<HubAsset[]> {
       createdAt: m.created_at,
       source: m.source,
       dismissed: Boolean(m.dismissed_at),
+      favorited: Boolean(m.favorited_at),
       state: deriveState(list, Boolean(m.dismissed_at)),
       consents: consentsByPurpose,
     }

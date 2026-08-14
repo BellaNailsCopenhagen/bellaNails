@@ -1,6 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import {
+  Ban,
+  Circle,
+  CircleCheck,
+  Clock,
+  Globe,
+  Star,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react"
 
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -12,8 +22,18 @@ import {
   requestBothPublish,
   requestMediaPublish,
 } from "@/lib/actions/manage-media"
-import { confirmTakedown, setMediaDismissed } from "@/lib/actions/manage-assets"
-import type { HubAsset, HubState } from "@/lib/admin/asset-hub"
+import {
+  confirmTakedown,
+  setMediaDismissed,
+  setMediaFavorite,
+} from "@/lib/actions/manage-assets"
+import type { HubAsset } from "@/lib/admin/asset-hub"
+import {
+  SIMPLE_LABEL,
+  SIMPLE_TOOLTIP,
+  toSimpleState,
+  type SimpleState,
+} from "@/lib/asset-state"
 import type { MediaPurpose } from "@/lib/media"
 import { cn } from "@/lib/utils"
 
@@ -22,16 +42,13 @@ const PURPOSES: { key: MediaPurpose; label: string; request: string }[] = [
   { key: "some", label: "Social", request: "Request social" },
 ]
 
-// grey = idle/gone · amber = pending/unplaced · green = live · red = needs action
-const DOT: Record<HubState, string> = {
-  new: "bg-muted-foreground/40",
-  awaiting: "bg-secondary",
-  unlinked: "bg-secondary",
-  in_use: "bg-success",
-  declined: "bg-destructive",
-  withdrawn: "bg-muted-foreground/40",
-  takedown: "bg-destructive",
-  dismissed: "bg-muted-foreground/30",
+const STATE_ICON: Record<SimpleState, { Icon: LucideIcon; className: string }> = {
+  new: { Icon: Circle, className: "text-muted-foreground/50" },
+  awaiting: { Icon: Clock, className: "text-warning" },
+  ready: { Icon: CircleCheck, className: "text-secondary" },
+  live: { Icon: Globe, className: "text-success" },
+  takedown: { Icon: TriangleAlert, className: "text-destructive" },
+  inactive: { Icon: Ban, className: "text-muted-foreground/40" },
 }
 
 const canRequest = (status?: string) =>
@@ -47,27 +64,57 @@ export function HubAssetCard({
   const [open, setOpen] = useState(false)
   const { pending, run } = useActionRunner()
 
+  const simple = toSimpleState(asset.state)
+  const { Icon: StateIcon, className: stateClass } = STATE_ICON[simple]
+
   return (
     <li
       id={`media-${asset.mediaId}`}
       className="mb-4 break-inside-avoid space-y-1.5 rounded-sm transition-shadow"
     >
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="block w-full overflow-hidden rounded-sm border border-border"
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="block w-full overflow-hidden rounded-sm border border-border"
+        >
+          {asset.kind === "video" ? (
+            <video src={asset.url} preload="metadata" className="w-full" />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={asset.url} alt="" className="w-full" />
+          )}
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            run(() => setMediaFavorite(asset.mediaId, !asset.favorited))
+          }
+          aria-label={asset.favorited ? "Remove favourite" : "Favourite"}
+          title={asset.favorited ? "Favourited" : "Favourite"}
+          className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-background/85 backdrop-blur-sm transition-transform hover:scale-105"
+        >
+          <Star
+            className={cn(
+              "size-3.5",
+              asset.favorited
+                ? "fill-secondary text-secondary"
+                : "text-muted-foreground",
+            )}
+          />
+        </button>
+      </div>
+      <div
+        className="flex items-center gap-1.5"
+        title={SIMPLE_TOOLTIP[simple]}
       >
-        {asset.kind === "video" ? (
-          <video src={asset.url} preload="metadata" className="w-full" />
-        ) : (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={asset.url} alt="" className="w-full" />
-        )}
-      </button>
-      <div className="flex items-center gap-2">
-        <span className={cn("size-2 shrink-0 rounded-full", DOT[asset.state])} />
+        <StateIcon className={cn("size-3.5 shrink-0", stateClass)} />
+        <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
+          {SIMPLE_LABEL[simple]}
+        </span>
         <span className="truncate font-functional text-xs text-muted-foreground">
-          {clientName}
+          · {clientName}
         </span>
       </div>
 

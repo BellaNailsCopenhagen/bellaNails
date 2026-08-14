@@ -1,58 +1,55 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Star } from "lucide-react"
 
 import { TabBar } from "@/components/ui/tab-bar"
 import { EmptyState } from "@/components/ui/empty-state"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
-import type { HubAsset, HubState } from "@/lib/admin/asset-hub"
+import type { HubAsset } from "@/lib/admin/asset-hub"
+import {
+  SIMPLE_LABEL,
+  SIMPLE_ORDER,
+  toSimpleState,
+  type SimpleState,
+} from "@/lib/asset-state"
+import { cn } from "@/lib/utils"
 
-const ORDER: HubState[] = [
-  "new",
-  "awaiting",
-  "unlinked",
-  "in_use",
-  "takedown",
-  "declined",
-  "withdrawn",
-  "dismissed",
-]
-
-const LABEL: Record<HubState, string> = {
-  new: "New",
-  awaiting: "Awaiting",
-  unlinked: "Unlinked",
-  in_use: "In use",
-  takedown: "Used & withdrawn",
-  declined: "Declined",
-  withdrawn: "Withdrawn",
-  dismissed: "Dismissed",
-}
+export type HubFilter = "all" | SimpleState
 
 /**
- * The asset hub's tab navigation — one tab per state, client-agnostic. Sections
- * are pre-grouped by state; this switches which shows. A `highlight` (from a
- * booking-card thumbnail) scrolls to that asset once its tab is active.
+ * The asset hub navigation: an "All" view plus one tab per simplified state
+ * (asset-state.ts), with a favourites-only toggle that filters within any tab.
+ * Per-asset state shows as an icon + tooltip on the card. A `highlight` (from a
+ * booking-card thumbnail) scrolls to that asset.
  */
 export function AssetHubTabs({
   assets,
   clientNames,
-  defaultTab,
+  defaultTab = "all",
   highlight,
 }: {
   assets: HubAsset[]
   clientNames: Record<string, string>
-  defaultTab: HubState
+  defaultTab?: HubFilter
   highlight?: string | null
 }) {
-  const [tab, setTab] = useState<HubState>(defaultTab)
+  const [tab, setTab] = useState<HubFilter>(defaultTab)
+  const [favoritesOnly, setFavoritesOnly] = useState(false)
 
-  const byState = new Map<HubState, HubAsset[]>()
+  const countByState = new Map<SimpleState, number>()
+  let favCount = 0
   for (const a of assets) {
-    const list = byState.get(a.state) ?? []
-    list.push(a)
-    byState.set(a.state, list)
+    const s = toSimpleState(a.state)
+    countByState.set(s, (countByState.get(s) ?? 0) + 1)
+    if (a.favorited) favCount++
   }
+
+  const shown = assets.filter(
+    (a) =>
+      (tab === "all" || toSimpleState(a.state) === tab) &&
+      (!favoritesOnly || a.favorited),
+  )
 
   useEffect(() => {
     if (!highlight) return
@@ -65,19 +62,38 @@ export function AssetHubTabs({
       2200,
     )
     return () => clearTimeout(timer)
-  }, [highlight, tab])
+  }, [highlight, tab, favoritesOnly])
 
-  const shown = byState.get(tab) ?? []
-  const tabs = ORDER.map((state) => ({
-    value: state,
-    label: LABEL[state],
-    count: byState.get(state)?.length || undefined,
-  }))
+  const tabs = [
+    { value: "all" as HubFilter, label: "All", count: assets.length || undefined },
+    ...SIMPLE_ORDER.map((state) => ({
+      value: state as HubFilter,
+      label: SIMPLE_LABEL[state],
+      count: countByState.get(state) || undefined,
+    })),
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="overflow-x-auto">
-        <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1 overflow-x-auto">
+          <TabBar tabs={tabs} active={tab} onChange={setTab} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setFavoritesOnly((v) => !v)}
+          aria-pressed={favoritesOnly}
+          title="Show favourites only"
+          className={cn(
+            "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 font-functional text-[0.625rem] uppercase tracking-widest-lux transition-colors",
+            favoritesOnly
+              ? "border-secondary bg-secondary/10 text-foreground"
+              : "border-border text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <Star className={cn("size-3.5", favoritesOnly && "fill-current")} />
+          {favCount}
+        </button>
       </div>
       {shown.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
@@ -90,7 +106,7 @@ export function AssetHubTabs({
           ))}
         </ul>
       ) : (
-        <EmptyState title="Nothing here" body="No images in this state." />
+        <EmptyState title="Nothing here" body="No images match this filter." />
       )}
     </div>
   )
