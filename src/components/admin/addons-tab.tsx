@@ -4,23 +4,20 @@ import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import { Checkbox } from "@/components/ui/checkbox"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import {
   EditAddonSheet,
   type EditableAddon,
 } from "@/components/admin/edit-addon-sheet"
-import { archiveAddon, setAddonCompatibility } from "@/lib/actions/manage-services"
-
-const pairKey = (a: string, b: string) => [a, b].sort().join(":")
+import { archiveAddon } from "@/lib/actions/manage-services"
 
 export type ManageableAddon = EditableAddon & { archived_at: string | null }
 
 /**
- * The Add-ons tab: standalone add-ons (edit / archive) and the GLOBAL
- * incompatibility selector — tick two add-ons that can't be booked together
- * (applies wherever both are linked). Every change resyncs affected services.
+ * The Add-ons tab: standalone add-ons (edit / archive). Incompatibilities are
+ * managed per add-on inside its edit dialog ("can't be combined with"), which
+ * scales better than the old all-pairs matrix. Every change resyncs services.
  */
 export function AddonsTab({
   addons,
@@ -33,14 +30,12 @@ export function AddonsTab({
   const router = useRouter()
 
   const active = addons.filter((a) => !a.archived_at)
-  const incompatible = new Set(incompatiblePairs.map(([a, b]) => pairKey(a, b)))
 
-  const pairs: [ManageableAddon, ManageableAddon][] = []
-  for (let i = 0; i < active.length; i++) {
-    for (let j = i + 1; j < active.length; j++) {
-      pairs.push([active[i], active[j]])
-    }
-  }
+  // The active add-ons this one can't combine with, resolved from the pairs.
+  const partnersOf = (id: string) =>
+    incompatiblePairs
+      .filter(([a, b]) => a === id || b === id)
+      .map(([a, b]) => (a === id ? b : a))
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) =>
     startTransition(async () => {
@@ -86,6 +81,10 @@ export function AddonsTab({
                     addon={addon}
                     triggerLabel="Edit"
                     triggerVariant="ghost"
+                    otherAddons={active
+                      .filter((a) => a.id !== addon.id)
+                      .map((a) => ({ id: a.id, name_en: a.name_en }))}
+                    incompatibleIds={partnersOf(addon.id)}
                   />
                   <button
                     type="button"
@@ -103,38 +102,6 @@ export function AddonsTab({
           <BodySm className="text-xs">No add-ons yet.</BodySm>
         )}
       </section>
-
-      {pairs.length ? (
-        <section className="space-y-2 pl-2">
-          <Eyebrow as="h3">Incompatible pairs</Eyebrow>
-          <BodySm className="text-xs">
-            Tick two add-ons that can’t be booked together.
-          </BodySm>
-          <ul className="space-y-2">
-            {pairs.map(([a, b]) => {
-              const inc = incompatible.has(pairKey(a.id, b.id))
-              return (
-                <li key={pairKey(a.id, b.id)}>
-                  <label className="flex items-center gap-2 font-functional text-sm text-foreground">
-                    <Checkbox
-                      checked={inc}
-                      onCheckedChange={() =>
-                        run(() => setAddonCompatibility(a.id, b.id, !inc))
-                      }
-                      disabled={pending}
-                    />
-                    <span>
-                      {a.name_en}{" "}
-                      <span className="text-muted-foreground">✕</span>{" "}
-                      {b.name_en}
-                    </span>
-                  </label>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      ) : null}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { updateService, archiveService } from "@/lib/actions/manage-services"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
@@ -185,6 +186,8 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
               />
             </div>
           </div>
+
+          <PriceHistoryPanel entityType="service" entityId={service.id} />
 
           <p className="font-functional text-xs">
             {synced ? (

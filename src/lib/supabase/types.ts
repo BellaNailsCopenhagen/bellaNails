@@ -541,6 +541,30 @@ export type Database = {
           },
         ]
       }
+      price_history: {
+        Row: {
+          changed_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          price_cents: number
+        }
+        Insert: {
+          changed_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          price_cents: number
+        }
+        Update: {
+          changed_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          price_cents?: number
+        }
+        Relationships: []
+      }
       terms: {
         Row: {
           body_dk: string | null

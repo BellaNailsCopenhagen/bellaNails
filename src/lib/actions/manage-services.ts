@@ -67,6 +67,47 @@ async function nameTaken(
   )
 }
 
+export type PriceEntity = "service" | "addon"
+export type PriceHistoryEntry = { priceCents: number; changedAt: string }
+
+/** Append a price point. Best-effort — a price-history write must never fail a
+    catalog save (and it degrades if the table isn't applied yet). */
+async function recordPrice(
+  supabase: Client,
+  entityType: PriceEntity,
+  entityId: string,
+  priceCents: number,
+): Promise<void> {
+  try {
+    await supabase.from("price_history").insert({
+      entity_type: entityType,
+      entity_id: entityId,
+      price_cents: priceCents,
+    })
+  } catch {
+    // Never let a price-history write break the catalog save.
+  }
+}
+
+/** Price history for one catalog item, newest first — for the edit dialog. */
+export async function getPriceHistory(
+  entityType: PriceEntity,
+  entityId: string,
+): Promise<PriceHistoryEntry[]> {
+  const supabase = await requireOwner()
+  if (!supabase) return []
+  const { data } = await supabase
+    .from("price_history")
+    .select("price_cents, changed_at")
+    .eq("entity_type", entityType)
+    .eq("entity_id", entityId)
+    .order("changed_at", { ascending: false })
+  return (data ?? []).map((r) => ({
+    priceCents: r.price_cents,
+    changedAt: r.changed_at,
+  }))
+}
+
 /**
  * Recompute the reachable slot set for a service and PATCH Cal. Runs after any
  * duration / add-on / incompatibility change. No-op (ok) when the service has
@@ -189,7 +230,7 @@ export async function updateService(
 
   const { data: current } = await supabase
     .from("services")
-    .select("base_duration_mins")
+    .select("base_duration_mins, base_price_cents")
     .eq("id", id)
     .maybeSingle()
   if (!current) return { ok: false, error: "Service not found." }
@@ -207,6 +248,10 @@ export async function updateService(
     })
     .eq("id", id)
   if (error) return { ok: false, error: "Couldn’t save the service." }
+
+  if (current.base_price_cents !== cents) {
+    await recordPrice(supabase, "service", id, cents)
+  }
 
   // Name/price/description don't touch Cal; duration does.
   let syncError: string | undefined
@@ -288,11 +333,19 @@ export async function saveAddon(
   }
 
   if (addonId) {
+    const { data: prior } = await supabase
+      .from("addons")
+      .select("extra_price_cents")
+      .eq("id", addonId)
+      .maybeSingle()
     const { error } = await supabase
       .from("addons")
       .update(fields)
       .eq("id", addonId)
     if (error) return { ok: false, error: "Couldn’t save the add-on." }
+    if (prior && prior.extra_price_cents !== cents) {
+      await recordPrice(supabase, "addon", addonId, cents)
+    }
     await resyncServicesLinkingAddon(supabase, addonId)
     revalidatePath("/admin/services")
     return { ok: true, id: addonId }
@@ -304,6 +357,7 @@ export async function saveAddon(
     .select("id")
     .single()
   if (error || !data) return { ok: false, error: "Couldn’t save the add-on." }
+  await recordPrice(supabase, "addon", data.id, cents)
   revalidatePath("/admin/services")
   return { ok: true, id: data.id }
 }
@@ -455,6 +509,7 @@ export async function createService(input: {
     .single()
   if (error || !data) return { ok: false, error: "Couldn’t create the service." }
 
+  await recordPrice(supabase, "service", data.id, cents)
   revalidatePath("/admin/services")
   return { ok: true, id: data.id }
 }

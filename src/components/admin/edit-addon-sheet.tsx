@@ -6,12 +6,21 @@ import { Minus, Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { linkAddon, saveAddon } from "@/lib/actions/manage-services"
+import { BodySm } from "@/components/ui/typography"
+import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
+import {
+  linkAddon,
+  saveAddon,
+  setAddonCompatibility,
+} from "@/lib/actions/manage-services"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
+const sectionLabel =
+  "font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground"
 const DURATION_STEP = 15
 
 export type EditableAddon = {
@@ -22,21 +31,32 @@ export type EditableAddon = {
   extra_duration_mins: number
 }
 
+/** One other add-on, for the "incompatible with" picker. */
+export type AddonOption = { id: string; name_en: string }
+
 /**
  * Create or edit a standalone add-on. On create, if `linkToServiceId` is given
- * (opened from a service), the new add-on is linked to that service too.
+ * (opened from a service), the new add-on is linked to that service too. When
+ * editing, the dialog also manages which OTHER add-ons this one can't be booked
+ * with (global incompatibilities) and shows its price history.
  */
 export function EditAddonSheet({
   addon,
   linkToServiceId,
   triggerLabel,
   triggerVariant = "outline",
+  otherAddons = [],
+  incompatibleIds = [],
 }: {
   addon?: EditableAddon
   /** Link the newly-created add-on to this service. */
   linkToServiceId?: string
   triggerLabel: string
   triggerVariant?: "outline" | "ghost"
+  /** Active add-ons other than this one — the incompatibility choices. */
+  otherAddons?: AddonOption[]
+  /** Ids this add-on is currently incompatible with. */
+  incompatibleIds?: string[]
 }) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -50,6 +70,8 @@ export function EditAddonSheet({
   const [durationMins, setDurationMins] = useState(
     addon?.extra_duration_mins ?? 0,
   )
+
+  const incompatible = new Set(incompatibleIds)
 
   const save = () =>
     startTransition(async () => {
@@ -70,6 +92,18 @@ export function EditAddonSheet({
       toast.success("Add-on saved")
       setOpen(false)
       router.refresh()
+    })
+
+  const toggleIncompatible = (otherId: string, makeIncompatible: boolean) =>
+    startTransition(async () => {
+      if (!addon) return
+      const result = await setAddonCompatibility(
+        addon.id,
+        otherId,
+        makeIncompatible,
+      )
+      if (!result.ok) toast.error(result.error || "Couldn’t save.")
+      else router.refresh()
     })
 
   return (
@@ -96,21 +130,13 @@ export function EditAddonSheet({
               <Label htmlFor="addon-en" className={fieldLabel}>
                 Name · EN
               </Label>
-              <Input
-                id="addon-en"
-                value={nameEn}
-                onValueChange={setNameEn}
-              />
+              <Input id="addon-en" value={nameEn} onValueChange={setNameEn} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="addon-da" className={fieldLabel}>
                 Name · DA
               </Label>
-              <Input
-                id="addon-da"
-                value={nameDa}
-                onValueChange={setNameDa}
-              />
+              <Input id="addon-da" value={nameDa} onValueChange={setNameDa} />
             </div>
           </div>
 
@@ -153,6 +179,42 @@ export function EditAddonSheet({
               </div>
             </div>
           </div>
+
+          {/* Incompatibilities are keyed by add-on id, so only when editing. */}
+          {addon && otherAddons.length ? (
+            <div className="space-y-2">
+              <p className={sectionLabel}>Can’t be combined with</p>
+              <ul className="space-y-2">
+                {otherAddons.map((other) => {
+                  const inc = incompatible.has(other.id)
+                  return (
+                    <li key={other.id}>
+                      <label className="flex items-center gap-2 font-functional text-sm text-foreground">
+                        <Checkbox
+                          checked={inc}
+                          onCheckedChange={() =>
+                            toggleIncompatible(other.id, !inc)
+                          }
+                          disabled={pending}
+                        />
+                        <span>{other.name_en}</span>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ) : null}
+
+          {addon ? (
+            <PriceHistoryPanel entityType="addon" entityId={addon.id} />
+          ) : null}
+
+          {!addon ? (
+            <BodySm className="text-xs text-muted-foreground">
+              Save first — you can set incompatibilities once the add-on exists.
+            </BodySm>
+          ) : null}
 
           <div className="flex justify-end">
             <Button size="sm" disabled={pending} onClick={save}>
