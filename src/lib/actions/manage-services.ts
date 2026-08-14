@@ -42,6 +42,32 @@ function krToCents(kr: number): number | null {
 }
 
 /**
+ * Is an ACTIVE row (other than excludeId) already using this name in either
+ * language? Catalog names must be unique — duplicates are confusing to pick
+ * from. Compared case-insensitively across both name columns in JS (the catalog
+ * is small, and it sidesteps PostgREST ilike-wildcard/injection concerns).
+ */
+async function nameTaken(
+  supabase: Client,
+  table: "services" | "addons",
+  nameEn: string,
+  nameDk: string,
+  excludeId: string | null,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from(table)
+    .select("id, name_en, name_dk")
+    .is("archived_at", null)
+  const wanted = new Set([nameEn.toLowerCase(), nameDk.toLowerCase()])
+  return (data ?? []).some(
+    (r) =>
+      r.id !== excludeId &&
+      (wanted.has((r.name_en ?? "").toLowerCase()) ||
+        wanted.has((r.name_dk ?? "").toLowerCase())),
+  )
+}
+
+/**
  * Recompute the reachable slot set for a service and PATCH Cal. Runs after any
  * duration / add-on / incompatibility change. No-op (ok) when the service has
  * no Cal event yet.
@@ -151,10 +177,14 @@ export async function updateService(
 
   const nameEn = input.nameEn.trim()
   if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  const nameDk = input.nameDa.trim() || nameEn
   const cents = krToCents(input.priceKr)
   if (cents === null) return { ok: false, error: "Price is invalid." }
   if (!Number.isInteger(input.durationMins) || input.durationMins <= 0) {
     return { ok: false, error: "Duration is invalid." }
+  }
+  if (await nameTaken(supabase, "services", nameEn, nameDk, id)) {
+    return { ok: false, error: "Another service already uses that name." }
   }
 
   const { data: current } = await supabase
@@ -169,7 +199,7 @@ export async function updateService(
     .from("services")
     .update({
       name_en: nameEn,
-      name_dk: input.nameDa.trim() || nameEn,
+      name_dk: nameDk,
       description_en: input.descriptionEn.trim() || null,
       description_dk: input.descriptionDa.trim() || null,
       base_price_cents: cents,
@@ -240,15 +270,19 @@ export async function saveAddon(
 
   const nameEn = input.nameEn.trim()
   if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  const nameDk = input.nameDa.trim() || nameEn
   const cents = krToCents(input.priceKr)
   if (cents === null) return { ok: false, error: "Price is invalid." }
   if (!Number.isInteger(input.durationMins) || input.durationMins < 0) {
     return { ok: false, error: "Duration is invalid." }
   }
+  if (await nameTaken(supabase, "addons", nameEn, nameDk, addonId)) {
+    return { ok: false, error: "Another add-on already uses that name." }
+  }
 
   const fields = {
     name_en: nameEn,
-    name_dk: input.nameDa.trim() || nameEn,
+    name_dk: nameDk,
     extra_price_cents: cents,
     extra_duration_mins: input.durationMins,
   }
@@ -383,10 +417,14 @@ export async function createService(input: {
 
   const nameEn = input.nameEn.trim()
   if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  const nameDk = input.nameDa.trim() || nameEn
   const cents = krToCents(input.priceKr)
   if (cents === null) return { ok: false, error: "Price is invalid." }
   if (!Number.isInteger(input.durationMins) || input.durationMins <= 0) {
     return { ok: false, error: "Duration is invalid." }
+  }
+  if (await nameTaken(supabase, "services", nameEn, nameDk, null)) {
+    return { ok: false, error: "Another service already uses that name." }
   }
 
   const slug = `${nameEn
@@ -406,7 +444,7 @@ export async function createService(input: {
     .from("services")
     .insert({
       name_en: nameEn,
-      name_dk: input.nameDa.trim() || nameEn,
+      name_dk: nameDk,
       base_price_cents: cents,
       base_duration_mins: input.durationMins,
       category_id: input.categoryId,
