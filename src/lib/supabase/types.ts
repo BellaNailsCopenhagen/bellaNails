@@ -657,6 +657,54 @@ export type Database = {
           },
         ]
       }
+      studio_hours: {
+        Row: {
+          id: boolean
+          updated_at: string
+          weekly: Json
+        }
+        Insert: {
+          id?: boolean
+          updated_at?: string
+          weekly?: Json
+        }
+        Update: {
+          id?: boolean
+          updated_at?: string
+          weekly?: Json
+        }
+        Relationships: []
+      }
+      studio_special_days: {
+        Row: {
+          closed: boolean
+          created_at: string
+          ends_on: string | null
+          hours: Json | null
+          id: string
+          label: string | null
+          starts_on: string
+        }
+        Insert: {
+          closed?: boolean
+          created_at?: string
+          ends_on?: string | null
+          hours?: Json | null
+          id?: string
+          label?: string | null
+          starts_on: string
+        }
+        Update: {
+          closed?: boolean
+          created_at?: string
+          ends_on?: string | null
+          hours?: Json | null
+          id?: string
+          label?: string | null
+          starts_on?: string
+        }
+        Relationships: []
+      }
       terms: {
         Row: {
           body_dk: string | null

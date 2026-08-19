@@ -6,6 +6,7 @@ import {
   Bell,
   CalendarRange,
   ChevronRight,
+  Clock,
   ExternalLink,
   Images,
   ScrollText,
@@ -63,6 +64,12 @@ const ITEMS: MoreItem[] = [
     description: "Booking terms and the data-use / privacy notice",
     icon: ScrollText,
     href: "/admin/terms",
+  },
+  {
+    label: "Working hours",
+    description: "Weekly opening hours + special/closed days",
+    icon: Clock,
+    href: "/admin/hours",
   },
   {
     label: "Gallery & testimonials",
