@@ -20,7 +20,8 @@ import { resolveAdminBookings } from "@/lib/admin/bookings"
 import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { contactDisplayName } from "@/lib/clerk/contact"
-import { getClientDataConsents, getClientMedia } from "@/lib/media"
+import { getClientDataConsents } from "@/lib/media"
+import { getHubAssets } from "@/lib/admin/asset-hub"
 import { getTermsAcceptances } from "@/lib/terms-acceptance"
 import { formatStudioDayMonthYear } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -73,9 +74,9 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [media, dataConsents, photosByBooking, termsAcceptances] =
+  const [hubAssets, dataConsents, photosByBooking, termsAcceptances] =
     await Promise.all([
-      getClientMedia(supabase, id).catch(() => []),
+      getHubAssets(id).catch(() => []),
       getClientDataConsents(supabase, id).catch(() => []),
       getBookingMediaThumbs(
         supabase,
@@ -166,7 +167,7 @@ export default async function AdminClientPage({
       {/* Appointment history + the image gallery are tabbed; data-use consent
           stays on the page body below. */}
       <AdminClientTabs
-        galleryCount={media.length}
+        galleryCount={hubAssets.length}
         defaultTab={defaultTab}
         appointment={
           <ClientBookings
@@ -180,7 +181,8 @@ export default async function AdminClientPage({
         gallery={
           <ClientMediaGallery
             clerkUserId={id}
-            media={media}
+            hubAssets={hubAssets}
+            clientName={clientName}
             bookings={bookingOptions}
             defaultBookingId={defaultBookingId}
           />

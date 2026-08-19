@@ -96,6 +96,32 @@ async function grantMediaConsentRow(
     context: "media_consent",
     referenceId: mediaId,
   })
+
+  // Bulk "publish to gallery": if a SITE consent was flagged to auto-place, put
+  // the freshly-published copy on the website gallery now, then clear the flag so
+  // a later re-request can't silently republish. Degrades if not applied yet.
+  if (publishedAssetId) {
+    try {
+      const { data: flagged } = await supabase
+        .from("media_consents")
+        .select("auto_place, purpose")
+        .eq("id", consentId)
+        .maybeSingle()
+      if (flagged?.auto_place && flagged.purpose === "site") {
+        await supabase.from("asset_usages").upsert(
+          { asset_id: publishedAssetId, surface: "clients_gallery", url: null },
+          { onConflict: "asset_id,surface" },
+        )
+        await supabase
+          .from("media_consents")
+          .update({ auto_place: false })
+          .eq("id", consentId)
+        revalidatePublicSurfaces()
+      }
+    } catch {
+      // auto_place column may not exist yet — skip.
+    }
+  }
   return { note }
 }
 

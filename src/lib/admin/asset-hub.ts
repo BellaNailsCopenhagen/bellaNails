@@ -72,24 +72,25 @@ type MediaRow = {
   favorited_at?: string | null
 }
 
-export async function getHubAssets(): Promise<HubAsset[]> {
+export async function getHubAssets(clerkUserId?: string): Promise<HubAsset[]> {
   const supabase = createSupabaseServiceRoleClient()
 
-  // favorited_at may not exist pre-migration — retry without it so the hub keeps
-  // working (favourites simply stay inert until asset-hub-v2.sql is applied).
+  // favorited_at may not exist pre-migration — retry without it (degrade-safe).
   const cols =
     "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at"
-  const primary = await supabase
+  const q1 = supabase
     .from("client_media")
     .select(`${cols}, favorited_at`)
     .is("archived_at", null)
-    .order("created_at", { ascending: false })
+  const primary = await (
+    clerkUserId ? q1.eq("clerk_user_id", clerkUserId) : q1
+  ).order("created_at", { ascending: false })
+  const q2 = supabase.from("client_media").select(cols).is("archived_at", null)
   const { data, error } = primary.error
-    ? await supabase
-        .from("client_media")
-        .select(cols)
-        .is("archived_at", null)
-        .order("created_at", { ascending: false })
+    ? await (clerkUserId ? q2.eq("clerk_user_id", clerkUserId) : q2).order(
+        "created_at",
+        { ascending: false },
+      )
     : primary
   const media = (data ?? []) as MediaRow[]
   if (error || !media.length) return []

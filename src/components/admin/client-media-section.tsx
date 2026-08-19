@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Globe, ImagePlus, Share2, Store, User } from "lucide-react"
+import { ImagePlus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,20 +10,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
+import { HubAssetCard } from "@/components/admin/hub-asset-card"
 import { kindForType } from "@/lib/media-policy"
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { uploadMedia } from "@/lib/client/upload-media"
-import type {
-  ClientMediaItem,
-  ConsentStatus,
-  DataConsentItem,
-} from "@/lib/media"
+import type { HubAsset } from "@/lib/admin/asset-hub"
+import type { ConsentStatus, DataConsentItem } from "@/lib/media"
 import { addClientMedia, requestDataConsent } from "@/lib/actions/manage-media"
 
 const subLabel =
   "font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground"
 
-// Whether a fresh consent request makes sense (nothing pending/granted).
 const canRequest = (status: ConsentStatus) =>
   status === "none" || status === "declined" || status === "withdrawn"
 
@@ -34,37 +31,24 @@ function consentVariant(status: ConsentStatus) {
   return "outline" as const
 }
 
-// Icon tint for a consent state — used on the gallery overlays.
-// green = granted · amber = requested · red = declined · faint = none/withdrawn
-function consentIconClass(status: ConsentStatus) {
-  if (status === "granted") return "text-success"
-  if (status === "declined") return "text-destructive"
-  if (status === "requested") return "text-warning"
-  return "text-muted-foreground/40"
-}
-
-const overlayChip =
-  "flex size-6 items-center justify-center rounded-full border border-border bg-background/85 backdrop-blur-sm"
-
 export type BookingOption = { id: string; label: string }
 
 /**
- * The owner's image/video gallery for a client. Upload happens in a dialog
- * (optionally attached to a past/current booking); each thumbnail carries its
- * source + publish-consent state as corner icons rather than a badge row, so
- * the grid reads as a gallery. Lives in the admin client page's Gallery tab.
+ * The owner's gallery for a client — upload (in a dialog, optionally attached to
+ * a booking) plus the same per-asset cards as the hub, so consent + placement +
+ * favourites are managed right here.
  */
 export function ClientMediaGallery({
   clerkUserId,
-  media,
+  hubAssets,
+  clientName,
   bookings = [],
   defaultBookingId = null,
 }: {
   clerkUserId: string
-  media: ClientMediaItem[]
-  /** This client's attachable bookings (past/current), newest first. */
+  hubAssets: HubAsset[]
+  clientName: string
   bookings?: BookingOption[]
-  /** Pre-selected booking (ongoing, else most recent). Empty = none. */
   defaultBookingId?: string | null
 }) {
   const router = useRouter()
@@ -124,48 +108,15 @@ export function ClientMediaGallery({
         </Button>
       </div>
 
-      {media.length ? (
+      {hubAssets.length ? (
         <ul className="columns-2 gap-4 sm:columns-3">
-          {media.map((item) => (
-            <li key={item.id} className="mb-4 break-inside-avoid">
-              <div className="relative overflow-hidden rounded-sm border border-border">
-                {item.kind === "video" ? (
-                  <video
-                    src={item.url}
-                    controls
-                    preload="metadata"
-                    className="w-full"
-                  />
-                ) : (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={item.url}
-                    alt={item.caption ?? "Client image"}
-                    className="w-full"
-                  />
-                )}
-                <span
-                  className={`absolute top-1.5 left-1.5 ${overlayChip}`}
-                  title={item.source === "client" ? "Client upload" : "Studio"}
-                >
-                  {item.source === "client" ? (
-                    <User className="size-3.5 text-muted-foreground" />
-                  ) : (
-                    <Store className="size-3.5 text-muted-foreground" />
-                  )}
-                </span>
-                <div className="absolute top-1.5 right-1.5 flex gap-1">
-                  <span className={overlayChip} title={`Website: ${item.site}`}>
-                    <Globe className={`size-3.5 ${consentIconClass(item.site)}`} />
-                  </span>
-                  <span className={overlayChip} title={`Social: ${item.some}`}>
-                    <Share2
-                      className={`size-3.5 ${consentIconClass(item.some)}`}
-                    />
-                  </span>
-                </div>
-              </div>
-            </li>
+          {hubAssets.map((asset) => (
+            <HubAssetCard
+              key={asset.mediaId}
+              asset={asset}
+              clientName={clientName}
+              showClient={false}
+            />
           ))}
         </ul>
       ) : (

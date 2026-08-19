@@ -1,12 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Info, Star } from "lucide-react"
+import { Images, Info } from "lucide-react"
 
 import { TabBar } from "@/components/ui/tab-bar"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
+import { GalleryBulkSheet } from "@/components/admin/gallery-bulk-sheet"
+import { FavouritesToggle } from "@/components/admin/favourites-toggle"
 import type { HubAsset } from "@/lib/admin/asset-hub"
 import {
   SIMPLE_LABEL,
@@ -40,6 +43,7 @@ export function AssetHubTabs({
   const [tab, setTab] = useState<HubFilter>(defaultTab)
   const [favoritesOnly, setFavoritesOnly] = useState(false)
   const [legendOpen, setLegendOpen] = useState(false)
+  const [galleryOpen, setGalleryOpen] = useState(false)
 
   const countByState = new Map<SimpleState, number>()
   let favCount = 0
@@ -79,6 +83,12 @@ export function AssetHubTabs({
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => setGalleryOpen(true)}>
+          <Images className="size-4" />
+          Add to website gallery
+        </Button>
+      </div>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1 overflow-x-auto">
           <TabBar tabs={tabs} active={tab} onChange={setTab} />
@@ -92,21 +102,13 @@ export function AssetHubTabs({
         >
           <Info className="size-4" />
         </button>
-        <button
-          type="button"
-          onClick={() => setFavoritesOnly((v) => !v)}
-          aria-pressed={favoritesOnly}
+        <FavouritesToggle
+          active={favoritesOnly}
+          onToggle={() => setFavoritesOnly((v) => !v)}
           title="Show favourites only"
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 font-functional text-[0.625rem] uppercase tracking-widest-lux transition-colors",
-            favoritesOnly
-              ? "border-secondary bg-secondary/10 text-foreground"
-              : "border-border text-muted-foreground hover:text-foreground",
-          )}
         >
-          <Star className={cn("size-3.5", favoritesOnly && "fill-current")} />
           {favCount}
-        </button>
+        </FavouritesToggle>
       </div>
 
       <Sheet open={legendOpen} onOpenChange={setLegendOpen}>
@@ -150,6 +152,12 @@ export function AssetHubTabs({
       ) : (
         <EmptyState title="Nothing here" body="No images match this filter." />
       )}
+
+      <GalleryBulkSheet
+        assets={assets}
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+      />
     </div>
   )
 }

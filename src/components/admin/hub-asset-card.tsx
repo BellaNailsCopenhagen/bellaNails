@@ -39,9 +39,11 @@ const canRequest = (status?: string) =>
 export function HubAssetCard({
   asset,
   clientName,
+  showClient = true,
 }: {
   asset: HubAsset
   clientName: string
+  showClient?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const { pending, run } = useActionRunner()
@@ -102,9 +104,11 @@ export function HubAssetCard({
         <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
           {SIMPLE_LABEL[simple]}
         </span>
-        <span className="truncate font-functional text-xs text-muted-foreground">
-          · {clientName}
-        </span>
+        {showClient ? (
+          <span className="truncate font-functional text-xs text-muted-foreground">
+            · {clientName}
+          </span>
+        ) : null}
       </div>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -126,7 +130,8 @@ export function HubAssetCard({
             />
           )}
           <BodySm className="text-xs">
-            {clientName} · {asset.source === "client" ? "client upload" : "studio"}
+            {showClient ? `${clientName} · ` : ""}
+            {asset.source === "client" ? "client upload" : "studio"}
           </BodySm>
 
           {canRequest(asset.consents.site?.status) &&
