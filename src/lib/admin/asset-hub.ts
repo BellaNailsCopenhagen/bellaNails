@@ -75,23 +75,15 @@ type MediaRow = {
 export async function getHubAssets(clerkUserId?: string): Promise<HubAsset[]> {
   const supabase = createSupabaseServiceRoleClient()
 
-  // favorited_at may not exist pre-migration — retry without it (degrade-safe).
-  const cols =
-    "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at"
-  const q1 = supabase
+  const q = supabase
     .from("client_media")
-    .select(`${cols}, favorited_at`)
+    .select(
+      "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at, favorited_at",
+    )
     .is("archived_at", null)
-  const primary = await (
-    clerkUserId ? q1.eq("clerk_user_id", clerkUserId) : q1
+  const { data, error } = await (
+    clerkUserId ? q.eq("clerk_user_id", clerkUserId) : q
   ).order("created_at", { ascending: false })
-  const q2 = supabase.from("client_media").select(cols).is("archived_at", null)
-  const { data, error } = primary.error
-    ? await (clerkUserId ? q2.eq("clerk_user_id", clerkUserId) : q2).order(
-        "created_at",
-        { ascending: false },
-      )
-    : primary
   const media = (data ?? []) as MediaRow[]
   if (error || !media.length) return []
 

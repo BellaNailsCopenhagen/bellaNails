@@ -63,15 +63,12 @@ export async function bulkAddToGallery(
       needs_takedown_at: null,
       published_asset_id: null,
     }
-    const withAuto = await supabase
+    await supabase
       .from("media_consents")
-      .upsert({ ...base, auto_place: true }, { onConflict: "client_media_id,purpose" })
-    // Only retry without the flag when auto_place isn't a column yet.
-    if (withAuto.error && /auto_place/i.test(withAuto.error.message)) {
-      await supabase
-        .from("media_consents")
-        .upsert(base, { onConflict: "client_media_id,purpose" })
-    }
+      .upsert(
+        { ...base, auto_place: true },
+        { onConflict: "client_media_id,purpose" },
+      )
   }
 
   revalidatePath("/admin/assets")

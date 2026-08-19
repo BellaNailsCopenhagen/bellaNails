@@ -99,7 +99,7 @@ async function grantMediaConsentRow(
 
   // Bulk "publish to gallery": if a SITE consent was flagged to auto-place, put
   // the freshly-published copy on the website gallery now, then clear the flag so
-  // a later re-request can't silently republish. Degrades if not applied yet.
+  // a later re-request can't silently republish. Best-effort — never fail the grant.
   if (publishedAssetId) {
     try {
       const { data: flagged } = await supabase
