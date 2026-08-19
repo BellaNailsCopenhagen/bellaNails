@@ -20,8 +20,8 @@ Everything below is code that's already shipped; these are the **setup steps onl
 
 ## 4. Phase 11 — retire Clerk + Cal.com (decided: both)
 Full design + sequenced plan: **`docs/tasks/in-house/DECISION.md`**. I did **not** execute the swap overnight (it breaks the live app and needs config + testing you must be present for). To kick it off:
-- [ ] Confirm the plan in DECISION.md (login stays Google / Apple / email-OTP via Supabase Auth; scheduling in-house).
-- [ ] Gather prerequisites: a **Google OAuth** client, **Apple Sign-In** service id + key, and the studio's real **working hours** (needed for the in-house availability + Insights).
+- [x] Auth decided: **Google + email one-time-code (passwordless)** via Supabase Auth. **Apple dropped** (paid, not required for a web app); WhatsApp isn't an OAuth login; Facebook a possible later add. Guest bookers keep history (create-or-find a `clients` row by email; later login links by email).
+- [ ] Gather prerequisites (much lighter now): a **Google OAuth** client, and the studio's real **working hours** (in-house availability + Insights). Email-OTP needs no external account; point Supabase Auth email at ZeptoMail.
 - [ ] Then I'll build it in reviewed, deployable steps — starting with the **provider-agnostic booking + identity function layer** (step 1 is non-breaking), so the actual provider swap is low-risk.
 
 ## Notes
