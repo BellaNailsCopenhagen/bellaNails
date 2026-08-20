@@ -10,7 +10,6 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow } from "@/components/ui/typography"
 import { ClientWorkGrid } from "@/components/gallery/client-work-grid"
 import { FloatingBookButton } from "@/app/[locale]/services/[id]/_components/floating-book-button"
-import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
   getPublicService,
   getServicePublicGallery,
@@ -43,17 +42,16 @@ export default async function ServiceDetailPage({
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
-  const supabase = createSupabaseServerClient()
   const [t, service] = await Promise.all([
     getTranslations("serviceDetail"),
-    getPublicService(id, supabase),
+    getPublicService(id),
   ])
   if (!service) notFound()
 
   const [sections, gallery, reviews] = await Promise.all([
-    getServiceSections(supabase, id),
-    getServicePublicGallery(id, supabase),
-    getServiceReviews(id, supabase),
+    getServiceSections(id),
+    getServicePublicGallery(id),
+    getServiceReviews(id),
   ])
 
   const name = pickLocalized(locale, service.nameEn, service.nameDk) ?? service.nameEn

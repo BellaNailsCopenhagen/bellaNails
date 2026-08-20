@@ -4,7 +4,6 @@ import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { TermsEditor } from "@/app/admin/terms/_components/terms-editor"
-import { createSupabaseServerClient } from "@/platform/supabase/server"
 import { getTermsVersions, TERMS_KINDS } from "@/modules/terms/terms"
 
 export const metadata: Metadata = { title: "Terms" }
@@ -21,10 +20,9 @@ const KIND_LABEL: Record<(typeof TERMS_KINDS)[number], string> = {
  * current one, and acceptances keep pointing at the version they agreed to.
  */
 export default async function AdminTermsPage() {
-  const supabase = createSupabaseServerClient()
   const kinds = await Promise.all(
     TERMS_KINDS.map(async (kind) => {
-      const versions = await getTermsVersions(kind, supabase)
+      const versions = await getTermsVersions(kind)
       return {
         kind,
         current: versions.find((v) => v.isCurrent) ?? null,

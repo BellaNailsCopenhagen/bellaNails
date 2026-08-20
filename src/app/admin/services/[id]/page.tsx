@@ -47,7 +47,7 @@ export default async function AdminServiceDetailPage({
   const ownerClient = await requireOwner()
   const [sections, consentedAssets, reviews] = ownerClient
     ? await Promise.all([
-        getServiceSections(ownerClient, service.id).catch(() => []),
+        getServiceSections(service.id, ownerClient).catch(() => []),
         getConsentedAssets(ownerClient).catch(() => []),
         getServiceReviews(service.id, ownerClient).catch(() => []),
       ])

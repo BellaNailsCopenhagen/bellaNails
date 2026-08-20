@@ -12,6 +12,8 @@
 export {
   getAdminAppointments,
   getAdminQueue,
+  getBookingLifecycleAsOwner,
+  getMyBookingLifecycle,
   getClientBookingHistory,
   getMyBookings,
   type AdminBookingView,
@@ -34,6 +36,7 @@ export { getBookingMediaThumbs } from "./booking-media"
 // The Cal integration seam — the webhook route and the reschedule flow.
 export {
   CAL_UID_PATTERN,
+  markBookingCancelledFromCal,
   persistCalBooking,
   syncBookingFromCal,
   type CalBookingSnapshot,

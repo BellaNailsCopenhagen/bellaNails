@@ -15,18 +15,14 @@ import { Container, Section } from "@/components/layout/container"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
 import { routing } from "@/i18n/routing"
-import { pendingRequestCount } from "@/modules/media/consent-requests"
-import {
-  getClientDataConsents,
-  getClientMedia,
-  type ClientMediaItem,
-  type DataConsentItem,
+import type {
+  ClientMediaItem,
+  DataConsentItem,
 } from "@/modules/media/client-gallery"
 import { getCurrentUser } from "@/modules/identity/server"
-import { getTermsAcceptances, type TermsAcceptance } from "@/modules/terms/acceptance"
+import { getMySpace } from "@/modules/clients"
+import type { TermsAcceptance } from "@/modules/terms/acceptance"
 import { singleParam } from "@/shared/search-params"
-import { getClientProfile } from "@/db/clients"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 export async function generateMetadata({
   params,
@@ -69,20 +65,12 @@ export default async function BookingsPage({
     email: string | null
   } | null = null
   if (user) {
-    const supabase = await createAuthedSupabaseServerClient()
-    const [mediaData, consentData, count, termsData, profileRes] =
-      await Promise.all([
-        getClientMedia(supabase, user.id).catch(() => []),
-        getClientDataConsents(supabase, user.id).catch(() => []),
-        pendingRequestCount(supabase, user.id).catch(() => 0),
-        getTermsAcceptances(supabase, user.id).catch(() => []),
-        getClientProfile(supabase, user.id).catch(() => null),
-      ])
-    media = mediaData
-    dataConsents = consentData
-    requestCount = count
-    terms = termsData
-    profile = profileRes
+    const space = await getMySpace(user.id)
+    media = space.media
+    dataConsents = space.dataConsents
+    requestCount = space.requestCount
+    terms = space.terms
+    profile = space.profile
   }
 
   const tabParam = singleParam(query.tab)

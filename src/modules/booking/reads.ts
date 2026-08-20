@@ -1,6 +1,7 @@
 import "server-only"
 
 import {
+  getBookingLifecycle,
   listActiveBookingsFrom,
   listBookingsBefore,
   listBookingsForClient,
@@ -8,7 +9,10 @@ import {
   type BookingRow,
 } from "@/db/bookings"
 import type { ClientContact } from "@/shared/contact"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
+import {
+  createAuthedSupabaseServerClient,
+  createSupabaseServiceRoleClient,
+} from "@/platform/supabase/server"
 
 import { groupIntoAgenda, type AgendaWeek } from "@/shared/booking-agenda"
 import { resolveAdminBookings } from "./admin-view"
@@ -139,6 +143,18 @@ export async function getMyBookings(
     console.error("[my-bookings] read failed", messageOf(error))
     return { bookings: [], loadError: true }
   }
+}
+
+/** The lifecycle state a reschedule gate checks, read as the signed-in
+    client (RLS proves ownership). Null when there is no such booking. */
+export async function getMyBookingLifecycle(uid: string) {
+  const db = await createAuthedSupabaseServerClient()
+  return getBookingLifecycle(db, uid)
+}
+
+/** The same, read as the studio — no ownership constraint. */
+export async function getBookingLifecycleAsOwner(uid: string) {
+  return getBookingLifecycle(createSupabaseServiceRoleClient(), uid)
 }
 
 const messageOf = (error: unknown) =>

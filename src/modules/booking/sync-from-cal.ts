@@ -13,6 +13,7 @@ import type { Db } from "@/db/client"
 import { listAddonNames } from "@/db/addons"
 import { getServiceNames } from "@/db/services"
 import {
+  cancelBookingByCalId,
   cancelSupersededBooking,
   getBookingSyncState,
   upsertBooking,
@@ -105,6 +106,19 @@ export type CalBookingSnapshot = {
 }
 
 export type PersistResult = { ok: true } | { ok: false; message: string }
+
+/**
+ * Mirror a Cal cancellation onto our row. Reports how many rows matched so the
+ * webhook can tell "cancelled" from "we have not seen this booking yet" —
+ * deliveries can arrive out of order, and the latter must be retried.
+ */
+export async function markBookingCancelledFromCal(
+  calBookingId: number,
+): Promise<
+  { ok: true; matched: number } | { ok: false; message: string }
+> {
+  return cancelBookingByCalId(createSupabaseServiceRoleClient(), calBookingId)
+}
 
 export async function persistCalBooking(
   snapshot: CalBookingSnapshot,

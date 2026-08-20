@@ -1,10 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
-import { persistCalBooking } from "@/modules/booking"
+import {
+  markBookingCancelledFromCal,
+  persistCalBooking,
+} from "@/modules/booking"
 import { calBookingPhone } from "@/platform/cal/parse-phone"
-import { cancelBookingByCalId } from "@/db/bookings"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * Cal.com webhook (EU instance) — the push half of the booking mirror (see
@@ -136,8 +137,7 @@ async function markCancelled(payload: CalWebhookEvent["payload"]) {
     return Response.json({ skipped: "missing bookingId" })
   }
 
-  const supabase = createSupabaseServiceRoleClient()
-  const cancelled = await cancelBookingByCalId(supabase, payload.bookingId)
+  const cancelled = await markBookingCancelledFromCal(payload.bookingId)
 
   if (!cancelled.ok) {
     return persistFailed("bookings cancel failed", cancelled.message)

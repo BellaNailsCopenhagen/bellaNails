@@ -2,6 +2,28 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+/**
+ * Layer boundaries, enforced by path. The flow is always
+ *   app → modules → db → platform
+ * never skipping a layer and never reversing. See docs/architecture.md.
+ */
+
+// Reused message fragments, so a violation explains the fix rather than the rule.
+/** Every module barrel. Importing one pulls the whole server surface. */
+const MODULE_BARRELS = [
+  "@/modules/booking",
+  "@/modules/catalog",
+  "@/modules/clients",
+  "@/modules/identity",
+  "@/modules/media",
+  "@/modules/notifications",
+  "@/modules/studio",
+  "@/modules/terms",
+];
+
+const TABLE_ACCESS =
+  "Table access belongs in src/db/<table>.ts. Add (or reuse) a function there and call it — that is what keeps a column list, a soft-delete filter and a join shape to one definition each.";
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -17,11 +39,56 @@ const eslintConfig = defineConfig([
     ".claude/**",
   ]),
 
-  // Module boundaries — enforced by path so a future monorepo split
-  // (packages/core, apps/*) is already clean. See docs/module-boundaries.md.
+  // ---------------------------------------------------------------- db
   {
-    // Domain layer stays UI-free and reusable.
-    files: ["src/lib/**", "src/config/**"],
+    // Rule 1: only the data layer may query a table.
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    ignores: ["src/db/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.property.name='from'][arguments.0.type='Literal']",
+          message: TABLE_ACCESS,
+        },
+      ],
+    },
+  },
+  {
+    // Rule 2: the data layer stays underneath everything. It may reach
+    // platform (the client type, the PostgREST embed helper) and shared, and
+    // nothing above it.
+    files: ["src/db/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "@/modules",
+                "@/modules/**",
+                "@/components",
+                "@/components/**",
+                "@/app",
+                "@/app/**",
+                "@/hooks",
+                "@/hooks/**",
+              ],
+              message:
+                "db/ is the bottom of the stack: one table per file, no authorization, no revalidation, no UI. If you need two tables or a policy decision, you are writing a service — put it in modules/<domain>/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ------------------------------------------------------------ modules
+  {
+    // Rule 3: the service layer owns composition and authorization, never UI.
+    files: ["src/modules/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -30,21 +97,20 @@ const eslintConfig = defineConfig([
             {
               group: ["@/components", "@/components/**", "@/app", "@/app/**"],
               message:
-                "Domain layer (lib/config) must stay UI-free — move shared types/logic down into lib instead of importing components/app.",
+                "The service layer must stay UI-free. A type a component also needs belongs in shared/, not in a component.",
             },
           ],
         },
       ],
     },
   },
+
+  // ------------------------------------------------------------- shared
   {
-    // Web/client surface must not reach into admin internals.
-    files: [
-      "src/components/sections/**",
-      "src/components/layout/**",
-      "src/app/**",
-    ],
-    ignores: ["src/app/admin/**", "src/app/api/**", "src/app/icons/**"],
+    // Rule 4: shared/ is the isomorphic floor — pure rules, view models and
+    // helpers that both a server action and a browser component can run. It may
+    // reference db row *types*; it may not reach a vendor, a service or the UI.
+    files: ["src/shared/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -52,17 +118,70 @@ const eslintConfig = defineConfig([
           patterns: [
             {
               group: [
-                "@/components/admin",
-                "@/components/admin/**",
-                "@/app/admin",
-                "@/app/admin/**",
-                "@/lib/admin",
-                "@/lib/admin/**",
+                "@/modules",
+                "@/modules/**",
+                "@/platform/**",
+                "@/components",
+                "@/components/**",
+                "@/app",
+                "@/app/**",
               ],
               message:
-                "Web/client surface must not import admin internals — admin is a separate module.",
+                "shared/ must stay free of vendors, services and UI — that is what lets a client component import it. Server-only work belongs in modules/<domain>/.",
             },
           ],
+        },
+      ],
+    },
+  },
+
+  // ---------------------------------------------------------------- app
+  {
+    // Rule 5: a route renders; it does not fetch. Pages and layouts ask a
+    // module one question and pass the answer down.
+    files: [
+      "src/app/**/page.tsx",
+      "src/app/**/layout.tsx",
+      "src/app/**/loading.tsx",
+      "src/app/**/error.tsx",
+      "src/app/**/not-found.tsx",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/db", "@/db/**", "@/platform", "@/platform/**"],
+              message:
+                "A page goes through modules/<domain>. If no module answers this page's question yet, add a read that does — that composition is the service layer's job, not the page's.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Rule 6: shared components are leaf UI. They may call server actions and
+    // read through db/ (isomorphic, RLS-scoped), but a module barrel is
+    // transitively server-only and would poison the browser bundle.
+    files: ["src/components/**"],
+    rules: {
+      // The typescript-eslint variant, for `allowTypeImports`: a type import is
+      // erased at compile time and so cannot reach the browser bundle, while a
+      // value import from the same path would.
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          // Exact paths, not a glob: the ban is on the barrel itself, while
+          // the files inside a module stay importable.
+          paths: MODULE_BARRELS.map((name) => ({
+            name,
+            allowTypeImports: true,
+            message:
+              "A module barrel is transitively server-only (cookies, service-role, storage). Import the module's *-actions file for mutations, @/shared/* for rules and view models, or @/db/* for a reactive read. (A type-only import is fine — it is erased.)",
+          })),
         },
       ],
     },

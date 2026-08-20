@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 
 import { CalEmbedShell } from "@/components/booking/cal-embed-shell"
-import { settleBookingRow } from "@/shared/booking-probe"
+import { settleBookingRow } from "@/components/booking/booking-probe"
 
 /**
  * Owner reschedule-on-behalf — the same Cal reschedule embed the client flow

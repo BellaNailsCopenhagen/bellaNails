@@ -16,17 +16,13 @@ import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-te
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { getClientBookingHistory } from "@/modules/booking"
+import { getClientPrivacyRecord } from "@/modules/clients"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import {
-  NO_SHOW_ALERT_THRESHOLD,
-} from "@/shared/booking-policy"
+import { NO_SHOW_ALERT_THRESHOLD } from "@/shared/booking-policy"
 import { contactDisplayName } from "@/shared/contact"
-import { getClientDataConsents } from "@/modules/media/client-gallery"
 import { getHubAssets } from "@/modules/media/asset-hub"
-import { getTermsAcceptances } from "@/modules/terms/acceptance"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 export const metadata: Metadata = { title: "Client" }
 
@@ -53,8 +49,6 @@ export default async function AdminClientPage({
   const defaultTab = tab === "gallery" ? "gallery" : "appointment"
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const supabase = await createAuthedSupabaseServerClient()
-
   const { bookings, contacts, noShowCounts, photosByBooking } =
     await getClientBookingHistory(id)
   // The roster is "clients who have booked" — an id with no bookings isn't one.
@@ -65,11 +59,11 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, dataConsents, termsAcceptances] = await Promise.all([
+  const [hubAssets, privacy] = await Promise.all([
     getHubAssets(id).catch(() => []),
-    getClientDataConsents(supabase, id).catch(() => []),
-    getTermsAcceptances(supabase, id).catch(() => []),
+    getClientPrivacyRecord(id),
   ])
+  const { dataConsents, terms: termsAcceptances } = privacy
 
   // Booking picker for owner uploads: only sessions that have started (past or
   // current) and weren't cancelled/no-showed — you can't attach photos to a

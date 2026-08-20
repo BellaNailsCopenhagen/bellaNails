@@ -9,30 +9,22 @@ import {
   ClientDirectory,
   type ClientRosterEntry,
 } from "@/app/admin/clients/_components/client-directory"
-import { fetchClientContacts } from "@/modules/clients/contacts"
-import { contactDisplayName, type ClientContact } from "@/shared/contact"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
-import { listBookingSpans } from "@/db/bookings"
+import { getClientDirectory, type DirectoryEntry } from "@/modules/clients"
+import { contactDisplayName } from "@/shared/contact"
 
 export const metadata: Metadata = { title: "Clients" }
 
 // Per-owner reads (session cookies) — dynamic, no static prerender attempt.
 export const dynamic = "force-dynamic"
 
-/** Per-client aggregates derived from their booking rows. */
-type Agg = { count: number; lastVisitMs: number | null }
-
-function toRosterEntry(
-  id: string,
-  agg: Agg,
-  contact: ClientContact | undefined,
-): ClientRosterEntry {
+function toRosterEntry(entry: DirectoryEntry): ClientRosterEntry {
+  const { contact } = entry
   return {
-    id,
+    id: entry.id,
     name: contactDisplayName(contact),
     activated: Boolean(contact?.activated),
-    count: agg.count,
-    lastVisitMs: agg.lastVisitMs,
+    count: entry.visits,
+    lastVisitMs: entry.lastVisitMs,
     // Name + email haystack so search hits last name and email fragments.
     search: [contact?.firstName, contact?.fullName, contact?.email]
       .filter(Boolean)
@@ -51,35 +43,8 @@ function toRosterEntry(
 export default async function AdminClientsPage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const supabase = await createAuthedSupabaseServerClient()
-
-  // Ordered desc so the first row per client is their most recent booking —
-  // giving a recently-active-first roster from Map insertion order.
-  const { rows, loadError } = await listBookingSpans(supabase).then(
-    (rows) => ({ rows, loadError: false }),
-    (error: Error) => {
-      console.error("[admin-clients] read failed", error.message)
-      return { rows: [], loadError: true }
-    },
-  )
-
-  const byClient = new Map<string, Agg>()
-  for (const row of rows) {
-    const agg = byClient.get(row.client_id) ?? { count: 0, lastVisitMs: null }
-    agg.count += 1
-    const endMs = new Date(row.end_time).getTime()
-    // Last visit = most recent appointment that has already happened.
-    if (endMs < now && (agg.lastVisitMs === null || endMs > agg.lastVisitMs)) {
-      agg.lastVisitMs = endMs
-    }
-    byClient.set(row.client_id, agg)
-  }
-
-  // Resolved from the clients table in one `.in(...)` query.
-  const contacts = await fetchClientContacts([...byClient.keys()])
-  const clients: ClientRosterEntry[] = [...byClient.entries()].map(
-    ([id, agg]) => toRosterEntry(id, agg, contacts[id]),
-  )
+  const { clients: roster, loadError } = await getClientDirectory(now)
+  const clients: ClientRosterEntry[] = roster.map(toRosterEntry)
 
   return (
     <div className="space-y-8">

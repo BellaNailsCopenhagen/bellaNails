@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
 import { CalEmbedShell } from "@/components/booking/cal-embed-shell"
-import { settleBookingRow } from "@/shared/booking-probe"
+import { settleBookingRow } from "@/components/booking/booking-probe"
 import { routes } from "@/config/routes"
 
 /**

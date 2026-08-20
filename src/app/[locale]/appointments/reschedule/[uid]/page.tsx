@@ -9,9 +9,8 @@ import { RescheduleBooking } from "@/app/[locale]/appointments/reschedule/[uid]/
 import {
   canManageBooking,
 } from "@/shared/booking-policy"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
-import { getBookingLifecycle } from "@/db/bookings"
 import { routes } from "@/config/routes"
+import { getMyBookingLifecycle } from "@/modules/booking"
 
 export async function generateMetadata({
   params,
@@ -39,8 +38,7 @@ export default async function ReschedulePage({
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
-  const supabase = await createAuthedSupabaseServerClient()
-  const booking = await getBookingLifecycle(supabase, uid)
+  const booking = await getMyBookingLifecycle(uid)
   if (!booking) notFound()
 
   // eslint-disable-next-line react-hooks/purity

@@ -1,9 +1,23 @@
 import type { BookingLineItem } from "@/shared/booking-totals"
-import type {
-  BookableService,
-  ServiceAddon,
-} from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
+
+/** The catalog columns this needs, stated structurally so shared/ carries no
+    dependency on the catalog module. */
+type NamedService = {
+  id: string
+  name_en: string
+  name_dk: string | null
+  base_price_cents: number
+  base_duration_mins: number
+}
+
+type NamedAddon = {
+  id: string
+  name_en: string
+  name_dk: string | null
+  extra_price_cents: number
+  extra_duration_mins: number
+}
 
 /**
  * The one place a service + add-on selection is resolved into localized,
@@ -13,11 +27,8 @@ import { pickLocalized } from "@/shared/localized"
  * all of them (the customise step lists everything).
  */
 export function localizeSelection(
-  service: Pick<
-    BookableService,
-    "id" | "name_en" | "name_dk" | "base_price_cents" | "base_duration_mins"
-  >,
-  addons: ServiceAddon[],
+  service: NamedService,
+  addons: NamedAddon[],
   locale: string,
   selectedAddonIds?: string[],
 ): { service: BookingLineItem; addons: BookingLineItem[] } {

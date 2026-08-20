@@ -6,6 +6,13 @@
  * `./anonymize` directly (both are `"use server"`).
  */
 export { fetchClientContacts } from "./contacts"
+export {
+  getClientPrivacyRecord,
+  getMySpace,
+  EMPTY_MY_SPACE,
+  type MySpace,
+} from "./my-space"
+export { getClientDirectory, type DirectoryEntry } from "./directory"
 export { updateMyProfile, type ProfileResult } from "./actions"
 export {
   anonymizeClient,

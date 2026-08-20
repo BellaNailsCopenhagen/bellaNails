@@ -5,7 +5,6 @@ import { ChevronLeft } from "lucide-react"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { StudioHoursEditor } from "@/app/admin/hours/_components/studio-hours-editor"
 import { getStudioHours } from "@/modules/studio/hours"
-import { createSupabaseServerClient } from "@/platform/supabase/server"
 
 export const metadata: Metadata = { title: "Hours" }
 export const dynamic = "force-dynamic"
@@ -16,7 +15,7 @@ export const dynamic = "force-dynamic"
  * availability + occupancy. Owner-gated by the proxy.
  */
 export default async function AdminHoursPage() {
-  const hours = await getStudioHours(createSupabaseServerClient())
+  const hours = await getStudioHours()
 
   return (
     <div className="space-y-6">
