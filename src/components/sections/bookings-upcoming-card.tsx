@@ -7,7 +7,12 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, H3 } from "@/components/ui/typography"
-import { canManageBooking, type DisplayBooking } from "@/lib/booking-display"
+import {
+  type DisplayBooking,
+} from "@/shared/booking-view"
+import {
+  canManageBooking,
+} from "@/shared/booking-policy"
 import {
   formatCountdown,
   formatStudioDate,

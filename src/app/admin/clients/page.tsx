@@ -12,6 +12,7 @@ import {
 import { fetchClientContacts } from "@/lib/identity/client-contacts"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
+import { listBookingSpans } from "@/db/bookings"
 
 export const metadata: Metadata = { title: "Clients" }
 
@@ -54,15 +55,16 @@ export default async function AdminClientsPage() {
 
   // Ordered desc so the first row per client is their most recent booking —
   // giving a recently-active-first roster from Map insertion order.
-  const { data: rows, error } = await supabase
-    .from("bookings")
-    .select("client_id, start_time, end_time")
-    .order("start_time", { ascending: false })
-
-  if (error) console.error("[admin-clients] read failed", error.message)
+  const { rows, loadError } = await listBookingSpans(supabase).then(
+    (rows) => ({ rows, loadError: false }),
+    (error: Error) => {
+      console.error("[admin-clients] read failed", error.message)
+      return { rows: [], loadError: true }
+    },
+  )
 
   const byClient = new Map<string, Agg>()
-  for (const row of rows ?? []) {
+  for (const row of rows) {
     const agg = byClient.get(row.client_id) ?? { count: 0, lastVisitMs: null }
     agg.count += 1
     const endMs = new Date(row.end_time).getTime()
@@ -94,7 +96,7 @@ export default async function AdminClientsPage() {
         </H2>
       </div>
 
-      {error ? (
+      {loadError ? (
         <ErrorState
           title="Couldn’t load clients"
           body="Something went wrong reaching the studio's clients. Try again in a moment."

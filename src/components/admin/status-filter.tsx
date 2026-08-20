@@ -8,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { BookingState } from "@/lib/booking-display"
+import type { BookingState } from "@/shared/booking-policy"
 
 // Lifecycle states: Open = still to come, Completed = already happened.
 const STATE_LABELS: readonly (readonly [BookingState, string])[] = [

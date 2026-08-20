@@ -14,12 +14,14 @@ import {
   groupBookingsByMonth,
   groupBookingsByWeek,
   studioMonthKey,
-} from "@/lib/admin/agenda"
+} from "@/shared/booking-agenda"
+import {
+  type DisplayBooking,
+} from "@/shared/booking-view"
 import {
   bookingState,
   type BookingState,
-  type DisplayBooking,
-} from "@/lib/booking-display"
+} from "@/shared/booking-policy"
 import type { ClientContact } from "@/lib/identity/contact"
 import {
   dayNumberToMs,

@@ -5,6 +5,7 @@ import { notifyOwner } from "@/lib/admin/notify"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
 import { objectUrl } from "@/platform/storage/scaleway"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { getBookingOwner } from "@/db/bookings"
 
 /**
  * The CLIENT's own photo uploads, from their /bookings. They add photos to one
@@ -30,11 +31,7 @@ export async function addOwnBookingMedia(input: {
   if (!input.storageKey) return { ok: false, error: "No image." }
 
   const supabase = createSupabaseServiceRoleClient()
-  const { data: booking } = await supabase
-    .from("bookings")
-    .select("id, client_id, selected_addons")
-    .eq("id", input.bookingId)
-    .maybeSingle()
+  const booking = await getBookingOwner(supabase, input.bookingId)
   if (!booking || booking.client_id !== userId) {
     console.error("[addOwnBookingMedia] booking not found/owned", {
       bookingId: input.bookingId,

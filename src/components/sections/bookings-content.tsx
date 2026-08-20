@@ -8,7 +8,7 @@ import { ArrowLink } from "@/components/ui/arrow-link"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
-import type { DisplayBooking } from "@/lib/booking-display"
+import type { DisplayBooking } from "@/shared/booking-view"
 import type { ClientMediaItem } from "@/lib/media"
 import { routes } from "@/config/routes"
 

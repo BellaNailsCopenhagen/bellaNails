@@ -6,10 +6,7 @@ import { H2 } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { AdminBookings } from "@/components/admin/admin-bookings"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
-import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
-import { resolveAdminBookings } from "@/lib/admin/bookings"
-import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
+import { getAdminAppointments } from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Appointments" }
 
@@ -28,36 +25,10 @@ const PAST_LIMIT = 200
  * the focused live view. (Internal code keeps the "bookings" table term.)
  */
 export default async function AdminAppointmentsPage() {
-  const now = new Date()
-  const nowIso = now.toISOString()
-  const supabase = await createAuthedSupabaseServerClient()
-
-  const [upcomingRes, pastRes] = await Promise.all([
-    supabase
-      .from("bookings")
-      .select(BOOKING_DISPLAY_COLUMNS)
-      .gte("end_time", nowIso)
-      .order("start_time", { ascending: true }),
-    supabase
-      .from("bookings")
-      .select(BOOKING_DISPLAY_COLUMNS)
-      .lt("end_time", nowIso)
-      .order("start_time", { ascending: false })
-      .limit(PAST_LIMIT),
-  ])
-
-  const error = upcomingRes.error ?? pastRes.error
-  if (error) console.error("[admin-appointments] read failed", error.message)
-
-  const allRows = [...(upcomingRes.data ?? []), ...(pastRes.data ?? [])]
-  const [{ bookings, contacts, noShowCounts }, photosByBooking] =
-    await Promise.all([
-      resolveAdminBookings(supabase, allRows, "admin-appointments"),
-      getBookingMediaThumbs(
-        supabase,
-        allRows.map((r) => r.id),
-      ),
-    ])
+  // eslint-disable-next-line react-hooks/purity -- request-time clock read
+  const now = Date.now()
+  const { bookings, contacts, noShowCounts, photosByBooking, loadError } =
+    await getAdminAppointments(now, PAST_LIMIT)
 
   return (
     <div className="space-y-8">
@@ -72,7 +43,7 @@ export default async function AdminAppointmentsPage() {
         <H2>Appointments</H2>
       </div>
 
-      {error ? (
+      {loadError ? (
         <ErrorState
           title="Couldn’t load appointments"
           body="Something went wrong reaching the studio's appointments. Try again in a moment."
@@ -87,7 +58,7 @@ export default async function AdminAppointmentsPage() {
           bookings={bookings}
           contacts={contacts}
           noShowCounts={noShowCounts}
-          now={now.getTime()}
+          now={now}
           photosByBooking={photosByBooking}
         />
       )}

@@ -5,7 +5,7 @@ import { Container, Section } from "@/components/layout/container"
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { getGalleryPreviewItems } from "@/lib/services/get-gallery-preview-items"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 import { routes } from "@/config/routes"
 
 function GalleryTile({

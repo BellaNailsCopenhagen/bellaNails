@@ -1,8 +1,9 @@
 import "server-only"
 
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import { syncBookingFromCal } from "@/lib/booking-sync"
+import { cancelBookingByUid, getBookingStatus } from "@/db/bookings"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { syncBookingFromCal } from "./sync-from-cal"
 import { CALCOM_API_BASE } from "@/config/calcom"
 
 /**
@@ -63,25 +64,18 @@ export async function cancelBookingAtCal(
       )
       return { ok: false }
     }
-    const { data: after } = await service
-      .from("bookings")
-      .select("status")
-      .eq("cal_uid", uid)
-      .maybeSingle()
-    return { ok: after?.status === BOOKING_STATUS.cancelled }
+    const after = await getBookingStatus(service, uid)
+    return { ok: after === BOOKING_STATUS.cancelled }
   }
   if (!res.ok) {
     console.error("[cancel-booking] Cal API rejected", uid, res.status)
     return { ok: false }
   }
 
-  const { error: mirrorError } = await service
-    .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_uid", uid)
-  if (mirrorError) {
+  const mirrored = await cancelBookingByUid(service, uid)
+  if (!mirrored.ok) {
     // Cal-side cancel succeeded; the webhook will heal the row.
-    console.error("[cancel-booking] mirror failed", mirrorError.message)
+    console.error("[cancel-booking] mirror failed", mirrored.message)
   }
   return { ok: true }
 }

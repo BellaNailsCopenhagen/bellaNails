@@ -1,9 +1,9 @@
-import type { BookingLineItem } from "@/lib/services/booking-totals"
+import type { BookingLineItem } from "@/shared/booking-totals"
 import type {
   BookableService,
   ServiceAddon,
 } from "@/lib/services/get-service-with-addons"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 
 /**
  * The one place a service + add-on selection is resolved into localized,

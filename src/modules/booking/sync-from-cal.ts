@@ -1,7 +1,5 @@
 import "server-only"
 
-import type { SupabaseClient } from "@supabase/supabase-js"
-
 import { ensureUser } from "@/lib/identity/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
 import { calBookingPhone } from "@/platform/cal/parse-phone"
@@ -11,7 +9,14 @@ import {
   sanitizeContactText,
 } from "@/shared/contact-validation"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
-import type { Database } from "@/platform/supabase/types"
+import type { Db } from "@/db/client"
+import { listAddonNames } from "@/db/addons"
+import { getServiceNames } from "@/db/services"
+import {
+  cancelSupersededBooking,
+  getBookingSyncState,
+  upsertBooking,
+} from "@/db/bookings"
 import { recordTermsAcceptance } from "@/lib/terms-acceptance"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
@@ -52,31 +57,24 @@ type ProductSnapshot = {
  * (the display then falls back to the live catalog) — never fails a persist.
  */
 async function fetchProductSnapshot(
-  supabase: SupabaseClient<Database>,
+  db: Db,
   serviceId: string | null,
   addonIds: string[],
 ): Promise<ProductSnapshot> {
   const snapshot: ProductSnapshot = {}
   try {
     if (serviceId) {
-      const { data } = await supabase
-        .from("services")
-        .select("name_en, name_dk, description_en, description_dk")
-        .eq("id", serviceId)
-        .maybeSingle()
-      if (data) {
-        snapshot.serviceNameEn = data.name_en
-        snapshot.serviceNameDk = data.name_dk
-        snapshot.serviceDescriptionEn = data.description_en
-        snapshot.serviceDescriptionDk = data.description_dk
+      const service = await getServiceNames(db, serviceId)
+      if (service) {
+        snapshot.serviceNameEn = service.name_en
+        snapshot.serviceNameDk = service.name_dk
+        snapshot.serviceDescriptionEn = service.description_en
+        snapshot.serviceDescriptionDk = service.description_dk
       }
     }
     if (addonIds.length) {
-      const { data } = await supabase
-        .from("addons")
-        .select("id, name_en, name_dk")
-        .in("id", addonIds)
-      const byId = new Map((data ?? []).map((a) => [a.id, a]))
+      const rows = await listAddonNames(db, addonIds)
+      const byId = new Map(rows.map((a) => [a.id, a]))
       // Preserve the booked order.
       snapshot.addonSnapshots = addonIds.flatMap((id) => {
         const a = byId.get(id)
@@ -113,11 +111,7 @@ export async function persistCalBooking(
 ): Promise<PersistResult> {
   const supabase = createSupabaseServiceRoleClient()
 
-  const { data: existing } = await supabase
-    .from("bookings")
-    .select("cal_booking_id, status")
-    .eq("cal_booking_id", snapshot.bookingId)
-    .maybeSingle()
+  const existing = await getBookingSyncState(supabase, snapshot.bookingId)
 
   // Cancelled is terminal (Cal never un-cancels a uid; reschedules mint a
   // new one), so a late active snapshot — e.g. the queued BOOKING_CREATED
@@ -175,47 +169,40 @@ export async function persistCalBooking(
       })
     }
 
-    const { data: upserted, error } = await supabase
-      .from("bookings")
-      .upsert(
-        {
-          cal_booking_id: snapshot.bookingId,
-          cal_uid: snapshot.uid,
-          // Keep the old→new chain even when the snapshot is cancelled.
-          rescheduled_from_uid: snapshot.rescheduleUid ?? null,
-          client_id: clientId,
-          status: snapshot.status,
-          start_time: snapshot.startTime,
-          end_time: snapshot.endTime,
-          // Canonical Cal cloud URL forms — the payloads carry no ready links.
-          reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${snapshot.uid}`,
-          cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${snapshot.uid}?cancel=true`,
-          total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
-          client_notes: sanitizeContactText(
-            metaString(meta.clientNotes),
-            MAX_NOTES_LENGTH,
-            { allowNewlines: true },
-          ),
-          selected_addons: {
-            serviceId: metaString(meta.serviceId),
-            addonIds,
-            totalDurationMins: metaInt(meta.totalDurationMins),
-            locale: metaString(meta.locale),
-            ...productSnapshot,
-          },
-        },
-        { onConflict: "cal_booking_id" },
-      )
-      .select("id")
-      .single()
-    if (error) {
-      return { ok: false, message: `bookings upsert failed: ${error.message}` }
+    const upserted = await upsertBooking(supabase, {
+      cal_booking_id: snapshot.bookingId,
+      cal_uid: snapshot.uid,
+      // Keep the old→new chain even when the snapshot is cancelled.
+      rescheduled_from_uid: snapshot.rescheduleUid ?? null,
+      client_id: clientId,
+      status: snapshot.status,
+      start_time: snapshot.startTime,
+      end_time: snapshot.endTime,
+      // Canonical Cal cloud URL forms — the payloads carry no ready links.
+      reschedule_url: `${CALCOM_BOOKING_ORIGIN}/reschedule/${snapshot.uid}`,
+      cancel_url: `${CALCOM_BOOKING_ORIGIN}/booking/${snapshot.uid}?cancel=true`,
+      total_price_cents: metaInt(meta.totalPriceCents) ?? 0,
+      client_notes: sanitizeContactText(
+        metaString(meta.clientNotes),
+        MAX_NOTES_LENGTH,
+        { allowNewlines: true },
+      ),
+      selected_addons: {
+        serviceId: metaString(meta.serviceId),
+        addonIds,
+        totalDurationMins: metaInt(meta.totalDurationMins),
+        locale: metaString(meta.locale),
+        ...productSnapshot,
+      },
+    })
+    if (!upserted.ok) {
+      return { ok: false, message: `bookings upsert failed: ${upserted.message}` }
     }
 
     // Booking a session accepts the current service terms (implicit consent, per
     // the confirm-step fine print). Not on a cancellation persist — that's not a
     // booking. Best-effort + idempotent per booking.
-    if (upserted?.id && snapshot.status !== BOOKING_STATUS.cancelled) {
+    if (snapshot.status !== BOOKING_STATUS.cancelled) {
       await recordTermsAcceptance(supabase, {
         clientId,
         kind: "service",
@@ -232,15 +219,15 @@ export async function persistCalBooking(
     snapshot.status === BOOKING_STATUS.rescheduled &&
     snapshot.rescheduleUid
   ) {
-    const { error: oldError } = await supabase
-      .from("bookings")
-      .update({ status: BOOKING_STATUS.cancelled })
-      .eq("cal_uid", snapshot.rescheduleUid)
-      .neq("cal_booking_id", snapshot.bookingId)
-    if (oldError) {
+    const closed = await cancelSupersededBooking(
+      supabase,
+      snapshot.rescheduleUid,
+      snapshot.bookingId,
+    )
+    if (!closed.ok) {
       console.error(
         "[booking-sync] failed to close replaced booking",
-        oldError.message,
+        closed.message,
       )
     }
   }

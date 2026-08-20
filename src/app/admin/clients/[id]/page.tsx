@@ -15,11 +15,11 @@ import { ClientStatusBadge } from "@/components/admin/client-status-badge"
 import { ClientTermsPanel } from "@/components/admin/client-terms-panel"
 import { EraseClientButton } from "@/components/admin/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
-import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
+import { getClientBookingHistory } from "@/modules/booking"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import { resolveAdminBookings } from "@/lib/admin/bookings"
-import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
-import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
+import {
+  NO_SHOW_ALERT_THRESHOLD,
+} from "@/shared/booking-policy"
 import { contactDisplayName } from "@/lib/identity/contact"
 import { getClientDataConsents } from "@/lib/media"
 import { getHubAssets } from "@/lib/admin/asset-hub"
@@ -55,36 +55,21 @@ export default async function AdminClientPage({
   const now = Date.now()
   const supabase = await createAuthedSupabaseServerClient()
 
-  const { data: rows, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_DISPLAY_COLUMNS)
-    .eq("client_id", id)
-    .order("start_time", { ascending: false })
-
-  if (error) console.error("[admin-client] read failed", error.message)
+  const { bookings, contacts, noShowCounts, photosByBooking } =
+    await getClientBookingHistory(id)
   // The roster is "clients who have booked" — an id with no bookings isn't one.
-  if (!rows?.length) notFound()
+  if (!bookings.length) notFound()
 
-  const { bookings, contacts, noShowCounts } = await resolveAdminBookings(
-    supabase,
-    rows,
-    "admin-client",
-  )
   const contact = contacts[id]
   const clientName = contactDisplayName(contact)
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, dataConsents, photosByBooking, termsAcceptances] =
-    await Promise.all([
-      getHubAssets(id).catch(() => []),
-      getClientDataConsents(supabase, id).catch(() => []),
-      getBookingMediaThumbs(
-        supabase,
-        rows.map((r) => r.id),
-      ).catch(() => ({})),
-      getTermsAcceptances(supabase, id).catch(() => []),
-    ])
+  const [hubAssets, dataConsents, termsAcceptances] = await Promise.all([
+    getHubAssets(id).catch(() => []),
+    getClientDataConsents(supabase, id).catch(() => []),
+    getTermsAcceptances(supabase, id).catch(() => []),
+  ])
 
   // Booking picker for owner uploads: only sessions that have started (past or
   // current) and weren't cancelled/no-showed — you can't attach photos to a

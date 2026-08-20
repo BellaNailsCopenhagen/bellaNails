@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { cardActionDestructive } from "@/components/admin/card-action"
-import { cancelBookingAsOwner } from "@/lib/actions/cancel-booking-admin"
+import {
+  cancelBookingAsOwner,
+} from "@/modules/booking/actions"
 
 /**
  * Owner cancel behind a confirm dialog. The server action re-verifies the owner

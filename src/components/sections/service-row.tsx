@@ -4,7 +4,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption } from "@/components/ui/typography"
 import type { MenuService } from "@/lib/services/get-service-menu"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 import { routes, serviceDetailPath } from "@/config/routes"
 
 /**

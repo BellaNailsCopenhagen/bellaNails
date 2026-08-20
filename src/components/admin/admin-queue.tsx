@@ -9,14 +9,17 @@ import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
-import type { BookingThumb } from "@/lib/admin/booking-media"
+import type { BookingThumb } from "@/shared/booking-view"
 import { QueueRealtime } from "@/components/admin/queue-realtime"
 import {
   CalendarView,
   type DayStateCounts,
 } from "@/components/admin/calendar-view"
-import { bookingState, canMarkNoShow } from "@/lib/booking-display"
-import type { AgendaWeek } from "@/lib/admin/agenda"
+import {
+  bookingState,
+  canMarkNoShow,
+} from "@/shared/booking-policy"
+import type { AgendaWeek } from "@/shared/booking-agenda"
 import type { ClientContact } from "@/lib/identity/contact"
 import {
   dayNumberToMs,

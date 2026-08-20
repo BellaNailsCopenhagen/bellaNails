@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
-import { persistCalBooking } from "@/lib/booking-sync"
+import { persistCalBooking } from "@/modules/booking"
 import { calBookingPhone } from "@/platform/cal/parse-phone"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 

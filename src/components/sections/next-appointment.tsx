@@ -4,7 +4,6 @@ import * as React from "react"
 import { useCurrentUser } from "@/lib/identity/use-current-user"
 import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { Container, Section } from "@/components/layout/container"
 import { ArrowLink } from "@/components/ui/arrow-link"
@@ -13,45 +12,40 @@ import { SectionHeading } from "@/components/ui/section-heading"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption, H3 } from "@/components/ui/typography"
 import {
-  BOOKING_DISPLAY_COLUMNS,
-  fetchBookingCatalog,
-  metaOf,
   toDisplayBooking,
   type DisplayBooking,
-} from "@/lib/booking-display"
-import { ACTIVE_BOOKING_STATUSES } from "@/shared/booking-status"
+} from "@/shared/booking-view"
+import { listUpcomingBookingsForClient } from "@/db/bookings"
+import { getServiceNameCatalog } from "@/db/services"
+import type { Db } from "@/db/client"
+import { metaOf } from "@/shared/booking-policy"
 import {
   formatCountdown,
   formatStudioDate,
   formatStudioTime,
 } from "@/shared/studio-time"
 import { useSupabaseBrowserClient } from "@/platform/supabase/client"
-import type { Database } from "@/platform/supabase/types"
 import { routes } from "@/config/routes"
 
 /** Soonest active booking that hasn't ENDED yet (in-progress still counts),
     resolved to display data via the shared booking catalog. Null when
     nothing is booked. */
 async function fetchNextAppointment(
-  supabase: SupabaseClient<Database>,
+  db: Db,
   locale: string,
   clientId: string,
 ): Promise<DisplayBooking | null> {
   // Explicit client filter — the owner's owner-reads-all RLS would otherwise
   // surface the soonest studio-wide booking on their personal home band.
-  const { data: row, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_DISPLAY_COLUMNS)
-    .eq("client_id", clientId)
-    .in("status", [...ACTIVE_BOOKING_STATUSES])
-    .gt("end_time", new Date().toISOString())
-    .order("start_time", { ascending: true })
-    .limit(1)
-    .maybeSingle()
-  if (error) throw new Error(error.message)
+  const [row] = await listUpcomingBookingsForClient(
+    db,
+    clientId,
+    new Date().toISOString(),
+    1,
+  )
   if (!row) return null
 
-  const catalog = await fetchBookingCatalog(supabase, [metaOf(row).serviceId])
+  const catalog = await getServiceNameCatalog(db, [metaOf(row).serviceId])
   return toDisplayBooking(row, catalog, locale)
 }
 

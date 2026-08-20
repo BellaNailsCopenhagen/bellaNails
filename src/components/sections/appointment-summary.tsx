@@ -9,7 +9,7 @@ import { BodySm, Caption, Eyebrow, H3 } from "@/components/ui/typography"
 import {
   computeBookingTotals,
   type BookingLineItem,
-} from "@/lib/services/booking-totals"
+} from "@/shared/booking-totals"
 import { routes } from "@/config/routes"
 
 /**

@@ -1,4 +1,4 @@
-import { syncBooking } from "@/lib/actions/sync-booking"
+import { syncBooking } from "@/modules/booking/actions"
 
 /** Post-success wait: after Cal creates/reschedules a booking, poll for our
     webhook-written row before navigating (~15 s worst case). Deliberately

@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/page-header"
 import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
 import { getServiceMenu } from "@/lib/services/get-service-menu"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 
 /**
  * BookingServicePicker — step 1 of the booking flow ("Customise Your

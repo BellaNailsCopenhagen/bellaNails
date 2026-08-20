@@ -6,8 +6,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { RescheduleBooking } from "@/components/sections/reschedule-booking"
-import { canManageBooking } from "@/lib/booking-display"
+import {
+  canManageBooking,
+} from "@/shared/booking-policy"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
+import { getBookingLifecycle } from "@/db/bookings"
 import { routes } from "@/config/routes"
 
 export async function generateMetadata({
@@ -37,11 +40,7 @@ export default async function ReschedulePage({
   setRequestLocale(locale)
 
   const supabase = await createAuthedSupabaseServerClient()
-  const { data: booking } = await supabase
-    .from("bookings")
-    .select("cal_uid, status, start_time")
-    .eq("cal_uid", uid)
-    .maybeSingle()
+  const booking = await getBookingLifecycle(supabase, uid)
   if (!booking) notFound()
 
   // eslint-disable-next-line react-hooks/purity

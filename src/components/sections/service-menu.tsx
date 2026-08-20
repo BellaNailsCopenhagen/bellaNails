@@ -11,7 +11,7 @@ import {
   getServiceMenu,
   type MenuCategory,
 } from "@/lib/services/get-service-menu"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 
 async function CategorySection({
   category,

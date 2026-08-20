@@ -17,11 +17,13 @@ import {
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BookingListRow } from "@/components/admin/booking-list-row"
 import {
+  type DisplayBooking,
+} from "@/shared/booking-view"
+import {
   bookingState,
   canMarkNoShow,
   type BookingState,
-  type DisplayBooking,
-} from "@/lib/booking-display"
+} from "@/shared/booking-policy"
 import {
   dayNumberToMs,
   formatStudioDayMonthYear,

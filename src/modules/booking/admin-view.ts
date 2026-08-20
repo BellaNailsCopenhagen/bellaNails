@@ -1,18 +1,13 @@
 import "server-only"
 
-import type { SupabaseClient } from "@supabase/supabase-js"
-
-import {
-  toDisplayBookings,
-  type BookingRow,
-  type DisplayBooking,
-} from "@/lib/booking-display"
+import { countNoShowsByClient, type BookingRow } from "@/db/bookings"
+import type { Db } from "@/db/client"
 import { fetchCalPhones } from "@/platform/cal/booking-phones"
-import { fetchNoShowCounts } from "@/lib/booking-reputation"
 import { fetchClientContacts } from "@/lib/identity/client-contacts"
 import type { ClientContact } from "@/lib/identity/contact"
-import type { Database } from "@/platform/supabase/types"
 import { ADMIN_LOCALE } from "@/config/admin"
+import { toDisplayBookings } from "./booking-view"
+import type { DisplayBooking } from "@/shared/booking-view"
 
 /** Time span the rows cover, for the Cal phone lookup; null if none/unparsable. */
 function bookingWindow(rows: BookingRow[]): { start: number; end: number } | null {
@@ -34,7 +29,7 @@ function bookingWindow(rows: BookingRow[]): { start: number; end: number } | nul
  * surface.
  */
 export async function resolveAdminBookings(
-  supabase: SupabaseClient<Database>,
+  supabase: Db,
   rows: BookingRow[],
   context: string,
 ): Promise<{
@@ -49,7 +44,7 @@ export async function resolveAdminBookings(
   const [bookings, contacts, noShowCounts, calPhones] = await Promise.all([
     toDisplayBookings(supabase, rows, ADMIN_LOCALE, context),
     fetchClientContacts(rows.map((row) => row.client_id)),
-    fetchNoShowCounts(
+    countNoShowsByClient(
       supabase,
       rows.map((row) => row.client_id),
     ).catch((error) => {

@@ -8,7 +8,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { BodySm, Caption, H3 } from "@/components/ui/typography"
 import { getFeaturedServices } from "@/lib/services/get-featured-services"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 import { routes } from "@/config/routes"
 
 /**

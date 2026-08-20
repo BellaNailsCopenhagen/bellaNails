@@ -18,7 +18,7 @@ import {
   PHONE_HTML_PATTERN,
   type BookingContact,
 } from "@/shared/contact-validation"
-import { localizeSelection } from "@/lib/services/localize-selection"
+import { localizeSelection } from "@/shared/localize-selection"
 import { routes } from "@/config/routes"
 
 type Field = {

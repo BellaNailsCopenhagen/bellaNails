@@ -8,7 +8,7 @@ import {
   createCalEventType,
   patchCalEventType,
 } from "@/platform/cal/event-types"
-import { computeSlotOptions } from "@/lib/services/booking-totals"
+import { computeSlotOptions } from "@/shared/booking-totals"
 import {
   fetchIncompatiblePairs,
   flattenServiceAddons,

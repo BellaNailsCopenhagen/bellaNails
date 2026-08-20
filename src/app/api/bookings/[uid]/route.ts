@@ -1,9 +1,12 @@
-import { metaOf } from "@/lib/booking-display"
-import { CAL_UID_PATTERN } from "@/lib/booking-sync"
+import {
+  metaOf,
+} from "@/shared/booking-policy"
+import { CAL_UID_PATTERN } from "@/modules/booking"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
-import { localizeSelection } from "@/lib/services/localize-selection"
+import { localizeSelection } from "@/shared/localize-selection"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
-import type { BookingLineItem } from "@/lib/services/booking-totals"
+import { bookingExists, getBookingRecap } from "@/db/bookings"
+import type { BookingLineItem } from "@/shared/booking-totals"
 
 /**
  * Booking recap by Cal uid — read path for /confirmation, where the booker is
@@ -40,29 +43,23 @@ export async function GET(
   const supabase = createSupabaseServiceRoleClient()
 
   if (search.get("probe") === "1") {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("cal_uid")
-      .eq("cal_uid", uid)
-      .maybeSingle()
-    if (error) {
-      console.error("[bookings-recap] probe failed", error.message)
+    try {
+      const exists = await bookingExists(supabase, uid)
+      return exists
+        ? Response.json({ ok: true })
+        : Response.json({ error: "not found" }, { status: 404 })
+    } catch (error) {
+      console.error("[bookings-recap] probe failed", messageOf(error))
       return Response.json({ error: "unavailable" }, { status: 500 })
     }
-    return data
-      ? Response.json({ ok: true })
-      : Response.json({ error: "not found" }, { status: 404 })
   }
 
   const locale = search.get("locale") ?? "da"
-  const { data: booking, error } = await supabase
-    .from("bookings")
-    .select("status, start_time, end_time, selected_addons")
-    .eq("cal_uid", uid)
-    .maybeSingle()
-
-  if (error) {
-    console.error("[bookings-recap] read failed", error.message)
+  let booking
+  try {
+    booking = await getBookingRecap(supabase, uid)
+  } catch (error) {
+    console.error("[bookings-recap] read failed", messageOf(error))
     return Response.json({ error: "unavailable" }, { status: 500 })
   }
   // 404 while the webhook hasn't landed yet — callers poll briefly.
@@ -107,3 +104,6 @@ export async function GET(
 }
 
 export type { BookingRecap }
+
+const messageOf = (error: unknown) =>
+  error instanceof Error ? error.message : error

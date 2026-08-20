@@ -14,7 +14,7 @@ import {
   MAX_NOTES_LENGTH,
   sanitizeContactText,
 } from "@/shared/contact-validation"
-import { sanitizeSelectedAddonIds } from "@/lib/services/booking-totals"
+import { sanitizeSelectedAddonIds } from "@/shared/booking-totals"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import { singleParam } from "@/shared/search-params"
 import { CALCOM_USERNAME } from "@/config/calcom"

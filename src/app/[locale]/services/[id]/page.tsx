@@ -17,7 +17,7 @@ import {
 } from "@/lib/services/get-public-service"
 import { getServiceSections } from "@/lib/service-sections"
 import { getServiceReviews } from "@/lib/reviews"
-import { pickLocalized } from "@/lib/i18n/localized"
+import { pickLocalized } from "@/shared/localized"
 
 export const dynamic = "force-dynamic"
 

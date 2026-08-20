@@ -6,13 +6,13 @@ import { BookingsContent } from "@/components/sections/bookings-content"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm } from "@/components/ui/typography"
 import {
-  BOOKING_DISPLAY_COLUMNS,
-  toDisplayBookings,
+  getMyBookings,
+} from "@/modules/booking"
+import {
   type DisplayBooking,
-} from "@/lib/booking-display"
+} from "@/shared/booking-view"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import type { ClientMediaItem } from "@/lib/media"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 /**
  * MyBookings — the signed-in client's appointment list. The proxy guarantees
@@ -33,27 +33,9 @@ export async function MyBookings({
     getCurrentUser(),
   ])
 
-  // Personal surface: always the signed-in user's OWN bookings, even for the
-  // owner (whose owner-reads-all RLS would otherwise surface the whole studio
-  // here — that view belongs to /admin). Explicit filter, not RLS-scoped.
-  const supabase = await createAuthedSupabaseServerClient()
-  const { data: rows, error } = await supabase
-    .from("bookings")
-    .select(BOOKING_DISPLAY_COLUMNS)
-    .eq("client_id", user?.id ?? "")
-    .order("start_time", { ascending: false })
-
-  if (error) {
-    console.error("[my-bookings] read failed", error.message)
-  }
-
-  // Shared resolver: one catalog query for all names, degrading to the generic
-  // session label on failure rather than failing the page.
-  const display = await toDisplayBookings(
-    supabase,
-    rows ?? [],
+  const { bookings: display, loadError } = await getMyBookings(
+    user?.id ?? "",
     locale,
-    "my-bookings",
   )
 
   // The client's own photos, grouped by booking (passed from the page).
@@ -89,7 +71,7 @@ export async function MyBookings({
         </TintedCard>
       ) : null}
       <BookingsContent
-        failed={Boolean(error)}
+        failed={loadError}
         upcoming={upcoming}
         past={past}
         now={now}

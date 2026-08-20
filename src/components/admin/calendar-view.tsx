@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/shared/cn"
 import { addMonths, buildMonthGrid, monthStartDayNumber } from "@/lib/admin/calendar"
-import type { BookingState } from "@/lib/booking-display"
+import type { BookingState } from "@/shared/booking-policy"
 import {
   dayNumberToMs,
   formatStudioMonthYear,

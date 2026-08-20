@@ -13,7 +13,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { cancelBooking } from "@/lib/actions/cancel-booking"
+import {
+  cancelBooking,
+} from "@/modules/booking/actions"
 
 /**
  * CancelBookingButton — in-app cancel behind a confirm dialog. The server

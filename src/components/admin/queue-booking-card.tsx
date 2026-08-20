@@ -10,9 +10,11 @@ import { AddBookingMediaButton } from "@/components/admin/add-booking-media-butt
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
-import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
+import {
+  NO_SHOW_ALERT_THRESHOLD,
+} from "@/shared/booking-policy"
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import type { DisplayBooking } from "@/lib/booking-display"
+import type { DisplayBooking } from "@/shared/booking-view"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"

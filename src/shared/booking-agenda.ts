@@ -1,4 +1,4 @@
-import type { DisplayBooking } from "@/lib/booking-display"
+import type { DisplayBooking } from "@/shared/booking-view"
 import {
   dayNumberToMs,
   studioDayNumber,

@@ -6,8 +6,9 @@ import { ChevronLeft } from "lucide-react"
 import { H2 } from "@/components/ui/typography"
 import { AdminRescheduleEmbed } from "@/components/admin/admin-reschedule-embed"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import { CAL_UID_PATTERN } from "@/lib/booking-sync"
+import { CAL_UID_PATTERN } from "@/modules/booking"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { getBookingLifecycle } from "@/db/bookings"
 
 export const metadata: Metadata = { title: "Reschedule" }
 
@@ -28,11 +29,7 @@ export default async function AdminReschedulePage({
   if (!CAL_UID_PATTERN.test(uid)) notFound()
 
   const service = createSupabaseServiceRoleClient()
-  const { data: booking } = await service
-    .from("bookings")
-    .select("cal_uid, status")
-    .eq("cal_uid", uid)
-    .maybeSingle()
+  const booking = await getBookingLifecycle(service, uid)
   if (!booking || !isActiveBookingStatus(booking.status)) notFound()
 
   return (

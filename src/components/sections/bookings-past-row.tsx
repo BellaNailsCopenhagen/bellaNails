@@ -6,7 +6,12 @@ import { BookingPhotos } from "@/components/sections/booking-photos"
 import { PriceTag } from "@/components/ui/price-tag"
 import { BodySm, Caption } from "@/components/ui/typography"
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import { metaOf, type DisplayBooking } from "@/lib/booking-display"
+import {
+  type DisplayBooking,
+} from "@/shared/booking-view"
+import {
+  metaOf,
+} from "@/shared/booking-policy"
 import type { ClientMediaItem } from "@/lib/media"
 import { formatStudioDate } from "@/shared/studio-time"
 import { routes } from "@/config/routes"

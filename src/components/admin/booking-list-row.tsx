@@ -7,7 +7,12 @@ import { cn } from "@/shared/cn"
 import { Badge } from "@/components/ui/badge"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import { canMarkNoShow, type DisplayBooking } from "@/lib/booking-display"
+import {
+  type DisplayBooking,
+} from "@/shared/booking-view"
+import {
+  canMarkNoShow,
+} from "@/shared/booking-policy"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
