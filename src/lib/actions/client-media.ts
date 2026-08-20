@@ -3,8 +3,8 @@
 import { getCurrentUser } from "@/lib/identity/server"
 import { notifyOwner } from "@/lib/admin/notify"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
-import { objectUrl } from "@/lib/storage/scaleway"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { objectUrl } from "@/platform/storage/scaleway"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * The CLIENT's own photo uploads, from their /bookings. They add photos to one

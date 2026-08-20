@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Shared helpers for the `service_addons(addons(...))` many-to-many embed, so

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { saveTermsVersion } from "@/lib/actions/manage-terms"
 import type { TermsKind, TermsRecord } from "@/lib/terms"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
+import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"

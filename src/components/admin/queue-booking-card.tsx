@@ -11,10 +11,10 @@ import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
-import { formatStudioTime } from "@/lib/studio-time"
+import { formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 // Keep only digits and a leading "+", so odd separators (dots, spaces, 00…)

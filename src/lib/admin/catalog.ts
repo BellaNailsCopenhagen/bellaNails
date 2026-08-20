@@ -1,12 +1,12 @@
 import "server-only"
 
-import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
+import { ACTIVE_BOOKING_STATUSES } from "@/shared/booking-status"
 import {
   fetchIncompatiblePairs,
   flattenServiceAddons,
 } from "@/lib/services/service-addons"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * The whole catalog for admin management — categories, services, and add-ons

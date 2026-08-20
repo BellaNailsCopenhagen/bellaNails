@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * TintedCard — the muted panel shell used for every appointment-shaped card:

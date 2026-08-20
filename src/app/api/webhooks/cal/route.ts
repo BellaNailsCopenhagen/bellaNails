@@ -1,9 +1,9 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
+import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
 import { persistCalBooking } from "@/lib/booking-sync"
-import { calBookingPhone } from "@/lib/cal-phone"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { calBookingPhone } from "@/platform/cal/parse-phone"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * Cal.com webhook (EU instance) — the push half of the booking mirror (see

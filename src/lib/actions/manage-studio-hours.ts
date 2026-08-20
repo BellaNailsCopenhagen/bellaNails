@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
-import type { Json } from "@/lib/supabase/types"
+import type { Json } from "@/platform/supabase/types"
 import type { TimeRange, WeeklyHours } from "@/lib/studio-hours"
 
 export type HoursResult = { ok: true } | { ok: false; error: string }

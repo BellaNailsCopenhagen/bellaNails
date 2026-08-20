@@ -3,15 +3,15 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { ensureUser } from "@/lib/identity/ensure-user"
-import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
-import { calBookingPhone } from "@/lib/cal-phone"
+import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
+import { calBookingPhone } from "@/platform/cal/parse-phone"
 import {
   MAX_NAME_LENGTH,
   MAX_NOTES_LENGTH,
   sanitizeContactText,
-} from "@/lib/contact-validation"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+} from "@/shared/contact-validation"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 import { recordTermsAcceptance } from "@/lib/terms-acceptance"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 

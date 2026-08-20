@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 import { Eyebrow, H1, HeadingAccent, HeadingLine } from "./typography"
 

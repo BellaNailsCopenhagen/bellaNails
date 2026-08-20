@@ -4,8 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { isOwnerUser } from "@/lib/admin/owner"
 import { getAuthUser } from "@/lib/identity/server"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * The owner gate for admin server actions: returns a service-role client when

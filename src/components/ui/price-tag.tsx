@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * Prices are stored in cents (per the schema). PriceTag renders them in the

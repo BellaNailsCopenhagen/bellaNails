@@ -7,8 +7,8 @@ import type { BookingRecap } from "@/app/api/bookings/[uid]/route"
 import { AppointmentSummary } from "@/components/sections/appointment-summary"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, Eyebrow } from "@/components/ui/typography"
-import { BOOKING_STATUS } from "@/lib/booking-status"
-import { formatStudioDate, formatStudioTime } from "@/lib/studio-time"
+import { BOOKING_STATUS } from "@/shared/booking-status"
+import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
 /** The confirm step already waits for the webhook row before navigating
     here, so the first fetch normally succeeds instantly. The retry tail is

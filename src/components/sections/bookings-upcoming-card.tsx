@@ -12,7 +12,7 @@ import {
   formatCountdown,
   formatStudioDate,
   formatStudioTime,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 import { rescheduleBookingPath } from "@/config/routes"
 import { STUDIO_EMAIL } from "@/config/studio"
 

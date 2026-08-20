@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 
-import { createSupabaseSessionBrowserClient } from "@/lib/supabase/ssr-browser"
+import { createSupabaseSessionBrowserClient } from "@/platform/supabase/ssr-browser"
 
 /**
  * The signed-in user on the client (Supabase session), reactive to sign-in /

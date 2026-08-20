@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/sections/appointment-summary"
 import type { BookingLineItem } from "@/lib/services/booking-totals"

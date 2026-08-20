@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
-import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
+import { ACTIVE_BOOKING_STATUSES } from "@/shared/booking-status"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
 import { getBookingMediaThumbs } from "@/lib/admin/booking-media"

@@ -11,7 +11,7 @@ import {
 } from "@/lib/admin/notifications"
 import { fetchClientContacts } from "@/lib/identity/client-contacts"
 import { contactDisplayName } from "@/lib/identity/contact"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
+import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 export const metadata: Metadata = { title: "Notifications" }

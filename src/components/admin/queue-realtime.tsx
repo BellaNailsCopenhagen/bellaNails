@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-import { useSupabaseBrowserClient } from "@/lib/supabase/client"
+import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 
 // Coalesce a burst of webhook writes (create → sync → mirror) into one refresh.
 const REFRESH_DEBOUNCE_MS = 400

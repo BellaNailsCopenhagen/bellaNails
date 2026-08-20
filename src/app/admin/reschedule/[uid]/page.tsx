@@ -5,9 +5,9 @@ import { ChevronLeft } from "lucide-react"
 
 import { H2 } from "@/components/ui/typography"
 import { AdminRescheduleEmbed } from "@/components/admin/admin-reschedule-embed"
-import { isActiveBookingStatus } from "@/lib/booking-status"
+import { isActiveBookingStatus } from "@/shared/booking-status"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 export const metadata: Metadata = { title: "Reschedule" }
 

@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { addMonths, buildMonthGrid, monthStartDayNumber } from "@/lib/admin/calendar"
 import type { BookingState } from "@/lib/booking-display"
 import {
@@ -10,7 +10,7 @@ import {
   formatStudioMonthYear,
   studioDayNumber,
   studioYearMonth,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const

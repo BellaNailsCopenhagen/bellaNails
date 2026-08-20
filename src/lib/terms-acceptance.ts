@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 import { getCurrentTerms, isTermsKind, type TermsKind } from "@/lib/terms"
 
 type Client = SupabaseClient<Database>

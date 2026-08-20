@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { CalendarDays, ChevronDown, List } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
@@ -24,7 +24,7 @@ import {
   formatStudioWeekday,
   studioDayNumber,
   studioWeekStartDayNumber,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 type QueueView = "agenda" | "calendar"

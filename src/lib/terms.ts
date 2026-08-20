@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 import { pickLocalized } from "@/lib/i18n/localized"
 
 /**

@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Eyebrow } from "@/components/ui/typography"
 
 /** A labelled, count-badged section that collapses — shared by the client

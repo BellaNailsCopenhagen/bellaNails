@@ -1,6 +1,6 @@
 "use client"
 
-import { createSupabaseSessionBrowserClient } from "@/lib/supabase/ssr-browser"
+import { createSupabaseSessionBrowserClient } from "@/platform/supabase/ssr-browser"
 
 // OAuth returns here; /api/* bypasses the proxy's locale routing.
 const CALLBACK_PATH = "/api/auth/callback"

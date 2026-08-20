@@ -10,7 +10,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow } from "@/components/ui/typography"
 import { ClientWorkGrid } from "@/components/sections/client-work-grid"
 import { FloatingBookButton } from "@/components/sections/floating-book-button"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
   getPublicService,
   getServicePublicGallery,

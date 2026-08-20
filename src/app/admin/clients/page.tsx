@@ -11,7 +11,7 @@ import {
 } from "@/components/admin/client-directory"
 import { fetchClientContacts } from "@/lib/identity/client-contacts"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 export const metadata: Metadata = { title: "Clients" }
 

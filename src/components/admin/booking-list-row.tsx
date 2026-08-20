@@ -3,13 +3,13 @@
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Badge } from "@/components/ui/badge"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import { canMarkNoShow, type DisplayBooking } from "@/lib/booking-display"
 import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
-import { formatStudioDayMonthYear, formatStudioTime } from "@/lib/studio-time"
+import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 type StatusBadge = {

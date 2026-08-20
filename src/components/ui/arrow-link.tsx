@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Link } from "@/i18n/navigation"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * Directional arrow that nudges along its axis on hover. Place inside an

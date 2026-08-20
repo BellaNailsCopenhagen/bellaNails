@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { ChevronDown } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Eyebrow } from "@/components/ui/typography"
 import {
   ALL_BOOKING_STATES,
@@ -27,7 +27,7 @@ import {
   formatStudioMonthYear,
   studioDayNumber,
   studioWeekStartDayNumber,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 type ViewMode = "all" | "weekly" | "monthly"

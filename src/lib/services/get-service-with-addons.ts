@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
 import type { MenuService } from "@/lib/services/get-service-menu"
 import {
   fetchIncompatiblePairs,
   flattenServiceAddons,
 } from "@/lib/services/service-addons"
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 type ServiceAddon = Pick<
   Database["public"]["Tables"]["addons"]["Row"],

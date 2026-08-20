@@ -5,10 +5,10 @@ import { BookingStatusBadge } from "@/components/sections/booking-status-badge"
 import { BookingPhotos } from "@/components/sections/booking-photos"
 import { PriceTag } from "@/components/ui/price-tag"
 import { BodySm, Caption } from "@/components/ui/typography"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import { metaOf, type DisplayBooking } from "@/lib/booking-display"
 import type { ClientMediaItem } from "@/lib/media"
-import { formatStudioDate } from "@/lib/studio-time"
+import { formatStudioDate } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 
 /**

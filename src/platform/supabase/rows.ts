@@ -1,10 +1,3 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 /**
  * PostgREST types a foreign-key embed as the related row OR an array of them,
  * depending on the relationship shape. Normalize to the single row (or null).

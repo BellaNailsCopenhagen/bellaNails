@@ -6,8 +6,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { requireOwner } from "@/lib/admin/require-owner"
 import { getCurrentUser } from "@/lib/identity/server"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 
 export type AnonymizeResult = { ok: true } | { ok: false; error: string }
 

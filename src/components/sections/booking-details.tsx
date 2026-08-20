@@ -17,7 +17,7 @@ import {
   MAX_NOTES_LENGTH,
   PHONE_HTML_PATTERN,
   type BookingContact,
-} from "@/lib/contact-validation"
+} from "@/shared/contact-validation"
 import { localizeSelection } from "@/lib/services/localize-selection"
 import { routes } from "@/config/routes"
 

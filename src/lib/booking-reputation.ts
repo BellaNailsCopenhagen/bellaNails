@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Client no-show reputation from the `no_show_at` column, keyed by

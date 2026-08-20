@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
 import type { SpecialDay, StudioHours, TimeRange, WeeklyHours } from "@/lib/studio-hours"
 
 type Client = SupabaseClient<Database>

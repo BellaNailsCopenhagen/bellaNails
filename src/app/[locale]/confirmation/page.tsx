@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { Confirmation } from "@/components/sections/confirmation"
 import { routing } from "@/i18n/routing"
-import { singleParam } from "@/lib/search-params"
+import { singleParam } from "@/shared/search-params"
 
 export async function generateMetadata({
   params,

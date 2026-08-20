@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { Star } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 export function FavouritesToggle({
   active,

@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache"
 
 import { getCurrentUser } from "@/lib/identity/server"
 import { canManageBooking } from "@/lib/booking-display"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
 import { cancelBookingAtCal } from "@/lib/booking-cancel"
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 type CancelResult =
   | { ok: true }

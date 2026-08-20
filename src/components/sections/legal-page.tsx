@@ -6,7 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { routing } from "@/i18n/routing"
 import { TermsView } from "@/components/sections/terms-view"
 import { getCurrentTerms, localizeTerms, type TermsKind } from "@/lib/terms"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
+import { formatStudioDayMonthYear } from "@/shared/studio-time"
 
 // The terms `kind` doubles as the `legal` message subkey (service.* / data.*),
 // so /terms and /privacy share this one implementation.

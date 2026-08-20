@@ -1,7 +1,7 @@
 import "server-only"
 
-import { deleteObject } from "@/lib/storage/scaleway"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { deleteObject } from "@/platform/storage/scaleway"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * True erasure (GDPR Art. 17): when an image is deleted, destroy the private

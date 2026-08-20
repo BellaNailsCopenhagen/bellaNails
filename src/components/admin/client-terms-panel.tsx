@@ -1,6 +1,6 @@
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import type { TermsAcceptance } from "@/lib/terms-acceptance"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
+import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 const fmt = (iso: string) =>

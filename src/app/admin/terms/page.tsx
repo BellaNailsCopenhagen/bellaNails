@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { TermsEditor } from "@/components/admin/terms-editor"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
 import { getTermsVersions, TERMS_KINDS } from "@/lib/terms"
 
 export const metadata: Metadata = { title: "Terms" }

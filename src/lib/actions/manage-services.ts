@@ -7,13 +7,13 @@ import { requireOwner } from "@/lib/admin/require-owner"
 import {
   createCalEventType,
   patchCalEventType,
-} from "@/lib/cal-event-types"
+} from "@/platform/cal/event-types"
 import { computeSlotOptions } from "@/lib/services/booking-totals"
 import {
   fetchIncompatiblePairs,
   flattenServiceAddons,
 } from "@/lib/services/service-addons"
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Owner-managed catalog CRUD. Every action re-verifies the owner role (the UI

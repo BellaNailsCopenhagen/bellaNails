@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * Container — the horizontal layout shell. Caps content width and applies the

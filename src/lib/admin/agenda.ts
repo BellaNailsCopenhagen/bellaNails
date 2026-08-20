@@ -4,7 +4,7 @@ import {
   studioDayNumber,
   studioWeekStartDayNumber,
   studioYearMonth,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 
 /**
  * Groups upcoming bookings into the admin queue's forward agenda: by week

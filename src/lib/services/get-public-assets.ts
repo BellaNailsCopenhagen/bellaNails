@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
-import type { AssetSurface } from "@/lib/asset-surfaces"
-import { firstOf } from "@/lib/utils"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
+import type { AssetSurface } from "@/shared/asset-surfaces"
+import { firstOf } from "@/platform/supabase/rows"
 
 export type PublicAsset = { id: string; url: string; mediaType: string }
 

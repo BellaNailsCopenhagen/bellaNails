@@ -8,7 +8,7 @@ import {
   type PriceEntity,
   type PriceHistoryEntry,
 } from "@/lib/actions/manage-services"
-import { formatStudioDayMonthYear } from "@/lib/studio-time"
+import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 /**

@@ -2,7 +2,7 @@ import { metaOf } from "@/lib/booking-display"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
 import { localizeSelection } from "@/lib/services/localize-selection"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import type { BookingLineItem } from "@/lib/services/booking-totals"
 
 /**

@@ -1,6 +1,6 @@
 import "server-only"
 
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * Owner notification reads (service-role, owner-gated route). Degrade-safe: a

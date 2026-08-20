@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Caption } from "@/components/ui/typography"
 
 /**

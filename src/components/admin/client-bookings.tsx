@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { CalendarDays, List } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { CollapsibleSection } from "@/components/admin/collapsible-section"
 import {
@@ -26,7 +26,7 @@ import {
   dayNumberToMs,
   formatStudioDayMonthYear,
   studioDayNumber,
-} from "@/lib/studio-time"
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 import type { ClientContact } from "@/lib/identity/contact"
 

@@ -1,7 +1,7 @@
 import "server-only"
 
-import { calBookingPhone } from "@/lib/cal-phone"
-import { toE164 } from "@/lib/contact-validation"
+import { calBookingPhone } from "@/platform/cal/parse-phone"
+import { toE164 } from "@/shared/contact-validation"
 import { CALCOM_API_BASE } from "@/config/calcom"
 
 /**

@@ -1,4 +1,4 @@
-import { IMAGE_MAX_DIM } from "@/lib/media-policy"
+import { IMAGE_MAX_DIM } from "@/shared/media-policy"
 
 /**
  * Client-side prep for a client upload: downscale (longest side ≤ maxDim) and

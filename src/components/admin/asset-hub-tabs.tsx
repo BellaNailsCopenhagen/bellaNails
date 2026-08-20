@@ -19,7 +19,7 @@ import {
   toSimpleState,
   type SimpleState,
 } from "@/lib/asset-state"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 export type HubFilter = "all" | SimpleState
 

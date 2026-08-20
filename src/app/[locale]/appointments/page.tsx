@@ -24,8 +24,8 @@ import {
 } from "@/lib/media"
 import { getCurrentUser } from "@/lib/identity/server"
 import { getTermsAcceptances, type TermsAcceptance } from "@/lib/terms-acceptance"
-import { singleParam } from "@/lib/search-params"
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
+import { singleParam } from "@/shared/search-params"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 export async function generateMetadata({
   params,

@@ -26,7 +26,7 @@ import {
   toSimpleState,
 } from "@/lib/asset-state"
 import type { MediaPurpose } from "@/lib/media"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 const PURPOSES: { key: MediaPurpose; label: string; request: string }[] = [
   { key: "site", label: "Website", request: "Request website" },

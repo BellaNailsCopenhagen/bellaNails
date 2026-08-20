@@ -5,7 +5,7 @@ import { ImagePlus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { uploadMedia } from "@/lib/client/upload-media"
+import { uploadMedia } from "@/shared/upload-media"
 import { publishStudioImage } from "@/lib/actions/manage-service-sections"
 import type { PickableAsset } from "@/lib/service-sections"
 

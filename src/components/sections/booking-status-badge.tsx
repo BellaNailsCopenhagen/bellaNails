@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl"
 
 import { Badge } from "@/components/ui/badge"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 
 /** DB statuses plus the derived "completed" (past + not cancelled — shown,
     never stored). New statuses must be added here to render at all. */

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { presignedGet, storageConfigured } from "@/lib/storage/scaleway"
-import type { Database } from "@/lib/supabase/types"
+import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Client media + consent reads, shared by admin (service-role) and the client's

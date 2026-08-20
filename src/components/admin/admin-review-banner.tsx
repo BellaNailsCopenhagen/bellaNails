@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell } from "lucide-react"
 
-import { useSupabaseBrowserClient } from "@/lib/supabase/client"
+import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 
 /**
  * Global "to review" bar in the admin shell — shows unread notifications on

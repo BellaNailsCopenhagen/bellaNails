@@ -1,8 +1,8 @@
 import "server-only"
 
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import { syncBookingFromCal } from "@/lib/booking-sync"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { CALCOM_API_BASE } from "@/config/calcom"
 
 /**

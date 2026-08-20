@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/identity/server"
-import { extForType, uploadPolicy } from "@/lib/media-policy"
-import { presignedUpload } from "@/lib/storage/scaleway"
+import { extForType, uploadPolicy } from "@/shared/media-policy"
+import { presignedUpload } from "@/platform/storage/scaleway"
 
 /**
  * Presigned-POST params for a browser upload into `private/`. Requires a signed-in

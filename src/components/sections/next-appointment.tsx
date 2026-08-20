@@ -19,14 +19,14 @@ import {
   toDisplayBooking,
   type DisplayBooking,
 } from "@/lib/booking-display"
-import { ACTIVE_BOOKING_STATUSES } from "@/lib/booking-status"
+import { ACTIVE_BOOKING_STATUSES } from "@/shared/booking-status"
 import {
   formatCountdown,
   formatStudioDate,
   formatStudioTime,
-} from "@/lib/studio-time"
-import { useSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { Database } from "@/lib/supabase/types"
+} from "@/shared/studio-time"
+import { useSupabaseBrowserClient } from "@/platform/supabase/client"
+import type { Database } from "@/platform/supabase/types"
 import { routes } from "@/config/routes"
 
 /** Soonest active booking that hasn't ENDED yet (in-progress still counts),

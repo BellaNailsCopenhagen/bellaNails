@@ -13,10 +13,10 @@ import {
   MAX_NAME_LENGTH,
   MAX_NOTES_LENGTH,
   sanitizeContactText,
-} from "@/lib/contact-validation"
+} from "@/shared/contact-validation"
 import { sanitizeSelectedAddonIds } from "@/lib/services/booking-totals"
 import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
-import { singleParam } from "@/lib/search-params"
+import { singleParam } from "@/shared/search-params"
 import { CALCOM_USERNAME } from "@/config/calcom"
 
 export async function generateMetadata({

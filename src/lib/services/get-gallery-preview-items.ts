@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { Database } from "@/lib/supabase/types"
-import { firstOf } from "@/lib/utils"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
+import { firstOf } from "@/platform/supabase/rows"
 
 type GalleryPreviewItem = {
   id: string

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
 import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
-import { deleteObject } from "@/lib/storage/scaleway"
+import { deleteObject } from "@/platform/storage/scaleway"
 
 export type AssetHubResult = { ok: true } | { ok: false; error: string }
 

@@ -6,9 +6,9 @@ import { getCurrentUser } from "@/lib/identity/server"
 import { notifyOwner } from "@/lib/admin/notify"
 import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
 import { recordTermsAcceptance } from "@/lib/terms-acceptance"
-import { deleteObject, publishToPublic } from "@/lib/storage/scaleway"
+import { deleteObject, publishToPublic } from "@/platform/storage/scaleway"
 import type { MediaPurpose } from "@/lib/media"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * The CLIENT's own consent decisions (from /bookings). Every action re-verifies

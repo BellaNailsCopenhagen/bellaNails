@@ -4,8 +4,8 @@ import { cache } from "react"
 import type { User } from "@supabase/supabase-js"
 
 import { isOwnerUser } from "@/lib/admin/owner"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import { createSupabaseSessionServerClient } from "@/lib/supabase/ssr-server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { createSupabaseSessionServerClient } from "@/platform/supabase/ssr-server"
 import type { AppUser } from "./types"
 
 /**

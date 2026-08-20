@@ -4,7 +4,7 @@ import { useLocale } from "next-intl"
 
 import { Link, usePathname } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 // Two-letter labels for the square toggle (comp shows EN / DK for Danish).
 const SHORT: Record<string, string> = { en: "EN", da: "DK" }

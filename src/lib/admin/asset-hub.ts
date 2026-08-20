@@ -1,7 +1,7 @@
 import "server-only"
 
-import { presignedGet, storageConfigured } from "@/lib/storage/scaleway"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
  * The asset hub's read model — every client image across all clients, enriched

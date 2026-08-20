@@ -7,8 +7,8 @@ import { toast } from "sonner"
 
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { addClientMedia } from "@/lib/actions/manage-media"
-import { uploadMedia } from "@/lib/client/upload-media"
-import { kindForType } from "@/lib/media-policy"
+import { uploadMedia } from "@/shared/upload-media"
+import { kindForType } from "@/shared/media-policy"
 
 /**
  * Owner "Add media" on a booking card — uploads an image or demo video attached

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Count of consent requests awaiting the client's decision (image-publish +

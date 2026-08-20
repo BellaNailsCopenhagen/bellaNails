@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * Skeleton — pulsing placeholder block for route-level loading screens.

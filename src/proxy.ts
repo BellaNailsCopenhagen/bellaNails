@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import { routing } from "./i18n/routing"
 import { isOwnerUser } from "./lib/admin/owner"
-import { assertEnv } from "./lib/supabase/env"
+import { assertEnv } from "./platform/supabase/env"
 
 // next-intl handles locale negotiation + prefixing (/ → /da).
 const handleI18nRouting = createMiddleware(routing)

@@ -7,11 +7,11 @@ import {
   type BookingRow,
   type DisplayBooking,
 } from "@/lib/booking-display"
-import { fetchCalPhones } from "@/lib/booking-phones"
+import { fetchCalPhones } from "@/platform/cal/booking-phones"
 import { fetchNoShowCounts } from "@/lib/booking-reputation"
 import { fetchClientContacts } from "@/lib/identity/client-contacts"
 import type { ClientContact } from "@/lib/identity/contact"
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 /** Time span the rows cover, for the Cal phone lookup; null if none/unparsable. */

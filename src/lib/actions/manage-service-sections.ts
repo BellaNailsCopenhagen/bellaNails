@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
-import { publishToPublic } from "@/lib/storage/scaleway"
+import { publishToPublic } from "@/platform/storage/scaleway"
 
 export type SectionResult = { ok: true } | { ok: false; error: string }
 

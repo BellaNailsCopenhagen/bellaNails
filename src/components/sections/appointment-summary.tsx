@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 import { Link } from "@/i18n/navigation"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"

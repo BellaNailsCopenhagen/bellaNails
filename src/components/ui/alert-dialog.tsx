@@ -2,7 +2,7 @@
 
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * AlertDialog — modal confirmation for destructive actions (Base UI

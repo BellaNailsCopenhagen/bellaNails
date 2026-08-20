@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { BOOKING_STATUS, isActiveBookingStatus } from "@/lib/booking-status"
+import { BOOKING_STATUS, isActiveBookingStatus } from "@/shared/booking-status"
 import { pickLocalized } from "@/lib/i18n/localized"
 import { flattenServiceAddons } from "@/lib/services/service-addons"
-import type { Database } from "@/lib/supabase/types"
+import type { Database } from "@/platform/supabase/types"
 
 /**
  * Shared booking→display resolution for every surface that renders a

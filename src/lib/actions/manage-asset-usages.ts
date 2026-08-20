@@ -8,7 +8,7 @@ import {
   isAssetSurface,
   isPublicSurface,
   surfacesForPurpose,
-} from "@/lib/asset-surfaces"
+} from "@/shared/asset-surfaces"
 
 export type AssetUsageResult = { ok: true } | { ok: false; error: string }
 

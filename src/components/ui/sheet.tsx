@@ -2,7 +2,7 @@
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /**
  * Sheet — a bottom-anchored modal (Base UI dialog: focus-trapped,

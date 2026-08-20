@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 /** A card's quiet footer text-actions, neutral vs. destructive by colour —
     kept visually below the primary Reschedule `Button`. */

@@ -1,7 +1,7 @@
 "use server"
 
 import { getCurrentUser } from "@/lib/identity/server"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 export type ProfileResult = { ok: true } | { ok: false; error: string }
 

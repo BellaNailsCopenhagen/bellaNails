@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Settings } from "lucide-react"
 
 import { TabBar, tabTriggerClassName } from "@/components/ui/tab-bar"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 export type BookingsTabKey = "bookings" | "gallery" | "requests" | "settings"
 

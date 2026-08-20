@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
 import type { MediaPurpose } from "@/lib/media"
-import { objectUrl } from "@/lib/storage/scaleway"
+import { objectUrl } from "@/platform/storage/scaleway"
 
 /**
  * Owner-side media + consent management: record a client's image, archive it,

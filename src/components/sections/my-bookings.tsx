@@ -10,9 +10,9 @@ import {
   toDisplayBookings,
   type DisplayBooking,
 } from "@/lib/booking-display"
-import { isActiveBookingStatus } from "@/lib/booking-status"
+import { isActiveBookingStatus } from "@/shared/booking-status"
 import type { ClientMediaItem } from "@/lib/media"
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 /**
  * MyBookings — the signed-in client's appointment list. The proxy guarantees

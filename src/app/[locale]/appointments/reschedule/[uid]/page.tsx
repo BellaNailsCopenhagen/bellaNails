@@ -7,7 +7,7 @@ import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { RescheduleBooking } from "@/components/sections/reschedule-booking"
 import { canManageBooking } from "@/lib/booking-display"
-import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
+import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 import { routes } from "@/config/routes"
 
 export async function generateMetadata({

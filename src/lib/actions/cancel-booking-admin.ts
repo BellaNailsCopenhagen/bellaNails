@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { requireOwner } from "@/lib/admin/require-owner"
-import { BOOKING_STATUS } from "@/lib/booking-status"
+import { BOOKING_STATUS } from "@/shared/booking-status"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
 import { cancelBookingAtCal } from "@/lib/booking-cancel"
 

@@ -5,7 +5,7 @@ import { RescheduleEmbed } from "@/components/sections/reschedule-embed"
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
-import { formatStudioDate, formatStudioTime } from "@/lib/studio-time"
+import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 
 /** RescheduleBooking — back link, editorial header, the current slot, and

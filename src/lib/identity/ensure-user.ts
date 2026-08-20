@@ -1,6 +1,6 @@
 import "server-only"
 
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 type EnsureUserInput = {
   email: string

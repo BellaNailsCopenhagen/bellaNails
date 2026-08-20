@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { createSupabaseSessionServerClient } from "@/lib/supabase/ssr-server"
+import { createSupabaseSessionServerClient } from "@/platform/supabase/ssr-server"
 
 /**
  * OAuth (PKCE) callback for Supabase Auth. Google redirects here with a `code`;

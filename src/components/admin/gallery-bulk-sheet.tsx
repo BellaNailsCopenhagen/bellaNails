@@ -10,7 +10,7 @@ import { FavouritesToggle } from "@/components/admin/favourites-toggle"
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
 import { bulkAddToGallery } from "@/lib/actions/manage-assets"
 import type { HubAsset } from "@/lib/admin/asset-hub"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/cn"
 
 type Candidate = { asset: HubAsset; ready: boolean }
 
