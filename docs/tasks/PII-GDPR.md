@@ -50,16 +50,39 @@ There is **no delete-a-client path today** (deferred at
   object** remain on the site after "erasure."
 - **Scaleway objects** — DB cascade never touches object storage.
 
-**Build `eraseClient(clientId)`** (owner-only, service-role), in order:
-1. for each of the client's `client_media`, call the existing
-   **`purgeMediaArtifacts`** (`src/lib/media-erasure.ts` — already deletes
-   gallery_items + asset rows + Scaleway public/private objects),
-2. `delete` the `clients` row (cascades the DB children above),
-3. `supabase.auth.admin.deleteUser(auth_user_id)`,
-4. (until Cal is retired) delete the **Cal** booking.
-Confirm-guarded entry on `admin/clients/[id]`. Anonymize instead of hard-delete
-where a financial record must survive (see retention). *(No `client_communications`
-table exists yet — the comms log is a future build; nothing to cascade there.)*
+**Decision (owner, 2026-08-20): erasure = ANONYMIZE, not hard-delete.** Keep the
+`clients.id` and everything linked to it (bookings, consents, communications), so
+financial records survive (**Bogføringsloven ~5 yr**) and we retain proof of what
+was agreed — and **scrub the identifiers** so the row no longer identifies a
+person (a random-uuid id alone isn't personal data). ⚠️ So the cascading
+`DELETE FROM clients` above is the WRONG approach — it would wipe the bookings we
+must keep. Do this instead:
+
+**Build `anonymizeClient(clientId)`** (owner-only, service-role):
+1. **Remove the login** — `supabase.auth.admin.deleteUser(auth_user_id)` (drops
+   the auth email + Google name/avatar); `clients.auth_user_id` → null.
+2. **Scrub `clients`** — `name=null`, `phone=null`, `email` → a non-identifying
+   placeholder like `redacted-<id>@anonymized.invalid` (email is UNIQUE + NOT
+   NULL, so replace rather than null); set `anonymized_at=now()`.
+3. **Keep** bookings, booking_requests, media/data consents, terms_acceptances,
+   owner_notifications, communications — all stay linked to the retained id (the
+   audit-trail / proof the owner wants).
+4. Delete **only** the client's **private, unused** uploads (`client_media` with
+   no `published_asset_id`, not used by the artist) + their **Scaleway private
+   originals** (via `purgeMediaArtifacts`, `src/lib/media-erasure.ts`).
+
+**Artist images are NOT client-deletable.** Photos the artist has published or is
+using (gallery / showcase / social) stay — they're the studio's business assets.
+The client's lever for those is the existing **consent-withdrawal → takedown**
+flow (deliberate, per-image), NOT account deletion. Account-deletion ≠
+consent-withdrawal.
+
+**GDPR honesty:** anonymization is a valid alternative to deletion *once the data
+truly can't identify the person* — financial retention has a legal basis
+(Bogføringsloven); nail-only photos aren't personal data (keep freely). The one
+edge: a **face-identifying** published photo under a genuine erasure request must
+still come down via the takedown flow — so keep that path working and document
+the basis (consent for images, legal obligation for financials).
 
 ### 3. Retention / auto-delete — the "auto-delete after X days"
 Define a policy, then automate it (reuse the email system's **Supabase
@@ -68,15 +91,15 @@ Define a policy, then automate it (reuse the email system's **Supabase
 must be deleted/anonymized. Resolve by **separating financial records (keep,
 minimized) from contact PII (delete/anonymize on schedule)**:
 
-- **Guest clients with no bookings** → delete after X days (abandoned/spam
-  sign-ups; no financial record to keep).
+- **Guest rows with NO bookings** (abandoned/spam sign-ups, no financial record)
+  → the only case that may be **hard-deleted** after X days.
 - **Unconfirmed `auth.users`** → delete after X days (Supabase doesn't auto-prune).
-- **Contact PII** → anonymize N years after the client's **last appointment**
-  (strip name/email/phone; keep an anonymized booking row for stats + the
-  minimized financial record for Bogføringsloven).
+- **Any client WITH bookings** → **`anonymizeClient`** N years after their last
+  appointment — never hard-deleted (keeps the anonymized booking + financial
+  record for Bogføringsloven).
 - **Expired consent tokens / stale rows** → delete.
-- Make thresholds config; **log every deletion** (audit trail); anonymize (not
-  hard-delete) anything tied to a retained financial record.
+- Make thresholds config; **log every run** (audit trail). Reuse the
+  `anonymizeClient` routine so scheduled + manual erasure behave identically.
 
 ### 4. Processor DPAs + EU regions — verify now
 PII is in our DB, so this matters immediately:
