@@ -21,6 +21,7 @@ pnpm dev             # http://localhost:3000
 
 ## Key docs
 
+- [docs/architecture.md](docs/architecture.md) — the four layers, the rules lint enforces, and where new code goes
 - [docs/SETUP.md](docs/SETUP.md) — setup / restart runbook
 - [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) — vendor details, schema, auth gotchas
 - [docs/PLAN.md](docs/PLAN.md) — build roadmap
