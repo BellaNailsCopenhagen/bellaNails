@@ -4,7 +4,7 @@ import {
   ConfirmActionButton,
   withdrawPill,
 } from "@/components/sections/confirm-action-button"
-import { anonymizeClient } from "@/lib/actions/anonymize-client"
+import { anonymizeClient } from "@/modules/clients/anonymize"
 
 /**
  * Owner control to fulfil a client's erasure request: anonymize (scrub PII,

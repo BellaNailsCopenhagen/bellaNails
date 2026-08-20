@@ -10,8 +10,8 @@ import { BodySm } from "@/components/ui/typography"
 import { DeleteOwnMediaButton } from "@/components/sections/delete-own-media-button"
 import { downscaleImage } from "@/shared/image-downscale"
 import { uploadMedia } from "@/shared/upload-media"
-import { addOwnBookingMedia } from "@/lib/actions/client-media"
-import type { ClientMediaItem } from "@/lib/media"
+import { addOwnBookingMedia } from "@/modules/media/client-media-actions"
+import type { ClientMediaItem } from "@/modules/media/client-gallery"
 
 /**
  * The client adds a photo to their own past booking, from /bookings. One image

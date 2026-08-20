@@ -6,11 +6,11 @@ import { ArrowUpRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/shared/cn"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
+import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   addAssetUsage,
   removeAssetUsage,
-} from "@/lib/actions/manage-asset-usages"
+} from "@/modules/media/usage-actions"
 import { SURFACE_LABELS, surfacesForPurpose } from "@/shared/asset-surfaces"
 
 export type AssetUsage = { id: string; surface: string; url: string | null }

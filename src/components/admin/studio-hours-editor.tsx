@@ -7,19 +7,19 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
+import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   addSpecialDay,
   deleteSpecialDay,
   saveWeeklyHours,
-} from "@/lib/actions/manage-studio-hours"
+} from "@/modules/studio/actions"
 import {
   WEEKDAYS,
   type StudioHours,
   type TimeRange,
   type WeekdayKey,
   type WeeklyHours,
-} from "@/lib/studio-hours"
+} from "@/shared/studio-hours"
 
 const timeInput =
   "border-b border-border bg-transparent px-1 py-1 font-functional text-sm text-foreground outline-none focus-visible:border-foreground [color-scheme:light] dark:[color-scheme:dark]"

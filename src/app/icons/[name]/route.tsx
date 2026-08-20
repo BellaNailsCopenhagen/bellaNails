@@ -1,4 +1,4 @@
-import { renderAppIcon } from "@/lib/admin/app-icon"
+import { renderAppIcon } from "@/components/admin/app-icon"
 
 /**
  * Generated PWA icons — the manifest references /icons/icon-192.png,

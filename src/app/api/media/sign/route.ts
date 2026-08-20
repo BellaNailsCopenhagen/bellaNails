@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/lib/identity/server"
+import { getCurrentUser } from "@/modules/identity/server"
 import { extForType, uploadPolicy } from "@/shared/media-policy"
 import { presignedUpload } from "@/platform/storage/scaleway"
 

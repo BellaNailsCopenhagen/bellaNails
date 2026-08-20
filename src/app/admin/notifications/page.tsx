@@ -8,9 +8,9 @@ import { MarkAllReadButton } from "@/components/admin/mark-all-read-button"
 import {
   getNotifications,
   type OwnerNotification,
-} from "@/lib/admin/notifications"
-import { fetchClientContacts } from "@/lib/identity/client-contacts"
-import { contactDisplayName } from "@/lib/identity/contact"
+} from "@/modules/notifications/reads"
+import { fetchClientContacts } from "@/modules/clients/contacts"
+import { contactDisplayName } from "@/shared/contact"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

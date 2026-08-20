@@ -2,7 +2,7 @@ import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { ProfileForm } from "@/components/account/profile-form"
 import { DeleteAccountButton } from "@/components/account/delete-account-button"
 import { SignOutButton } from "@/components/auth/sign-out-button"
-import type { TermsAcceptance } from "@/lib/terms-acceptance"
+import type { TermsAcceptance } from "@/modules/terms/acceptance"
 
 const TERMS_LABEL: Record<string, string> = {
   service: "Booking terms",

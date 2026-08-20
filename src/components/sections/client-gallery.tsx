@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Eyebrow } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ClientGalleryTile } from "@/components/sections/client-gallery-tile"
-import type { ClientMediaItem } from "@/lib/media"
+import type { ClientMediaItem } from "@/modules/media/client-gallery"
 
 /**
  * The client's Gallery tab, split into "Your photos" and "From Bella Nails"

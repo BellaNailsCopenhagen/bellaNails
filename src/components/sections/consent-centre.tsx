@@ -9,18 +9,18 @@ import {
   ConfirmActionButton,
   withdrawPill,
 } from "@/components/sections/confirm-action-button"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
+import { useActionRunner } from "@/hooks/use-action-runner"
 import type {
   ClientMediaItem,
   DataConsentItem,
   MediaPurpose,
-} from "@/lib/media"
+} from "@/modules/media/client-gallery"
 import {
   acceptAllPendingConsents,
   decideDataConsent,
   decideMediaConsent,
   withdrawDataConsent,
-} from "@/lib/actions/client-consent"
+} from "@/modules/media/consent-actions"
 
 type MediaRequest = { media: ClientMediaItem; purpose: MediaPurpose }
 

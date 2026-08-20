@@ -14,7 +14,7 @@ import {
 } from "@/db/addons"
 import { recordPricePoint } from "@/db/price-history"
 import { linkAddonToService, unlinkAddonFromService } from "@/db/service-addons"
-import { requireOwner } from "@/lib/admin/require-owner"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 import {
   resyncServicesLinkingAddon,

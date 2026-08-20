@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Star } from "lucide-react"
 
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
+import { useActionRunner } from "@/hooks/use-action-runner"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,20 +12,20 @@ import { AssetUsageManager } from "@/components/admin/asset-usage-manager"
 import {
   requestBothPublish,
   requestMediaPublish,
-} from "@/lib/actions/manage-media"
+} from "@/modules/media/owner-media-actions"
 import {
   confirmTakedown,
   setMediaDismissed,
   setMediaFavorite,
-} from "@/lib/actions/manage-assets"
-import type { HubAsset } from "@/lib/admin/asset-hub"
+} from "@/modules/media/asset-actions"
+import type { HubAsset } from "@/modules/media/asset-hub"
 import {
   SIMPLE_LABEL,
   SIMPLE_TOOLTIP,
   STATE_ICON,
   toSimpleState,
-} from "@/lib/asset-state"
-import type { MediaPurpose } from "@/lib/media"
+} from "@/components/admin/asset-state"
+import type { MediaPurpose } from "@/modules/media/client-gallery"
 import { cn } from "@/shared/cn"
 
 const PURPOSES: { key: MediaPurpose; label: string; request: string }[] = [

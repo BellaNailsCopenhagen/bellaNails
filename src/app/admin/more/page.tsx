@@ -15,7 +15,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { H2 } from "@/components/ui/typography"
-import { getUnreadNotificationCount } from "@/lib/admin/notifications"
+import { getUnreadNotificationCount } from "@/modules/notifications/reads"
 import { CALCOM_ORIGIN } from "@/config/calcom"
 
 export const metadata: Metadata = { title: "More" }

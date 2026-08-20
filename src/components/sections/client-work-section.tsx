@@ -1,7 +1,7 @@
 import { Container, Section } from "@/components/layout/container"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { ClientWorkGrid } from "@/components/sections/client-work-grid"
-import type { PublicAsset } from "@/lib/services/get-public-assets"
+import type { PublicAsset } from "@/modules/media/public-assets"
 
 /**
  * The editorial chrome around a client-work masonry — heading plus grid — shared

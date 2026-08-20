@@ -1,6 +1,6 @@
 "use client"
 
-import { signOut } from "@/lib/identity/auth-actions"
+import { signOut } from "@/modules/identity/actions"
 
 /** Sign out + return home. Locale-free, so it's safe in the admin shell (which
     has no next-intl provider) as well as the client surfaces. */

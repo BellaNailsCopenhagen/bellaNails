@@ -10,7 +10,7 @@ import {
   updateService as updateServiceRow,
 } from "@/db/services"
 import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
-import { requireOwner } from "@/lib/admin/require-owner"
+import { requireOwner } from "@/modules/identity/require-owner"
 import { createCalEventType, patchCalEventType } from "@/platform/cal/event-types"
 import { computeSlotOptions } from "@/shared/booking-totals"
 

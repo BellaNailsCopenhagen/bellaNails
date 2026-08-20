@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
-import { getCurrentUser } from "@/lib/identity/server"
+import { getCurrentUser } from "@/modules/identity/server"
 import { SignedOut } from "@/components/auth/auth-gate"
 import { getPathname, Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/sections/appointment-summary"

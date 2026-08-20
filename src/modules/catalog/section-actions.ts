@@ -13,7 +13,7 @@ import {
   updateSection as updateSectionRow,
   type SectionFields,
 } from "@/db/service-sections"
-import { requireOwner } from "@/lib/admin/require-owner"
+import { requireOwner } from "@/modules/identity/require-owner"
 import { publishToPublic } from "@/platform/storage/scaleway"
 
 export type SectionResult = { ok: true } | { ok: false; error: string }

@@ -9,7 +9,7 @@ import {
   sendEmailOtp,
   signInWithGoogle,
   verifyEmailOtp,
-} from "@/lib/identity/auth-actions"
+} from "@/modules/identity/actions"
 
 /**
  * Supabase Auth login: Google OAuth + passwordless email OTP. `next` is where to

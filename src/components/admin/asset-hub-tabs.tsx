@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
 import { GalleryBulkSheet } from "@/components/admin/gallery-bulk-sheet"
 import { FavouritesToggle } from "@/components/admin/favourites-toggle"
-import type { HubAsset } from "@/lib/admin/asset-hub"
+import type { HubAsset } from "@/modules/media/asset-hub"
 import {
   SIMPLE_LABEL,
   SIMPLE_ORDER,
@@ -18,7 +18,7 @@ import {
   STATE_ICON,
   toSimpleState,
   type SimpleState,
-} from "@/lib/asset-state"
+} from "@/components/admin/asset-state"
 import { cn } from "@/shared/cn"
 
 export type HubFilter = "all" | SimpleState

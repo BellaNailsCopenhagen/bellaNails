@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useCurrentUser } from "@/lib/identity/use-current-user"
+import { useCurrentUser } from "@/hooks/use-current-user"
 import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 

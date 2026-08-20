@@ -4,8 +4,8 @@ import {
   ConfirmActionButton,
   withdrawPill,
 } from "@/components/sections/confirm-action-button"
-import { deleteMyAccount } from "@/lib/actions/anonymize-client"
-import { signOut } from "@/lib/identity/auth-actions"
+import { deleteMyAccount } from "@/modules/clients/anonymize"
+import { signOut } from "@/modules/identity/actions"
 
 /** Self-serve account deletion (anonymize): personal data + your uploads go,
     bookings stay as records, studio-published photos need per-item withdrawal. */

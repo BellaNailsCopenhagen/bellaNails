@@ -4,10 +4,10 @@ import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { AssetHubTabs, type HubFilter } from "@/components/admin/asset-hub-tabs"
-import { getHubAssets } from "@/lib/admin/asset-hub"
-import { SIMPLE_ORDER, toSimpleState } from "@/lib/asset-state"
-import { fetchClientContacts } from "@/lib/identity/client-contacts"
-import { contactDisplayName } from "@/lib/identity/contact"
+import { getHubAssets } from "@/modules/media/asset-hub"
+import { SIMPLE_ORDER, toSimpleState } from "@/components/admin/asset-state"
+import { fetchClientContacts } from "@/modules/clients/contacts"
+import { contactDisplayName } from "@/shared/contact"
 
 export const metadata: Metadata = { title: "Assets" }
 export const dynamic = "force-dynamic"

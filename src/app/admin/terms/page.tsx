@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { TermsEditor } from "@/components/admin/terms-editor"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
-import { getTermsVersions, TERMS_KINDS } from "@/lib/terms"
+import { getTermsVersions, TERMS_KINDS } from "@/modules/terms/terms"
 
 export const metadata: Metadata = { title: "Terms" }
 export const dynamic = "force-dynamic"

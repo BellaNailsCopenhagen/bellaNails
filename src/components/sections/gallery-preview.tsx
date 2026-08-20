@@ -7,7 +7,7 @@ import { Container, Section } from "@/components/layout/container"
 import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
-import { getPublicAssetsBySurface } from "@/lib/services/get-public-assets"
+import { getPublicAssetsBySurface } from "@/modules/media/public-assets"
 import { routes } from "@/config/routes"
 
 const CLIENT_WORK_LIMIT = 48

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
 import type { DisplayBooking } from "@/shared/booking-view"
-import type { ClientMediaItem } from "@/lib/media"
+import type { ClientMediaItem } from "@/modules/media/client-gallery"
 import { routes } from "@/config/routes"
 
 type PhotosByBooking = Record<string, ClientMediaItem[]>

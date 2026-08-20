@@ -4,8 +4,8 @@ import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
-import { updateMyProfile } from "@/lib/actions/update-profile"
+import { useActionRunner } from "@/hooks/use-action-runner"
+import { updateMyProfile } from "@/modules/clients/actions"
 
 const labelText =
   "block font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground"

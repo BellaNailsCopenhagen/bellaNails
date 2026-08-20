@@ -22,7 +22,7 @@ import {
   bookingState,
   type BookingState,
 } from "@/shared/booking-policy"
-import type { ClientContact } from "@/lib/identity/contact"
+import type { ClientContact } from "@/shared/contact"
 import {
   dayNumberToMs,
   formatStudioDayMonthYear,

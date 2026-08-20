@@ -20,7 +20,7 @@ import {
   canMarkNoShow,
 } from "@/shared/booking-policy"
 import type { AgendaWeek } from "@/shared/booking-agenda"
-import type { ClientContact } from "@/lib/identity/contact"
+import type { ClientContact } from "@/shared/contact"
 import {
   dayNumberToMs,
   formatStudioDayMonth,

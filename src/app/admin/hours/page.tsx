@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { StudioHoursEditor } from "@/components/admin/studio-hours-editor"
-import { getStudioHours } from "@/lib/services/get-studio-hours"
+import { getStudioHours } from "@/modules/studio/hours"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 
 export const metadata: Metadata = { title: "Hours" }

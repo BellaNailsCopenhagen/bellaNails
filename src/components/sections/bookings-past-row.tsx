@@ -12,7 +12,7 @@ import {
 import {
   metaOf,
 } from "@/shared/booking-policy"
-import type { ClientMediaItem } from "@/lib/media"
+import type { ClientMediaItem } from "@/modules/media/client-gallery"
 import { formatStudioDate } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 

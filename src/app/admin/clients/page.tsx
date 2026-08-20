@@ -9,8 +9,8 @@ import {
   ClientDirectory,
   type ClientRosterEntry,
 } from "@/components/admin/client-directory"
-import { fetchClientContacts } from "@/lib/identity/client-contacts"
-import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
+import { fetchClientContacts } from "@/modules/clients/contacts"
+import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 import { listBookingSpans } from "@/db/bookings"
 

@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
 import { persistCalBooking } from "@/modules/booking"
 import { calBookingPhone } from "@/platform/cal/parse-phone"
+import { cancelBookingByCalId } from "@/db/bookings"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
@@ -136,14 +137,12 @@ async function markCancelled(payload: CalWebhookEvent["payload"]) {
   }
 
   const supabase = createSupabaseServiceRoleClient()
-  const { data, error } = await supabase
-    .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_booking_id", payload.bookingId)
-    .select("cal_booking_id")
+  const cancelled = await cancelBookingByCalId(supabase, payload.bookingId)
 
-  if (error) return persistFailed("bookings cancel failed", error.message)
-  if (!data?.length) {
+  if (!cancelled.ok) {
+    return persistFailed("bookings cancel failed", cancelled.message)
+  }
+  if (cancelled.matched === 0) {
     // No row yet — deliveries can arrive out of order. 5xx so Cal retries
     // once the booking upsert has landed.
     return persistFailed(

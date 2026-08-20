@@ -1,5 +1,5 @@
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import type { TermsAcceptance } from "@/lib/terms-acceptance"
+import type { TermsAcceptance } from "@/modules/terms/acceptance"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

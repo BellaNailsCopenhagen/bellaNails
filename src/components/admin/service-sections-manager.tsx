@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
+import { useActionRunner } from "@/hooks/use-action-runner"
 import { ImagePicker, type PickedImage } from "@/components/admin/image-picker"
 import {
   addSection,

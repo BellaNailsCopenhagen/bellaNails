@@ -1,6 +1,6 @@
 import "server-only"
 
-import { ensureUser } from "@/lib/identity/ensure-user"
+import { ensureUser } from "@/modules/identity/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/shared/booking-status"
 import { calBookingPhone } from "@/platform/cal/parse-phone"
 import {
@@ -17,7 +17,7 @@ import {
   getBookingSyncState,
   upsertBooking,
 } from "@/db/bookings"
-import { recordTermsAcceptance } from "@/lib/terms-acceptance"
+import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { CALCOM_API_BASE, CALCOM_BOOKING_ORIGIN } from "@/config/calcom"
 
 /**

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell } from "lucide-react"
 
+import { countUnread } from "@/db/owner-notifications"
 import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 
 /**
@@ -21,11 +22,8 @@ export function AdminReviewBanner() {
   useEffect(() => {
     let active = true
     const load = async () => {
-      const { count, error } = await supabase
-        .from("owner_notifications")
-        .select("id", { count: "exact", head: true })
-        .is("read_at", null)
-      if (active) setUnread(error ? 0 : (count ?? 0))
+      const count = await countUnread(supabase)
+      if (active) setUnread(count)
     }
     load()
     const id = setInterval(load, 60_000)

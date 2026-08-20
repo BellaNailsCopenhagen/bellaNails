@@ -15,7 +15,7 @@ import {
 } from "@/shared/booking-policy"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import type { DisplayBooking } from "@/shared/booking-view"
-import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
+import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

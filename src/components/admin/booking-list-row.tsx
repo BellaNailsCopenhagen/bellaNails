@@ -13,7 +13,7 @@ import {
 import {
   canMarkNoShow,
 } from "@/shared/booking-policy"
-import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
+import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

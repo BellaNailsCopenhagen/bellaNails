@@ -1,4 +1,4 @@
-import type { PublicAsset } from "@/lib/services/get-public-assets"
+import type { PublicAsset } from "@/modules/media/public-assets"
 
 /**
  * A masonry of consented client photos at their real aspect ratio (client work

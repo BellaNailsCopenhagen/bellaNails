@@ -30,7 +30,7 @@ import {
   studioDayNumber,
 } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
-import type { ClientContact } from "@/lib/identity/contact"
+import type { ClientContact } from "@/shared/contact"
 
 type HistoryView = "list" | "calendar"
 

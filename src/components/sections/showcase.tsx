@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import { ClientWorkSection } from "@/components/sections/client-work-section"
-import { getPublicAssetsBySurface } from "@/lib/services/get-public-assets"
+import { getPublicAssetsBySurface } from "@/modules/media/public-assets"
 
 const SHOWCASE_LIMIT = 8
 

@@ -7,7 +7,7 @@ import {
   listBookingsFrom,
   type BookingRow,
 } from "@/db/bookings"
-import type { ClientContact } from "@/lib/identity/contact"
+import type { ClientContact } from "@/shared/contact"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 
 import { groupIntoAgenda, type AgendaWeek } from "@/shared/booking-agenda"

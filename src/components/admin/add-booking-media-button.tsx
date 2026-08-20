@@ -6,7 +6,7 @@ import { ImagePlus } from "lucide-react"
 import { toast } from "sonner"
 
 import { cardActionNeutral } from "@/components/admin/card-action"
-import { addClientMedia } from "@/lib/actions/manage-media"
+import { addClientMedia } from "@/modules/media/owner-media-actions"
 import { uploadMedia } from "@/shared/upload-media"
 import { kindForType } from "@/shared/media-policy"
 

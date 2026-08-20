@@ -1,4 +1,4 @@
-import { renderAppIcon } from "@/lib/admin/app-icon"
+import { renderAppIcon } from "@/components/admin/app-icon"
 
 // iOS home-screen icon, scoped to /admin (not the app root) so only the admin
 // advertises it — the client site keeps its own identity. Apple rounds the

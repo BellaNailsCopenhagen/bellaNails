@@ -14,9 +14,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { DeleteOwnMediaButton } from "@/components/sections/delete-own-media-button"
 import { withdrawPill } from "@/components/sections/confirm-action-button"
-import { withdrawMediaConsent } from "@/lib/actions/client-consent"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
-import type { ClientMediaItem, MediaPurpose } from "@/lib/media"
+import { withdrawMediaConsent } from "@/modules/media/consent-actions"
+import { useActionRunner } from "@/hooks/use-action-runner"
+import type { ClientMediaItem, MediaPurpose } from "@/modules/media/client-gallery"
 
 // Quiet inline text link — the "hidden but available" entry to removal.
 const inlineLink =

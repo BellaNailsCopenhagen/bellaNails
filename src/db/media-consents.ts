@@ -122,6 +122,21 @@ export async function findConsent(
   return data ?? null
 }
 
+/** The published copy one consent points at, if any. */
+export async function getPublishedAssetId(
+  db: Db,
+  consentId: string,
+): Promise<{ found: boolean; assetId: string | null }> {
+  const { data } = await db
+    .from("media_consents")
+    .select("published_asset_id")
+    .eq("id", consentId)
+    .maybeSingle()
+  return data
+    ? { found: true, assetId: data.published_asset_id }
+    : { found: false, assetId: null }
+}
+
 /** Auto-placement flag — may be absent in an environment without the column,
     so callers treat a throw as "feature not available". */
 export async function getConsentAutoPlace(
@@ -147,6 +162,50 @@ export async function getPurposeForPublishedAsset(
     .eq("published_asset_id", assetId)
     .maybeSingle()
   return data?.purpose ?? null
+}
+
+/** The consent row plus its published copy — the withdrawal path needs both. */
+export async function findConsentWithAsset(
+  db: Db,
+  mediaId: string,
+  purpose: ConsentPurpose,
+): Promise<Pick<Row<"media_consents">, "id" | "client_id" | "published_asset_id"> | null> {
+  const { data } = await db
+    .from("media_consents")
+    .select("id, client_id, published_asset_id")
+    .eq("client_media_id", mediaId)
+    .eq("purpose", purpose)
+    .maybeSingle()
+  return data ?? null
+}
+
+/** Every request this client has not answered yet. */
+export async function listRequestedFor(
+  db: Db,
+  clientId: string,
+): Promise<Pick<Row<"media_consents">, "id" | "client_media_id">[]> {
+  const { data } = await db
+    .from("media_consents")
+    .select("id, client_media_id")
+    .eq("client_id", clientId)
+    .eq("status", "requested")
+  return data ?? []
+}
+
+/** Does any consent on this image show artist use — published, granted, or
+    flagged for auto-placement? Conservative by design: erasure keeps such an
+    image, and the client's lever for it is consent withdrawal, not deletion. */
+export async function hasArtistUseSignal(
+  db: Db,
+  mediaId: string,
+): Promise<boolean> {
+  const { data } = await db
+    .from("media_consents")
+    .select("id")
+    .eq("client_media_id", mediaId)
+    .or("published_asset_id.not.is.null,status.eq.granted,auto_place.eq.true")
+    .limit(1)
+  return Boolean(data?.length)
 }
 
 /** Published copies of one image — what erasure must destroy. */
@@ -194,6 +253,31 @@ export type ConsentUpsert = Insert<"media_consents">
 export async function upsertConsent(
   db: Db,
   values: ConsentUpsert,
+): Promise<{ ok: boolean }> {
+  const { error } = await db
+    .from("media_consents")
+    .upsert(values, { onConflict: "client_media_id,purpose" })
+  return { ok: !error }
+}
+
+/** How many of an image's consents produced a published copy — gates the
+    "shared image deleted" owner notification. */
+export async function countPublishedConsents(
+  db: Db,
+  mediaId: string,
+): Promise<number> {
+  const { count } = await db
+    .from("media_consents")
+    .select("id", { count: "exact", head: true })
+    .eq("client_media_id", mediaId)
+    .not("published_asset_id", "is", null)
+  return count ?? 0
+}
+
+/** Upsert several consent rows at once (request site + social together). */
+export async function upsertConsents(
+  db: Db,
+  values: ConsentUpsert[],
 ): Promise<{ ok: boolean }> {
   const { error } = await db
     .from("media_consents")

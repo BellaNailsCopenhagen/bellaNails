@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { markAllNotificationsRead } from "@/lib/actions/manage-notifications"
+import { markAllNotificationsRead } from "@/modules/notifications/actions"
 
 export function MarkAllReadButton() {
   const router = useRouter()

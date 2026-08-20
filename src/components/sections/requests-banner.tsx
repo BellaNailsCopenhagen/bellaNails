@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl"
 import { Bell, ChevronRight } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
-import { pendingRequestCount } from "@/lib/consent-requests"
-import { useCurrentUser } from "@/lib/identity/use-current-user"
+import { pendingRequestCount } from "@/modules/media/consent-requests"
+import { useCurrentUser } from "@/hooks/use-current-user"
 import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 import { routes } from "@/config/routes"
 

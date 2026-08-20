@@ -7,8 +7,8 @@ import {
   getBookingLifecycle,
   setBookingNoShowAt,
 } from "@/db/bookings"
-import { requireOwner } from "@/lib/admin/require-owner"
-import { getCurrentUser } from "@/lib/identity/server"
+import { requireOwner } from "@/modules/identity/require-owner"
+import { getCurrentUser } from "@/modules/identity/server"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { canManageBooking, canMarkNoShow } from "@/shared/booking-policy"

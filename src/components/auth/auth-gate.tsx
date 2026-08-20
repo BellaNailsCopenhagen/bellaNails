@@ -1,6 +1,6 @@
 "use client"
 
-import { useCurrentUser } from "@/lib/identity/use-current-user"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 /**
  * Client-side conditional rendering by auth state (Supabase session). Render

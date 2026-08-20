@@ -12,7 +12,7 @@ import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { ServiceSectionsManager } from "@/components/admin/service-sections-manager"
 import { ReviewsManager } from "@/components/admin/reviews-manager"
 import { getAllAddons, getServiceDetail } from "@/modules/catalog"
-import { requireOwner } from "@/lib/admin/require-owner"
+import { requireOwner } from "@/modules/identity/require-owner"
 import { getConsentedAssets, getServiceSections } from "@/modules/catalog"
 import { getServiceReviews } from "@/modules/catalog"
 

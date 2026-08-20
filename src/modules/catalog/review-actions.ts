@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { deleteReview as deleteReviewRow, insertReview } from "@/db/reviews"
-import { requireOwner } from "@/lib/admin/require-owner"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 export type ReviewResult = { ok: true } | { ok: false; error: string }
 

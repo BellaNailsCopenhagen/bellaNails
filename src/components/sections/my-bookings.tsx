@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
-import { getCurrentUser } from "@/lib/identity/server"
+import { getCurrentUser } from "@/modules/identity/server"
 
 import { BookingsContent } from "@/components/sections/bookings-content"
 import { TintedCard } from "@/components/ui/tinted-card"
@@ -12,7 +12,7 @@ import {
   type DisplayBooking,
 } from "@/shared/booking-view"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import type { ClientMediaItem } from "@/lib/media"
+import type { ClientMediaItem } from "@/modules/media/client-gallery"
 
 /**
  * MyBookings — the signed-in client's appointment list. The proxy guarantees

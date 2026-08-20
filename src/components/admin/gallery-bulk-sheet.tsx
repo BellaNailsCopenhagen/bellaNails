@@ -7,9 +7,9 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
 import { FavouritesToggle } from "@/components/admin/favourites-toggle"
-import { useActionRunner } from "@/lib/hooks/use-action-runner"
-import { bulkAddToGallery } from "@/lib/actions/manage-assets"
-import type { HubAsset } from "@/lib/admin/asset-hub"
+import { useActionRunner } from "@/hooks/use-action-runner"
+import { bulkAddToGallery } from "@/modules/media/asset-actions"
+import type { HubAsset } from "@/modules/media/asset-hub"
 import { cn } from "@/shared/cn"
 
 type Candidate = { asset: HubAsset; ready: boolean }
