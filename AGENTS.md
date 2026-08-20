@@ -21,7 +21,7 @@ Never skip a layer, never reverse. Full reference: [`docs/architecture.md`](docs
 
 Domains: `booking` `catalog` `clients` `identity` `media` `notifications` `studio` `terms`
 
-## Rules lint will enforce (all six are errors)
+## Rules lint will enforce (all are errors)
 
 1. **`.from("table")` only inside `src/db/**`.** Need a query? Add a function to `src/db/<table>.ts` and call it.
 2. `db/` may not import `modules/`, `components/`, `app/`, `hooks/`.
@@ -29,6 +29,10 @@ Domains: `booking` `catalog` `clients` `identity` `media` `notifications` `studi
 4. `shared/` may not import `modules/`, `platform/`, `components/`, `app/`.
 5. `page.tsx` / `layout.tsx` / `error.tsx` / `loading.tsx` / `not-found.tsx` may not import `db/` or `platform/`. A route renders; it does not fetch.
 6. `components/` may not import a module barrel **by value** (`import type` is fine — it is erased).
+7. `hooks/`, `components/`, `app/**/_components/` may not build a server Supabase client.
+8. `hooks/` may not import a module barrel by value (a hook is always browser code).
+
+In `app/**/_components/` the barrel ban is enforced by the **build**, not lint — that folder mixes server and client components and a path glob can't see `"use client"`. A Turbopack error naming `next/headers` means a client component reached a server-only module.
 
 ## The client/server trap
 

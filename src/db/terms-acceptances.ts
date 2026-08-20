@@ -31,6 +31,12 @@ export type AcceptanceInsert = {
   reference_id: string
 }
 
+/**
+ * Record an acceptance, leaving an existing one alone. `ignoreDuplicates` is
+ * the whole point: the first acceptance's version and timestamp are the legal
+ * truth, so a redelivered webhook — or a re-run after new terms are published —
+ * must not rewrite the row to a version the client never saw.
+ */
 export async function recordAcceptance(
   db: Db,
   values: AcceptanceInsert,
@@ -38,6 +44,6 @@ export async function recordAcceptance(
 ): Promise<{ ok: boolean }> {
   const { error } = await db
     .from("terms_acceptances")
-    .upsert(values, { onConflict })
+    .upsert(values, { onConflict, ignoreDuplicates: true })
   return { ok: !error }
 }

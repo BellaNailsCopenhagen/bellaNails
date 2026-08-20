@@ -165,6 +165,12 @@ const eslintConfig = defineConfig([
     // Rule 6: shared components are leaf UI. They may call server actions and
     // read through db/ (isomorphic, RLS-scoped), but a module barrel is
     // transitively server-only and would poison the browser bundle.
+    //
+    // Scope note: co-located `_components/` are deliberately NOT here, because
+    // that folder holds server components too and a path glob cannot see the
+    // "use client" directive. For those, the Turbopack build is the enforcer —
+    // a stronger check than lint, since it walks the whole import graph and
+    // prints the offending trace. See docs/architecture.md.
     files: ["src/components/**"],
     rules: {
       // The typescript-eslint variant, for `allowTypeImports`: a type import is
@@ -182,6 +188,62 @@ const eslintConfig = defineConfig([
             message:
               "A module barrel is transitively server-only (cookies, service-role, storage). Import the module's *-actions file for mutations, @/shared/* for rules and view models, or @/db/* for a reactive read. (A type-only import is fine — it is erased.)",
           })),
+        },
+      ],
+    },
+  },
+
+  // ---------------------------------------------------- browser-only code
+  {
+    // Rule 7: hooks and every component — co-located or shared — run in or
+    // alongside the browser. None of them may build a server Supabase client;
+    // the browser client is the only one that belongs on this side.
+    files: ["src/hooks/**", "src/components/**", "src/app/**/_components/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@/platform/supabase/server",
+              message:
+                "Components and hooks never build a server client. A page passes data down, or a client component reads through @/db/* with the browser client (RLS scopes it).",
+            },
+            {
+              name: "@/platform/supabase/ssr-server",
+              message:
+                "Components and hooks never build a server client. Use @/platform/supabase/client in the browser.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Rule 8: a hook is always browser code, so the module-barrel ban is
+    // unconditional here (unlike _components/, which mixes both).
+    files: ["src/hooks/**"],
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            ...MODULE_BARRELS.map((name) => ({
+              name,
+              allowTypeImports: true,
+              message:
+                "A hook runs in the browser; a module barrel is transitively server-only. Import the module's *-actions file, @/shared/*, or @/db/*.",
+            })),
+            {
+              name: "@/platform/supabase/server",
+              message: "Hooks use @/platform/supabase/client.",
+            },
+            {
+              name: "@/platform/supabase/ssr-server",
+              message: "Hooks use @/platform/supabase/client.",
+            },
+          ],
         },
       ],
     },

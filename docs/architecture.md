@@ -7,7 +7,7 @@ app → modules → db → platform
 ```
 
 never skipping a layer and never reversing. Every rule below follows from that
-one sentence, and all six are enforced in `eslint.config.mjs`.
+one sentence, and all eight are enforced in `eslint.config.mjs`.
 
 ## The layers
 
@@ -76,7 +76,7 @@ with the browser client, and Postgres decides what each may see.
 
 ## Enforced rules
 
-`eslint.config.mjs`, all six verified to fire on a real violation:
+`eslint.config.mjs`, each verified to fire on a real violation:
 
 1. `.from("table")` outside `src/db/**` is an error.
 2. `db/` may not import `modules/`, `components/`, `app/`, `hooks/`.
@@ -85,10 +85,22 @@ with the browser client, and Postgres decides what each may see.
 5. `page.tsx` / `layout.tsx` / `error.tsx` / `loading.tsx` / `not-found.tsx` may
    not import `db/` or `platform/`.
 6. `components/` may not import a module barrel *by value* (type-only is fine).
+7. `hooks/`, `components/` and `app/**/_components/` may not build a server
+   Supabase client.
+8. `hooks/` may not import a module barrel by value (a hook is always browser
+   code, so the ban is unconditional there).
 
 Route handlers (`route.ts`) are exempt from rule 5 — an API endpoint is a
 backend surface, and two of them (`api/auth/callback`, `api/media/sign`) are
 pure platform plumbing.
+
+**Where lint stops and the build takes over.** A co-located `_components/`
+folder holds server *and* client components, and a path glob cannot see the
+`"use client"` directive — so the barrel ban (rule 6) is not applied there. For
+those files the Turbopack build is the enforcer, and it is the stronger check:
+it walks the whole import graph and prints the offending trace. If you see
+*"You're importing a module that depends on next/headers"*, a client component
+reached a server-only module — follow the table above.
 
 ## Conventions
 

@@ -107,17 +107,23 @@ export type BookableServiceRow = Pick<
   | "cal_event_slug"
 > & { service_addons: { addons: AddonRow | null }[] }
 
-/** An active service plus its add-ons — the booking customizer's source. */
+/** An active service plus its add-ons — the booking customizer's source.
+    Throws on a read error rather than returning null: "not found" makes /book
+    drop the caller's selection and fall back to the picker, which would hide a
+    transient outage as a silent reset. */
 export async function getBookableService(
   db: Db,
   serviceId: string,
 ): Promise<BookableServiceRow | null> {
-  const { data } = await db
+  const { data, error } = await db
     .from("services")
     .select(BOOKABLE_COLUMNS)
     .eq("id", serviceId)
     .is("archived_at", null)
     .maybeSingle()
+  if (error) {
+    throw new Error(`Failed to load service add-ons: ${error.message}`)
+  }
   return (data as unknown as BookableServiceRow | null) ?? null
 }
 

@@ -221,20 +221,6 @@ export async function listPublishedConsentsFor(
   return data ?? []
 }
 
-/** How many of an image's consents are live (granted) — gates the
-    "shared image deleted" owner notification. */
-export async function countGrantedConsents(
-  db: Db,
-  mediaId: string,
-): Promise<number> {
-  const { count } = await db
-    .from("media_consents")
-    .select("id", { count: "exact", head: true })
-    .eq("client_media_id", mediaId)
-    .eq("status", "granted")
-  return count ?? 0
-}
-
 /** Requests awaiting this client's decision. */
 export async function countRequestedFor(
   db: Db,
