@@ -10,7 +10,7 @@ import type { BookingLineItem } from "@/lib/services/booking-totals"
  * usually signed out and RLS would hide the row. The uid is an unguessable
  * capability token (the same one Cal's own public booking page uses), so
  * possession of the link authorizes this read. The response is sanitized:
- * schedule + localized catalog line items only — no clerk_user_id, no
+ * schedule + localized catalog line items only — no client_id, no
  * reschedule/cancel URLs, no PII (we store none).
  *
  * `?probe=1` answers "does the row exist yet?" with a single cheap query and

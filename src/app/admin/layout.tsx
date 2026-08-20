@@ -1,12 +1,9 @@
 import type { Metadata, Viewport } from "next"
-import { ClerkProvider } from "@clerk/nextjs"
-import { enUS } from "@clerk/localizations"
 
 import { Toaster } from "@/components/ui/sonner"
 import { AdminShell } from "@/components/admin/admin-shell"
 import { BRAND } from "@/config/brand"
 import { fontVariables } from "@/config/fonts"
-import { clerkAppearance } from "@/config/clerk"
 import "../globals.css"
 
 // The admin is an internal owner tool — keep it out of every index. The
@@ -49,15 +46,8 @@ export default function AdminLayout({
   return (
     <html lang="en" className={`${fontVariables} h-full antialiased`}>
       <body className="min-h-full" suppressHydrationWarning>
-        <ClerkProvider
-          signInUrl="/en/sign-in"
-          signUpUrl="/en/sign-up"
-          localization={enUS}
-          appearance={clerkAppearance}
-        >
-          <AdminShell>{children}</AdminShell>
-          <Toaster />
-        </ClerkProvider>
+        <AdminShell>{children}</AdminShell>
+        <Toaster />
       </body>
     </html>
   )

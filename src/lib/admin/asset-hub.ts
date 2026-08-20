@@ -32,7 +32,7 @@ export type HubConsent = {
 
 export type HubAsset = {
   mediaId: string
-  clerkUserId: string
+  clientId: string
   url: string
   kind: string
   caption: string | null
@@ -61,7 +61,7 @@ function deriveState(
 
 type MediaRow = {
   id: string
-  clerk_user_id: string
+  client_id: string
   url: string
   storage_key: string | null
   kind: string
@@ -72,17 +72,17 @@ type MediaRow = {
   favorited_at?: string | null
 }
 
-export async function getHubAssets(clerkUserId?: string): Promise<HubAsset[]> {
+export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
   const supabase = createSupabaseServiceRoleClient()
 
   const q = supabase
     .from("client_media")
     .select(
-      "id, clerk_user_id, url, storage_key, kind, caption, created_at, source, dismissed_at, favorited_at",
+      "id, client_id, url, storage_key, kind, caption, created_at, source, dismissed_at, favorited_at",
     )
     .is("archived_at", null)
   const { data, error } = await (
-    clerkUserId ? q.eq("clerk_user_id", clerkUserId) : q
+    clientId ? q.eq("client_id", clientId) : q
   ).order("created_at", { ascending: false })
   const media = (data ?? []) as MediaRow[]
   if (error || !media.length) return []
@@ -148,7 +148,7 @@ export async function getHubAssets(clerkUserId?: string): Promise<HubAsset[]> {
     for (const c of list) consentsByPurpose[c.purpose] = c
     return {
       mediaId: m.id,
-      clerkUserId: m.clerk_user_id,
+      clientId: m.client_id,
       url: urlByMedia.get(m.id) ?? m.url,
       kind: m.kind,
       caption: m.caption,

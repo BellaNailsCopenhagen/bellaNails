@@ -36,7 +36,7 @@ export const dynamic = "force-dynamic"
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 
 /**
- * A client's page — contact + full booking history for one `clerk_user_id`,
+ * A client's page — contact + full booking history for one `client_id`,
  * reached from the "View client" action on any booking card. Contact (Clerk +
  * Cal phone) and no-show reputation reuse the shared admin resolve. Notes,
  * photos, record editing and GDPR erasure are Task 07's larger scope, deferred.
@@ -52,12 +52,12 @@ export default async function AdminClientPage({
   const defaultTab = tab === "gallery" ? "gallery" : "appointment"
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
 
   const { data: rows, error } = await supabase
     .from("bookings")
     .select(BOOKING_DISPLAY_COLUMNS)
-    .eq("clerk_user_id", id)
+    .eq("client_id", id)
     .order("start_time", { ascending: false })
 
   if (error) console.error("[admin-client] read failed", error.message)

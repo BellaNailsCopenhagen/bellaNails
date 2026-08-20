@@ -36,10 +36,10 @@ export async function addClientMedia(input: {
   if (bookingId) {
     const { data: booking } = await supabase
       .from("bookings")
-      .select("id, clerk_user_id, selected_addons")
+      .select("id, client_id, selected_addons")
       .eq("id", bookingId)
       .maybeSingle()
-    if (!booking || booking.clerk_user_id !== input.clerkUserId) {
+    if (!booking || booking.client_id !== input.clerkUserId) {
       bookingId = null
     } else if (!serviceId) {
       serviceId =
@@ -49,7 +49,7 @@ export async function addClientMedia(input: {
   }
 
   const { error } = await supabase.from("client_media").insert({
-    clerk_user_id: input.clerkUserId,
+    client_id: input.clerkUserId,
     source: input.source,
     kind: input.kind,
     storage_key: input.storageKey,
@@ -76,7 +76,7 @@ function requestedConsentRow(
 ) {
   return {
     client_media_id: mediaId,
-    clerk_user_id: clerkUserId,
+    client_id: clerkUserId,
     purpose,
     status: "requested",
     requested_at: new Date().toISOString(),
@@ -144,7 +144,7 @@ export async function requestDataConsent(
 
   const { error } = await supabase.from("client_consents").upsert(
     {
-      clerk_user_id: clerkUserId,
+      client_id: clerkUserId,
       purpose,
       status: "requested",
       requested_at: new Date().toISOString(),
@@ -152,7 +152,7 @@ export async function requestDataConsent(
       declined_at: null,
       withdrawn_at: null,
     },
-    { onConflict: "clerk_user_id,purpose" },
+    { onConflict: "client_id,purpose" },
   )
   if (error) return { ok: false, error: "Couldn’t request consent." }
 

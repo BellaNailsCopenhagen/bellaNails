@@ -1,69 +1,41 @@
 import "server-only"
 
-import { clerkClient } from "@clerk/nextjs/server"
-
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import type { ClientContact } from "@/lib/clerk/contact"
 
 /**
- * Resolves client contact live from Clerk — never persisted (the no-PII rule:
- * our DB holds only the pseudonymous `clerk_user_id`). Used by admin lists to
- * show who each appointment is with + tap-to-call/email. `server-only`; the
- * client-safe `ClientContact` type + `contactDisplayName` live in `contact.ts`.
- */
-
-// Clerk's getUserList caps a page at 500; a studio's upcoming-queue client set
-// is far below that. If it ever isn't, contacts beyond the first page won't
-// resolve (cards fall back to "Client") — paginate then.
-const MAX_USERS = 500
-
-/**
- * Batch-resolve `clerk_user_id → contact` for a set of bookings in one call.
- * A failure degrades to an empty map (cards show "Client") rather than
- * throwing — a Clerk hiccup must not blank the whole queue.
+ * Batch-resolve `client_id → contact` from the `clients` table. A failure
+ * degrades to an empty map (cards show "Client") rather than throwing. Replaces
+ * the former Clerk Backend API lookup; the client-safe `ClientContact` type +
+ * `contactDisplayName` still live in `contact.ts`.
  */
 export async function fetchClientContacts(
-  clerkUserIds: (string | null | undefined)[],
+  clientIds: (string | null | undefined)[],
 ): Promise<Record<string, ClientContact>> {
-  const ids = [...new Set(clerkUserIds.filter((id): id is string => Boolean(id)))]
+  const ids = [...new Set(clientIds.filter((id): id is string => Boolean(id)))]
   if (ids.length === 0) return {}
 
   const contacts: Record<string, ClientContact> = {}
   try {
-    const client = await clerkClient()
-    const { data } = await client.users.getUserList({
-      userId: ids,
-      limit: Math.min(ids.length, MAX_USERS),
-    })
-    for (const user of data) {
-      const email =
-        user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-          ?.emailAddress ??
-        user.emailAddresses[0]?.emailAddress ??
-        null
-      const phone =
-        user.phoneNumbers.find((p) => p.id === user.primaryPhoneNumberId)
-          ?.phoneNumber ??
-        user.phoneNumbers[0]?.phoneNumber ??
-        null
-      const fullName =
-        [user.firstName, user.lastName].filter(Boolean).join(" ") || null
-      contacts[user.id] = {
-        firstName: user.firstName ?? null,
-        fullName,
-        email,
-        phone,
-        // The client owns this account — signed in at least once, or set up a
-        // password / linked a social login — vs a passwordless booking stub we
-        // provisioned. `Boolean(...)` guards a null/undefined lastSignInAt.
-        activated:
-          Boolean(user.lastSignInAt) ||
-          user.passwordEnabled ||
-          user.externalAccounts.length > 0,
+    const supabase = createSupabaseServiceRoleClient()
+    const { data } = await supabase
+      .from("clients")
+      .select("id, name, email, phone, auth_user_id")
+      .in("id", ids)
+    for (const c of data ?? []) {
+      const firstName = c.name?.trim().split(/\s+/)[0] ?? null
+      contacts[c.id] = {
+        firstName,
+        fullName: c.name,
+        email: c.email,
+        phone: c.phone,
+        // Has logged in at least once (auth_user_id linked) vs a guest stub.
+        activated: c.auth_user_id != null,
       }
     }
   } catch (error) {
     console.error(
-      "[admin-queue] contact resolution failed",
+      "[contacts] resolution failed",
       error instanceof Error ? error.message : error,
     )
   }

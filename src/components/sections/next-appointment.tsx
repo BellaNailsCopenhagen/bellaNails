@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useUser } from "@clerk/nextjs"
+import { useCurrentUser } from "@/lib/identity/use-current-user"
 import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -35,10 +35,14 @@ import { routes } from "@/config/routes"
 async function fetchNextAppointment(
   supabase: SupabaseClient<Database>,
   locale: string,
+  clientId: string,
 ): Promise<DisplayBooking | null> {
+  // Explicit client filter — the owner's owner-reads-all RLS would otherwise
+  // surface the soonest studio-wide booking on their personal home band.
   const { data: row, error } = await supabase
     .from("bookings")
     .select(BOOKING_DISPLAY_COLUMNS)
+    .eq("client_id", clientId)
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .gt("end_time", new Date().toISOString())
     .order("start_time", { ascending: true })
@@ -69,19 +73,19 @@ function useMinuteNow(): number {
  * with nothing booked render nothing at all.
  */
 export function NextAppointment() {
-  const { user } = useUser()
+  const { clientId } = useCurrentUser()
   const supabase = useSupabaseBrowserClient()
   const t = useTranslations("bookings")
   const locale = useLocale()
   const now = useMinuteNow()
 
   const { data: next } = useQuery({
-    queryKey: ["next-appointment", user?.id, locale],
-    queryFn: () => fetchNextAppointment(supabase, locale),
-    enabled: Boolean(user),
+    queryKey: ["next-appointment", clientId, locale],
+    queryFn: () => fetchNextAppointment(supabase, locale, clientId!),
+    enabled: Boolean(clientId),
   })
 
-  if (!user || !next) return null
+  if (!clientId || !next) return null
 
   return (
     // Section-level divider (same device as FindUs) between this personal

@@ -128,7 +128,7 @@ export type Database = {
       }
       client_consents: {
         Row: {
-          clerk_user_id: string
+          client_id: string
           declined_at: string | null
           granted_at: string | null
           id: string
@@ -138,7 +138,7 @@ export type Database = {
           withdrawn_at: string | null
         }
         Insert: {
-          clerk_user_id: string
+          client_id: string
           declined_at?: string | null
           granted_at?: string | null
           id?: string
@@ -148,7 +148,7 @@ export type Database = {
           withdrawn_at?: string | null
         }
         Update: {
-          clerk_user_id?: string
+          client_id?: string
           declined_at?: string | null
           granted_at?: string | null
           id?: string
@@ -164,7 +164,7 @@ export type Database = {
           archived_at: string | null
           booking_id: string | null
           caption: string | null
-          clerk_user_id: string
+          client_id: string
           cloudinary_public_id: string | null
           created_at: string
           dismissed_at: string | null
@@ -183,7 +183,7 @@ export type Database = {
           archived_at?: string | null
           booking_id?: string | null
           caption?: string | null
-          clerk_user_id: string
+          client_id: string
           cloudinary_public_id?: string | null
           created_at?: string
           dismissed_at?: string | null
@@ -202,7 +202,7 @@ export type Database = {
           archived_at?: string | null
           booking_id?: string | null
           caption?: string | null
-          clerk_user_id?: string
+          client_id?: string
           cloudinary_public_id?: string | null
           created_at?: string
           dismissed_at?: string | null
@@ -223,7 +223,7 @@ export type Database = {
         Row: {
           auto_place: boolean
           client_media_id: string
-          clerk_user_id: string
+          client_id: string
           declined_at: string | null
           granted_at: string | null
           id: string
@@ -237,7 +237,7 @@ export type Database = {
         Insert: {
           auto_place?: boolean
           client_media_id: string
-          clerk_user_id: string
+          client_id: string
           declined_at?: string | null
           granted_at?: string | null
           id?: string
@@ -251,7 +251,7 @@ export type Database = {
         Update: {
           auto_place?: boolean
           client_media_id?: string
-          clerk_user_id?: string
+          client_id?: string
           needs_takedown_at?: string | null
           declined_at?: string | null
           granted_at?: string | null
@@ -299,7 +299,7 @@ export type Database = {
       owner_notifications: {
         Row: {
           client_media_id: string | null
-          clerk_user_id: string
+          client_id: string
           created_at: string
           id: string
           kind: string
@@ -308,7 +308,7 @@ export type Database = {
         }
         Insert: {
           client_media_id?: string | null
-          clerk_user_id: string
+          client_id: string
           created_at?: string
           id?: string
           kind: string
@@ -317,7 +317,7 @@ export type Database = {
         }
         Update: {
           client_media_id?: string | null
-          clerk_user_id?: string
+          client_id?: string
           created_at?: string
           id?: string
           kind?: string
@@ -331,7 +331,7 @@ export type Database = {
           cal_booking_id: number
           cal_uid: string | null
           cancel_url: string
-          clerk_user_id: string
+          client_id: string
           client_notes: string | null
           created_at: string | null
           end_time: string
@@ -349,7 +349,7 @@ export type Database = {
           cal_booking_id: number
           cal_uid?: string | null
           cancel_url: string
-          clerk_user_id: string
+          client_id: string
           client_notes?: string | null
           created_at?: string | null
           end_time: string
@@ -367,7 +367,7 @@ export type Database = {
           cal_booking_id?: number
           cal_uid?: string | null
           cancel_url?: string
-          clerk_user_id?: string
+          client_id?: string
           client_notes?: string | null
           created_at?: string | null
           end_time?: string
@@ -657,6 +657,36 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       studio_hours: {
         Row: {
           id: boolean
@@ -744,7 +774,7 @@ export type Database = {
       terms_acceptances: {
         Row: {
           accepted_at: string
-          clerk_user_id: string
+          client_id: string
           context: string | null
           id: string
           kind: string
@@ -754,7 +784,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string
-          clerk_user_id: string
+          client_id: string
           context?: string | null
           id?: string
           kind: string
@@ -764,7 +794,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string
-          clerk_user_id?: string
+          client_id?: string
           context?: string | null
           id?: string
           kind?: string

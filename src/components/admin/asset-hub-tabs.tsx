@@ -27,7 +27,8 @@ export type HubFilter = "all" | SimpleState
  * The asset hub navigation: an "All" view plus one tab per simplified state
  * (asset-state.ts), with a favourites-only toggle that filters within any tab.
  * Per-asset state shows as an icon + tooltip on the card. A `highlight` (from a
- * booking-card thumbnail) scrolls to that asset.
+ * booking-card thumbnail or a consent-withdrawal notification) scrolls to that
+ * asset and opens its dialog.
  */
 export function AssetHubTabs({
   assets,
@@ -145,7 +146,8 @@ export function AssetHubTabs({
             <HubAssetCard
               key={asset.mediaId}
               asset={asset}
-              clientName={clientNames[asset.clerkUserId] ?? "Client"}
+              clientName={clientNames[asset.clientId] ?? "Client"}
+              autoOpen={highlight != null && asset.mediaId === highlight}
             />
           ))}
         </ul>

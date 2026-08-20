@@ -241,9 +241,9 @@ export function AdminQueue({
                               <QueueBookingCard
                                 key={booking.row.cal_booking_id}
                                 booking={booking}
-                                contact={contacts[booking.row.clerk_user_id]}
+                                contact={contacts[booking.row.client_id]}
                                 clientNoShowCount={
-                                  noShowCounts[booking.row.clerk_user_id]
+                                  noShowCounts[booking.row.client_id]
                                 }
                                 noShowEligible={canMarkNoShow(booking.row, now)}
                                 now={now}

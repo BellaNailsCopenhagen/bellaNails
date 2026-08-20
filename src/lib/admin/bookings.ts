@@ -28,9 +28,10 @@ function bookingWindow(rows: BookingRow[]): { start: number; end: number } | nul
 }
 
 /**
- * Resolve booking rows for an admin list: names (catalog), contacts (Clerk),
- * no-show counts, and phones (Cal — the authoritative source), fetched in
- * parallel and degrading independently. `context` labels failure logs by surface.
+ * Resolve booking rows for an admin list: names (catalog), contacts (clients
+ * table), no-show counts, and phones (Cal — the authoritative source), fetched
+ * in parallel and degrading independently. `context` labels failure logs by
+ * surface.
  */
 export async function resolveAdminBookings(
   supabase: SupabaseClient<Database>,
@@ -47,10 +48,10 @@ export async function resolveAdminBookings(
   )
   const [bookings, contacts, noShowCounts, calPhones] = await Promise.all([
     toDisplayBookings(supabase, rows, ADMIN_LOCALE, context),
-    fetchClientContacts(rows.map((row) => row.clerk_user_id)),
+    fetchClientContacts(rows.map((row) => row.client_id)),
     fetchNoShowCounts(
       supabase,
-      rows.map((row) => row.clerk_user_id),
+      rows.map((row) => row.client_id),
     ).catch((error) => {
       console.error(
         `[${context}] no-show reputation failed`,
@@ -64,27 +65,27 @@ export async function resolveAdminBookings(
   ])
 
   // Each client's phone comes from their LATEST booking — numbers can change
-  // between visits (phones keyed by cal_uid, contacts by clerk_user_id).
+  // between visits (phones keyed by cal_uid, contacts by client_id).
   const latestPhone: Record<string, { phone: string; at: number }> = {}
   for (const row of rows) {
     const phone = row.cal_uid ? calPhones[row.cal_uid] : undefined
     if (!phone) continue
     const startedAt = new Date(row.start_time).getTime()
     const at = Number.isFinite(startedAt) ? startedAt : -Infinity
-    const current = latestPhone[row.clerk_user_id]
+    const current = latestPhone[row.client_id]
     if (!current || at > current.at) {
-      latestPhone[row.clerk_user_id] = { phone, at }
+      latestPhone[row.client_id] = { phone, at }
     }
   }
 
-  // Fill-only — never override a phone Clerk already has; create a minimal
-  // contact if the Clerk lookup missed this client.
-  for (const [clerkId, { phone }] of Object.entries(latestPhone)) {
-    const existing = contacts[clerkId]
+  // Fill-only — never override a phone the contact already has; create a minimal
+  // contact if the clients lookup missed this client.
+  for (const [clientId, { phone }] of Object.entries(latestPhone)) {
+    const existing = contacts[clientId]
     if (existing) existing.phone ??= phone
-    // No Clerk record resolved — treat as unactivated (booking-only).
+    // No client record resolved — treat as unactivated (booking-only).
     else
-      contacts[clerkId] = {
+      contacts[clientId] = {
         firstName: null,
         fullName: null,
         email: null,

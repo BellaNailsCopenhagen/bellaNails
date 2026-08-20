@@ -1,8 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
+import { getCurrentUser } from "@/lib/identity/server"
 import { canManageBooking } from "@/lib/booking-display"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
@@ -21,11 +21,11 @@ type CancelResult =
  * same state idempotently.
  */
 export async function cancelBooking(uid: string): Promise<CancelResult> {
-  const { userId } = await auth()
-  if (!userId) return { ok: false, error: "unauthorized" }
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "unauthorized" }
   if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
 
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
   const { data: booking, error } = await supabase
     .from("bookings")
     .select("cal_uid, status, start_time")

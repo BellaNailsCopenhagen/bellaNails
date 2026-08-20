@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { auth } from "@clerk/nextjs/server"
 import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
@@ -22,6 +21,7 @@ import {
   type ClientMediaItem,
   type DataConsentItem,
 } from "@/lib/media"
+import { getCurrentUser } from "@/lib/identity/server"
 import { singleParam } from "@/lib/search-params"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 
@@ -55,16 +55,16 @@ export default async function BookingsPage({
 
   // Own-reads via RLS; degrade to empty if the media/consent tables aren't
   // migrated yet. One fetch of media, shared across the Bookings + Gallery tabs.
-  const { userId } = await auth()
+  const user = await getCurrentUser()
   let media: ClientMediaItem[] = []
   let dataConsents: DataConsentItem[] = []
   let requestCount = 0
-  if (userId) {
-    const supabase = createAuthedSupabaseServerClient()
+  if (user) {
+    const supabase = await createAuthedSupabaseServerClient()
     ;[media, dataConsents, requestCount] = await Promise.all([
-      getClientMedia(supabase, userId).catch(() => []),
-      getClientDataConsents(supabase, userId).catch(() => []),
-      pendingRequestCount(supabase, userId).catch(() => 0),
+      getClientMedia(supabase, user.id).catch(() => []),
+      getClientDataConsents(supabase, user.id).catch(() => []),
+      pendingRequestCount(supabase, user.id).catch(() => 0),
     ])
   }
 

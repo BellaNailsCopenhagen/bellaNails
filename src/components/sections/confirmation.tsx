@@ -1,7 +1,7 @@
-import { Show, SignUp } from "@clerk/nextjs"
-import { getLocale, getTranslations } from "next-intl/server"
+import { SignedIn, SignedOut } from "@/components/auth/auth-gate"
+import { getTranslations } from "next-intl/server"
 
-import { getPathname, Link } from "@/i18n/navigation"
+import { Link } from "@/i18n/navigation"
 import { ConfirmationRecap } from "@/components/sections/confirmation-recap"
 import { Container, Section } from "@/components/layout/container"
 import { PageHeader } from "@/components/ui/page-header"
@@ -20,24 +20,8 @@ import { STUDIO_ADDRESS } from "@/config/studio"
  * is reactive) get the "view my bookings" CTA instead. A direct hit without a
  * uid renders a calm generic confirmed state — never an error.
  */
-export async function Confirmation({
-  uid,
-  email,
-}: {
-  uid: string | null
-  email: string | null
-}) {
-  const [t, locale] = await Promise.all([
-    getTranslations("confirmation"),
-    getLocale(),
-  ])
-
-  // Land back on this exact page after the account is verified, so the
-  // signed-in state swaps in with the recap still on screen.
-  const basePath = getPathname({ locale, href: routes.confirmation })
-  const returnUrl = uid
-    ? `${basePath}?${new URLSearchParams({ uid })}`
-    : basePath
+export async function Confirmation({ uid }: { uid: string | null }) {
+  const t = await getTranslations("confirmation")
 
   return (
     <Section>
@@ -64,33 +48,22 @@ export async function Confirmation({
               <BodySm>{t("arrivalNote")}</BodySm>
             </div>
 
-            <Show when="signed-out">
+            <SignedOut>
               <div className="space-y-6 border-t border-border pt-10">
                 <div className="space-y-2">
                   <H3>{t("accountTitle")}</H3>
                   <BodySm className="max-w-md">{t("accountBody")}</BodySm>
                 </div>
-                <SignUp
-                  routing="hash"
-                  forceRedirectUrl={returnUrl}
-                  initialValues={email ? { emailAddress: email } : undefined}
-                  // Clerk pins its card WIDTH internally (~25rem), so w-full
-                  // loses to its stylesheet — but max-width is uncontested:
-                  // `max-w-full` lets the card shrink inside a narrow column
-                  // (no overlap), while `max-lg:mx-auto` centers it on the
-                  // single-column layouts. Merged over the global
-                  // ClerkProvider appearance.
-                  appearance={{
-                    elements: {
-                      rootBox: "max-lg:mx-auto max-w-full",
-                      cardBox: "max-w-full",
-                    },
-                  }}
-                />
+                <Button
+                  nativeButton={false}
+                  render={<Link href={routes.signIn} />}
+                >
+                  {t("accountTitle")}
+                </Button>
               </div>
-            </Show>
+            </SignedOut>
 
-            <Show when="signed-in">
+            <SignedIn>
               <div className="space-y-4 border-t border-border pt-10">
                 <BodySm className="max-w-md">{t("signedInBody")}</BodySm>
                 <Button
@@ -100,7 +73,7 @@ export async function Confirmation({
                   {t("viewBookings")}
                 </Button>
               </div>
-            </Show>
+            </SignedIn>
 
             <div className="flex flex-wrap gap-x-8 gap-y-3">
               <ArrowLink href={routes.home}>{t("backHome")}</ArrowLink>

@@ -1,7 +1,6 @@
 "use server"
 
-import { auth } from "@clerk/nextjs/server"
-
+import { getCurrentUser } from "@/lib/identity/server"
 import { notifyOwner } from "@/lib/admin/notify"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
 import { objectUrl } from "@/lib/storage/scaleway"
@@ -17,8 +16,8 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 export type ClientMediaResult = { ok: true } | { ok: false; error: string }
 
 async function callerId(): Promise<string | null> {
-  const { userId } = await auth()
-  return userId ?? null
+  const user = await getCurrentUser()
+  return user?.id ?? null
 }
 
 export async function addOwnBookingMedia(input: {
@@ -33,10 +32,10 @@ export async function addOwnBookingMedia(input: {
   const supabase = createSupabaseServiceRoleClient()
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id, clerk_user_id, selected_addons")
+    .select("id, client_id, selected_addons")
     .eq("id", input.bookingId)
     .maybeSingle()
-  if (!booking || booking.clerk_user_id !== userId) {
+  if (!booking || booking.client_id !== userId) {
     console.error("[addOwnBookingMedia] booking not found/owned", {
       bookingId: input.bookingId,
       found: Boolean(booking),
@@ -48,7 +47,7 @@ export async function addOwnBookingMedia(input: {
     (booking.selected_addons as { serviceId?: string } | null)?.serviceId ?? null
 
   const { error } = await supabase.from("client_media").insert({
-    clerk_user_id: userId,
+    client_id: userId,
     source: "client",
     kind: "image", // clients only upload images (decision 9)
     storage_key: input.storageKey,
@@ -75,10 +74,10 @@ export async function deleteOwnMedia(
   const supabase = createSupabaseServiceRoleClient()
   const { data: media } = await supabase
     .from("client_media")
-    .select("clerk_user_id")
+    .select("client_id")
     .eq("id", mediaId)
     .maybeSingle()
-  if (!media || media.clerk_user_id !== userId) {
+  if (!media || media.client_id !== userId) {
     return { ok: false, error: "not_found" }
   }
 
@@ -98,7 +97,7 @@ export async function deleteOwnMedia(
     .eq("id", mediaId)
 
   if (sharedCount && sharedCount > 0) {
-    await notifyOwner(supabase, { kind: "shared_image_deleted", clerkUserId: userId })
+    await notifyOwner(supabase, { kind: "shared_image_deleted", clientId: userId })
   }
   return { ok: true }
 }

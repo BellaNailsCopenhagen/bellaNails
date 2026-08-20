@@ -1,7 +1,7 @@
-import { Show } from "@clerk/nextjs"
-import { currentUser } from "@clerk/nextjs/server"
 import { getLocale, getTranslations } from "next-intl/server"
 
+import { getCurrentUser } from "@/lib/identity/server"
+import { SignedOut } from "@/components/auth/auth-gate"
 import { getPathname, Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/sections/appointment-summary"
 import { BookingStepHeader } from "@/components/sections/booking-step-header"
@@ -52,22 +52,15 @@ export async function BookingDetails({
   const [t, locale, user] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
-    currentUser(),
+    getCurrentUser(),
   ])
 
-  const clerkEmail =
-    user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
-      ?.emailAddress ?? user?.emailAddresses[0]?.emailAddress
-  const clerkName =
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") || undefined
-  const clerkPhone = user?.phoneNumbers[0]?.phoneNumber
-
   const defaults = {
-    name: prefill.name ?? clerkName,
-    email: prefill.email ?? clerkEmail,
+    name: prefill.name ?? user?.name ?? undefined,
+    email: prefill.email ?? user?.email ?? undefined,
     // Seed the +45 country code so clients enter a full E.164 number, not a
     // bare 8-digit local one (toE164 still backstops mis-entries).
-    phone: prefill.phone ?? clerkPhone ?? "+45 ",
+    phone: prefill.phone ?? "+45 ",
     notes: prefill.notes,
   }
 
@@ -137,8 +130,8 @@ export async function BookingDetails({
         />
 
         {/* Signed-out: offer sign-in (returning here) so the form can
-            prefill from the Clerk profile. */}
-        <Show when="signed-out">
+            prefill from the account profile. */}
+        <SignedOut>
           <BodySm className="pb-8 text-xs">
             {t.rich("signInPrompt", {
               link: (chunks) => (
@@ -154,7 +147,7 @@ export async function BookingDetails({
               ),
             })}
           </BodySm>
-        </Show>
+        </SignedOut>
 
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           {/* GET submit: the contact fields join the URL-driven flow state

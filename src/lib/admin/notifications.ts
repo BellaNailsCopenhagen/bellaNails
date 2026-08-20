@@ -10,7 +10,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 export type OwnerNotification = {
   id: string
   kind: string
-  clerkUserId: string
+  clientId: string
   clientMediaId: string | null
   purpose: string | null
   createdAt: string
@@ -32,7 +32,7 @@ export async function getNotifications(limit = 50): Promise<OwnerNotification[]>
   const { data, error } = await supabase
     .from("owner_notifications")
     .select(
-      "id, kind, clerk_user_id, client_media_id, purpose, created_at, read_at",
+      "id, kind, client_id, client_media_id, purpose, created_at, read_at",
     )
     .order("created_at", { ascending: false })
     .limit(limit)
@@ -40,7 +40,7 @@ export async function getNotifications(limit = 50): Promise<OwnerNotification[]>
   return (data ?? []).map((n) => ({
     id: n.id,
     kind: n.kind,
-    clerkUserId: n.clerk_user_id,
+    clientId: n.client_id,
     clientMediaId: n.client_media_id,
     purpose: n.purpose,
     createdAt: n.created_at,

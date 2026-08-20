@@ -1,9 +1,10 @@
 import Image from "next/image"
-import { Show, UserButton } from "@clerk/nextjs"
 import { getTranslations } from "next-intl/server"
 import { MenuIcon } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
+import { SignedIn, SignedOut } from "@/components/auth/auth-gate"
+import { AccountMenu } from "@/components/auth/account-menu"
 import { Container } from "@/components/layout/container"
 import { LocaleToggle } from "@/components/locale-toggle"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -71,17 +72,17 @@ export async function SiteHeader() {
             {t("reserve")}
           </Button>
 
-          <Show when="signed-out">
+          <SignedOut>
             <Link
               href={routes.signIn}
               className="hidden font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground sm:inline"
             >
               {t("signIn")}
             </Link>
-          </Show>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+          </SignedOut>
+          <SignedIn>
+            <AccountMenu />
+          </SignedIn>
 
           <LocaleToggle />
 
@@ -120,13 +121,13 @@ export async function SiteHeader() {
               >
                 {t("reserve")}
               </DropdownMenuItem>
-              <Show when="signed-out">
+              <SignedOut>
                 <DropdownMenuItem
                   render={<Link href={routes.signIn} className="w-full" />}
                 >
                   {t("signIn")}
                 </DropdownMenuItem>
-              </Show>
+              </SignedOut>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

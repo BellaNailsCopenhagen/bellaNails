@@ -1,8 +1,8 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
+import { getCurrentUser } from "@/lib/identity/server"
 import { notifyOwner } from "@/lib/admin/notify"
 import { revalidatePublicSurfaces } from "@/lib/admin/revalidate-surfaces"
 import { recordTermsAcceptance } from "@/lib/terms-acceptance"
@@ -12,8 +12,8 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 /**
  * The CLIENT's own consent decisions (from /bookings). Every action re-verifies
- * the caller owns the record (`clerk_user_id === auth sub`) — the UI is never
- * the boundary. Granting an image runs copy-on-consent (a public storage
+ * the caller owns the record (`client_id === signed-in client`) — the UI is
+ * never the boundary. Granting an image runs copy-on-consent (a public storage
  * copy + a gallery item for the site); withdrawing deletes that copy. When
  * storage isn't configured yet, consent is still recorded and publishing is
  * deferred (reported back), per the "don't block on missing keys" rule.
@@ -32,8 +32,8 @@ type DataPurpose =
 type ServiceClient = ReturnType<typeof createSupabaseServiceRoleClient>
 
 async function callerId(): Promise<string | null> {
-  const { userId } = await auth()
-  return userId ?? null
+  const user = await getCurrentUser()
+  return user?.id ?? null
 }
 
 /**
@@ -45,7 +45,7 @@ async function callerId(): Promise<string | null> {
  */
 async function grantMediaConsentRow(
   supabase: ServiceClient,
-  clerkUserId: string,
+  clientId: string,
   consentId: string,
   mediaId: string,
 ): Promise<{ note?: string }> {
@@ -91,7 +91,7 @@ async function grantMediaConsentRow(
   // Granting publish consent accepts the current data-use terms for this photo —
   // record it at the media level so the studio can see exactly when. Best-effort.
   await recordTermsAcceptance(supabase, {
-    clerkUserId,
+    clientId,
     kind: "data",
     context: "media_consent",
     referenceId: mediaId,
@@ -136,11 +136,11 @@ export async function decideMediaConsent(
 
   const { data: consent } = await supabase
     .from("media_consents")
-    .select("id, clerk_user_id, status")
+    .select("id, client_id, status")
     .eq("client_media_id", mediaId)
     .eq("purpose", purpose)
     .maybeSingle()
-  if (!consent || consent.clerk_user_id !== userId) {
+  if (!consent || consent.client_id !== userId) {
     return { ok: false, error: "not_found" }
   }
 
@@ -183,7 +183,7 @@ export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
   const { data: mediaRows } = await supabase
     .from("media_consents")
     .select("id, client_media_id")
-    .eq("clerk_user_id", userId)
+    .eq("client_id", userId)
     .eq("status", "requested")
 
   let note: string | undefined
@@ -211,11 +211,11 @@ export async function withdrawMediaConsent(
 
   const { data: consent } = await supabase
     .from("media_consents")
-    .select("id, clerk_user_id, published_asset_id")
+    .select("id, client_id, published_asset_id")
     .eq("client_media_id", mediaId)
     .eq("purpose", purpose)
     .maybeSingle()
-  if (!consent || consent.clerk_user_id !== userId) {
+  if (!consent || consent.client_id !== userId) {
     return { ok: false, error: "not_found" }
   }
 
@@ -269,7 +269,7 @@ export async function withdrawMediaConsent(
 
   await notifyOwner(supabase, {
     kind: "media_consent_withdrawn",
-    clerkUserId: userId,
+    clientId: userId,
     clientMediaId: mediaId,
     purpose,
   })
@@ -290,8 +290,8 @@ export async function decideDataConsent(
 
   const { data: consent } = await supabase
     .from("client_consents")
-    .select("id, clerk_user_id")
-    .eq("clerk_user_id", userId)
+    .select("id, client_id")
+    .eq("client_id", userId)
     .eq("purpose", purpose)
     .maybeSingle()
   if (!consent) return { ok: false, error: "not_found" }
@@ -321,7 +321,7 @@ export async function withdrawDataConsent(
   await supabase
     .from("client_consents")
     .update({ status: "withdrawn", withdrawn_at: new Date().toISOString() })
-    .eq("clerk_user_id", userId)
+    .eq("client_id", userId)
     .eq("purpose", purpose)
   revalidatePath(`/admin/clients/${userId}`)
   return { ok: true }

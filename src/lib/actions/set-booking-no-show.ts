@@ -1,12 +1,10 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
-import { isOwner } from "@/lib/admin/owner"
+import { requireOwner } from "@/lib/admin/require-owner"
 import { canMarkNoShow } from "@/lib/booking-display"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 type NoShowResult =
   | { ok: true }
@@ -26,13 +24,9 @@ export async function setBookingNoShow(
   uid: string,
   noShow: boolean,
 ): Promise<NoShowResult> {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) {
-    return { ok: false, error: "unauthorized" }
-  }
+  const service = await requireOwner()
+  if (!service) return { ok: false, error: "unauthorized" }
   if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
-
-  const service = createSupabaseServiceRoleClient()
   const { data: booking } = await service
     .from("bookings")
     .select("status, start_time")

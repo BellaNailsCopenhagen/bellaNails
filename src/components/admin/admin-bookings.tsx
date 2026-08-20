@@ -252,8 +252,8 @@ export function AdminBookings({
                       <BookingListRow
                         key={booking.row.cal_booking_id}
                         booking={booking}
-                        contact={contacts[booking.row.clerk_user_id]}
-                        clientNoShowCount={noShowCounts[booking.row.clerk_user_id]}
+                        contact={contacts[booking.row.client_id]}
+                        clientNoShowCount={noShowCounts[booking.row.client_id]}
                         upcoming={endMs(booking) >= now}
                         now={now}
                         photos={photosByBooking[booking.row.id]}

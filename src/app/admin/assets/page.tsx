@@ -25,7 +25,7 @@ export default async function AdminAssetsPage({
   const { tab, highlight } = await searchParams
   const assets = await getHubAssets()
 
-  const ids = [...new Set(assets.map((a) => a.clerkUserId))]
+  const ids = [...new Set(assets.map((a) => a.clientId))]
   const contacts = ids.length ? await fetchClientContacts(ids) : {}
   const clientNames: Record<string, string> = {}
   for (const id of ids) clientNames[id] = contactDisplayName(contacts[id])

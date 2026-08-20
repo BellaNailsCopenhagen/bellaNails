@@ -40,12 +40,14 @@ export function HubAssetCard({
   asset,
   clientName,
   showClient = true,
+  autoOpen = false,
 }: {
   asset: HubAsset
   clientName: string
   showClient?: boolean
+  autoOpen?: boolean
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(autoOpen)
   const { pending, run } = useActionRunner()
 
   const simple = toSimpleState(asset.state)
@@ -140,7 +142,7 @@ export function HubAssetCard({
               size="sm"
               disabled={pending}
               onClick={() =>
-                run(() => requestBothPublish(asset.mediaId, asset.clerkUserId))
+                run(() => requestBothPublish(asset.mediaId, asset.clientId))
               }
             >
               Request website &amp; social
@@ -191,7 +193,7 @@ export function HubAssetCard({
                     disabled={pending}
                     onClick={() =>
                       run(() =>
-                        requestMediaPublish(asset.mediaId, asset.clerkUserId, key),
+                        requestMediaPublish(asset.mediaId, asset.clientId, key),
                       )
                     }
                   >

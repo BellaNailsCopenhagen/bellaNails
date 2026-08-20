@@ -18,7 +18,7 @@ export const routes = {
   confirmation: "/confirmation",
   terms: "/terms",
   privacy: "/privacy",
-  signIn: "/sign-in",
+  signIn: "/login",
   account: "/account",
 } as const
 

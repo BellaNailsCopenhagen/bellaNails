@@ -60,8 +60,8 @@ export function QueueBookingCard({
   const isRepeatNoShow = clientNoShowCount >= NO_SHOW_ALERT_THRESHOLD
   // The pseudonymous Clerk id is the client's stable key — links to their
   // profile + booking history. Route is /admin/clients/[id] (built separately).
-  const clientHref = row.clerk_user_id
-    ? `/admin/clients/${row.clerk_user_id}`
+  const clientHref = row.client_id
+    ? `/admin/clients/${row.client_id}`
     : null
   const hasUid = Boolean(row.cal_uid)
   const isNoShow = Boolean(row.no_show_at)
@@ -72,7 +72,7 @@ export function QueueBookingCard({
   const hasActions = canReschedule || canCancel || canToggleNoShow
   const canAddMedia =
     now != null &&
-    Boolean(row.clerk_user_id) &&
+    Boolean(row.client_id) &&
     now >= new Date(row.start_time).getTime() - ADD_MEDIA_LEAD_MS
 
   return (
@@ -99,10 +99,10 @@ export function QueueBookingCard({
               Email
             </a>
           ) : null}
-          {canAddMedia && row.clerk_user_id ? (
+          {canAddMedia && row.client_id ? (
             <AddBookingMediaButton
               bookingId={row.id}
-              clerkUserId={row.clerk_user_id}
+              clerkUserId={row.client_id}
             />
           ) : null}
           {clientHref ? (

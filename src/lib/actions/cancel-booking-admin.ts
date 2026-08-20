@@ -1,13 +1,11 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { auth } from "@clerk/nextjs/server"
 
-import { isOwner } from "@/lib/admin/owner"
+import { requireOwner } from "@/lib/admin/require-owner"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import { CAL_UID_PATTERN } from "@/lib/booking-sync"
 import { cancelBookingAtCal } from "@/lib/booking-cancel"
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 type OwnerCancelResult =
   | { ok: true }
@@ -23,13 +21,9 @@ type OwnerCancelResult =
 export async function cancelBookingAsOwner(
   uid: string,
 ): Promise<OwnerCancelResult> {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) {
-    return { ok: false, error: "unauthorized" }
-  }
+  const service = await requireOwner()
+  if (!service) return { ok: false, error: "unauthorized" }
   if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
-
-  const service = createSupabaseServiceRoleClient()
   const { data: booking } = await service
     .from("bookings")
     .select("status")

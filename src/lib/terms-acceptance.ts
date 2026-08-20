@@ -23,7 +23,7 @@ export type TermsAcceptance = {
 export async function recordTermsAcceptance(
   supabase: Client,
   params: {
-    clerkUserId: string
+    clientId: string
     kind: TermsKind
     context: string
     referenceId?: string
@@ -34,14 +34,14 @@ export async function recordTermsAcceptance(
     if (!current) return // nothing published to accept (or table not applied yet)
     await supabase.from("terms_acceptances").upsert(
       {
-        clerk_user_id: params.clerkUserId,
+        client_id: params.clientId,
         terms_id: current.id,
         kind: params.kind,
         version: current.version,
         context: params.context,
         reference_id: params.referenceId ?? "",
       },
-      { onConflict: "clerk_user_id,kind,reference_id", ignoreDuplicates: true },
+      { onConflict: "client_id,kind,reference_id", ignoreDuplicates: true },
     )
   } catch {
     // Swallow — acceptance recording is never allowed to break the primary flow.
@@ -51,12 +51,12 @@ export async function recordTermsAcceptance(
 /** Every acceptance for one client, newest first — for the admin overview. */
 export async function getTermsAcceptances(
   supabase: Client,
-  clerkUserId: string,
+  clientId: string,
 ): Promise<TermsAcceptance[]> {
   const { data, error } = await supabase
     .from("terms_acceptances")
     .select("id, kind, version, context, reference_id, accepted_at")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("client_id", clientId)
     .order("accepted_at", { ascending: false })
   if (error || !data) return []
   return data.map((row) => ({

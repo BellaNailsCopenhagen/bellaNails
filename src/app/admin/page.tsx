@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic"
 export default async function AdminQueuePage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
 
   // Upcoming = not yet ENDED, so an in-progress appointment stays in the queue
   // (matches the client list's isUpcoming). Grouping still keys off start_time.

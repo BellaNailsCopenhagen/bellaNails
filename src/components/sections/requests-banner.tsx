@@ -1,12 +1,12 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
 import { useQuery } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 import { Bell, ChevronRight } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
 import { pendingRequestCount } from "@/lib/consent-requests"
+import { useCurrentUser } from "@/lib/identity/use-current-user"
 import { useSupabaseBrowserClient } from "@/lib/supabase/client"
 import { routes } from "@/config/routes"
 
@@ -17,17 +17,17 @@ import { routes } from "@/config/routes"
  * Requests tab on /bookings.
  */
 export function RequestsBanner() {
-  const { user } = useUser()
+  const { clientId } = useCurrentUser()
   const t = useTranslations("bookings")
   const supabase = useSupabaseBrowserClient()
 
   const { data: count = 0 } = useQuery({
-    queryKey: ["pending-requests", user?.id],
-    queryFn: () => pendingRequestCount(supabase, user!.id),
-    enabled: Boolean(user),
+    queryKey: ["pending-requests", clientId],
+    queryFn: () => pendingRequestCount(supabase, clientId!),
+    enabled: Boolean(clientId),
   })
 
-  if (!user || count <= 0) return null
+  if (!clientId || count <= 0) return null
 
   return (
     <Link

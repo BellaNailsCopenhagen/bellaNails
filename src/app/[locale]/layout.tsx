@@ -1,7 +1,5 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { ClerkProvider } from "@clerk/nextjs"
-import { daDK, enUS } from "@clerk/localizations"
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
@@ -12,7 +10,6 @@ import { SiteFooter } from "@/components/layout/site-footer"
 import { routing } from "@/i18n/routing"
 import { SITE_URL } from "@/config/site"
 import { fontVariables } from "@/config/fonts"
-import { clerkAppearance } from "@/config/clerk"
 import "../globals.css"
 
 // Pre-render both locales at build time (static, no per-request work).
@@ -74,29 +71,19 @@ export default async function LocaleLayout({
   setRequestLocale(locale)
 
   return (
-    // Locale-aware Clerk routes so sign-in/up stay under the active locale.
-    // ClerkProvider lives inside <body> (Clerk requirement), wrapping the
-    // intl provider so Clerk's components can read translations if needed.
     <html lang={locale} className={`${fontVariables} h-full antialiased`}>
       {/* suppressHydrationWarning: browser extensions (Grammarly et al.)
           inject attributes into <body> before React hydrates — harmless, and
           the suppression is attribute-only on this one element. */}
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <ClerkProvider
-          signInUrl={`/${locale}/sign-in`}
-          signUpUrl={`/${locale}/sign-up`}
-          localization={locale === "da" ? daDK : enUS}
-          appearance={clerkAppearance}
-        >
-          <QueryProvider>
-            <NextIntlClientProvider>
-              <SiteHeader />
-              {children}
-              <SiteFooter />
-            </NextIntlClientProvider>
-          </QueryProvider>
-          <Toaster />
-        </ClerkProvider>
+        <QueryProvider>
+          <NextIntlClientProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+          </NextIntlClientProvider>
+        </QueryProvider>
+        <Toaster />
       </body>
     </html>
   )

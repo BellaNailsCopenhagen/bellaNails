@@ -41,41 +41,39 @@ function toRosterEntry(
 }
 
 /**
- * Client directory — the roster is `distinct clerk_user_id from bookings`
- * (owner-reads-all RLS), with names/emails resolved live from Clerk (never
- * persisted). Aggregates each client's booking count + last visit for the row
- * caption; ordered most-recently-active first. Notes/photos/CRUD are Task 07's
- * larger scope, deferred (see docs/tasks/admin/07-clients.md).
+ * Client directory — the roster is `distinct client_id from bookings`
+ * (owner-reads-all RLS), with names/emails resolved from the `clients` table.
+ * Aggregates each client's booking count + last visit for the row caption;
+ * ordered most-recently-active first. Notes/photos/CRUD are Task 07's larger
+ * scope, deferred (see docs/tasks/admin/07-clients.md).
  */
 export default async function AdminClientsPage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
 
   // Ordered desc so the first row per client is their most recent booking —
   // giving a recently-active-first roster from Map insertion order.
   const { data: rows, error } = await supabase
     .from("bookings")
-    .select("clerk_user_id, start_time, end_time")
+    .select("client_id, start_time, end_time")
     .order("start_time", { ascending: false })
 
   if (error) console.error("[admin-clients] read failed", error.message)
 
   const byClient = new Map<string, Agg>()
   for (const row of rows ?? []) {
-    const agg = byClient.get(row.clerk_user_id) ?? { count: 0, lastVisitMs: null }
+    const agg = byClient.get(row.client_id) ?? { count: 0, lastVisitMs: null }
     agg.count += 1
     const endMs = new Date(row.end_time).getTime()
     // Last visit = most recent appointment that has already happened.
     if (endMs < now && (agg.lastVisitMs === null || endMs > agg.lastVisitMs)) {
       agg.lastVisitMs = endMs
     }
-    byClient.set(row.clerk_user_id, agg)
+    byClient.set(row.client_id, agg)
   }
 
-  // Caps at 500 (Clerk's page limit) — clients past that show as "Client" and
-  // aren't searchable. Accepted until identity moves to Supabase, where the
-  // roster + search become a paginated DB query (see the auth-ownership plan).
+  // Resolved from the clients table in one `.in(...)` query.
   const contacts = await fetchClientContacts([...byClient.keys()])
   const clients: ClientRosterEntry[] = [...byClient.entries()].map(
     ([id, agg]) => toRosterEntry(id, agg, contacts[id]),

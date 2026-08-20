@@ -36,7 +36,7 @@ export default async function ReschedulePage({
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
   const { data: booking } = await supabase
     .from("bookings")
     .select("cal_uid, status, start_time")

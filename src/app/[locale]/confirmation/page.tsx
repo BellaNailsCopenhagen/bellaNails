@@ -5,7 +5,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { Confirmation } from "@/components/sections/confirmation"
 import { routing } from "@/i18n/routing"
-import { EMAIL_PATTERN } from "@/lib/contact-validation"
 import { singleParam } from "@/lib/search-params"
 
 export async function generateMetadata({
@@ -33,13 +32,10 @@ export default async function ConfirmationPage({
   setRequestLocale(locale)
 
   const uid = singleParam(query.uid) ?? null
-  const rawEmail = singleParam(query.email)
-  // Only forward a sane address into the sign-up prefill.
-  const email = rawEmail && EMAIL_PATTERN.test(rawEmail) ? rawEmail : null
 
   return (
     <main className="flex flex-1 flex-col">
-      <Confirmation uid={uid} email={email} />
+      <Confirmation uid={uid} />
     </main>
   )
 }

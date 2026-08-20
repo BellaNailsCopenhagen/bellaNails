@@ -17,14 +17,14 @@ export async function notifyOwner(
   supabase: SupabaseClient<Database>,
   input: {
     kind: OwnerNotificationKind
-    clerkUserId: string
+    clientId: string
     clientMediaId?: string | null
     purpose?: string | null
   },
 ): Promise<void> {
   await supabase.from("owner_notifications").insert({
     kind: input.kind,
-    clerk_user_id: input.clerkUserId,
+    client_id: input.clientId,
     client_media_id: input.clientMediaId ?? null,
     purpose: input.purpose ?? null,
   })

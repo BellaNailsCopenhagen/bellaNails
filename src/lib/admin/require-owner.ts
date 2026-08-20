@@ -1,9 +1,8 @@
 import "server-only"
 
-import { auth } from "@clerk/nextjs/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { isOwner } from "@/lib/admin/owner"
+import { getCurrentUser } from "@/lib/identity/server"
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
 
@@ -13,7 +12,7 @@ import type { Database } from "@/lib/supabase/types"
  * the UI/proxy is never the authorization boundary.
  */
 export async function requireOwner(): Promise<SupabaseClient<Database> | null> {
-  const { userId, sessionClaims } = await auth()
-  if (!userId || !isOwner(sessionClaims)) return null
+  const user = await getCurrentUser()
+  if (!user?.isOwner) return null
   return createSupabaseServiceRoleClient()
 }

@@ -2,7 +2,7 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { ensureClerkUser } from "@/lib/clerk/ensure-user"
+import { ensureUser } from "@/lib/clerk/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
 import { calBookingPhone } from "@/lib/cal-phone"
 import {
@@ -126,23 +126,23 @@ export async function persistCalBooking(
   const staleSnapshot =
     existing?.status === BOOKING_STATUS.cancelled &&
     snapshot.status !== BOOKING_STATUS.cancelled
-  // Same-status re-delivery: skip the Clerk round-trips and the upsert, but
+  // Same-status re-delivery: skip the identity round-trips and the upsert, but
   // still run the replaced-row closure below so a redelivery can heal it.
   const duplicate = existing?.status === snapshot.status
 
   if (!staleSnapshot && !duplicate) {
-    let clerkUserId: string
+    let clientId: string
     try {
-      clerkUserId = await ensureClerkUser({
+      clientId = await ensureUser({
         email: snapshot.attendeeEmail,
-        // Client-typed via Cal — clamp before it reaches Clerk.
+        // Client-typed via Cal — clamp before it becomes the clients row.
         name: sanitizeContactText(snapshot.attendeeName, MAX_NAME_LENGTH) ?? undefined,
         phone: snapshot.attendeePhone,
       })
     } catch (error) {
       return {
         ok: false,
-        message: `ensureClerkUser failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: `ensureUser failed: ${error instanceof Error ? error.message : String(error)}`,
       }
     }
 
@@ -183,7 +183,7 @@ export async function persistCalBooking(
           cal_uid: snapshot.uid,
           // Keep the old→new chain even when the snapshot is cancelled.
           rescheduled_from_uid: snapshot.rescheduleUid ?? null,
-          clerk_user_id: clerkUserId,
+          client_id: clientId,
           status: snapshot.status,
           start_time: snapshot.startTime,
           end_time: snapshot.endTime,
@@ -217,7 +217,7 @@ export async function persistCalBooking(
     // booking. Best-effort + idempotent per booking.
     if (upserted?.id && snapshot.status !== BOOKING_STATUS.cancelled) {
       await recordTermsAcceptance(supabase, {
-        clerkUserId,
+        clientId,
         kind: "service",
         context: "booking",
         referenceId: upserted.id,

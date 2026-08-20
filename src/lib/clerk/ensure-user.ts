@@ -1,104 +1,61 @@
 import "server-only"
 
-import { clerkClient } from "@clerk/nextjs/server"
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
-import { toE164 } from "@/lib/contact-validation"
-
-type ClerkClient = Awaited<ReturnType<typeof clerkClient>>
-
-type EnsureClerkUserInput = {
+type EnsureUserInput = {
   email: string
   /** Full display name as typed by the client ("Anna Jensen"). */
   name?: string
-  /** Phone as typed by the client — attached best-effort (must be E.164). */
+  /** Phone as typed by the client. */
   phone?: string
 }
 
-/** "Anna Marie Jensen" → { firstName: "Anna", lastName: "Marie Jensen" }. */
-function splitName(name: string | undefined) {
-  const [firstName, ...rest] = (name ?? "").trim().split(/\s+/).filter(Boolean)
-  return { firstName, lastName: rest.length ? rest.join(" ") : undefined }
-}
-
 /**
- * Phone numbers are free-typed by clients and Clerk requires E.164 — an
- * invalid value must never fail a booking sync, so this is best-effort.
- */
-async function tryAttachPhone(
-  client: ClerkClient,
-  userId: string,
-  phone: string | undefined,
-) {
-  const normalized = toE164(phone)
-  if (!normalized) return
-  try {
-    await client.phoneNumbers.createPhoneNumber({
-      userId,
-      phoneNumber: normalized,
-    })
-  } catch {
-    // Duplicate/rejected phone — the booking sync proceeds without it.
-  }
-}
-
-/**
- * Create-or-find the client's Clerk user by email — the keystone of the
- * identity model: PII (name/email/phone) lives in Clerk, our DB stores only
- * the returned pseudonymous `clerk_user_id`.
+ * Create-or-find a `clients` row by email; returns the client_id — the keystone
+ * of the identity model. A guest booker gets an identity + history with no
+ * login; a later Google/OTP login links this row by email (the
+ * on_auth_user_created trigger sets auth_user_id).
  *
- * Created users are passwordless (they later sign in with an email code, or
- * Google/Apple on the same address — verified-email account linking merges
- * them). Existing profiles are **filled-if-empty only**: values the client
- * set themselves are never clobbered by booking data.
- *
- * Used by the Cal webhook (booking sync) and the booking-flow account opt-in.
+ * Existing rows are filled-if-empty — booking data never clobbers what a client
+ * set themselves. Used by the Cal webhook sync and the booking-flow opt-in.
  */
-export async function ensureClerkUser({
+export async function ensureUser({
   email,
   name,
   phone,
-}: EnsureClerkUserInput): Promise<string> {
-  const client = await clerkClient()
+}: EnsureUserInput): Promise<string> {
+  const supabase = createSupabaseServiceRoleClient()
   const normalizedEmail = email.trim().toLowerCase()
-  const { firstName, lastName } = splitName(name)
 
-  const existing = (
-    await client.users.getUserList({ emailAddress: [normalizedEmail] })
-  ).data[0]
+  const { data: existing } = await supabase
+    .from("clients")
+    .select("id, name, phone")
+    .eq("email", normalizedEmail)
+    .maybeSingle()
 
-  if (!existing) {
-    try {
-      const user = await client.users.createUser({
-        emailAddress: [normalizedEmail],
-        ...(firstName ? { firstName } : {}),
-        ...(lastName ? { lastName } : {}),
-        skipPasswordRequirement: true,
-        // Distinguish booking-provisioned accounts from client-created ones.
-        privateMetadata: { source: "booking-auto" },
-      })
-      await tryAttachPhone(client, user.id, phone)
-      return user.id
-    } catch (error) {
-      // Check-then-create race: a concurrent delivery (or the account
-      // opt-in) created the user between our lookup and createUser. Clerk
-      // rejects the duplicate email — re-fetch and use the winner.
-      const raced = (
-        await client.users.getUserList({ emailAddress: [normalizedEmail] })
-      ).data[0]
-      if (raced) return raced.id
-      throw error
+  if (existing) {
+    const patch: { name?: string; phone?: string } = {}
+    if (!existing.name && name) patch.name = name
+    if (!existing.phone && phone) patch.phone = phone
+    if (Object.keys(patch).length) {
+      await supabase.from("clients").update(patch).eq("id", existing.id)
     }
+    return existing.id
   }
 
-  const patch = {
-    ...(!existing.firstName && firstName ? { firstName } : {}),
-    ...(!existing.lastName && lastName ? { lastName } : {}),
-  }
-  if (Object.keys(patch).length) {
-    await client.users.updateUser(existing.id, patch)
-  }
-  if (existing.phoneNumbers.length === 0) {
-    await tryAttachPhone(client, existing.id, phone)
-  }
-  return existing.id
+  const { data: created, error } = await supabase
+    .from("clients")
+    .insert({ email: normalizedEmail, name: name ?? null, phone: phone ?? null })
+    .select("id")
+    .single()
+  if (created) return created.id
+
+  // create-then-find race: a concurrent login/booking inserted it first.
+  const { data: raced } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("email", normalizedEmail)
+    .maybeSingle()
+  if (raced) return raced.id
+  throw error ?? new Error("ensureUser: could not create client")
 }

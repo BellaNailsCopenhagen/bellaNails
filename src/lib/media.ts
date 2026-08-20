@@ -37,14 +37,14 @@ type Client = SupabaseClient<Database>
 
 export async function getClientMedia(
   supabase: Client,
-  clerkUserId: string,
+  clientId: string,
 ): Promise<ClientMediaItem[]> {
   const { data: media, error } = await supabase
     .from("client_media")
     .select(
       "id, source, kind, url, storage_key, caption, service_id, booking_id, in_gallery, created_at",
     )
-    .eq("clerk_user_id", clerkUserId)
+    .eq("client_id", clientId)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
   if (error) throw new Error(error.message)
@@ -98,12 +98,12 @@ export type DataConsentItem = { purpose: string; status: ConsentStatus }
 
 export async function getClientDataConsents(
   supabase: Client,
-  clerkUserId: string,
+  clientId: string,
 ): Promise<DataConsentItem[]> {
   const { data, error } = await supabase
     .from("client_consents")
     .select("purpose, status")
-    .eq("clerk_user_id", clerkUserId)
+    .eq("client_id", clientId)
   if (error) throw new Error(error.message)
   return (data ?? []).map((c) => ({
     purpose: c.purpose,

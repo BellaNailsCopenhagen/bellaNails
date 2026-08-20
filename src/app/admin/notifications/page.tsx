@@ -30,6 +30,15 @@ function describe(n: OwnerNotification): string {
   return "sent an update"
 }
 
+// A withdrawal opens the image in the asset hub (see where it's used + take it
+// down); everything else goes to the client.
+function hrefFor(n: OwnerNotification): string {
+  if (n.kind === "media_consent_withdrawn" && n.clientMediaId) {
+    return `/admin/assets?highlight=${n.clientMediaId}`
+  }
+  return `/admin/clients/${n.clientId}`
+}
+
 /**
  * Studio notifications feed — owner-gated by the proxy. First use: consent
  * withdrawals. A site withdrawal auto-unpublishes; a SOCIAL one needs the artist
@@ -37,7 +46,7 @@ function describe(n: OwnerNotification): string {
  */
 export default async function AdminNotificationsPage() {
   const notifications = await getNotifications()
-  const ids = [...new Set(notifications.map((n) => n.clerkUserId))]
+  const ids = [...new Set(notifications.map((n) => n.clientId))]
   const contacts = ids.length ? await fetchClientContacts(ids) : {}
   const hasUnread = notifications.some((n) => !n.readAt)
 
@@ -64,13 +73,13 @@ export default async function AdminNotificationsPage() {
           {notifications.map((n) => (
             <li key={n.id} className="border-b border-border">
               <Link
-                href={`/admin/clients/${n.clerkUserId}`}
+                href={hrefFor(n)}
                 className="flex items-start justify-between gap-3 py-3"
               >
                 <div className="min-w-0 space-y-1">
                   <p className="font-functional text-sm text-foreground">
                     <span className="font-medium">
-                      {contactDisplayName(contacts[n.clerkUserId])}
+                      {contactDisplayName(contacts[n.clientId])}
                     </span>{" "}
                     {describe(n)}
                     {!n.readAt ? (

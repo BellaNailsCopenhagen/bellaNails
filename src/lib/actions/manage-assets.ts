@@ -23,9 +23,9 @@ export async function bulkAddToGallery(
 
   const { data: media } = await supabase
     .from("client_media")
-    .select("id, clerk_user_id")
+    .select("id, client_id")
     .in("id", mediaIds)
-  const ownerByMedia = new Map((media ?? []).map((m) => [m.id, m.clerk_user_id]))
+  const ownerByMedia = new Map((media ?? []).map((m) => [m.id, m.client_id]))
 
   const { data: consents } = await supabase
     .from("media_consents")
@@ -53,7 +53,7 @@ export async function bulkAddToGallery(
     if (!clerkUserId) continue
     const base = {
       client_media_id: mediaId,
-      clerk_user_id: clerkUserId,
+      client_id: clerkUserId,
       purpose: "site",
       status: "requested",
       requested_at: new Date().toISOString(),

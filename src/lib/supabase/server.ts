@@ -1,9 +1,9 @@
 import "server-only"
 
-import { auth } from "@clerk/nextjs/server"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 import { assertEnv } from "./env"
+import { createSupabaseSessionServerClient } from "./ssr-server"
 import type { Database } from "./types"
 
 // No session persistence on the server — each request builds a fresh client
@@ -28,27 +28,15 @@ export function createSupabaseServerClient(): SupabaseClient<Database> {
 }
 
 /**
- * Server client bound to the current Clerk session — attaches the Clerk token
- * via `accessToken`, so RLS sees `auth.jwt()` claims (`sub` = the Clerk user
- * id) and a user reads only their own rows (e.g. bookings). Falls back to anon
- * when signed out. Must run inside a request scope (RSC / route handler /
- * server action) since `auth()` reads request context — which makes any page
- * using it dynamic, hence it's separate from the anon client above.
+ * Server client bound to the current Supabase Auth session (cookie-based, via
+ * @supabase/ssr), so RLS sees `auth.uid()` / `app_metadata` and a user reads
+ * only their own rows. Async — reads the request cookies — which makes any page
+ * using it dynamic, hence it's separate from the anon client above. Await it.
  */
-export function createAuthedSupabaseServerClient(): SupabaseClient<Database> {
-  return createClient<Database>(
-    assertEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
-    assertEnv(
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    ),
-    {
-      accessToken: async () => {
-        const { getToken } = await auth()
-        return (await getToken()) ?? null
-      },
-    },
-  )
+export function createAuthedSupabaseServerClient(): Promise<
+  SupabaseClient<Database>
+> {
+  return createSupabaseSessionServerClient()
 }
 
 /**

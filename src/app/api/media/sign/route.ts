@@ -1,6 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
-
-import { isOwner } from "@/lib/admin/owner"
+import { getCurrentUser } from "@/lib/identity/server"
 import { extForType, uploadPolicy } from "@/lib/media-policy"
 import { presignedUpload } from "@/lib/storage/scaleway"
 
@@ -11,14 +9,14 @@ import { presignedUpload } from "@/lib/storage/scaleway"
  * isn't configured, so the uploader degrades to "not yet available".
  */
 export async function POST(req: Request) {
-  const { userId, sessionClaims } = await auth()
-  if (!userId) return new Response("Unauthorized", { status: 401 })
+  const user = await getCurrentUser()
+  if (!user) return new Response("Unauthorized", { status: 401 })
 
   const body = (await req.json().catch(() => null)) as {
     contentType?: string
   } | null
   const contentType = body?.contentType
-  const { allowedTypes, maxBytes } = uploadPolicy(isOwner(sessionClaims))
+  const { allowedTypes, maxBytes } = uploadPolicy(user.isOwner)
   if (!contentType || !allowedTypes.includes(contentType)) {
     return Response.json({ error: "unsupported_type" }, { status: 400 })
   }

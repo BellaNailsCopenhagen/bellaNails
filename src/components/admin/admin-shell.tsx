@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { UserButton } from "@clerk/nextjs"
+import { AccountMenu } from "@/components/auth/account-menu"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -85,7 +85,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 {newTab.label}
               </Button>
             ) : null}
-            <UserButton />
+            <AccountMenu />
           </div>
         </div>
       </header>

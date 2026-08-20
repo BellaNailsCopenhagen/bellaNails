@@ -30,7 +30,7 @@ const PAST_LIMIT = 200
 export default async function AdminAppointmentsPage() {
   const now = new Date()
   const nowIso = now.toISOString()
-  const supabase = createAuthedSupabaseServerClient()
+  const supabase = await createAuthedSupabaseServerClient()
 
   const [upcomingRes, pastRes] = await Promise.all([
     supabase
