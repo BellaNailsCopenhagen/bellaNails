@@ -13,7 +13,7 @@ import { cardActionNeutral } from "@/components/admin/card-action"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import type { DisplayBooking } from "@/lib/booking-display"
-import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
+import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -24,9 +24,10 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 /**
  * A booking card — the queue's list item and the Bookings view's expanded
  * detail. English-only (the admin has no next-intl context), reusing the shared
- * display shapes. Client name + contact come from Clerk (resolved in the RSC,
- * never persisted). `actionable` gates reschedule/cancel — off for past or
- * cancelled bookings; `noShowEligible` reveals the studio-side no-show toggle
+ * display shapes. Client name + contact are resolved from the `clients` table
+ * in the RSC (not stored on the booking row). `actionable` gates
+ * reschedule/cancel — off for past or cancelled bookings; `noShowEligible`
+ * reveals the studio-side no-show toggle
  * (an hour past start); `as` lets it render outside a <ul> (Bookings view).
  */
 // The artist can add media from 30 min before the appointment onward (and any
@@ -58,8 +59,8 @@ export function QueueBookingCard({
   const { row } = booking
   const clientName = contactDisplayName(contact)
   const isRepeatNoShow = clientNoShowCount >= NO_SHOW_ALERT_THRESHOLD
-  // The pseudonymous Clerk id is the client's stable key — links to their
-  // profile + booking history. Route is /admin/clients/[id] (built separately).
+  // `client_id` is the client's stable key — links to their profile + booking
+  // history. Route is /admin/clients/[id].
   const clientHref = row.client_id
     ? `/admin/clients/${row.client_id}`
     : null
@@ -102,7 +103,7 @@ export function QueueBookingCard({
           {canAddMedia && row.client_id ? (
             <AddBookingMediaButton
               bookingId={row.id}
-              clerkUserId={row.client_id}
+              clientId={row.client_id}
             />
           ) : null}
           {clientHref ? (

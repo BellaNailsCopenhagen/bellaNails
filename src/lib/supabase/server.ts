@@ -13,7 +13,7 @@ const SERVER_AUTH = { persistSession: false, autoRefreshToken: false } as const
 /**
  * Anonymous server (RSC / route handler) client using the public anon key —
  * no user identity attached. Use for public content (services, gallery) where
- * RLS's `to anon` policies apply; it carries no Clerk token, so it stays
+ * RLS's `to anon` policies apply; it carries no user session, so it stays
  * static-rendering friendly. For user-scoped reads use the authed client below.
  */
 export function createSupabaseServerClient(): SupabaseClient<Database> {

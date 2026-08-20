@@ -19,7 +19,7 @@ import { isActiveBookingStatus } from "@/lib/booking-status"
 import { resolveAdminBookings } from "@/lib/admin/bookings"
 import { getBookingMediaThumbs } from "@/lib/admin/booking-media"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/lib/booking-reputation"
-import { contactDisplayName } from "@/lib/clerk/contact"
+import { contactDisplayName } from "@/lib/identity/contact"
 import { getClientDataConsents } from "@/lib/media"
 import { getHubAssets } from "@/lib/admin/asset-hub"
 import { getTermsAcceptances } from "@/lib/terms-acceptance"
@@ -37,8 +37,8 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 
 /**
  * A client's page — contact + full booking history for one `client_id`,
- * reached from the "View client" action on any booking card. Contact (Clerk +
- * Cal phone) and no-show reputation reuse the shared admin resolve. Notes,
+ * reached from the "View client" action on any booking card. Contact (from the
+ * `clients` table) and no-show reputation reuse the shared admin resolve. Notes,
  * photos, record editing and GDPR erasure are Task 07's larger scope, deferred.
  */
 export default async function AdminClientPage({
@@ -180,7 +180,7 @@ export default async function AdminClientPage({
         }
         gallery={
           <ClientMediaGallery
-            clerkUserId={id}
+            clientId={id}
             hubAssets={hubAssets}
             clientName={clientName}
             bookings={bookingOptions}
@@ -189,7 +189,7 @@ export default async function AdminClientPage({
         }
       />
 
-      <ClientDataConsent clerkUserId={id} dataConsents={dataConsents} />
+      <ClientDataConsent clientId={id} dataConsents={dataConsents} />
 
       <ClientTermsPanel acceptances={termsAcceptances} />
     </div>

@@ -89,8 +89,8 @@ export async function BookingConfirm({
         />
 
         {/* Account creation is not opt-in: the webhook keys every booking to
-            a Clerk identity. The conversion moment (verify email → manage
-            bookings) lives on /confirmation, not here. */}
+            a client identity (the `clients` row). The conversion moment (verify
+            email → manage bookings) lives on /confirmation, not here. */}
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="w-full min-w-0 flex-1 space-y-6">
             <BookingEmbed

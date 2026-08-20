@@ -9,8 +9,8 @@ import {
   ClientDirectory,
   type ClientRosterEntry,
 } from "@/components/admin/client-directory"
-import { fetchClientContacts } from "@/lib/clerk/client-contacts"
-import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
+import { fetchClientContacts } from "@/lib/identity/client-contacts"
+import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = { title: "Clients" }

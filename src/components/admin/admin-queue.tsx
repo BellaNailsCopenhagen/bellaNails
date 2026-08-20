@@ -17,7 +17,7 @@ import {
 } from "@/components/admin/calendar-view"
 import { bookingState, canMarkNoShow } from "@/lib/booking-display"
 import type { AgendaWeek } from "@/lib/admin/agenda"
-import type { ClientContact } from "@/lib/clerk/contact"
+import type { ClientContact } from "@/lib/identity/contact"
 import {
   dayNumberToMs,
   formatStudioDayMonth,

@@ -5,9 +5,9 @@ import { toE164 } from "@/lib/contact-validation"
 import { CALCOM_API_BASE } from "@/config/calcom"
 
 /**
- * Phones live in Cal, not our DB (Clerk's free plan can't store them). This
- * reads them at display time so the admin card can show/tap-to-call, without
- * persisting PII. See docs/tasks/explorations/auth-ownership-and-gdpr.md.
+ * Reads booking phones from Cal at display time so the admin card can
+ * show/tap-to-call, without persisting extra PII in our DB. See
+ * docs/tasks/explorations/auth-ownership-and-gdpr.md.
  */
 
 /** Cal v2 GET /bookings — only the fields we read. */

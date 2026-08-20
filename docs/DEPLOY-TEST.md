@@ -7,9 +7,9 @@ command per deploy, no plumbing. At launch we switch to Vercel Pro and connect
 the org repo properly (auto-deploys, preview URLs per PR).
 
 > **Rule of thumb for the whole test phase:** Cal.com is the source of truth
-> for bookings. Supabase + Clerk are mirrors maintained by our webhook. When
-> something looks missing, check the chain in this order:
-> Cal delivery log → Vercel function logs → Supabase row → Clerk user.
+> for bookings. Supabase is the mirror maintained by our webhook (bookings keyed
+> to `clients` rows). When something looks missing, check the chain in this order:
+> Cal delivery log → Vercel function logs → Supabase `bookings`/`clients` row.
 
 ---
 
@@ -20,11 +20,11 @@ the org repo properly (auto-deploys, preview URLs per PR).
 - [ ] In `.env.local`: `NEXT_PUBLIC_CALCOM_LINK=bellanails` — **username
       only**, no `/session` suffix, or every embed link breaks.
 - [ ] Have secret values at hand: Supabase (URL, anon key, service-role key),
-      Clerk (publishable + secret, dev instance), Cal webhook secret.
+      Cal webhook secret.
 - [ ] Cal.com dashboard: each of the 5 test event types has an **availability
       schedule** attached (no schedule = embed shows no slots).
-- [ ] Clerk dashboard (dev instance): Google + Apple sign-in enabled,
-      verified-email account linking on, phone = optional identifier.
+- [ ] Supabase Dashboard → Authentication: Google provider enabled (OAuth
+      client id/secret set) and email OTP enabled; custom SMTP → `smtp.zoho.eu`.
 
 ## Phase 1 — create the Vercel project (one-time)
 
@@ -42,13 +42,12 @@ add to the **Production** environment:
 | `NEXT_PUBLIC_SUPABASE_URL` | from Supabase project settings |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **server-only** — webhook writes need it |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_test_…` (dev instance is fine for testing) |
-| `CLERK_SECRET_KEY` | `sk_test_…` |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/da/sign-in` |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/da/sign-up` |
 | `NEXT_PUBLIC_CALCOM_LINK` | `bellanails` (username only) |
 | `CALCOM_WEBHOOK_SECRET` | must equal the secret set on the Cal webhook |
 | `CALCOM_API_KEY` | optional for now (not read by deployed code yet) |
+
+Auth needs no extra env vars: it's Supabase Auth, and Google OAuth + email OTP +
+SMTP are configured in the Supabase Dashboard, not through Vercel env.
 
 Scaleway keys (the 6 `SCALEWAY_*` vars): required for media upload/publish/erasure.
 Absent, the media flow degrades to "not configured" and the rest of the app still
@@ -88,20 +87,20 @@ In Cal → Settings → Developer → **Webhooks**:
 ## Phase 4 — the test round
 
 Use a real email you can receive. After each step, check the chain:
-Supabase `bookings` row → Clerk user → Vercel logs.
+Supabase `bookings` row → `clients` row → Vercel logs.
 
 1. [ ] **Happy path ×2 (da + en):** full flow, pick a slot. Expect: Cal email
        with the localized notes summary; Supabase row `confirmed` with correct
-       service/add-on IDs, price, duration; Clerk user with email/name/phone.
+       service/add-on IDs, price, duration; a `clients` row with email/name/phone.
 2. [ ] **Slot rounding:** book a combo crossing a 15-min boundary (e.g.
        60 + 20 = 80 → 90-min slot). The calendar block must round **up**.
 3. [ ] **Reschedule** via the link in Cal's email → **new** row `rescheduled`,
        old row flipped to `cancelled`. (Trickiest webhook path — only verified
        with replays so far; this is the real-payload check.)
 4. [ ] **Cancel** via the email link → row `cancelled`.
-5. [ ] **Same email again** → no duplicate Clerk user; profile not clobbered.
-6. [ ] **Signed-in booking:** sign in → details prefilled → book → row keyed
-       to the same Clerk user id.
+5. [ ] **Same email again** → no duplicate `clients` row; profile not clobbered.
+6. [ ] **Signed-in booking:** sign in (Google or email OTP) → details prefilled
+       → book → row keyed to the same `client_id`.
 7. [ ] **Hostile URLs:** incompatible add-on pair crafted in the URL is
        dropped; `step=confirm` without contact params falls back to details.
 8. [ ] **Post-booking redirect:** lands on `/confirmation` — **404 until
@@ -136,11 +135,12 @@ When we move to Vercel Pro + Git integration at launch, this maps 1:1 — set
   checks without creating real bookings (scripts to be committed under
   `scripts/`).
 - Cleanup after the round: cancel test bookings in Cal, delete test rows in
-  Supabase and test users in Clerk.
+  Supabase (`bookings`/`clients`) and test users under Supabase → Authentication.
 
 ## Out of scope for the test phase (launch tasks)
 
 - Vercel Pro + org-repo Git integration (auto-deploys, PR previews).
-- Clerk production instance keys + custom domain.
+- Prod Supabase Auth config: Google OAuth redirect URLs for the real domain,
+  Zoho SMTP verified.
 - Real Cal event types replacing the `test-*` slugs.
 - `NEXT_PUBLIC_SITE_URL` → `https://bellanails.dk`, domain + DNS.

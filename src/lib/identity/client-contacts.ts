@@ -1,13 +1,12 @@
 import "server-only"
 
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
-import type { ClientContact } from "@/lib/clerk/contact"
+import type { ClientContact } from "@/lib/identity/contact"
 
 /**
  * Batch-resolve `client_id → contact` from the `clients` table. A failure
- * degrades to an empty map (cards show "Client") rather than throwing. Replaces
- * the former Clerk Backend API lookup; the client-safe `ClientContact` type +
- * `contactDisplayName` still live in `contact.ts`.
+ * degrades to an empty map (cards show "Client") rather than throwing. The
+ * client-safe `ClientContact` type + `contactDisplayName` live in `contact.ts`.
  */
 export async function fetchClientContacts(
   clientIds: (string | null | undefined)[],

@@ -39,13 +39,13 @@ export type BookingOption = { id: string; label: string }
  * favourites are managed right here.
  */
 export function ClientMediaGallery({
-  clerkUserId,
+  clientId,
   hubAssets,
   clientName,
   bookings = [],
   defaultBookingId = null,
 }: {
-  clerkUserId: string
+  clientId: string
   hubAssets: HubAsset[]
   clientName: string
   bookings?: BookingOption[]
@@ -77,7 +77,7 @@ export function ClientMediaGallery({
       }
 
       const result = await addClientMedia({
-        clerkUserId,
+        clientId,
         source: "owner",
         storageKey: up.key,
         kind: kindForType(file.type),
@@ -208,10 +208,10 @@ const DATA_PURPOSES: {
  * page's main body, outside the Appointment/Gallery tabs.
  */
 export function ClientDataConsent({
-  clerkUserId,
+  clientId,
   dataConsents,
 }: {
-  clerkUserId: string
+  clientId: string
   dataConsents: DataConsentItem[]
 }) {
   const { pending, run } = useActionRunner()
@@ -239,7 +239,7 @@ export function ClientDataConsent({
                   type="button"
                   disabled={pending}
                   onClick={() =>
-                    run(() => requestDataConsent(clerkUserId, purpose))
+                    run(() => requestDataConsent(clientId, purpose))
                   }
                   className={`${subLabel} hover:text-foreground`}
                 >

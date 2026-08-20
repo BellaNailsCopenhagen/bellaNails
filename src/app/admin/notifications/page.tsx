@@ -9,8 +9,8 @@ import {
   getNotifications,
   type OwnerNotification,
 } from "@/lib/admin/notifications"
-import { fetchClientContacts } from "@/lib/clerk/client-contacts"
-import { contactDisplayName } from "@/lib/clerk/contact"
+import { fetchClientContacts } from "@/lib/identity/client-contacts"
+import { contactDisplayName } from "@/lib/identity/contact"
 import { formatStudioDayMonthYear } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

@@ -13,8 +13,7 @@
 | Service | Plan | Role | Provides | App-side install |
 |---|---|---|---|---|
 | **Vercel** | Hobby (free) | Hosting / CI / preview deploys | Edge + serverless runtime, env mgmt | — |
-| **Supabase** | Free | Postgres + Auth bridge + Realtime + Storage(unused, Scaleway instead) | DB, RLS, Realtime | `@supabase/supabase-js` |
-| **Clerk** | Free | Authentication + user mgmt | Sign-in/up, `role` metadata, JWT for Supabase | `@clerk/nextjs` |
+| **Supabase** | Free | Auth + Postgres + Realtime + Storage(unused, Scaleway instead) | Sign-in/up (Google OAuth + email OTP), `app_metadata.role`, DB, RLS, Realtime | `@supabase/supabase-js` + `@supabase/ssr` |
 | **Cal.com** | Cloud Free | Scheduling | Availability, booking, reschedule/cancel URLs, webhooks | `@calcom/embed-react` |
 | **Stripe** | Pay-as-you-go (no fixed fee) | No-show card holds | SetupIntents via Cal.com | (none in app — via Cal.com) |
 | **Scaleway Object Storage** | Free tier (75 GB) | EU-sovereign media storage (fr-par) | S3-compatible image/video hosting; private-by-default, publish-on-consent | `@aws-sdk/client-s3` + presigners |
@@ -27,17 +26,12 @@
 Create `.env.local` (git-ignored) locally and mirror in Vercel. Commit a secret-free **`.env.example`**.
 
 ```bash
-# ── Supabase ────────────────────────────────────────────
+# ── Supabase (DB + Auth) ────────────────────────────────
+# Auth is Supabase Auth (Google OAuth + email OTP). No extra auth env vars —
+# the OAuth client, OTP, and SMTP live in the Supabase Dashboard, not here.
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=          # server-only; never expose to client
-
-# ── Clerk ───────────────────────────────────────────────
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
-# locale-aware auth routes
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/da/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/da/sign-up
 
 # ── Cal.com ─────────────────────────────────────────────
 NEXT_PUBLIC_CALCOM_LINK=bellanails/session
@@ -66,7 +60,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 src/
 ├─ app/
 │  ├─ [locale]/                 # all localized routes live here (Next 16: params is async)
-│  │  ├─ layout.tsx             # ClerkProvider + NextIntlClientProvider + Query provider; <html lang>
+│  │  ├─ layout.tsx             # NextIntlClientProvider + Query provider; <html lang>
 │  │  ├─ page.tsx               # home
 │  │  ├─ services/page.tsx
 │  │  ├─ gallery/page.tsx
@@ -158,7 +152,7 @@ CREATE TABLE gallery_items (
 CREATE TABLE bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cal_booking_id INT UNIQUE NOT NULL,
-  clerk_user_id VARCHAR(255) NOT NULL,
+  client_id UUID NOT NULL REFERENCES clients(id),
   status VARCHAR(50) NOT NULL,            -- 'confirmed' | 'rescheduled' | 'cancelled'
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
@@ -172,50 +166,42 @@ CREATE TABLE bookings (
 -- Indices
 CREATE INDEX idx_services_lookup ON services(archived_at) WHERE archived_at IS NULL;
 CREATE INDEX idx_addons_lookup ON addons(service_id, archived_at) WHERE archived_at IS NULL;
-CREATE INDEX idx_bookings_user ON bookings(clerk_user_id);
+CREATE INDEX idx_bookings_user ON bookings(client_id);
 CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 ```
 
 ### Realtime
 - Off by default — add live tables (e.g. `bookings`) to the `supabase_realtime` publication.
-- Realtime respects RLS: the Realtime client must carry the **Clerk token**, and RLS must be written against Clerk claims, to receive events on private tables.
+- Realtime respects RLS: the Realtime client uses the **Supabase session** directly (native Supabase Auth), and RLS is written against `auth.jwt()` claims, to receive events on private tables.
 - Non-sensitive signals (e.g. "slot taken") can use a simpler public **broadcast** channel instead.
 
 ### RLS sketch
 - `services`, `addons`, `gallery_items`: public `SELECT` where `archived_at IS NULL`; writes restricted to owner.
-- `bookings`: a user reads only their own (`clerk_user_id = auth claim`); owner reads all; writes via service-role in the webhook.
+- `bookings`: a user reads only their own (`client_id` = the caller's own client row); owner reads all (`auth.jwt() -> 'app_metadata' ->> 'role' = 'owner'`); writes via service-role in the webhook.
 
 ---
 
-## Clerk ↔ Supabase auth (the real gotcha)
+## Supabase Auth
 
-- Use Supabase's **native third-party auth integration** for Clerk. **Do NOT** use the old Clerk JWT template — **deprecated 2025-04-01**.
-- RLS policies + Realtime auth both key off Clerk claims, so the Realtime client must be initialized with the Clerk session token.
-- **Known bug (Clerk custom domain):** Supabase Realtime fetches JWKS at `{issuer}/.well-known/jwks`, but Clerk custom domains serve `/.well-known/jwks.json` → JWT verification 404s. **Test authed Realtime early** if you use a custom Clerk domain.
-- Admin gating: Clerk metadata `{"role":"owner"}` checked in `proxy.ts` for **`/admin`** (English-only, **not** locale-prefixed — see [tasks/admin/01-shell-auth-pwa.md](./tasks/admin/01-shell-auth-pwa.md)), **and** enforced again in RLS (defense in depth). Setting the role on the user is **not enough** — it must also be exposed in the session token (below).
+- Auth is **Supabase Auth** — same project as the DB, no third-party JWT wiring. Sign-in methods: **Google OAuth** + **email OTP** (one-time code); no passwords, no Apple. The Google OAuth client, OTP, and the custom SMTP that sends auth emails (Zoho, host `smtp.zoho.eu`) are all configured in the **Supabase Dashboard → Authentication**, not through app env.
+- RLS policies + Realtime auth key off `auth.jwt()` `app_metadata` claims from the **Supabase session** directly — no third-party JWT template, no external JWKS to fetch, so there's no auth-provider integration gotcha to hit.
+- Admin gating: the owner role lives in the user's `app_metadata.role` (server-set, not user-editable) and is checked in `proxy.ts` for **`/admin`** (English-only, **not** locale-prefixed — see [tasks/admin/01-shell-auth-pwa.md](./tasks/admin/01-shell-auth-pwa.md)), **and** enforced again in RLS (defense in depth).
 
-### Admin owner setup (repeatable — do ALL of it per Clerk instance: dev AND prod)
+### Admin owner setup
 
-`/admin` is gated to users with the `owner` role. Four things must all be true or the gate stays shut / the data stays scoped:
+`/admin` is gated to users with the `owner` role. Three things must all be true or the gate stays shut / the data stays scoped:
 
-1. **Owner account exists.** A Clerk user for the owner's email. Preferred identity: a **named, non-public** address on the studio domain — `veronica.a@bellanails.dk` (a Zoho alias on Veronica's own mailbox is fine; **not** `hello@`, which is public). The developer's own account may also be an owner in **dev** for testing. Put a **passkey/2FA** on any owner account — it can read every client's PII.
-2. **Role on the user** — `publicMetadata.role = "owner"`. Dashboard (Users → user → Metadata → Public) or Backend API (the `/metadata` endpoint **merges**, so it won't clobber other keys):
-   ```bash
-   # KEY = CLERK_SECRET_KEY for the TARGET instance; find <ID> via GET /v1/users?limit=100
-   curl -s -X PATCH "https://api.clerk.com/v1/users/<ID>/metadata" \
-     -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-     -d '{"public_metadata":{"role":"owner"}}'
+1. **Owner account exists.** A Supabase user for the owner's email. Preferred identity: a **named, non-public** address on the studio domain — `veronica.a@bellanails.dk` (a Zoho alias on Veronica's own mailbox is fine; **not** `hello@`, which is public). The developer's own account may also be an owner in **dev** for testing. The account can read every client's PII, so guard the mailbox accordingly.
+2. **Role in `app_metadata`** — set once via **Supabase Dashboard → SQL Editor** (server-side; users can't edit their own `app_metadata`):
+   ```sql
+   update auth.users
+     set raw_app_meta_data = raw_app_meta_data || '{"role":"owner"}'::jsonb
+     where email = '<owner-email>';
    ```
-3. **Role exposed in the session token** (the step everyone forgets — **dashboard only**, no Backend API). **Configure → Sessions → Customize session token → Edit**, add:
-   ```json
-   { "metadata": { "role": "{{user.public_metadata.role}}" } }
-   ```
-   New sessions pick it up within ~60s (or sign out/in). Without this, `sessionClaims.metadata.role` is empty and even a role-bearing user is bounced home. Same claim path backs the RLS below.
-4. **Owner-reads-all RLS applied** so the owner reads the whole studio, not just their own rows: apply [../supabase/admin-owner-reads.sql](../supabase/admin-owner-reads.sql) via the Supabase MCP. The gate/dashboard render without it; the count is just scoped to the owner's own bookings until it's applied.
+   The claim surfaces as `auth.jwt() -> 'app_metadata' ->> 'role'` and backs both the `proxy.ts` gate and the RLS below. The user must sign out/in (or refresh the session) to pick it up.
+3. **Owner-reads-all RLS applied** so the owner reads the whole studio, not just their own rows: apply [../supabase/admin-owner-reads.sql](../supabase/admin-owner-reads.sql) via the Supabase MCP. The gate/dashboard render without it; the count is just scoped to the owner's own bookings until it's applied.
 
 **Verify:** sign in at `/admin` with an owner account → dashboard renders (not redirected). A signed-in non-owner → redirected to `/`.
-
-**Status — dev instance (July 2026):** ✅ `veronica.a@bellanails.dk` + `alburaul@gmail.com` set to `owner` (step 2). ⬜ session-token claim (step 3) · ⬜ owner-reads-all RLS (step 4) · ⬜ production instance (all four again on `pk_live`).
 
 ---
 
@@ -267,7 +253,7 @@ EU-sovereign (France, fr-par), S3-compatible. Full design + runbook:
 ## Pre-flight checklist (accounts to create / things to have ready)
 
 - [ ] Supabase project (URL, anon key, service-role key) + schema applied + Realtime publication.
-- [ ] Clerk app (publishable + secret keys) + native Supabase integration configured + owner set up per **Admin owner setup** above (role + session-token claim + RLS) — repeat on the prod instance.
+- [ ] Supabase Auth: Google OAuth + email OTP enabled, custom SMTP (`smtp.zoho.eu`) set, owner set up per **Admin owner setup** above (role in `app_metadata` + owner-reads-all RLS).
 - [ ] Cal.com account, event type(s) matching `cal_event_id`, webhook → prod URL, signing secret, Stripe connected.
 - [ ] Scaleway Object Storage: bucket `bellanails-media` (fr-par, Private), API key (Object Storage), CORS applied, **no bucket policy** (public via per-object ACL). See [infra/scaleway/](../infra/scaleway/).
 - [ ] Vercel project linked to the GitHub repo, all env vars set for Preview + Production.

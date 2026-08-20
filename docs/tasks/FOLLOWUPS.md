@@ -2,7 +2,33 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
-_(none open)_
+### Consent re-grant (GDPR: re-granting must be as easy as withdrawing)
+Withdrawn/declined consents can't be re-granted from the UI. The server actions
+already support it (`decideMediaConsent`/`decideDataConsent` have no status
+guard), but nothing surfaces a withdrawn/declined item: media inbox lists only
+`requested` ([consent-centre.tsx](../../src/components/.../consent-centre.tsx)),
+the gallery manage dialog only `granted`. Add an "Allow again" control wired to
+`decide*Consent(..., "granted")`.
+- **Paired bug**: `grantMediaConsentRow` ([client-consent.ts](../../src/lib/actions/client-consent.ts)) on re-grant of a *used-&-withdrawn* photo sets a NEW `published_asset_id` without clearing `needs_takedown_at` or reusing/cleaning the old asset → orphans the old `assets`/`asset_usages` + Scaleway object and leaves a stale "used & withdrawn" flag. Fix alongside: clear `needs_takedown_at` + reconcile the existing asset.
+
+### withdrawDataConsent doesn't notify owner / revalidate
+[client-consent.ts](../../src/lib/actions/client-consent.ts) `withdrawDataConsent`
+only flips status + revalidates `/admin/clients/{id}` — unlike `withdrawMediaConsent`
+(notifyOwner + revalidate public surfaces). Latent today (name/testimonial has no
+public render yet) but will silently fail to take content down once it ships. Add
+`notifyOwner` (extend `OwnerNotificationKind`) + `revalidatePublicSurfaces()`.
+
+### Retire the Cal phone read-through
+`booking-phones.ts` `fetchCalPhones` still runs on every admin list render, but
+`clients.phone` now exists (populated by `ensureUser`). One-time backfill
+`clients.phone` from Cal for historic clients, then drop `fetchCalPhones` + its
+branch in `resolveAdminBookings` — removes a per-render Cal call and stops
+re-exposing phone to Cal.
+
+### Don't log raw DB errors on identity/upsert paths (PII)
+`booking-sync.ts` + the Cal webhook log verbatim DB error messages; a unique
+violation on `clients.email` can echo the email (`Key (email)=(…)`) into logs.
+Log error codes, not full messages, on the identity/upsert paths.
 
 ## Done
 

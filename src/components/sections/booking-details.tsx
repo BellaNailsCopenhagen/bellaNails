@@ -37,7 +37,7 @@ type Field = {
  * Cal.com embed at step 03) beside the same appointment summary as step 01.
  * The selection arrives via the URL (`?service=…&addons=a,b&step=details`),
  * so this step is shareable/refreshable and back-navigation keeps state.
- * Field defaults: URL values (back-navigation) win over the signed-in Clerk
+ * Field defaults: URL values (back-navigation) win over the signed-in user's
  * profile; signed-out visitors get a sign-in prompt that returns here.
  */
 export async function BookingDetails({

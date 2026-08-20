@@ -10,19 +10,3 @@ declare module "next-intl" {
     Messages: typeof messages
   }
 }
-
-declare global {
-  /**
-   * Claims we add to the Clerk **session token** (Dashboard → Sessions →
-   * Customize session token):
-   *   { "metadata": { "role": "{{user.public_metadata.role}}" } }
-   * so `auth().sessionClaims.metadata.role` is typed. Read only via
-   * `isOwner()` (`src/lib/admin/owner.ts`); the same claim path backs the
-   * Supabase owner-reads-all RLS.
-   */
-  interface CustomJwtSessionClaims {
-    metadata?: {
-      role?: string
-    }
-  }
-}

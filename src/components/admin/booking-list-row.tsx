@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BOOKING_STATUS } from "@/lib/booking-status"
 import { canMarkNoShow, type DisplayBooking } from "@/lib/booking-display"
-import { contactDisplayName, type ClientContact } from "@/lib/clerk/contact"
+import { contactDisplayName, type ClientContact } from "@/lib/identity/contact"
 import { formatStudioDayMonthYear, formatStudioTime } from "@/lib/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 

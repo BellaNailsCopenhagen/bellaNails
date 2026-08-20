@@ -4,8 +4,8 @@ import { signOut } from "@/lib/identity/auth-actions"
 import { useCurrentUser } from "@/lib/identity/use-current-user"
 
 /**
- * Minimal signed-in control: an initial + Sign out. Replaces Clerk's
- * `<UserButton>`. Renders nothing when signed out.
+ * Minimal signed-in control: an initial + Sign out. Renders nothing when
+ * signed out.
  */
 export function AccountMenu() {
   const { user } = useCurrentUser()

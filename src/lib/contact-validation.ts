@@ -21,7 +21,7 @@ const DEFAULT_COUNTRY_CODE = "45"
 /**
  * Coerce a free-typed phone to E.164 (`+` then 8–15 digits); null if
  * implausible. Best-guess for a Danish studio — swap in libphonenumber-js for
- * full i18n. Used both to attach phones to Clerk and to normalise Cal's.
+ * full i18n. Used to normalise phone numbers (booking contact + Cal's).
  */
 export function toE164(raw: string | undefined | null): string | null {
   if (!raw) return null

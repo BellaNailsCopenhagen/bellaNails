@@ -1,7 +1,7 @@
 /**
  * Client-safe contact shape + display helper. Kept separate from
- * `client-contacts.ts` (which is `server-only` because it calls the Clerk
- * Backend API) so client components can import the type and name helper.
+ * `client-contacts.ts` (which is `server-only` — it uses the service-role
+ * Supabase client) so client components can import the type and name helper.
  */
 export type ClientContact = {
   firstName: string | null
@@ -9,8 +9,8 @@ export type ClientContact = {
   email: string | null
   phone: string | null
   /** The client has signed into their own account (not just a booking-
-      provisioned passwordless one) — so outreach outside a booking is on
-      firmer footing. Derived from Clerk's `lastSignInAt`. */
+      provisioned stub) — so outreach outside a booking is on firmer footing.
+      Derived from a linked `auth_user_id` (see client-contacts.ts). */
   activated: boolean
 }
 

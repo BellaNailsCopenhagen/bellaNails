@@ -17,10 +17,10 @@ import { kindForType } from "@/lib/media-policy"
  */
 export function AddBookingMediaButton({
   bookingId,
-  clerkUserId,
+  clientId,
 }: {
   bookingId: string
-  clerkUserId: string
+  clientId: string
 }) {
   const router = useRouter()
   const [uploading, setUploading] = useState(false)
@@ -43,7 +43,7 @@ export function AddBookingMediaButton({
         return
       }
       const result = await addClientMedia({
-        clerkUserId,
+        clientId,
         source: "owner",
         storageKey: up.key,
         kind: kindForType(file.type),

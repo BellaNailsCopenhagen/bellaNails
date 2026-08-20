@@ -5,7 +5,7 @@ vendor accounts — **no prior context required.** Follow it top to bottom.
 
 Bella Nails is a Next.js nail-studio site: public booking (via Cal.com), an
 owner-only `/admin` CRM, and GDPR-compliant client media. Stack: **Next.js
-(App Router) · Clerk (auth) · Supabase (Postgres/RLS/Realtime) · Cal.com EU
+(App Router) · Supabase (Auth + Postgres/RLS/Realtime) · Cal.com EU
 (scheduling) · Stripe via Cal.com (no-show holds) · Scaleway (media) · Zoho
 (email) · Vercel (hosting)**.
 
@@ -23,8 +23,10 @@ owner-only `/admin` CRM, and GDPR-compliant client media. Stack: **Next.js
 | **git** | any | |
 | A password manager | — | You'll collect ~15 secrets. Never commit them. |
 
-Accounts you'll create in **step 3** (all have a free tier): Supabase, Clerk,
-Cal.com, Stripe, Scaleway, Zoho Mail, Vercel.
+Accounts you'll create in **step 3** (all have a free tier): Supabase,
+Cal.com, Stripe, Scaleway, Zoho Mail, Vercel. (Auth is Supabase Auth — no
+separate auth vendor; Google OAuth + email OTP are configured in the Supabase
+Dashboard.)
 
 ---
 
@@ -54,10 +56,6 @@ by vendor, with where each comes from:
 | `NEXT_PUBLIC_SUPABASE_URL` | public | Supabase → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | public | Supabase → Project Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | **secret** | Supabase → Project Settings → API (service_role) |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | public | Clerk → API keys |
-| `CLERK_SECRET_KEY` | **secret** | Clerk → API keys |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | public | Leave `/da/sign-in` |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | public | Leave `/da/sign-up` |
 | `NEXT_PUBLIC_CALCOM_LINK` | public | Cal.com username (e.g. `bellanails`) |
 | `CALCOM_WEBHOOK_SECRET` | **secret** | You invent it; set the same value on the Cal webhook |
 | `CALCOM_API_KEY` | **secret** | Cal.com → Settings → Developer → API keys |
@@ -71,6 +69,11 @@ by vendor, with where each comes from:
 **Rule:** anything **not** prefixed `NEXT_PUBLIC_` is server-only and must never
 reach the browser. Mirror the same keys into Vercel (step 7).
 
+> **Auth needs no extra app env vars.** Auth is Supabase Auth — the three
+> `SUPABASE_*` vars above are all the app needs. The Google OAuth client, email
+> OTP, and the custom SMTP that sends auth emails are all configured in the
+> Supabase Dashboard (see step 3b), not through `.env`.
+
 ---
 
 ## 3. Create the vendor accounts
@@ -83,14 +86,18 @@ reach the browser. Mirror the same keys into Vercel (step 7).
    - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (**secret**)
 3. Apply the schema — see **step 4**.
 
-### 3b. Clerk (authentication)
-1. Create an application at [clerk.com](https://clerk.com).
-2. **API keys** → copy:
-   - Publishable key → `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-   - Secret key → `CLERK_SECRET_KEY` (**secret**)
-3. Connect Clerk to Supabase using Supabase's **native third-party auth
-   integration** (Supabase Dashboard → Authentication → Third-party Auth → Clerk).
-   ⚠️ **Do NOT** use the old Clerk JWT template (deprecated 2025-04-01).
+### 3b. Supabase Auth (authentication)
+Auth lives in the same Supabase project as the database — nothing to install,
+no app env vars beyond the `SUPABASE_*` keys already collected. Configure the
+sign-in methods in the **Supabase Dashboard → Authentication**:
+1. **Google** — **Providers → Google → enable**, and paste the Google OAuth
+   **client id + secret** (from a Google Cloud OAuth client). Add the app's
+   callback URL to the Google client's authorized redirect URIs.
+2. **Email OTP** — **Providers → Email → enable**, using the one-time code
+   (OTP) flow. (No passwords; Apple sign-in is not used.)
+3. **Custom SMTP** — **Authentication → Emails → SMTP** → point it at Zoho:
+   host `smtp.zoho.eu`, with the Zoho mailbox credentials. This is what sends
+   the OTP / auth emails. (Dashboard-only; not an app env var.)
 4. Owner/admin setup is **step 5** (do it after the DB exists).
 
 ### 3c. Cal.com (scheduling — EU instance)
@@ -155,21 +162,21 @@ or regenerate with the Supabase CLI).
 
 ## 5. Make yourself the studio owner
 
-`/admin` is gated to users with the `owner` role. **All four** must be true
-(repeat per Clerk instance — dev *and* prod):
+`/admin` is gated to users with the `owner` role. **All three** must be true:
 
-1. **Create the owner account** — sign up in the running app (step 6) with the
-   owner's email. Put a passkey/2FA on it (it can read every client's PII).
-2. **Set the role** — `publicMetadata.role = "owner"`. Clerk Dashboard → Users →
-   the user → Metadata → Public: `{ "role": "owner" }`. (Or Backend API
-   `PATCH /v1/users/<id>/metadata` with `{"public_metadata":{"role":"owner"}}`.)
-3. **Expose the role in the session token** (the step everyone forgets — dashboard
-   only). Clerk → **Configure → Sessions → Customize session token → Edit**:
-   ```json
-   { "metadata": { "role": "{{user.public_metadata.role}}" } }
+1. **Create the owner account** — sign in to the running app (step 6) with the
+   owner's email (Google or email OTP) so a Supabase user row exists.
+2. **Set the role** — the role lives in the Supabase user's `app_metadata`
+   (server-set, not user-editable). Run once in **Supabase Dashboard → SQL
+   Editor**:
+   ```sql
+   update auth.users
+     set raw_app_meta_data = raw_app_meta_data || '{"role":"owner"}'::jsonb
+     where email = '<owner-email>';
    ```
-   New sessions pick it up in ~60s (or sign out/in).
-4. **Owner-reads-all RLS** — ensure `supabase/admin-owner-reads.sql` is applied
+   RLS keys off this via `auth.jwt() -> 'app_metadata' ->> 'role' = 'owner'`.
+   The user must sign out/in (or refresh the session) to pick up the new claim.
+3. **Owner-reads-all RLS** — ensure `supabase/admin-owner-reads.sql` is applied
    (from step 4) so the owner reads the whole studio, not just their own rows.
 
 **Verify:** sign in at `/admin` with the owner account → dashboard renders. A
@@ -202,7 +209,9 @@ cancel/sync is disabled. So you can bring vendors online one at a time.
 3. Point production URLs at the deploy: Cal.com webhook → `https://<domain>/api/webhooks/cal`;
    `NEXT_PUBLIC_SITE_URL` → the real domain; add the domain to Scaleway **CORS**
    (`infra/scaleway/cors.json` → re-run `put-bucket-cors`).
-4. Redo the **owner setup (step 5)** on the **production** Clerk instance (`pk_live`).
+4. Point the **production** Supabase Auth config at the prod domain: add the prod
+   callback URL to the Google OAuth client's redirect URIs, and confirm the Zoho
+   SMTP is set. (Owner role from step 5 is stored in the DB, so it carries over.)
 5. Production deploys run from the **`deploy`** branch only, via:
    ```sh
    pnpm run deploy:prod        # scripts/deploy.sh — refuses unless on clean `deploy`
@@ -213,7 +222,7 @@ cancel/sync is disabled. So you can bring vendors online one at a time.
 ## 8. Launch checklist
 
 - [ ] Supabase project (EU), schema + patches + policies applied, Realtime publication on.
-- [ ] Clerk app + native Supabase integration + owner setup (all 4 steps) on **both** instances.
+- [ ] Supabase Auth: Google + email OTP enabled, Zoho SMTP (`smtp.zoho.eu`) set, owner role (SQL) + owner-reads-all RLS applied.
 - [ ] Cal.com event types, webhook → prod URL + secret, API key, Stripe connected.
 - [ ] Scaleway bucket + key + CORS + encryption, **no bucket policy**; live round-trip (private→403, public→200).
 - [ ] Zoho mail delivering.

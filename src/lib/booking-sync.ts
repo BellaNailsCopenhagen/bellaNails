@@ -2,7 +2,7 @@ import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { ensureUser } from "@/lib/clerk/ensure-user"
+import { ensureUser } from "@/lib/identity/ensure-user"
 import { BOOKING_STATUS, type BookingStatus } from "@/lib/booking-status"
 import { calBookingPhone } from "@/lib/cal-phone"
 import {

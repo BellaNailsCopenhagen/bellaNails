@@ -36,7 +36,7 @@ export async function Confirmation({ uid }: { uid: string | null }) {
         {/* Recap first in the DOM: on mobile/tablet the booking details are
             the payoff and lead the page (what/when → where → account pitch →
             exit links). Two columns only from lg — below that the fixed-width
-            Clerk card and the summary can't share a row without overlapping.
+            account card and the summary can't share a row without overlapping.
             `lg:flex-row-reverse` keeps desktop as recap right, content left. */}
         <div className="flex flex-col gap-12 lg:flex-row-reverse lg:items-start lg:justify-between lg:gap-16">
           {uid ? <ConfirmationRecap uid={uid} /> : null}

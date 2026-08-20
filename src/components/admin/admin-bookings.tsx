@@ -20,7 +20,7 @@ import {
   type BookingState,
   type DisplayBooking,
 } from "@/lib/booking-display"
-import type { ClientContact } from "@/lib/clerk/contact"
+import type { ClientContact } from "@/lib/identity/contact"
 import {
   dayNumberToMs,
   formatStudioDayMonthYear,

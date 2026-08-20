@@ -9,8 +9,8 @@ import {
 } from "@/lib/booking-display"
 import { fetchCalPhones } from "@/lib/booking-phones"
 import { fetchNoShowCounts } from "@/lib/booking-reputation"
-import { fetchClientContacts } from "@/lib/clerk/client-contacts"
-import type { ClientContact } from "@/lib/clerk/contact"
+import { fetchClientContacts } from "@/lib/identity/client-contacts"
+import type { ClientContact } from "@/lib/identity/contact"
 import type { Database } from "@/lib/supabase/types"
 import { ADMIN_LOCALE } from "@/config/admin"
 

@@ -23,8 +23,8 @@ function withCookies(to: NextResponse, from: NextResponse): NextResponse {
 }
 
 /**
- * Next 16 uses `proxy.ts` (Node runtime). Supabase Auth replaces Clerk: refresh
- * the session cookie on every request and read the VALIDATED user (getUser, not
+ * Next 16 uses `proxy.ts` (Node runtime). Supabase Auth: refresh the session
+ * cookie on every request and read the VALIDATED user (getUser, not
  * the unverified cookie), then gate. /api is excluded by the matcher (webhooks,
  * OAuth callback, media all run without the proxy). This is an optimistic gate —
  * every admin RSC/action still re-checks via requireOwner.

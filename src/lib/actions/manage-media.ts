@@ -16,7 +16,7 @@ import { objectUrl } from "@/lib/storage/scaleway"
 export type MediaActionResult = { ok: true } | { ok: false; error: string }
 
 export async function addClientMedia(input: {
-  clerkUserId: string
+  clientId: string
   source: "owner" | "client"
   storageKey: string
   kind: "image" | "video"
@@ -39,7 +39,7 @@ export async function addClientMedia(input: {
       .select("id, client_id, selected_addons")
       .eq("id", bookingId)
       .maybeSingle()
-    if (!booking || booking.client_id !== input.clerkUserId) {
+    if (!booking || booking.client_id !== input.clientId) {
       bookingId = null
     } else if (!serviceId) {
       serviceId =
@@ -49,7 +49,7 @@ export async function addClientMedia(input: {
   }
 
   const { error } = await supabase.from("client_media").insert({
-    client_id: input.clerkUserId,
+    client_id: input.clientId,
     source: input.source,
     kind: input.kind,
     storage_key: input.storageKey,
@@ -63,7 +63,7 @@ export async function addClientMedia(input: {
     return { ok: false, error: "Couldn’t add the image." }
   }
 
-  revalidatePath(`/admin/clients/${input.clerkUserId}`)
+  revalidatePath(`/admin/clients/${input.clientId}`)
   if (serviceId) revalidatePath(`/admin/services/${serviceId}`)
   return { ok: true }
 }
@@ -71,12 +71,12 @@ export async function addClientMedia(input: {
 // A fresh "requested" consent row — resets any prior declined/withdrawn state.
 function requestedConsentRow(
   mediaId: string,
-  clerkUserId: string,
+  clientId: string,
   purpose: MediaPurpose,
 ) {
   return {
     client_media_id: mediaId,
-    client_id: clerkUserId,
+    client_id: clientId,
     purpose,
     status: "requested",
     requested_at: new Date().toISOString(),
@@ -91,7 +91,7 @@ function requestedConsentRow(
 /** Ask the client to consent to publishing an image for a purpose. */
 export async function requestMediaPublish(
   mediaId: string,
-  clerkUserId: string,
+  clientId: string,
   purpose: MediaPurpose,
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
@@ -99,12 +99,12 @@ export async function requestMediaPublish(
 
   const { error } = await supabase
     .from("media_consents")
-    .upsert(requestedConsentRow(mediaId, clerkUserId, purpose), {
+    .upsert(requestedConsentRow(mediaId, clientId, purpose), {
       onConflict: "client_media_id,purpose",
     })
   if (error) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clerkUserId}`)
+  revalidatePath(`/admin/clients/${clientId}`)
   return { ok: true }
 }
 
@@ -112,27 +112,27 @@ export async function requestMediaPublish(
     doesn't jump to Awaiting after only one purpose). */
 export async function requestBothPublish(
   mediaId: string,
-  clerkUserId: string,
+  clientId: string,
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
   const { error } = await supabase.from("media_consents").upsert(
     [
-      requestedConsentRow(mediaId, clerkUserId, "site"),
-      requestedConsentRow(mediaId, clerkUserId, "some"),
+      requestedConsentRow(mediaId, clientId, "site"),
+      requestedConsentRow(mediaId, clientId, "some"),
     ],
     { onConflict: "client_media_id,purpose" },
   )
   if (error) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clerkUserId}`)
+  revalidatePath(`/admin/clients/${clientId}`)
   return { ok: true }
 }
 
 /** Ask the client to consent to using their data (name / testimonial). */
 export async function requestDataConsent(
-  clerkUserId: string,
+  clientId: string,
   purpose:
     | "testimonial_site"
     | "testimonial_some"
@@ -144,7 +144,7 @@ export async function requestDataConsent(
 
   const { error } = await supabase.from("client_consents").upsert(
     {
-      client_id: clerkUserId,
+      client_id: clientId,
       purpose,
       status: "requested",
       requested_at: new Date().toISOString(),
@@ -156,6 +156,6 @@ export async function requestDataConsent(
   )
   if (error) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clerkUserId}`)
+  revalidatePath(`/admin/clients/${clientId}`)
   return { ok: true }
 }

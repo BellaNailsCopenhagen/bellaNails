@@ -10,8 +10,7 @@ import { createSupabaseSessionBrowserClient } from "@/lib/supabase/ssr-browser"
  * sign-out. Client-side counterpart to identity/server.ts `getCurrentUser`.
  * Also resolves `clientId` (the `clients` row linked to the auth user) so
  * personal surfaces can filter by it — the owner's owner-reads-all RLS would
- * otherwise surface studio-wide rows on their own pages. Replaces Clerk's
- * `useUser`.
+ * otherwise surface studio-wide rows on their own pages.
  */
 export function useCurrentUser(): {
   user: User | null

@@ -4,9 +4,8 @@
  */
 
 /**
- * The signed-in user, abstracted from the auth provider. `id` is the current
- * identity key: today the Clerk user id, after the auth cutover the `clients.id`
- * uuid. Callers should treat it as opaque.
+ * The signed-in user, abstracted from the auth provider. `id` is the identity
+ * key — the `clients.id` uuid. Callers should treat it as opaque.
  */
 export type AppUser = {
   id: string

@@ -49,11 +49,11 @@ export async function bulkAddToGallery(
       }
       continue
     }
-    const clerkUserId = ownerByMedia.get(mediaId)
-    if (!clerkUserId) continue
+    const clientId = ownerByMedia.get(mediaId)
+    if (!clientId) continue
     const base = {
       client_media_id: mediaId,
-      client_id: clerkUserId,
+      client_id: clientId,
       purpose: "site",
       status: "requested",
       requested_at: new Date().toISOString(),
