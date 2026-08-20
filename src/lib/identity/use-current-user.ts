@@ -24,10 +24,12 @@ export function useCurrentUser(): {
   useEffect(() => {
     const supabase = createSupabaseSessionBrowserClient()
     let active = true
+    let currentUserId: string | null = null // guards stale clients lookups
 
     // Deferred (setTimeout) so we don't call supabase inside the auth-change
     // callback's lock — the documented re-entrancy hazard.
     const loadClient = (u: User | null) => {
+      currentUserId = u?.id ?? null
       if (!u) {
         setClientId(null)
         return
@@ -38,7 +40,8 @@ export function useCurrentUser(): {
           .select("id")
           .eq("auth_user_id", u.id)
           .maybeSingle()
-        if (active) setClientId(data?.id ?? null)
+        // Drop a resolution the user has since changed away from.
+        if (active && currentUserId === u.id) setClientId(data?.id ?? null)
       }, 0)
     }
 

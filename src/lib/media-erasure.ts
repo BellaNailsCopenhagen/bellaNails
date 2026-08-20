@@ -13,7 +13,7 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
  */
 export async function purgeMediaArtifacts(mediaId: string): Promise<boolean> {
   const supabase = createSupabaseServiceRoleClient()
-  let objectsDeleted = true
+  let clean = true // false if any DB row or storage object failed to delete
 
   const { data: media } = await supabase
     .from("client_media")
@@ -35,25 +35,29 @@ export async function purgeMediaArtifacts(mediaId: string): Promise<boolean> {
       .select("storage_key")
       .eq("id", consent.published_asset_id)
       .maybeSingle()
-    await supabase
+    const gallery = await supabase
       .from("gallery_items")
       .delete()
       .eq("primary_asset_id", consent.published_asset_id)
-    await supabase.from("assets").delete().eq("id", consent.published_asset_id)
-    await supabase
+    const assetRow = await supabase
+      .from("assets")
+      .delete()
+      .eq("id", consent.published_asset_id)
+    const pointer = await supabase
       .from("media_consents")
       .update({ published_asset_id: null })
       .eq("id", consent.id)
+    if (gallery.error || assetRow.error || pointer.error) clean = false
     if (asset?.storage_key) {
       const res = await deleteObject(asset.storage_key)
-      if (!res.ok) objectsDeleted = false
+      if (!res.ok) clean = false
     }
   }
 
   // The private original.
   if (media?.storage_key) {
     const res = await deleteObject(media.storage_key)
-    if (!res.ok) objectsDeleted = false
+    if (!res.ok) clean = false
   }
-  return objectsDeleted
+  return clean
 }

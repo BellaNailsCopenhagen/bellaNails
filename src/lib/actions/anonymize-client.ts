@@ -65,7 +65,11 @@ export async function anonymizeClient(
       if (await isArtistInUse(admin, media)) continue
       const purged = await purgeMediaArtifacts(media.id)
       if (!purged) return { ok: false, error: "storage delete failed — retry" }
-      await admin.from("client_media").delete().eq("id", media.id)
+      const { error: delError } = await admin
+        .from("client_media")
+        .delete()
+        .eq("id", media.id)
+      if (delError) return { ok: false, error: delError.message }
     }
 
     // 2. Remove the login. 404 = already gone (idempotent retry); any other
@@ -81,11 +85,13 @@ export async function anonymizeClient(
       }
     }
 
-    // 3. Scrub PII (keep the row + id + all links). Stamp anonymized last.
-    await admin
+    // 3. Scrub PII (keep the row + id + all links). Stamp anonymized last —
+    //    every step above must have succeeded, so a failure here retries clean.
+    const { error: notesError } = await admin
       .from("bookings")
       .update({ client_notes: null })
       .eq("client_id", clientId)
+    if (notesError) return { ok: false, error: notesError.message }
     const { error: scrubError } = await admin
       .from("clients")
       .update({
