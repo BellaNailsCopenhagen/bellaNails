@@ -21,7 +21,6 @@ export const routes = {
   terms: "/terms",
   privacy: "/privacy",
   signIn: "/login",
-  account: "/account",
 } as const
 
 export type Route = (typeof routes)[keyof typeof routes]

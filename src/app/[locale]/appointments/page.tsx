@@ -10,6 +10,7 @@ import {
   BookingsTabs,
   type BookingsTabKey,
 } from "@/components/sections/bookings-tabs"
+import { AccountSettings } from "@/components/account/account-settings"
 import { Container, Section } from "@/components/layout/container"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
@@ -22,6 +23,7 @@ import {
   type DataConsentItem,
 } from "@/lib/media"
 import { getCurrentUser } from "@/lib/identity/server"
+import { getTermsAcceptances, type TermsAcceptance } from "@/lib/terms-acceptance"
 import { singleParam } from "@/lib/search-params"
 import { createAuthedSupabaseServerClient } from "@/lib/supabase/server"
 
@@ -41,9 +43,9 @@ export async function generateMetadata({
   }
 }
 
-/** Auth gate lives in the proxy (`/bookings` is a protected route): a
-    signed-out visit redirects to the localized sign-in and returns here.
-    Tabbed: Bookings · Gallery · Requests (deep-linkable via `?tab=`). */
+/** My Space — auth-gated by the proxy (`/appointments`): a signed-out visit
+    redirects to the localized login and returns here. Tabbed: Appointments ·
+    Gallery · Requests · Settings (the gear), all deep-linkable via `?tab=`. */
 export default async function BookingsPage({
   params,
   searchParams,
@@ -59,18 +61,44 @@ export default async function BookingsPage({
   let media: ClientMediaItem[] = []
   let dataConsents: DataConsentItem[] = []
   let requestCount = 0
+  let terms: TermsAcceptance[] = []
+  let profile: {
+    name: string | null
+    phone: string | null
+    email: string | null
+  } | null = null
   if (user) {
     const supabase = await createAuthedSupabaseServerClient()
-    ;[media, dataConsents, requestCount] = await Promise.all([
-      getClientMedia(supabase, user.id).catch(() => []),
-      getClientDataConsents(supabase, user.id).catch(() => []),
-      pendingRequestCount(supabase, user.id).catch(() => 0),
-    ])
+    const [mediaData, consentData, count, termsData, profileRes] =
+      await Promise.all([
+        getClientMedia(supabase, user.id).catch(() => []),
+        getClientDataConsents(supabase, user.id).catch(() => []),
+        pendingRequestCount(supabase, user.id).catch(() => 0),
+        getTermsAcceptances(supabase, user.id).catch(() => []),
+        supabase
+          .from("clients")
+          .select("name, phone, email")
+          .eq("id", user.id)
+          .maybeSingle()
+          .then(
+            (r) => r.data ?? null,
+            () => null,
+          ),
+      ])
+    media = mediaData
+    dataConsents = consentData
+    requestCount = count
+    terms = termsData
+    profile = profileRes
   }
 
   const tabParam = singleParam(query.tab)
   const defaultTab: BookingsTabKey =
-    tabParam === "gallery" || tabParam === "requests" ? tabParam : "bookings"
+    tabParam === "gallery" ||
+    tabParam === "requests" ||
+    tabParam === "settings"
+      ? tabParam
+      : "bookings"
 
   return (
     <main className="flex flex-1 flex-col">
@@ -102,6 +130,15 @@ export default async function BookingsPage({
                   body={t("requestsEmptyBody")}
                 />
               )
+            }
+            settings={
+              <AccountSettings
+                email={profile?.email ?? null}
+                name={profile?.name ?? null}
+                phone={profile?.phone ?? null}
+                terms={terms}
+                locale={locale}
+              />
             }
           />
         </Container>

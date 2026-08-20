@@ -3,8 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { MenuIcon } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
-import { SignedIn, SignedOut } from "@/components/auth/auth-gate"
-import { AccountMenu } from "@/components/auth/account-menu"
+import { SignedOut } from "@/components/auth/auth-gate"
 import { Container } from "@/components/layout/container"
 import { LocaleToggle } from "@/components/locale-toggle"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -80,9 +79,6 @@ export async function SiteHeader() {
               {t("signIn")}
             </Link>
           </SignedOut>
-          <SignedIn>
-            <AccountMenu />
-          </SignedIn>
 
           <LocaleToggle />
 

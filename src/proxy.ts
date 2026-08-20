@@ -10,9 +10,10 @@ import { assertEnv } from "./lib/supabase/env"
 // next-intl handles locale negotiation + prefixing (/ → /da).
 const handleI18nRouting = createMiddleware(routing)
 
-// Signed-in-only client routes: /account (profile), /appointments (list).
+// Signed-in-only client route: /appointments (My Space — bookings, gallery,
+// requests, and account settings).
 const isProtectedPath = (p: string) =>
-  /^\/(da|en)\/(account|appointments)(\/|$)/.test(p)
+  /^\/(da|en)\/appointments(\/|$)/.test(p)
 
 // Carry the refreshed Supabase session cookies onto a redirect/rewrite response
 // (they were set on `sessionResponse` by the client below, but that object may

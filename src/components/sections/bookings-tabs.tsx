@@ -2,16 +2,18 @@
 
 import { useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
+import { Settings } from "lucide-react"
 
-import { TabBar } from "@/components/ui/tab-bar"
+import { TabBar, tabTriggerClassName } from "@/components/ui/tab-bar"
+import { cn } from "@/lib/utils"
 
-export type BookingsTabKey = "bookings" | "gallery" | "requests"
+export type BookingsTabKey = "bookings" | "gallery" | "requests" | "settings"
 
 /**
- * Client-facing tabs on /bookings: Bookings · Gallery · Requests. The three
- * sections are server-rendered and passed in as slots; this only switches which
- * shows. Initial tab comes from the `?tab=` param, so the home banner can
- * deep-link straight to Requests.
+ * My Space tabs: Appointments · Gallery · Requests, with a settings gear pinned
+ * to the far right for account settings. Each panel is server-rendered and
+ * passed in as a slot; this only switches which shows. Initial tab comes from
+ * `?tab=` (the home banner deep-links to Requests).
  */
 export function BookingsTabs({
   defaultTab,
@@ -20,6 +22,7 @@ export function BookingsTabs({
   bookings,
   gallery,
   requests,
+  settings,
 }: {
   defaultTab: BookingsTabKey
   galleryCount: number
@@ -27,6 +30,7 @@ export function BookingsTabs({
   bookings: ReactNode
   gallery: ReactNode
   requests: ReactNode
+  settings: ReactNode
 }) {
   const t = useTranslations("bookings")
   const [tab, setTab] = useState<BookingsTabKey>(defaultTab)
@@ -49,9 +53,28 @@ export function BookingsTabs({
         ]}
         active={tab}
         onChange={setTab}
+        trailing={
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "settings"}
+            aria-label={t("tabSettings")}
+            title={t("tabSettings")}
+            onClick={() => setTab("settings")}
+            className={cn(tabTriggerClassName(tab === "settings"), "ml-auto")}
+          >
+            <Settings className="size-4" />
+          </button>
+        }
       />
       <div>
-        {tab === "bookings" ? bookings : tab === "gallery" ? gallery : requests}
+        {tab === "settings"
+          ? settings
+          : tab === "gallery"
+            ? gallery
+            : tab === "requests"
+              ? requests
+              : bookings}
       </div>
     </div>
   )
