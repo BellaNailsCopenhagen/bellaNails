@@ -24,7 +24,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="mt-auto border-t border-background/10 bg-primary text-primary-foreground">
-      <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:gap-6 sm:grid-cols-[1.5fr_repeat(3,minmax(0,1fr))]">
+      <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:grid-cols-3 sm:gap-6 lg:grid-cols-[1.5fr_repeat(5,minmax(0,1fr))]">
         <div className="text-left">
           <Link
             href={routes.home}
@@ -82,8 +82,10 @@ export async function SiteFooter() {
                   {link.external ? (
                     <a
                       href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
+                      // mailto opens the mail client, not a new browser tab.
+                      {...(link.href.startsWith("mailto:")
+                        ? {}
+                        : { target: "_blank", rel: "noreferrer" })}
                       className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
                     >
                       {t(link.labelKey)}

@@ -344,7 +344,10 @@
     "social": "Social",
     "instagram": "Instagram",
     "facebook": "Facebook",
-    "legal": "Legal"
+    "legal": "Legal",
+    "help": "Help",
+    "contactSupport": "Contact support",
+    "reportBug": "Report a bug"
   },
   "locale": {
     "label": "Language",

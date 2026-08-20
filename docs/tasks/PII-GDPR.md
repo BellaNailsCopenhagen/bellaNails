@@ -26,6 +26,15 @@ below and being ready to notify on a breach.
 
 ## What we must have (controller obligations)
 
+### 1a. Cookies — no banner needed (yet)
+Only **strictly-necessary** (Supabase auth/session) + **functional** (next-intl
+language) cookies are set — both exempt from consent under EU ePrivacy + the
+Danish cookie rules. **No consent banner required.** Just list them + purposes in
+the privacy notice (transparency). A banner becomes mandatory only if we add
+**non-essential** cookies (analytics-with-cookies, ad/marketing pixels) — then a
+proper opt-in CMP is needed (Datatilsynet enforces strictly). Vercel Web
+Analytics is cookieless, so it wouldn't trigger one.
+
 ### 1. Specific privacy notice — do before launch
 Denmark enforces specificity strictly; a generic notice is treated as
 non-compliance. Update the booking-flow `privacyNote` + `/privacy` to state:

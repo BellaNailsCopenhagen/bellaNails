@@ -344,7 +344,10 @@
     "social": "Sociale medier",
     "instagram": "Instagram",
     "facebook": "Facebook",
-    "legal": "Juridisk"
+    "legal": "Juridisk",
+    "help": "Hjælp",
+    "contactSupport": "Kontakt support",
+    "reportBug": "Rapportér en fejl"
   },
   "locale": {
     "label": "Sprog",

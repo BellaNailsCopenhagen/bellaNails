@@ -1,5 +1,7 @@
 import type enMessages from "../../messages/en.json"
 
+import { STUDIO_EMAIL } from "./studio"
+
 /**
  * Central route registry — the single source of truth for every internal path
  * and outbound social link. Import these instead of hardcoding `href` strings
@@ -95,6 +97,21 @@ export const footerNav: FooterColumn[] = [
     links: [
       { href: externalLinks.instagram, labelKey: "instagram", external: true },
       { href: externalLinks.facebook, labelKey: "facebook", external: true },
+    ],
+  },
+  {
+    headingKey: "help",
+    links: [
+      {
+        href: `mailto:${STUDIO_EMAIL}`,
+        labelKey: "contactSupport",
+        external: true,
+      },
+      {
+        href: `mailto:${STUDIO_EMAIL}?subject=Bug%20report`,
+        labelKey: "reportBug",
+        external: true,
+      },
     ],
   },
 ]

@@ -83,6 +83,8 @@ export function SupabaseLoginForm({ next = "/" }: { next?: string }) {
         >
           <Input
             type="email"
+            name="email"
+            autoComplete="email"
             value={email}
             onValueChange={setEmail}
             placeholder="you@email.com"
@@ -110,6 +112,8 @@ export function SupabaseLoginForm({ next = "/" }: { next?: string }) {
           </BodySm>
           <Input
             inputMode="numeric"
+            name="otp"
+            autoComplete="one-time-code"
             value={otp}
             onValueChange={setOtp}
             placeholder="123456"
