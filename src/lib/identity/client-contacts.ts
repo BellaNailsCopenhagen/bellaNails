@@ -19,9 +19,22 @@ export async function fetchClientContacts(
     const supabase = createSupabaseServiceRoleClient()
     const { data } = await supabase
       .from("clients")
-      .select("id, name, email, phone, auth_user_id")
+      .select("id, name, email, phone, auth_user_id, anonymized_at")
       .in("id", ids)
     for (const c of data ?? []) {
+      // Anonymized clients expose nothing — and must never be re-hydrated from
+      // another source (the Cal phone fill honours `anonymized`).
+      if (c.anonymized_at) {
+        contacts[c.id] = {
+          firstName: null,
+          fullName: null,
+          email: null,
+          phone: null,
+          activated: false,
+          anonymized: true,
+        }
+        continue
+      }
       const firstName = c.name?.trim().split(/\s+/)[0] ?? null
       contacts[c.id] = {
         firstName,

@@ -659,6 +659,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          anonymized_at: string | null
           auth_user_id: string | null
           created_at: string
           email: string
@@ -668,6 +669,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          anonymized_at?: string | null
           auth_user_id?: string | null
           created_at?: string
           email: string
@@ -677,6 +679,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anonymized_at?: string | null
           auth_user_id?: string | null
           created_at?: string
           email?: string

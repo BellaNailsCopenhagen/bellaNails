@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/client-media-section"
 import { ClientStatusBadge } from "@/components/admin/client-status-badge"
 import { ClientTermsPanel } from "@/components/admin/client-terms-panel"
+import { EraseClientButton } from "@/components/admin/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { BOOKING_DISPLAY_COLUMNS } from "@/lib/booking-display"
 import { isActiveBookingStatus } from "@/lib/booking-status"
@@ -38,8 +39,8 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 /**
  * A client's page — contact + full booking history for one `client_id`,
  * reached from the "View client" action on any booking card. Contact (from the
- * `clients` table) and no-show reputation reuse the shared admin resolve. Notes,
- * photos, record editing and GDPR erasure are Task 07's larger scope, deferred.
+ * `clients` table) and no-show reputation reuse the shared admin resolve. GDPR
+ * erasure (anonymize) is at the bottom; notes + record editing stay deferred.
  */
 export default async function AdminClientPage({
   params,
@@ -192,6 +193,15 @@ export default async function AdminClientPage({
       <ClientDataConsent clientId={id} dataConsents={dataConsents} />
 
       <ClientTermsPanel acceptances={termsAcceptances} />
+
+      {/* GDPR erasure — anonymize on request (irreversible). */}
+      <div className="flex flex-col gap-2 border-t border-border pt-6">
+        <BodySm className="text-xs text-muted-foreground">
+          Erase this client&rsquo;s personal data on request (anonymize — keeps
+          bookings + studio-owned photos).
+        </BodySm>
+        <EraseClientButton clientId={id} />
+      </div>
     </div>
   )
 }

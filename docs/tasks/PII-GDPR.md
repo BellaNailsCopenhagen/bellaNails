@@ -89,6 +89,18 @@ edge: a **face-identifying** published photo under a genuine erasure request mus
 still come down via the takedown flow — so keep that path working and document
 the basis (consent for images, legal obligation for financials).
 
+**Known limits of `anonymizeClient` (accepted / manual for now):**
+- Consent rows for a **deleted unused upload** cascade away with it — proof is
+  retained only for kept/published media (an "I declined" record for a photo the
+  client is erasing has little value). Intentional.
+- **`reviews.author_name`** has no `client_id` link, so a published testimonial
+  carrying a real name isn't auto-scrubbed — the owner removes it via the
+  testimonial/consent-withdrawal lever (manual). Consider linking reviews to a
+  client later.
+- **Cal.com** still holds attendee name/email/phone per booking; `anonymizeClient`
+  doesn't reach Cal. Delete the Cal booking as a manual step until Cal is retired
+  (then it cascades in-house).
+
 ### 3. Retention / auto-delete — the "auto-delete after X days"
 Define a policy, then automate it (reuse the email system's **Supabase
 `pg_cron`** infra). The key tension: Danish **Bogføringsloven** requires

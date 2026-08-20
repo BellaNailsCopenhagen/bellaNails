@@ -5,13 +5,15 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 
 /**
  * True erasure (GDPR Art. 17): when an image is deleted, destroy the private
- * storage original AND every published public copy (site/SoMe) — a soft
- * archive of the DB row alone would leave the files live. Best-effort per file:
- * DB cleanup proceeds even if a storage call fails, so a removed image never
- * keeps pointing at a live asset. Callers must authorize first — this only purges.
+ * storage original AND every published public copy (site/SoMe) — a soft archive
+ * of the DB row alone would leave the files live. DB cleanup proceeds even if a
+ * storage call fails, but **returns `false` if any object could not be
+ * deleted**, so a caller can avoid reporting success / deleting the owning row
+ * while a file survives. Callers must authorize first — this only purges.
  */
-export async function purgeMediaArtifacts(mediaId: string): Promise<void> {
+export async function purgeMediaArtifacts(mediaId: string): Promise<boolean> {
   const supabase = createSupabaseServiceRoleClient()
+  let objectsDeleted = true
 
   const { data: media } = await supabase
     .from("client_media")
@@ -42,9 +44,16 @@ export async function purgeMediaArtifacts(mediaId: string): Promise<void> {
       .from("media_consents")
       .update({ published_asset_id: null })
       .eq("id", consent.id)
-    if (asset?.storage_key) await deleteObject(asset.storage_key)
+    if (asset?.storage_key) {
+      const res = await deleteObject(asset.storage_key)
+      if (!res.ok) objectsDeleted = false
+    }
   }
 
   // The private original.
-  if (media?.storage_key) await deleteObject(media.storage_key)
+  if (media?.storage_key) {
+    const res = await deleteObject(media.storage_key)
+    if (!res.ok) objectsDeleted = false
+  }
+  return objectsDeleted
 }

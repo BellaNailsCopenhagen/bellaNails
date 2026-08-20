@@ -82,6 +82,8 @@ export async function resolveAdminBookings(
   // contact if the clients lookup missed this client.
   for (const [clientId, { phone }] of Object.entries(latestPhone)) {
     const existing = contacts[clientId]
+    // Never re-hydrate an erased client's phone from Cal.
+    if (existing?.anonymized) continue
     if (existing) existing.phone ??= phone
     // No client record resolved — treat as unactivated (booking-only).
     else
