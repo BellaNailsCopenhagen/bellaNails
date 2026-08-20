@@ -2,6 +2,13 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
+### Localize the auth surfaces (login + My space)
+`/[locale]/login` (supabase-login-form) and `/[locale]/account` (My space page +
+account-actions + the AccountMenu aria/title) are hardcoded **English**. The app
+is da-default with next-intl catalogs, so a Danish user sees English there. Add
+message keys to `messages/da.json` + `en.json` and route these through
+`useTranslations`/`getTranslations` — do both auth surfaces in one i18n pass.
+
 ### Consent re-grant (GDPR: re-granting must be as easy as withdrawing)
 Withdrawn/declined consents can't be re-granted from the UI. The server actions
 already support it (`decideMediaConsent`/`decideDataConsent` have no status

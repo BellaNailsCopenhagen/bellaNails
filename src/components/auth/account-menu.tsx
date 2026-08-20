@@ -1,36 +1,29 @@
 "use client"
 
-import { signOut } from "@/lib/identity/auth-actions"
+import Link from "next/link"
+import { useLocale } from "next-intl"
+import { Settings } from "lucide-react"
+
+import { routes } from "@/config/routes"
 import { useCurrentUser } from "@/lib/identity/use-current-user"
 
 /**
- * Minimal signed-in control: an initial + Sign out. Renders nothing when
- * signed out.
+ * Signed-in header control: a link to My space (profile, terms, sign out, delete
+ * account). Renders nothing when signed out.
  */
 export function AccountMenu() {
   const { user } = useCurrentUser()
+  const locale = useLocale()
   if (!user) return null
 
-  const initial = (user.email ?? "?").charAt(0).toUpperCase()
-
   return (
-    <div className="flex items-center gap-2">
-      <span
-        title={user.email ?? ""}
-        className="flex size-8 items-center justify-center rounded-full border border-border font-functional text-xs uppercase text-foreground"
-      >
-        {initial}
-      </span>
-      <button
-        type="button"
-        onClick={async () => {
-          await signOut()
-          window.location.assign("/")
-        }}
-        className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-      >
-        Sign out
-      </button>
-    </div>
+    <Link
+      href={`/${locale}${routes.account}`}
+      aria-label="My space"
+      title="My space"
+      className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <Settings className="size-4" />
+    </Link>
   )
 }

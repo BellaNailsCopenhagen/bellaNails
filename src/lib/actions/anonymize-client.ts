@@ -4,10 +4,14 @@ import { revalidatePath } from "next/cache"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { requireOwner } from "@/lib/admin/require-owner"
+import { getCurrentUser } from "@/lib/identity/server"
 import { purgeMediaArtifacts } from "@/lib/media-erasure"
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server"
 import type { Database } from "@/lib/supabase/types"
 
 export type AnonymizeResult = { ok: true } | { ok: false; error: string }
+
+type Admin = SupabaseClient<Database>
 
 /**
  * A client_media the artist is using or has curated — kept on erasure (the
@@ -15,7 +19,7 @@ export type AnonymizeResult = { ok: true } | { ok: false; error: string }
  * Conservative: any grant / auto-place / publish / favourite signal keeps it.
  */
 async function isArtistInUse(
-  admin: SupabaseClient<Database>,
+  admin: Admin,
   media: { id: string; favorited_at: string | null },
 ): Promise<boolean> {
   if (media.favorited_at) return true
@@ -32,18 +36,16 @@ async function isArtistInUse(
  * GDPR erasure = ANONYMIZE, not hard-delete (see docs/tasks/PII-GDPR.md). Keeps
  * the client row + its bookings/consents/links (financial retention + proof),
  * scrubs the PII, removes the login, and deletes only the client's OWN unused
- * uploads. Artist-owned / published media stays. Owner-only; idempotent.
+ * uploads. Artist-owned / published media stays. Idempotent.
  *
- * Never reports success while PII survives: if a storage object won't delete or
- * the auth account can't be removed, it aborts BEFORE stamping `anonymized_at`
- * so a re-run retries.
+ * Never reports success while PII survives: if any storage object won't delete,
+ * the auth account can't be removed, or a scrub fails, it aborts BEFORE stamping
+ * `anonymized_at` so a re-run retries cleanly. Callers authorize first.
  */
-export async function anonymizeClient(
+async function runAnonymize(
+  admin: Admin,
   clientId: string,
 ): Promise<AnonymizeResult> {
-  const admin = await requireOwner()
-  if (!admin) return { ok: false, error: "unauthorized" }
-
   try {
     const { data: client, error } = await admin
       .from("clients")
@@ -54,8 +56,7 @@ export async function anonymizeClient(
     if (!client) return { ok: false, error: "client not found" }
     if (client.anonymized_at) return { ok: true } // already anonymized
 
-    // 1. Delete the client's OWN uploads the artist isn't using/curating. Abort
-    //    (don't stamp anonymized) if a file won't delete, so a retry finishes it.
+    // 1. Delete the client's OWN uploads the artist isn't using/curating.
     const { data: ownMedia } = await admin
       .from("client_media")
       .select("id, favorited_at")
@@ -63,8 +64,9 @@ export async function anonymizeClient(
       .eq("source", "client")
     for (const media of ownMedia ?? []) {
       if (await isArtistInUse(admin, media)) continue
-      const purged = await purgeMediaArtifacts(media.id)
-      if (!purged) return { ok: false, error: "storage delete failed — retry" }
+      if (!(await purgeMediaArtifacts(media.id))) {
+        return { ok: false, error: "storage delete failed — retry" }
+      }
       const { error: delError } = await admin
         .from("client_media")
         .delete()
@@ -85,8 +87,7 @@ export async function anonymizeClient(
       }
     }
 
-    // 3. Scrub PII (keep the row + id + all links). Stamp anonymized last —
-    //    every step above must have succeeded, so a failure here retries clean.
+    // 3. Scrub PII (keep the row + id + all links). Stamp anonymized last.
     const { error: notesError } = await admin
       .from("bookings")
       .update({ client_notes: null })
@@ -103,11 +104,29 @@ export async function anonymizeClient(
       })
       .eq("id", clientId)
     if (scrubError) return { ok: false, error: scrubError.message }
-
-    revalidatePath(`/admin/clients/${clientId}`)
-    revalidatePath("/admin/clients")
     return { ok: true }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "erasure failed" }
   }
+}
+
+/** Owner erases a client on request (admin control). */
+export async function anonymizeClient(
+  clientId: string,
+): Promise<AnonymizeResult> {
+  const admin = await requireOwner()
+  if (!admin) return { ok: false, error: "unauthorized" }
+  const result = await runAnonymize(admin, clientId)
+  if (result.ok) {
+    revalidatePath(`/admin/clients/${clientId}`)
+    revalidatePath("/admin/clients")
+  }
+  return result
+}
+
+/** A signed-in client erases their own account (My space). */
+export async function deleteMyAccount(): Promise<AnonymizeResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "not signed in" }
+  return runAnonymize(createSupabaseServiceRoleClient(), user.id)
 }
