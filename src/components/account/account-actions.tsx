@@ -4,6 +4,7 @@ import {
   ConfirmActionButton,
   withdrawPill,
 } from "@/components/sections/confirm-action-button"
+import { SignOutButton } from "@/components/auth/sign-out-button"
 import { deleteMyAccount } from "@/lib/actions/anonymize-client"
 import { signOut } from "@/lib/identity/auth-actions"
 
@@ -12,16 +13,7 @@ import { signOut } from "@/lib/identity/auth-actions"
 export function AccountActions() {
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <button
-        type="button"
-        onClick={async () => {
-          await signOut()
-          window.location.assign("/")
-        }}
-        className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-      >
-        Sign out
-      </button>
+      <SignOutButton />
       <ConfirmActionButton
         action={async () => {
           const result = await deleteMyAccount()

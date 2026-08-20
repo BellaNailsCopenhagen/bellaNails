@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { AccountMenu } from "@/components/auth/account-menu"
+import { SignOutButton } from "@/components/auth/sign-out-button"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -85,7 +85,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 {newTab.label}
               </Button>
             ) : null}
-            <AccountMenu />
+            <SignOutButton />
           </div>
         </div>
       </header>
