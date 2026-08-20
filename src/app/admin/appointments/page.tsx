@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react"
 import { H2 } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
-import { AdminBookings } from "@/components/admin/admin-bookings"
+import { AdminBookings } from "@/app/admin/appointments/_components/admin-bookings"
 import { getAdminAppointments } from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Appointments" }

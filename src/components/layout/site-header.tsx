@@ -5,7 +5,7 @@ import { MenuIcon } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import { SignedOut } from "@/components/auth/auth-gate"
 import { Container } from "@/components/layout/container"
-import { LocaleToggle } from "@/components/locale-toggle"
+import { LocaleToggle } from "@/components/layout/locale-toggle"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,

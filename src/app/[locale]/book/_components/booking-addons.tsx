@@ -1,0 +1,54 @@
+import { getLocale, getTranslations } from "next-intl/server"
+
+import { BookingCustomizer } from "@/app/[locale]/book/_components/booking-customizer"
+import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-header"
+import { Container, Section } from "@/components/layout/container"
+import type { ServiceWithAddons } from "@/modules/catalog"
+import { localizeSelection } from "@/shared/localize-selection"
+import { routes } from "@/config/routes"
+
+/**
+ * BookingAddons — step 01 · Customise of the booking flow for one chosen
+ * service: back link, step indicator, the shared editorial header, then the
+ * interactive add-on customizer with the live appointment summary.
+ * `selectedAddonIds` (already sanitized by the /book page) preselects the
+ * checkboxes — back-navigation from step 02 and "book again" links both
+ * arrive with a selection.
+ */
+export async function BookingAddons({
+  service,
+  addons,
+  incompatiblePairs,
+  selectedAddonIds = [],
+}: ServiceWithAddons & { selectedAddonIds?: string[] }) {
+  const [t, locale] = await Promise.all([
+    getTranslations("booking"),
+    getLocale(),
+  ])
+
+  const { service: localizedService, addons: localizedAddons } =
+    localizeSelection(service, addons, locale)
+
+  return (
+    <Section>
+      <Container className="max-w-4xl">
+        <BookingStepHeader
+          current={0}
+          backHref={routes.book}
+          backLabel={t("back")}
+          eyebrow={t("eyebrow")}
+          lead={t("headingLine1")}
+          muted={t("headingLine2")}
+          intro={t("addonsIntro")}
+        />
+
+        <BookingCustomizer
+          service={localizedService}
+          addons={localizedAddons}
+          incompatiblePairs={incompatiblePairs}
+          initialSelectedIds={selectedAddonIds}
+        />
+      </Container>
+    </Section>
+  )
+}

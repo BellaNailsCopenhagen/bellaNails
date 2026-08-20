@@ -8,7 +8,7 @@ import { ErrorState } from "@/components/ui/error-state"
 import {
   ClientDirectory,
   type ClientRosterEntry,
-} from "@/components/admin/client-directory"
+} from "@/app/admin/clients/_components/client-directory"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"

@@ -1,4 +1,4 @@
-import { NotFound } from "@/components/sections/not-found"
+import { NotFound } from "@/app/[locale]/_components/not-found"
 
 /**
  * Localized 404. Renders inside `[locale]/layout.tsx` (header/footer/providers

@@ -4,7 +4,7 @@ import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
-import { ServiceMenu } from "@/components/sections/service-menu"
+import { ServiceMenu } from "@/app/[locale]/services/_components/service-menu"
 
 export async function generateMetadata({
   params,

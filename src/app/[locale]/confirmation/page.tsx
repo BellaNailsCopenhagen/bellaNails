@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { Confirmation } from "@/components/sections/confirmation"
+import { Confirmation } from "@/app/[locale]/confirmation/_components/confirmation"
 import { routing } from "@/i18n/routing"
 import { singleParam } from "@/shared/search-params"
 

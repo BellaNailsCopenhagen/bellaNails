@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { LegalPage, legalMetadata } from "@/components/sections/legal-page"
+import { LegalPage, legalMetadata } from "@/components/legal/legal-page"
 
 // DB-backed; render on demand so an admin edit shows immediately.
 export const dynamic = "force-dynamic"

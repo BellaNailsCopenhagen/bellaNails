@@ -3,10 +3,10 @@ import type { Metadata } from "next"
 import { Eyebrow, H2 } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
-import { ArchivedServices } from "@/components/admin/archived-services"
-import { AddonsTab } from "@/components/admin/addons-tab"
-import { ServiceRow } from "@/components/admin/service-row"
-import { ServicesTabs } from "@/components/admin/services-tabs"
+import { ArchivedServices } from "@/app/admin/services/_components/archived-services"
+import { AddonsTab } from "@/app/admin/services/_components/addons-tab"
+import { ServiceRow } from "@/app/admin/services/_components/service-row"
+import { ServicesTabs } from "@/app/admin/services/_components/services-tabs"
 import {
   getAdminCatalog,
   getAllAddons,

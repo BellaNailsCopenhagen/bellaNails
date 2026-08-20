@@ -4,10 +4,10 @@ import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
-import { BookingAddons } from "@/components/sections/booking-addons"
-import { BookingConfirm } from "@/components/sections/booking-confirm"
-import { BookingDetails } from "@/components/sections/booking-details"
-import { BookingServicePicker } from "@/components/sections/booking-service-picker"
+import { BookingAddons } from "@/app/[locale]/book/_components/booking-addons"
+import { BookingConfirm } from "@/app/[locale]/book/_components/booking-confirm"
+import { BookingDetails } from "@/app/[locale]/book/_components/booking-details"
+import { BookingServicePicker } from "@/app/[locale]/book/_components/booking-service-picker"
 import {
   isCompleteContact,
   MAX_NAME_LENGTH,

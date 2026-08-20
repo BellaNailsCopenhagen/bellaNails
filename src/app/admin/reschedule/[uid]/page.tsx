@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 
 import { H2 } from "@/components/ui/typography"
-import { AdminRescheduleEmbed } from "@/components/admin/admin-reschedule-embed"
+import { AdminRescheduleEmbed } from "@/app/admin/reschedule/[uid]/_components/admin-reschedule-embed"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { CAL_UID_PATTERN } from "@/modules/booking"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"

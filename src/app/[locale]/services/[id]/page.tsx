@@ -8,8 +8,8 @@ import { Container, Section } from "@/components/layout/container"
 import { PageHeader } from "@/components/ui/page-header"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow } from "@/components/ui/typography"
-import { ClientWorkGrid } from "@/components/sections/client-work-grid"
-import { FloatingBookButton } from "@/components/sections/floating-book-button"
+import { ClientWorkGrid } from "@/components/gallery/client-work-grid"
+import { FloatingBookButton } from "@/app/[locale]/services/[id]/_components/floating-book-button"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
   getPublicService,

@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
-import { RescheduleBooking } from "@/components/sections/reschedule-booking"
+import { RescheduleBooking } from "@/app/[locale]/appointments/reschedule/[uid]/_components/reschedule-booking"
 import {
   canManageBooking,
 } from "@/shared/booking-policy"

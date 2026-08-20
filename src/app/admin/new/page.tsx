@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { AdminComingSoon } from "@/components/admin/admin-coming-soon"
+import { AdminComingSoon } from "@/app/admin/new/_components/admin-coming-soon"
 
 export const metadata: Metadata = { title: "New booking" }
 

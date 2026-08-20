@@ -5,15 +5,15 @@ import { ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { ClientBookings } from "@/components/admin/client-bookings"
-import { AdminClientTabs } from "@/components/admin/admin-client-tabs"
+import { ClientBookings } from "@/app/admin/clients/[id]/_components/client-bookings"
+import { AdminClientTabs } from "@/app/admin/clients/[id]/_components/admin-client-tabs"
 import {
   ClientMediaGallery,
   ClientDataConsent,
-} from "@/components/admin/client-media-section"
-import { ClientStatusBadge } from "@/components/admin/client-status-badge"
-import { ClientTermsPanel } from "@/components/admin/client-terms-panel"
-import { EraseClientButton } from "@/components/admin/erase-client-button"
+} from "@/app/admin/clients/[id]/_components/client-media-section"
+import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-status-badge"
+import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
+import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { getClientBookingHistory } from "@/modules/booking"
 import { isActiveBookingStatus } from "@/shared/booking-status"

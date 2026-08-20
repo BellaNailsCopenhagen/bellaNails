@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { AssetHubTabs, type HubFilter } from "@/components/admin/asset-hub-tabs"
+import { AssetHubTabs, type HubFilter } from "@/app/admin/assets/_components/asset-hub-tabs"
 import { getHubAssets } from "@/modules/media/asset-hub"
 import { SIMPLE_ORDER, toSimpleState } from "@/components/admin/asset-state"
 import { fetchClientContacts } from "@/modules/clients/contacts"

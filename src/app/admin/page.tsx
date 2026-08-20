@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { AdminQueue } from "@/components/admin/admin-queue"
+import { AdminQueue } from "@/app/admin/_components/admin-queue"
 import { getAdminQueue } from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Queue" }

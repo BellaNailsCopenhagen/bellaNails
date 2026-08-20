@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
-import { MarkAllReadButton } from "@/components/admin/mark-all-read-button"
+import { MarkAllReadButton } from "@/app/admin/notifications/_components/mark-all-read-button"
 import {
   getNotifications,
   type OwnerNotification,

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { GalleryPreview } from "@/components/sections/gallery-preview"
+import { GalleryPreview } from "@/app/[locale]/gallery/_components/gallery-preview"
 import { routing } from "@/i18n/routing"
 
 export async function generateMetadata({

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { TermsEditor } from "@/components/admin/terms-editor"
+import { TermsEditor } from "@/app/admin/terms/_components/terms-editor"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import { getTermsVersions, TERMS_KINDS } from "@/modules/terms/terms"
 

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next"
 
 import { Toaster } from "@/components/ui/sonner"
-import { AdminShell } from "@/components/admin/admin-shell"
+import { AdminShell } from "@/app/admin/_components/admin-shell"
 import { BRAND } from "@/config/brand"
 import { fontVariables } from "@/config/fonts"
 import "../globals.css"

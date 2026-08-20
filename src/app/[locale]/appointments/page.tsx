@@ -3,14 +3,14 @@ import { notFound } from "next/navigation"
 import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
-import { MyBookings } from "@/components/sections/my-bookings"
-import { ConsentCentre } from "@/components/sections/consent-centre"
-import { ClientGallery } from "@/components/sections/client-gallery"
+import { MyBookings } from "@/app/[locale]/appointments/_components/my-bookings"
+import { ConsentCentre } from "@/app/[locale]/appointments/_components/consent-centre"
+import { ClientGallery } from "@/app/[locale]/appointments/_components/client-gallery"
 import {
   BookingsTabs,
   type BookingsTabKey,
-} from "@/components/sections/bookings-tabs"
-import { AccountSettings } from "@/components/account/account-settings"
+} from "@/app/[locale]/appointments/_components/bookings-tabs"
+import { AccountSettings } from "@/app/[locale]/appointments/_components/account-settings"
 import { Container, Section } from "@/components/layout/container"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
