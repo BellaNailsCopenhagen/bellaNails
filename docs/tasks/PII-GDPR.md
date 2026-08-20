@@ -67,14 +67,19 @@ must keep. Do this instead:
 3. **Keep** bookings, booking_requests, media/data consents, terms_acceptances,
    owner_notifications, communications — all stay linked to the retained id (the
    audit-trail / proof the owner wants).
-4. Delete **only** the client's **private, unused** uploads (`client_media` with
-   no `published_asset_id`, not used by the artist) + their **Scaleway private
-   originals** (via `purgeMediaArtifacts`, `src/lib/media-erasure.ts`).
+4. Delete **only the client's OWN, unused uploads** — `client_media` with
+   `source='client'` and no `published_asset_id` (not placed/used by the artist)
+   — plus their **Scaleway private originals** (via `purgeMediaArtifacts`,
+   `src/lib/media-erasure.ts`).
 
-**Artist images are NOT client-deletable.** Photos the artist has published or is
-using (gallery / showcase / social) stay — they're the studio's business assets.
-The client's lever for those is the existing **consent-withdrawal → takedown**
-flow (deliberate, per-image), NOT account deletion. Account-deletion ≠
+**Ownership is the line.** A client erasure removes everything the **client
+owns** — their PII (scrubbed) and their own unused uploads (deleted). Everything
+the **artist owns** — photos the artist captured for a session, and any
+published / in-use asset (gallery / showcase / social), all linked to a booking —
+**stays**. For those the client's only lever is **per-item consent withdrawal**,
+which runs the existing **withdrawal → takedown** flow (and *does* take a
+face-identifying photo down on a genuine request). The client can withdraw
+consent for such items **individually — never delete them.** Account-deletion ≠
 consent-withdrawal.
 
 **GDPR honesty:** anonymization is a valid alternative to deletion *once the data
