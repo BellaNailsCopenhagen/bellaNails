@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { BodySm } from "@/components/ui/typography"
-import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import type { ServiceWithAddons } from "@/modules/catalog"
 import {
   EMAIL_HTML_PATTERN,
   MAX_NOTES_LENGTH,

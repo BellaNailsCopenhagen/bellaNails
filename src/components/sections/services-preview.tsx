@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { BodySm, Caption, H3 } from "@/components/ui/typography"
-import { getFeaturedServices } from "@/lib/services/get-featured-services"
+import { getFeaturedServices } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 import { routes } from "@/config/routes"
 

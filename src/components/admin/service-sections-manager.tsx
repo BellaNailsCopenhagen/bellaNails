@@ -18,8 +18,8 @@ import {
   updateSection,
   deleteSection,
   moveSection,
-} from "@/lib/actions/manage-service-sections"
-import type { ServiceSection, PickableAsset } from "@/lib/service-sections"
+} from "@/modules/catalog/section-actions"
+import type { ServiceSection, PickableAsset } from "@/modules/catalog"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
 const iconBtn =

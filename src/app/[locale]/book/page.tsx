@@ -15,7 +15,7 @@ import {
   sanitizeContactText,
 } from "@/shared/contact-validation"
 import { sanitizeSelectedAddonIds } from "@/shared/booking-totals"
-import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import { getServiceWithAddons } from "@/modules/catalog"
 import { singleParam } from "@/shared/search-params"
 import { CALCOM_USERNAME } from "@/config/calcom"
 

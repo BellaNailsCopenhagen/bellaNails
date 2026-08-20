@@ -3,7 +3,7 @@ import { HoverArrow } from "@/components/ui/arrow-link"
 import { PriceTag } from "@/components/ui/price-tag"
 import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption } from "@/components/ui/typography"
-import type { MenuService } from "@/lib/services/get-service-menu"
+import type { MenuService } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 import { routes, serviceDetailPath } from "@/config/routes"
 

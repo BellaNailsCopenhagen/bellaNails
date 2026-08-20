@@ -14,9 +14,9 @@ import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
   getPublicService,
   getServicePublicGallery,
-} from "@/lib/services/get-public-service"
-import { getServiceSections } from "@/lib/service-sections"
-import { getServiceReviews } from "@/lib/reviews"
+} from "@/modules/catalog"
+import { getServiceSections } from "@/modules/catalog"
+import { getServiceReviews } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 
 export const dynamic = "force-dynamic"

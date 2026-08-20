@@ -10,7 +10,7 @@ import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
 import {
   getServiceMenu,
   type MenuCategory,
-} from "@/lib/services/get-service-menu"
+} from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 
 async function CategorySection({

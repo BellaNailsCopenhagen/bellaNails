@@ -2,7 +2,7 @@ import {
   metaOf,
 } from "@/shared/booking-policy"
 import { CAL_UID_PATTERN } from "@/modules/booking"
-import { getServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import { getServiceWithAddons } from "@/modules/catalog"
 import { localizeSelection } from "@/shared/localize-selection"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { bookingExists, getBookingRecap } from "@/db/bookings"

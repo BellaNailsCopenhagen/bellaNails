@@ -12,7 +12,7 @@ import {
   getAllAddons,
   getAllIncompatibilities,
   type AdminService,
-} from "@/lib/admin/catalog"
+} from "@/modules/catalog"
 
 export const metadata: Metadata = { title: "Services" }
 

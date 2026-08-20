@@ -6,7 +6,7 @@ import { ServiceRow } from "@/components/sections/service-row"
 import { PageHeader } from "@/components/ui/page-header"
 import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
-import { getServiceMenu } from "@/lib/services/get-service-menu"
+import { getServiceMenu } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 
 /**

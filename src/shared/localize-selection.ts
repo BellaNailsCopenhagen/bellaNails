@@ -2,7 +2,7 @@ import type { BookingLineItem } from "@/shared/booking-totals"
 import type {
   BookableService,
   ServiceAddon,
-} from "@/lib/services/get-service-with-addons"
+} from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 
 /**

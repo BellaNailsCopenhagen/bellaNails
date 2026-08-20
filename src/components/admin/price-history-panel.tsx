@@ -3,11 +3,8 @@
 import { useEffect, useState } from "react"
 
 import { formatPrice } from "@/components/ui/price-tag"
-import {
-  getPriceHistory,
-  type PriceEntity,
-  type PriceHistoryEntry,
-} from "@/lib/actions/manage-services"
+import { getPriceHistory } from "@/modules/catalog/service-actions"
+import type { PriceEntity, PricePoint } from "@/db/price-history"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -23,7 +20,7 @@ export function PriceHistoryPanel({
   entityType: PriceEntity
   entityId: string
 }) {
-  const [entries, setEntries] = useState<PriceHistoryEntry[] | null>(null)
+  const [entries, setEntries] = useState<PricePoint[] | null>(null)
 
   useEffect(() => {
     let active = true

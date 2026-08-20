@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import { addReview, deleteReview } from "@/lib/actions/manage-reviews"
-import type { Review } from "@/lib/reviews"
+import { addReview, deleteReview } from "@/modules/catalog/review-actions"
+import type { Review } from "@/modules/catalog"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
 

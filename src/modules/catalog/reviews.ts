@@ -1,9 +1,6 @@
-import type { SupabaseClient } from "@supabase/supabase-js"
-
+import type { Db } from "@/db/client"
+import { listReviewsForService } from "@/db/reviews"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
-import type { Database } from "@/platform/supabase/types"
-
-type Client = SupabaseClient<Database>
 
 export type Review = {
   id: string
@@ -16,15 +13,10 @@ export type Review = {
 /** Reviews for a service, newest first. Public read (degrades to [] on error). */
 export async function getServiceReviews(
   serviceId: string,
-  supabase: Client = createSupabaseServerClient(),
+  db: Db = createSupabaseServerClient(),
 ): Promise<Review[]> {
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("id, author_name, body, rating, created_at")
-    .eq("service_id", serviceId)
-    .order("created_at", { ascending: false })
-  if (error || !data) return []
-  return data.map((r) => ({
+  const rows = await listReviewsForService(db, serviceId)
+  return rows.map((r) => ({
     id: r.id,
     authorName: r.author_name,
     body: r.body,

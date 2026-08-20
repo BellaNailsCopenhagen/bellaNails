@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
-import { updateService, archiveService } from "@/lib/actions/manage-services"
+import { archiveService, updateService } from "@/modules/catalog/service-actions"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
 const DURATION_STEP = 15

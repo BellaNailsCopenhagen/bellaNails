@@ -66,6 +66,46 @@ export async function listSiteConsentsFor(
   return data ?? []
 }
 
+/** Published asset ids the client agreed to show ON THE WEBSITE. A
+    social-only grant must never appear here — callers place these on public
+    site surfaces. */
+export async function listGrantedSiteAssetIds(db: Db): Promise<string[]> {
+  const { data } = await db
+    .from("media_consents")
+    .select("published_asset_id")
+    .eq("purpose", "site")
+    .eq("status", "granted")
+    .not("published_asset_id", "is", null)
+  return [
+    ...new Set(
+      (data ?? [])
+        .map((c) => c.published_asset_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ]
+}
+
+/** Granted site consents for a set of images, with the published copy they
+    point at — the public service gallery joins through these. */
+export async function listGrantedSitePublications(
+  db: Db,
+  mediaIds: string[],
+): Promise<{ client_media_id: string; published_asset_id: string }[]> {
+  if (mediaIds.length === 0) return []
+  const { data } = await db
+    .from("media_consents")
+    .select("client_media_id, published_asset_id")
+    .in("client_media_id", mediaIds)
+    .eq("purpose", "site")
+    .eq("status", "granted")
+    .not("published_asset_id", "is", null)
+  return (data ?? []).flatMap((c) =>
+    c.published_asset_id
+      ? [{ client_media_id: c.client_media_id, published_asset_id: c.published_asset_id }]
+      : [],
+  )
+}
+
 /** The consent row for one image + purpose, with its owner — every client
     decision authorizes against this. */
 export async function findConsent(

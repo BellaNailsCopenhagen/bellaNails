@@ -4,7 +4,7 @@ import { useState } from "react"
 
 import { Eyebrow } from "@/components/ui/typography"
 import { ServiceRow } from "@/components/admin/service-row"
-import type { AdminService } from "@/lib/admin/catalog"
+import type { AdminService } from "@/modules/catalog"
 
 /** Archived services, tucked behind a Show/Hide toggle at the foot of the list
     so they stay out of the way but remain reachable (to restore/inspect). */

@@ -6,8 +6,8 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { uploadMedia } from "@/shared/upload-media"
-import { publishStudioImage } from "@/lib/actions/manage-service-sections"
-import type { PickableAsset } from "@/lib/service-sections"
+import { publishStudioImage } from "@/modules/catalog/section-actions"
+import type { PickableAsset } from "@/modules/catalog"
 
 export type PickedImage = { assetId: string; url: string }
 

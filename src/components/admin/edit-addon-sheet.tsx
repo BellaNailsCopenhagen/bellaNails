@@ -12,11 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { BodySm } from "@/components/ui/typography"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
-import {
-  linkAddon,
-  saveAddon,
-  setAddonCompatibility,
-} from "@/lib/actions/manage-services"
+import { linkAddon, saveAddon, setAddonCompatibility } from "@/modules/catalog/addon-actions"
 
 const fieldLabel = "text-[10px] tracking-widest-lux"
 const sectionLabel =

@@ -1,8 +1,7 @@
-import type { SupabaseClient } from "@supabase/supabase-js"
-
-import type { Database } from "@/platform/supabase/types"
-
-type Client = SupabaseClient<Database>
+import { listAssetUrlsByIds } from "@/db/assets"
+import type { Db } from "@/db/client"
+import { listGrantedSiteAssetIds } from "@/db/media-consents"
+import { listSectionsForService } from "@/db/service-sections"
 
 export type ServiceSection = {
   id: string
@@ -21,27 +20,17 @@ export type ServiceSection = {
  * fragile FK embed can error at runtime and silently yield zero sections.
  */
 export async function getServiceSections(
-  supabase: Client,
+  db: Db,
   serviceId: string,
 ): Promise<ServiceSection[]> {
-  const { data, error } = await supabase
-    .from("service_sections")
-    .select("id, sort_order, title_en, title_dk, body_en, body_dk, asset_id")
-    .eq("service_id", serviceId)
-    .order("sort_order", { ascending: true })
-  if (error || !data) return []
+  const data = await listSectionsForService(db, serviceId)
+  if (!data.length) return []
 
   const assetIds = data
     .map((row) => row.asset_id)
     .filter((id): id is string => Boolean(id))
-  const urlById = new Map<string, string>()
-  if (assetIds.length) {
-    const { data: assets } = await supabase
-      .from("assets")
-      .select("id, url")
-      .in("id", assetIds)
-    for (const asset of assets ?? []) urlById.set(asset.id, asset.url)
-  }
+  const assets = await listAssetUrlsByIds(db, assetIds)
+  const urlById = new Map(assets.map((a) => [a.id, a.url]))
 
   return data.map((row) => ({
     id: row.id,
@@ -64,28 +53,9 @@ export type PickableAsset = { id: string; url: string }
  * public site. Two plain queries (consents → asset ids → assets) since the FK
  * isn't in the hand-maintained types. Deduplicated across any duplicate rows.
  */
-export async function getConsentedAssets(
-  supabase: Client,
-): Promise<PickableAsset[]> {
-  const { data: consents } = await supabase
-    .from("media_consents")
-    .select("published_asset_id")
-    .eq("purpose", "site")
-    .eq("status", "granted")
-    .not("published_asset_id", "is", null)
-
-  const ids = [
-    ...new Set(
-      (consents ?? [])
-        .map((c) => c.published_asset_id)
-        .filter((id): id is string => Boolean(id)),
-    ),
-  ]
+export async function getConsentedAssets(db: Db): Promise<PickableAsset[]> {
+  const ids = await listGrantedSiteAssetIds(db)
   if (!ids.length) return []
-
-  const { data: assets } = await supabase
-    .from("assets")
-    .select("id, url")
-    .in("id", ids)
-  return (assets ?? []).map((a) => ({ id: a.id, url: a.url }))
+  const assets = await listAssetUrlsByIds(db, ids)
+  return assets.map((a) => ({ id: a.id, url: a.url }))
 }

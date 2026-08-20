@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { BookingCustomizer } from "@/components/sections/booking-customizer"
 import { BookingStepHeader } from "@/components/sections/booking-step-header"
 import { Container, Section } from "@/components/layout/container"
-import type { ServiceWithAddons } from "@/lib/services/get-service-with-addons"
+import type { ServiceWithAddons } from "@/modules/catalog"
 import { localizeSelection } from "@/shared/localize-selection"
 import { routes } from "@/config/routes"
 

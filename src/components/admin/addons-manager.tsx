@@ -7,7 +7,7 @@ import {
   type EditableAddon,
 } from "@/components/admin/edit-addon-sheet"
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
-import { linkAddon, unlinkAddon } from "@/lib/actions/manage-services"
+import { linkAddon, unlinkAddon } from "@/modules/catalog/addon-actions"
 
 /**
  * Add-ons linked to one service. Add-ons are standalone now (managed on the

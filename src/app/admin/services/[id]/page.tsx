@@ -11,10 +11,10 @@ import { EditServiceSheet } from "@/components/admin/edit-service-sheet"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { ServiceSectionsManager } from "@/components/admin/service-sections-manager"
 import { ReviewsManager } from "@/components/admin/reviews-manager"
-import { getAllAddons, getServiceDetail } from "@/lib/admin/catalog"
+import { getAllAddons, getServiceDetail } from "@/modules/catalog"
 import { requireOwner } from "@/lib/admin/require-owner"
-import { getConsentedAssets, getServiceSections } from "@/lib/service-sections"
-import { getServiceReviews } from "@/lib/reviews"
+import { getConsentedAssets, getServiceSections } from "@/modules/catalog"
+import { getServiceReviews } from "@/modules/catalog"
 
 export const metadata: Metadata = { title: "Service" }
 

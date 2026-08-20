@@ -7,7 +7,7 @@ import {
   type EditableAddon,
 } from "@/components/admin/edit-addon-sheet"
 import { useActionRunner } from "@/lib/hooks/use-action-runner"
-import { archiveAddon } from "@/lib/actions/manage-services"
+import { archiveAddon } from "@/modules/catalog/addon-actions"
 
 export type ManageableAddon = EditableAddon & { archived_at: string | null }
 

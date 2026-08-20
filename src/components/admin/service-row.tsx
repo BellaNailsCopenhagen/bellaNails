@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { PriceTag } from "@/components/ui/price-tag"
-import type { AdminService } from "@/lib/admin/catalog"
+import type { AdminService } from "@/modules/catalog"
 
 /**
  * One line in the services list — name, duration + Cal sync state, price.
