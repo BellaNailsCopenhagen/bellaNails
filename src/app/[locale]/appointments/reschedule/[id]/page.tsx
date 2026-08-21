@@ -5,12 +5,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
-import { RescheduleBooking } from "@/app/[locale]/appointments/reschedule/[uid]/_components/reschedule-booking"
-import {
-  canManageBooking,
-} from "@/shared/booking-policy"
+import { RescheduleBooking } from "@/app/[locale]/appointments/reschedule/[id]/_components/reschedule-booking"
+import { canManageBooking, metaOf } from "@/shared/booking-policy"
 import { routes } from "@/config/routes"
-import { getMyBookingLifecycle } from "@/modules/booking"
+import { getMyBookingForManage } from "@/modules/booking"
 
 export async function generateMetadata({
   params,
@@ -29,16 +27,16 @@ export async function generateMetadata({
 }
 
 /** Auth gate lives in the proxy; the RLS read proves ownership (someone
-    else's uid reads as missing → 404). Ineligible bookings bounce back to
-    /bookings with a notice. */
+    else's id reads as missing → 404). Ineligible bookings bounce back to
+    /appointments with a notice. */
 export default async function ReschedulePage({
   params,
-}: PageProps<"/[locale]/appointments/reschedule/[uid]">) {
-  const { locale, uid } = await params
+}: PageProps<"/[locale]/appointments/reschedule/[id]">) {
+  const { locale, id } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
-  const booking = await getMyBookingLifecycle(uid)
+  const booking = await getMyBookingForManage(id)
   if (!booking) notFound()
 
   // eslint-disable-next-line react-hooks/purity
@@ -50,9 +48,15 @@ export default async function ReschedulePage({
     })
   }
 
+  const meta = metaOf(booking)
   return (
     <main className="flex flex-1 flex-col">
-      <RescheduleBooking uid={uid} startTime={booking.start_time} />
+      <RescheduleBooking
+        id={id}
+        startTime={booking.start_time}
+        serviceId={meta.serviceId ?? null}
+        addonIds={meta.addonIds ?? []}
+      />
     </main>
   )
 }

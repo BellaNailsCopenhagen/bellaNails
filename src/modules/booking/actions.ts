@@ -1,45 +1,64 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { headers } from "next/headers"
 
 import {
-  getBookingLifecycle,
+  cancelBookingById,
+  getBookingForManage,
+  rescheduleBookingById,
   setBookingNoShowAt,
+  type BookingManageState,
 } from "@/db/bookings"
+import type { Db } from "@/db/client"
+import { getAvailableSlots } from "@/modules/booking/availability"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
-import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
-import { BOOKING_STATUS } from "@/shared/booking-status"
-import { canManageBooking, canMarkNoShow } from "@/shared/booking-policy"
-
-import { cancelBookingAtCal } from "./cancel-at-cal"
-import { CAL_UID_PATTERN, syncBookingFromCal } from "./sync-from-cal"
+import {
+  createAuthedSupabaseServerClient,
+  createSupabaseServiceRoleClient,
+} from "@/platform/supabase/server"
+import { canManageBooking, canMarkNoShow, metaOf } from "@/shared/booking-policy"
+import {
+  BOOKING_STATUS,
+  isActiveBookingStatus,
+} from "@/shared/booking-status"
 
 /**
- * Every booking mutation a UI can trigger. Each one re-establishes who the
- * caller is before it does anything — the UI is never the authorization
- * boundary — then delegates the actual work to this module's internals.
+ * Every booking mutation a UI can trigger — now fully in-house (no Cal). Each
+ * one re-establishes who the caller is before it does anything (the UI is never
+ * the authorization boundary): the client actions prove ownership with the
+ * RLS-scoped authed *read*, then write with service-role (bookings has no client
+ * UPDATE policy — an authed write would silently affect zero rows). Owner
+ * actions re-check the role via requireOwner.
  */
+
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Admin surfaces that render a booking's manage buttons — all revalidated
+    together after an owner mutation so none is left showing stale state. */
+function revalidateAdminBookingViews(): void {
+  revalidatePath("/admin")
+  revalidatePath("/admin/appointments")
+  revalidatePath("/admin/clients/[id]", "page")
+}
 
 type CancelResult =
   | { ok: true }
   | { ok: false; error: "unauthorized" | "not_found" | "within_policy" | "failed" }
 
 /**
- * Cancel a booking in-app: ownership is proven by the RLS read (the authed
- * client only sees the caller's rows), the 24 h policy is re-checked
- * server-side (the UI disable is not a boundary), then Cal is told via API
- * v2. On success our row is mirrored immediately — the webhook lands the
- * same state idempotently.
+ * Cancel a booking in-app: ownership is proven by the RLS read + write (the
+ * authed client only touches the caller's rows), and the 24 h policy is
+ * re-checked server-side (the UI disable is not a boundary).
  */
-export async function cancelBooking(uid: string): Promise<CancelResult> {
+export async function cancelBooking(id: string): Promise<CancelResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "unauthorized" }
-  if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
+  if (!UUID.test(id)) return { ok: false, error: "not_found" }
 
   const supabase = await createAuthedSupabaseServerClient()
-  const booking = await getBookingLifecycle(supabase, uid)
+  const booking = await getBookingForManage(supabase, id)
   if (!booking) return { ok: false, error: "not_found" }
 
   if (booking.status === BOOKING_STATUS.cancelled) {
@@ -52,10 +71,8 @@ export async function cancelBooking(uid: string): Promise<CancelResult> {
     return { ok: false, error: "within_policy" }
   }
 
-  const result = await cancelBookingAtCal(
-    uid,
-    "Cancelled by the client via the website",
-  )
+  // Ownership proven by the authed read above; the write needs service-role.
+  const result = await cancelBookingById(createSupabaseServiceRoleClient(), id)
   if (!result.ok) return { ok: false, error: "failed" }
 
   revalidatePath("/[locale]/appointments", "page")
@@ -71,26 +88,133 @@ type OwnerCancelResult =
  * **no 24 h policy** — the studio can cancel at any time.
  */
 export async function cancelBookingAsOwner(
-  uid: string,
+  id: string,
 ): Promise<OwnerCancelResult> {
   const service = await requireOwner()
   if (!service) return { ok: false, error: "unauthorized" }
-  if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
+  if (!UUID.test(id)) return { ok: false, error: "not_found" }
 
-  const booking = await getBookingLifecycle(service, uid)
+  const booking = await getBookingForManage(service, id)
   if (!booking) return { ok: false, error: "not_found" }
 
   if (booking.status === BOOKING_STATUS.cancelled) {
-    // Already cancelled out-of-band — refresh the stale card.
-    revalidatePath("/admin")
+    revalidateAdminBookingViews()
     return { ok: true }
   }
 
-  const result = await cancelBookingAtCal(uid, "Cancelled by the studio")
+  const result = await cancelBookingById(service, id)
   if (!result.ok) return { ok: false, error: "failed" }
 
-  revalidatePath("/admin")
+  revalidateAdminBookingViews()
   return { ok: true }
+}
+
+type RescheduleResult =
+  | { ok: true }
+  | {
+      ok: false
+      error:
+        | "unauthorized"
+        | "not_found"
+        | "within_policy"
+        | "unavailable"
+        | "failed"
+    }
+
+/**
+ * The new slot's end for a booking, re-validated against live availability
+ * (studio hours, lead time, other bookings). Null when the service is unknown
+ * or the chosen start isn't actually offered — never trust the client's time.
+ */
+async function resolveNewSlotEnd(
+  booking: BookingManageState,
+  newStart: string,
+  ignoreLeadTime: boolean,
+): Promise<string | null> {
+  const meta = metaOf(booking)
+  if (!meta.serviceId) return null
+  const startMs = new Date(newStart).getTime()
+  if (!Number.isFinite(startMs)) return null
+
+  const slots = await getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
+    ignoreLeadTime,
+  })
+  const slot = slots.find((s) => new Date(s.start).getTime() === startMs)
+  return slot?.end ?? null
+}
+
+// `writeDb` is service-role in both paths (ownership is already proven by the
+// caller's read); `ignoreLeadTime` lets the owner path reach near-term slots.
+async function applyReschedule(
+  writeDb: Db,
+  id: string,
+  booking: BookingManageState,
+  newStart: string,
+  ignoreLeadTime: boolean,
+): Promise<RescheduleResult> {
+  const end = await resolveNewSlotEnd(booking, newStart, ignoreLeadTime)
+  if (!end) return { ok: false, error: "unavailable" }
+
+  const result = await rescheduleBookingById(writeDb, id, newStart, end)
+  if (!result.ok) {
+    return { ok: false, error: result.reason === "overlap" ? "unavailable" : "failed" }
+  }
+  return { ok: true }
+}
+
+/**
+ * Move a booking to a new time in-app. Ownership via the RLS authed client, the
+ * 24 h policy re-checked, and the chosen slot re-validated (with the booking's
+ * own service + add-ons) before the write.
+ */
+export async function rescheduleBooking(
+  id: string,
+  newStart: string,
+): Promise<RescheduleResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "unauthorized" }
+  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+
+  const supabase = await createAuthedSupabaseServerClient()
+  const booking = await getBookingForManage(supabase, id)
+  if (!booking) return { ok: false, error: "not_found" }
+  if (!canManageBooking(booking, Date.now())) {
+    return { ok: false, error: "within_policy" }
+  }
+
+  // Ownership proven by the authed read; write with service-role, public rules.
+  const result = await applyReschedule(
+    createSupabaseServiceRoleClient(),
+    id,
+    booking,
+    newStart,
+    false,
+  )
+  if (result.ok) revalidatePath("/[locale]/appointments", "page")
+  return result
+}
+
+/**
+ * Reschedule any active booking on the studio's behalf — no 24 h policy. The
+ * slot is still re-validated so the studio can't double-book itself.
+ */
+export async function rescheduleBookingAsOwner(
+  id: string,
+  newStart: string,
+): Promise<RescheduleResult> {
+  const service = await requireOwner()
+  if (!service) return { ok: false, error: "unauthorized" }
+  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+
+  const booking = await getBookingForManage(service, id)
+  if (!booking || !isActiveBookingStatus(booking.status)) {
+    return { ok: false, error: "not_found" }
+  }
+
+  // The studio isn't bound by the public 24 h lead time.
+  const result = await applyReschedule(service, id, booking, newStart, true)
+  if (result.ok) revalidateAdminBookingViews()
+  return result
 }
 
 type NoShowResult =
@@ -99,19 +223,18 @@ type NoShowResult =
 
 /**
  * Toggle the studio-side no-show marker. `no_show_at` is OUR column, separate
- * from the Cal-synced `status`, so a later webhook can't clobber it and clients
- * never see it. Setting a mark re-checks eligibility (an hour past start);
- * clearing one is always allowed.
+ * from the booking `status`, so clients never see it. Setting a mark re-checks
+ * eligibility (an hour past start); clearing one is always allowed.
  */
 export async function setBookingNoShow(
-  uid: string,
+  id: string,
   noShow: boolean,
 ): Promise<NoShowResult> {
   const service = await requireOwner()
   if (!service) return { ok: false, error: "unauthorized" }
-  if (!CAL_UID_PATTERN.test(uid)) return { ok: false, error: "not_found" }
+  if (!UUID.test(id)) return { ok: false, error: "not_found" }
 
-  const booking = await getBookingLifecycle(service, uid)
+  const booking = await getBookingForManage(service, id)
   if (!booking) return { ok: false, error: "not_found" }
   if (noShow && !canMarkNoShow(booking, Date.now())) {
     return { ok: false, error: "ineligible" }
@@ -119,48 +242,11 @@ export async function setBookingNoShow(
 
   const result = await setBookingNoShowAt(
     service,
-    uid,
+    id,
     noShow ? new Date().toISOString() : null,
   )
   if (!result.ok) return { ok: false, error: "failed" }
 
-  revalidatePath("/admin")
-  revalidatePath("/admin/appointments")
+  revalidateAdminBookingViews()
   return { ok: true }
-}
-
-/** Per-instance sliding-window throttle. Not distributed (each serverless
-    instance counts separately) — the goal is blunting junk-uid loops that
-    would burn the Cal API key's rate budget, not precise global limiting. */
-const WINDOW_MS = 60_000
-const MAX_PER_WINDOW = 10
-const hits = new Map<string, number[]>()
-
-function allow(key: string, now: number): boolean {
-  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS)
-  if (recent.length >= MAX_PER_WINDOW) return false
-  recent.push(now)
-  hits.set(key, recent)
-  // Bound the map — a scan rotating IPs must not grow memory unbounded.
-  if (hits.size > 1000) hits.clear()
-  return true
-}
-
-/**
- * Pull-persist a booking right after embed success. Deliberately
- * unauthenticated: the booking flow runs signed-out, the uid is an
- * unguessable capability token, and the write is derived entirely from Cal's
- * data. Returns only ok/not — no booking data crosses back.
- */
-export async function syncBooking(uid: string): Promise<{ ok: boolean }> {
-  if (!CAL_UID_PATTERN.test(uid)) return { ok: false }
-
-  const ip =
-    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!allow(ip, Date.now())) {
-    console.error("[booking-sync] rate limited", ip)
-    return { ok: false }
-  }
-
-  return syncBookingFromCal(uid)
 }

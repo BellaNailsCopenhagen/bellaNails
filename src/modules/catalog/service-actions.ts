@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache"
 
 import {
-  getServiceCalEventId,
   getServicePricing,
   insertService,
   setServiceArchived,
@@ -11,16 +10,13 @@ import {
 } from "@/db/services"
 import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { createCalEventType, patchCalEventType } from "@/platform/cal/event-types"
-import { computeSlotOptions } from "@/shared/booking-totals"
 
-import { resyncSlotOptions } from "./slot-sync"
 import type {
   ServiceActionResult,
   ServiceCreateInput,
   ServiceEditInput,
 } from "./types"
-import { calSlugFor, krToCents, nameTaken } from "./validation"
+import { krToCents, nameTaken } from "./validation"
 
 /**
  * Owner-managed service writes. Every action re-verifies the owner role (the UI
@@ -42,8 +38,8 @@ export async function getPriceHistory(
   return listPriceHistory(db, entityType, entityId)
 }
 
-/** Create a service — its Cal event type is created first (the slug/id are
-    NOT NULL), then the row. Fails without side effects if Cal rejects. */
+/** Create a service. Availability is the in-house engine's job — no external
+    calendar to provision. */
 export async function createService(
   input: ServiceCreateInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
@@ -62,22 +58,12 @@ export async function createService(
     return { ok: false, error: "Another service already uses that name." }
   }
 
-  const cal = await createCalEventType({
-    title: nameEn,
-    slug: calSlugFor(nameEn),
-    lengthInMinutes: input.durationMins,
-    lengthInMinutesOptions: computeSlotOptions(input.durationMins, [], []),
-  })
-  if (!cal.ok) return { ok: false, error: `Cal sync failed: ${cal.error}` }
-
   const created = await insertService(db, {
     name_en: nameEn,
     name_dk: nameDk,
     base_price_cents: cents,
     base_duration_mins: input.durationMins,
     category_id: input.categoryId,
-    cal_event_id: cal.data.id,
-    cal_event_slug: cal.data.slug,
   })
   if (!created.ok) return { ok: false, error: "Couldn’t create the service." }
 
@@ -107,7 +93,6 @@ export async function updateService(
 
   const current = await getServicePricing(db, id)
   if (!current) return { ok: false, error: "Service not found." }
-  const durationChanged = current.base_duration_mins !== input.durationMins
 
   const saved = await updateServiceRow(db, id, {
     name_en: nameEn,
@@ -123,15 +108,8 @@ export async function updateService(
     await recordPricePoint(db, "service", id, cents)
   }
 
-  // Name/price/description don't touch Cal; duration does.
-  let syncError: string | undefined
-  if (durationChanged) {
-    const sync = await resyncSlotOptions(db, id)
-    if (!sync.ok) syncError = sync.error
-  }
-
   revalidateService(id)
-  return { ok: true, syncError }
+  return { ok: true }
 }
 
 export async function archiveService(
@@ -141,9 +119,6 @@ export async function archiveService(
   const db = await requireOwner()
   if (!db) return { ok: false, error: "unauthorized" }
 
-  const service = await getServiceCalEventId(db, id)
-  if (!service) return { ok: false, error: "Service not found." }
-
   const saved = await setServiceArchived(
     db,
     id,
@@ -151,15 +126,8 @@ export async function archiveService(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update the service." }
 
-  // Hide/show the Cal event type so archived services can't be booked.
-  let syncError: string | undefined
-  if (service.cal_event_id) {
-    const sync = await patchCalEventType(service.cal_event_id, {
-      hidden: archived,
-    })
-    if (!sync.ok) syncError = sync.error
-  }
-
+  // Archived services are filtered out of every public read, so they can no
+  // longer be booked — no external calendar to hide.
   revalidateService(id)
-  return { ok: true, syncError }
+  return { ok: true }
 }

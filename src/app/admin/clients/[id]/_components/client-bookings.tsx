@@ -197,7 +197,7 @@ export function ClientBookings({
               <ul>
                 {filteredUpcoming.map((booking) => (
                   <BookingListRow
-                    key={booking.row.cal_booking_id}
+                    key={booking.row.id}
                     booking={booking}
                     contact={contact}
                     clientNoShowCount={clientNoShowCount}
@@ -222,7 +222,7 @@ export function ClientBookings({
               <ul>
                 {filteredPast.map((booking) => (
                   <BookingListRow
-                    key={booking.row.cal_booking_id}
+                    key={booking.row.id}
                     booking={booking}
                     contact={contact}
                     clientNoShowCount={clientNoShowCount}

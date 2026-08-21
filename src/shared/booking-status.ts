@@ -1,7 +1,8 @@
 /**
  * The `bookings.status` vocabulary — the schema column is a plain string, so
- * this const is the single contract between the writer (the Cal webhook) and
- * readers (the /bookings page, admin queue). Never write a literal.
+ * this const is the single contract between the writers (the booking create /
+ * cancel / reschedule actions) and readers (the /appointments page, admin
+ * queue). Never write a literal.
  */
 export const BOOKING_STATUS = {
   confirmed: "confirmed",

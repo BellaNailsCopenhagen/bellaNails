@@ -18,10 +18,10 @@ import {
  * and revalidates the admin surfaces.
  */
 export function AdminNoShowButton({
-  uid,
+  id,
   marked,
 }: {
-  uid: string
+  id: string
   marked: boolean
 }) {
   const [pending, startTransition] = React.useTransition()
@@ -29,7 +29,7 @@ export function AdminNoShowButton({
   const toggle = () =>
     startTransition(async () => {
       try {
-        const result = await setBookingNoShow(uid, !marked)
+        const result = await setBookingNoShow(id, !marked)
         if (result.ok) {
           toast.success(marked ? "No-show cleared" : "Marked as no-show")
         } else {

@@ -4,33 +4,42 @@ import { notFound } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 
 import { H2 } from "@/components/ui/typography"
-import { AdminRescheduleEmbed } from "@/app/admin/reschedule/[uid]/_components/admin-reschedule-embed"
+import { AdminRescheduleSlotStep } from "@/app/admin/reschedule/[id]/_components/admin-reschedule-slot-step"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import {
-  CAL_UID_PATTERN,
-  getBookingLifecycleAsOwner,
-} from "@/modules/booking"
+import { metaOf } from "@/shared/booking-policy"
+import { getAvailableSlots, getBookingForManageAsOwner } from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Reschedule" }
 
 export const dynamic = "force-dynamic"
 
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * Owner reschedule-on-behalf. The proxy gates /admin to the owner; the row is
  * read via service-role (owner may move any booking — no RLS-own check, no
- * 24 h policy). Only active bookings are reschedulable. On success the embed
- * settles our row and returns to the queue.
+ * 24 h policy). Only active bookings are reschedulable; availability is computed
+ * in-house from the booking's own service + add-ons.
  */
 export default async function AdminReschedulePage({
   params,
 }: {
-  params: Promise<{ uid: string }>
+  params: Promise<{ id: string }>
 }) {
-  const { uid } = await params
-  if (!CAL_UID_PATTERN.test(uid)) notFound()
+  const { id } = await params
+  if (!UUID.test(id)) notFound()
 
-  const booking = await getBookingLifecycleAsOwner(uid)
+  const booking = await getBookingForManageAsOwner(id)
   if (!booking || !isActiveBookingStatus(booking.status)) notFound()
+
+  const meta = metaOf(booking)
+  // Owner picker mirrors rescheduleBookingAsOwner: no public 24 h lead time.
+  const slots = meta.serviceId
+    ? await getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
+        ignoreLeadTime: true,
+      })
+    : []
 
   return (
     <div className="space-y-6">
@@ -44,7 +53,7 @@ export default async function AdminReschedulePage({
         </Link>
         <H2>Reschedule</H2>
       </div>
-      <AdminRescheduleEmbed uid={uid} />
+      <AdminRescheduleSlotStep id={id} slots={slots} />
     </div>
   )
 }

@@ -7,7 +7,6 @@ import {
   CalendarRange,
   ChevronRight,
   Clock,
-  ExternalLink,
   Images,
   ScrollText,
   type LucideIcon,
@@ -16,7 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { H2 } from "@/components/ui/typography"
 import { getUnreadNotificationCount } from "@/modules/notifications/reads"
-import { CALCOM_ORIGIN } from "@/config/calcom"
 
 export const metadata: Metadata = { title: "More" }
 export const dynamic = "force-dynamic"
@@ -31,8 +29,8 @@ type MoreItem = {
   soon?: boolean
 }
 
-// The hub for everything that isn't a primary tab. Availability stays in Cal
-// (owner decision); gallery + insights are planned (Tasks 04, 10).
+// The hub for everything that isn't a primary tab. Gallery + insights are
+// planned (Tasks 04, 10).
 const ITEMS: MoreItem[] = [
   {
     label: "Notifications",
@@ -45,13 +43,6 @@ const ITEMS: MoreItem[] = [
     description: "Full history, filters, and past bookings",
     icon: CalendarRange,
     href: "/admin/appointments",
-  },
-  {
-    label: "Booking calendar",
-    description: "Manage availability and schedule in Cal.com",
-    icon: ExternalLink,
-    href: CALCOM_ORIGIN,
-    external: true,
   },
   {
     label: "Shared assets",

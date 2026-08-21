@@ -37,12 +37,3 @@ export async function nameTaken(
         wanted.has((r.name_dk ?? "").toLowerCase())),
   )
 }
-
-/** A url-safe, collision-resistant Cal event slug from a service name. */
-export function calSlugFor(nameEn: string): string {
-  const base = nameEn
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-  return `${base}-${Date.now().toString(36)}`
-}

@@ -6,9 +6,10 @@ import { BOOKING_STATUS, isActiveBookingStatus } from "@/shared/booking-status"
  * rule runs in a client component, a server action, and a page.
  */
 
-/** The metadata blob on a booking: the embed's id payload plus a snapshot of
-    the product AS BOOKED, so editing the catalog never rewrites old bookings.
-    Old bookings have no snapshot — display falls back to the live catalog. */
+/** The metadata blob on a booking: the booked selection (service + add-on ids)
+    plus a snapshot of the product AS BOOKED, so editing the catalog never
+    rewrites old bookings. Old bookings have no snapshot — display falls back to
+    the live catalog. */
 export type BookingMeta = {
   serviceId?: string | null
   addonIds?: string[] | null
@@ -24,7 +25,7 @@ export type BookingMeta = {
 export const metaOf = (row: { selected_addons: unknown }) =>
   (row.selected_addons ?? {}) as BookingMeta
 
-/** 24-hour cancellation policy: inside this window the Cal links are
+/** 24-hour cancellation policy: inside this window the manage actions are
     withheld and the client is pointed at the studio instead. */
 export const POLICY_WINDOW_MS = 24 * 60 * 60 * 1000
 

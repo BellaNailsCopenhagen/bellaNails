@@ -37,21 +37,14 @@ export type MenuService = MenuCategoryRow["services"][number]
 
 /**
  * The full public service menu: active categories (in `sort_order`) with their
- * active services embedded. A service with no Cal event slug isn't bookable —
- * dropping it here keeps the menu from linking into a booking flow that
- * silently dead-ends at confirm. Categories left with nothing bookable are
- * dropped so the menu never renders an empty section.
+ * active services embedded. Every active service is bookable via the in-house
+ * engine; empty categories are dropped so the menu never renders a bare section.
  */
 export async function getServiceMenu(
   db: Db = createSupabaseServerClient(),
 ): Promise<MenuCategory[]> {
   const categories = await listMenuCategories(db)
-  return categories
-    .map((category) => ({
-      ...category,
-      services: category.services.filter((s) => s.cal_event_slug),
-    }))
-    .filter((category) => category.services.length > 0)
+  return categories.filter((category) => category.services.length > 0)
 }
 
 export type PublicService = {
@@ -90,11 +83,8 @@ export type ServiceAddon = {
   extra_duration_mins: number
 }
 
-/** Menu columns plus the Cal.com identity the confirm step embeds with. */
-export type BookableService = MenuService & {
-  cal_event_id: number | null
-  cal_event_slug: string | null
-}
+/** The bookable service shape the /book customise + confirm steps read. */
+export type BookableService = MenuService
 
 export type ServiceWithAddons = {
   service: BookableService

@@ -24,10 +24,10 @@ import {
  * dialog stays open while pending so a double-tap can't fire twice.
  */
 export function AdminCancelButton({
-  uid,
+  id,
   clientName,
 }: {
-  uid: string
+  id: string
   clientName: string
 }) {
   const [open, setOpen] = React.useState(false)
@@ -36,19 +36,15 @@ export function AdminCancelButton({
   const confirm = () =>
     startTransition(async () => {
       try {
-        const result = await cancelBookingAsOwner(uid)
+        const result = await cancelBookingAsOwner(id)
         if (result.ok) {
           toast.success("Appointment cancelled")
         } else {
-          toast.error(
-            "Couldn’t cancel — try again, or cancel from the Cal dashboard.",
-          )
+          toast.error("Couldn’t cancel — please try again.")
         }
       } catch {
         // A thrown action must still resolve the UI, not leave it stuck.
-        toast.error(
-          "Couldn’t cancel — try again, or cancel from the Cal dashboard.",
-        )
+        toast.error("Couldn’t cancel — please try again.")
       } finally {
         setOpen(false)
       }
@@ -70,7 +66,7 @@ export function AdminCancelButton({
       <AlertDialogContent>
         <AlertDialogTitle>Cancel this appointment?</AlertDialogTitle>
         <AlertDialogDescription>
-          {clientName}’s appointment will be cancelled and they’ll be notified.
+          {clientName}’s appointment will be cancelled and the time released.
           This can’t be undone.
         </AlertDialogDescription>
         <div className="mt-6 flex flex-wrap justify-end gap-3">

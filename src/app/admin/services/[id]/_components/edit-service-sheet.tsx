@@ -23,7 +23,6 @@ export type EditableService = {
   description_dk: string | null
   base_price_cents: number
   base_duration_mins: number
-  cal_event_slug: string | null
   archived_at: string | null
 }
 
@@ -39,13 +38,6 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
   const [durationMins, setDurationMins] = useState(service.base_duration_mins)
 
   const archived = Boolean(service.archived_at)
-  const synced = Boolean(service.cal_event_slug)
-
-  const notifySync = (syncError?: string) => {
-    if (syncError) {
-      toast.warning(`Saved, but calendar sync failed — retry later. ${syncError}`)
-    }
-  }
 
   const save = () =>
     startTransition(async () => {
@@ -59,7 +51,6 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
       })
       if (result.ok) {
         toast.success("Service saved")
-        notifySync(result.syncError)
         setOpen(false)
       } else {
         toast.error(
@@ -75,7 +66,6 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
       const result = await archiveService(service.id, !archived)
       if (result.ok) {
         toast.success(archived ? "Service restored" : "Service archived")
-        notifySync(result.syncError)
         setOpen(false)
       } else {
         toast.error(result.error || "Couldn’t update.")
@@ -188,16 +178,6 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
           </div>
 
           <PriceHistoryPanel entityType="service" entityId={service.id} />
-
-          <p className="font-functional text-xs">
-            {synced ? (
-              <span className="text-success">Synced with calendar ✓</span>
-            ) : (
-              <span className="text-warning">
-                No calendar event — sync on next save
-              </span>
-            )}
-          </p>
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button

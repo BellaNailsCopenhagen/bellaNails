@@ -16,18 +16,13 @@ import { recordPricePoint } from "@/db/price-history"
 import { linkAddonToService, unlinkAddonFromService } from "@/db/service-addons"
 import { requireOwner } from "@/modules/identity/require-owner"
 
-import {
-  resyncServicesLinkingAddon,
-  resyncServicesLinkingBoth,
-  resyncSlotOptions,
-} from "./slot-sync"
 import type { AddonEditInput, ServiceActionResult } from "./types"
 import { krToCents, nameTaken } from "./validation"
 
 /**
  * Add-ons are standalone and reusable: a service links one, it does not own it.
- * So every add-on change fans out to a slot resync of every service that links
- * it — that fan-out is the reason these live apart from the service writes.
+ * Availability is computed live from the catalog by the in-house slot engine,
+ * so an add-on change needs no propagation beyond revalidating the pages.
  */
 
 function revalidateService(id: string) {
@@ -70,7 +65,6 @@ export async function saveAddon(
     if (priorPrice !== null && priorPrice !== cents) {
       await recordPricePoint(db, "addon", addonId, cents)
     }
-    await resyncServicesLinkingAddon(db, addonId)
     revalidatePath("/admin/services")
     return { ok: true, id: addonId }
   }
@@ -82,7 +76,7 @@ export async function saveAddon(
   return { ok: true, id: created.id }
 }
 
-/** Global archive/restore of an add-on; resyncs every linked service. */
+/** Global archive/restore of an add-on. */
 export async function archiveAddon(
   addonId: string,
   archived: boolean,
@@ -97,9 +91,8 @@ export async function archiveAddon(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update the add-on." }
 
-  const syncError = await resyncServicesLinkingAddon(db, addonId)
   revalidatePath("/admin/services")
-  return { ok: true, syncError }
+  return { ok: true }
 }
 
 /** Link an existing add-on to a service (many-to-many). */
@@ -113,9 +106,8 @@ export async function linkAddon(
   const linked = await linkAddonToService(db, serviceId, addonId)
   if (!linked.ok) return { ok: false, error: "Couldn’t link the add-on." }
 
-  const sync = await resyncSlotOptions(db, serviceId)
   revalidateService(serviceId)
-  return { ok: true, syncError: sync.ok ? undefined : sync.error }
+  return { ok: true }
 }
 
 export async function unlinkAddon(
@@ -128,9 +120,8 @@ export async function unlinkAddon(
   const unlinked = await unlinkAddonFromService(db, serviceId, addonId)
   if (!unlinked.ok) return { ok: false, error: "Couldn’t unlink the add-on." }
 
-  const sync = await resyncSlotOptions(db, serviceId)
   revalidateService(serviceId)
-  return { ok: true, syncError: sync.ok ? undefined : sync.error }
+  return { ok: true }
 }
 
 /** Toggle whether two add-ons can be combined — GLOBAL (add-ons are shared).
@@ -152,7 +143,6 @@ export async function setAddonCompatibility(
     : await removeIncompatiblePair(db, a, b)
   if (!saved.ok) return { ok: false, error: "Couldn’t save compatibility." }
 
-  const syncError = await resyncServicesLinkingBoth(db, a, b)
   revalidatePath("/admin/services")
-  return { ok: true, syncError }
+  return { ok: true }
 }

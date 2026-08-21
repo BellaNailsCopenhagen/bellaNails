@@ -92,7 +92,11 @@
     "timeNote": "Du vælger dato og tidspunkt i næste trin.",
     "totalLabel": "I alt",
     "paymentNote": "Betaling foregår i studiet. Der gælder 24 timers afbudsfrist.",
-    "termsLink": "Handelsbetingelser"
+    "termsLink": "Handelsbetingelser",
+    "pickDateLabel": "Vælg en dato",
+    "pickTimeLabel": "Vælg et tidspunkt",
+    "noTimes": "Ingen ledige tider lige nu — prøv igen snart eller kontakt studiet.",
+    "bookingError": "Noget gik galt — vælg venligst et andet tidspunkt."
   },
   "bookings": {
     "metaTitle": "Mit rum – Bella Nails",
@@ -206,7 +210,14 @@
     "shareThanksBody": "Tak fordi du deler — det betyder alt for os. Dine billeder forbliver private for studiet og udgives aldrig uden din tilladelse; du kan fjerne dem når som helst.",
     "sharePromptBody": "Elskede du dine negle? Del et billede med Bella Nails. Dine billeder forbliver private for studiet og udgives aldrig uden din tilladelse — du kan fjerne dem når som helst.",
     "requestBanner": "{count, plural, =1 {Bella Nails har en anmodning til dig} other {Bella Nails har # anmodninger til dig}}",
-    "requestBannerTap": "tryk for at se"
+    "requestBannerTap": "tryk for at se",
+    "pickDateLabel": "Vælg en dato",
+    "pickTimeLabel": "Vælg et tidspunkt",
+    "rescheduleNoTimes": "Ingen ledige tider lige nu — kontakt venligst studiet.",
+    "rescheduleConfirm": "Bekræft nyt tidspunkt",
+    "rescheduling": "Flytter din aftale…",
+    "rescheduleFailed": "Vi kunne ikke flytte den — prøv et andet tidspunkt eller kontakt studiet.",
+    "rescheduleDone": "Din aftale er flyttet."
   },
   "gallery": {
     "metaTitle": "Galleri",

@@ -1,7 +1,7 @@
 import "server-only"
 
 import {
-  getBookingLifecycle,
+  getBookingForManage,
   listActiveBookingsFrom,
   listBookingsBefore,
   listBookingsForClient,
@@ -145,16 +145,16 @@ export async function getMyBookings(
   }
 }
 
-/** The lifecycle state a reschedule gate checks, read as the signed-in
-    client (RLS proves ownership). Null when there is no such booking. */
-export async function getMyBookingLifecycle(uid: string) {
+/** The manage state a reschedule gate checks, read as the signed-in client by
+    row id (RLS proves ownership). Null when there is no such booking. */
+export async function getMyBookingForManage(id: string) {
   const db = await createAuthedSupabaseServerClient()
-  return getBookingLifecycle(db, uid)
+  return getBookingForManage(db, id)
 }
 
 /** The same, read as the studio — no ownership constraint. */
-export async function getBookingLifecycleAsOwner(uid: string) {
-  return getBookingLifecycle(createSupabaseServiceRoleClient(), uid)
+export async function getBookingForManageAsOwner(id: string) {
+  return getBookingForManage(createSupabaseServiceRoleClient(), id)
 }
 
 const messageOf = (error: unknown) =>

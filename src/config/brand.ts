@@ -1,8 +1,8 @@
 /**
  * Brand palette for JS-only rendering contexts that can't read CSS custom
- * properties: the OG image (Satori has no CSS pipeline) and Cal's embed
- * theming API. MUST mirror the `--bn-*` values in `src/app/globals.css` —
- * that file stays the source of truth for everything browser-rendered.
+ * properties: the OG image (Satori has no CSS pipeline) and the admin app
+ * icon. MUST mirror the `--bn-*` values in `src/app/globals.css` — that file
+ * stays the source of truth for everything browser-rendered.
  */
 export const BRAND = {
   background: "#fbfbfa",

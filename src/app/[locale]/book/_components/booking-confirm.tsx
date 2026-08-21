@@ -2,26 +2,22 @@ import { getLocale, getTranslations } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/booking/appointment-summary"
-import { BookingEmbed } from "@/app/[locale]/book/_components/booking-embed"
+import { BookingSlotStep } from "@/app/[locale]/book/_components/booking-slot-step"
 import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-header"
 import { Container, Section } from "@/components/layout/container"
-import { formatPrice } from "@/components/ui/price-tag"
 import { BodySm } from "@/components/ui/typography"
-import { computeBookingTotals } from "@/shared/booking-totals"
 import { localizeSelection } from "@/shared/localize-selection"
+import { getAvailableSlots } from "@/modules/booking"
 import type { ServiceWithAddons } from "@/modules/catalog"
 import type { BookingContact } from "@/shared/contact-validation"
-import { buildCalLink } from "@/config/calcom"
 import { routes } from "@/config/routes"
-import { SITE_URL } from "@/config/site"
 
 /**
- * BookingConfirm — step 03 · Confirm: the themed Cal.com embed pre-loaded
- * with the chosen service's event type, the computed (rounded-up) slot
- * length, contact prefill from step 02, a locale-aware notes summary, and
- * IDs-only metadata. Cal owns availability and date/time — this step owns
- * nothing but the handoff. The /book routing gate guarantees `prefill` is
- * complete and the service has a Cal slug before this renders.
+ * BookingConfirm — step 03 · Confirm: the in-house date + time picker for the
+ * chosen service (+ add-ons), beside the running total. Availability is computed
+ * server-side from the studio schedule and existing bookings; the picker calls
+ * createBooking and routes on to /confirmation. The /book routing gate
+ * guarantees `prefill` is complete before this renders.
  */
 export async function BookingConfirm({
   service,
@@ -32,34 +28,14 @@ export async function BookingConfirm({
   selectedAddonIds: string[]
   prefill: BookingContact
 }) {
-  const [t, locale] = await Promise.all([
+  const [t, locale, slots] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
+    getAvailableSlots(service.id, selectedAddonIds),
   ])
 
   const { service: localizedService, addons: selectedAddons } =
     localizeSelection(service, addons, locale, selectedAddonIds)
-
-  const { totalCents, totalMins, slotMins } = computeBookingTotals(
-    localizedService,
-    selectedAddons,
-  )
-
-  // Human-readable, locale-aware — what the artist and the client read in
-  // the booking notes/emails. The webhook never parses this string; the
-  // price uses formatPrice's site-wide defaults. The manage line rides along
-  // because Cal's own email buttons can't be repointed at our pages.
-  const notesSummary = [
-    `${localizedService.name} (${localizedService.durationMins} min)`,
-    ...selectedAddons.map(
-      (addon) => `${addon.name} (+${addon.durationMins} min)`,
-    ),
-  ]
-    .join(" + ")
-    .concat(
-      ` · ${t("notesTotal")} ${totalMins} min · ${formatPrice(totalCents)}`,
-      `\n${t("manageOnline")}: ${SITE_URL}/${locale}${routes.appointments}`,
-    )
 
   // Carry the contact fields back so the details form re-renders filled —
   // state lives in the URL across the whole flow.
@@ -88,24 +64,13 @@ export async function BookingConfirm({
           intro={t("confirmIntro")}
         />
 
-        {/* Account creation is not opt-in: the webhook keys every booking to
-            a client identity (the `clients` row). The conversion moment (verify
-            email → manage bookings) lives on /confirmation, not here. */}
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="w-full min-w-0 flex-1 space-y-6">
-            <BookingEmbed
-              calLink={buildCalLink(service.cal_event_slug ?? "")}
-              slotMins={slotMins}
+            <BookingSlotStep
+              serviceId={service.id}
+              addonIds={selectedAddons.map((a) => a.id)}
+              slots={slots}
               prefill={prefill}
-              notesSummary={notesSummary}
-              metadata={{
-                serviceId: service.id,
-                addonIds: selectedAddons.map((a) => a.id),
-                totalPriceCents: totalCents,
-                totalDurationMins: totalMins,
-                locale,
-                clientNotes: prefill.notes,
-              }}
             />
 
             <BodySm className="text-xs">

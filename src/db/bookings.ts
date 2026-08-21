@@ -12,13 +12,11 @@ import type { Db, Insert, Row } from "./client"
     is the client's identity key (not PII); the admin queue resolves it to
     name/phone/email via the clients table, the client list simply ignores it. */
 const BOOKING_COLUMNS =
-  "id, cal_booking_id, cal_uid, client_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, reschedule_url, cancel_url, no_show_at"
+  "id, client_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, no_show_at"
 
 export type BookingRow = Pick<
   Row<"bookings">,
   | "id"
-  | "cal_booking_id"
-  | "cal_uid"
   | "client_id"
   | "start_time"
   | "end_time"
@@ -26,55 +24,31 @@ export type BookingRow = Pick<
   | "total_price_cents"
   | "selected_addons"
   | "client_notes"
-  | "reschedule_url"
-  | "cancel_url"
   | "no_show_at"
 >
 
-/** Status + timing — what every eligibility check (cancel, reschedule,
-    no-show) reads before deciding. */
-export type BookingLifecycle = Pick<
+/** What every manage action (cancel, reschedule, no-show) reads before
+    deciding: status + timing for the policy check, client_id for ownership,
+    and selected_addons so a reschedule can recompute availability. */
+export type BookingManageState = Pick<
   Row<"bookings">,
-  "cal_uid" | "status" | "start_time"
+  "status" | "start_time" | "end_time" | "client_id" | "selected_addons"
 >
 
 // ---------------------------------------------------------------- reads
 
-/** One booking's lifecycle state by Cal uid; null when there is no such row. */
-export async function getBookingLifecycle(
+/** One booking's manage state by row id; null when there is no such row (or
+    RLS hides it — the caller reads it as "not yours"). */
+export async function getBookingForManage(
   db: Db,
-  uid: string,
-): Promise<BookingLifecycle | null> {
+  id: string,
+): Promise<BookingManageState | null> {
   const { data } = await db
     .from("bookings")
-    .select("cal_uid, status, start_time")
-    .eq("cal_uid", uid)
+    .select("status, start_time, end_time, client_id, selected_addons")
+    .eq("id", id)
     .maybeSingle()
   return data ?? null
-}
-
-/** Just the status, for a post-write confirmation read. */
-export async function getBookingStatus(
-  db: Db,
-  uid: string,
-): Promise<string | null> {
-  const { data } = await db
-    .from("bookings")
-    .select("status")
-    .eq("cal_uid", uid)
-    .maybeSingle()
-  return data?.status ?? null
-}
-
-/** Has the webhook written this booking yet? Backs the post-booking probe. */
-export async function bookingExists(db: Db, uid: string): Promise<boolean> {
-  const { data, error } = await db
-    .from("bookings")
-    .select("cal_uid")
-    .eq("cal_uid", uid)
-    .maybeSingle()
-  if (error) throw new Error(error.message)
-  return Boolean(data)
 }
 
 export type BookingRecap = Pick<
@@ -82,15 +56,15 @@ export type BookingRecap = Pick<
   "status" | "start_time" | "end_time" | "selected_addons"
 >
 
-/** The confirmation-page recap shape. */
+/** The confirmation-page recap shape, by row id. */
 export async function getBookingRecap(
   db: Db,
-  uid: string,
+  id: string,
 ): Promise<BookingRecap | null> {
   const { data, error } = await db
     .from("bookings")
     .select("status, start_time, end_time, selected_addons")
-    .eq("cal_uid", uid)
+    .eq("id", id)
     .maybeSingle()
   if (error) throw new Error(error.message)
   return data ?? null
@@ -106,19 +80,6 @@ export async function getBookingOwner(
     .from("bookings")
     .select("id, client_id, selected_addons")
     .eq("id", bookingId)
-    .maybeSingle()
-  return data ?? null
-}
-
-/** Sync state keyed by Cal's numeric booking id (the webhook's identity). */
-export async function getBookingSyncState(
-  db: Db,
-  calBookingId: number,
-): Promise<Pick<Row<"bookings">, "cal_booking_id" | "status"> | null> {
-  const { data } = await db
-    .from("bookings")
-    .select("cal_booking_id, status")
-    .eq("cal_booking_id", calBookingId)
     .maybeSingle()
   return data ?? null
 }
@@ -267,7 +228,7 @@ export async function countActiveBookingsForService(
 ): Promise<number> {
   const { count } = await db
     .from("bookings")
-    .select("cal_booking_id", { count: "exact", head: true })
+    .select("id", { count: "exact", head: true })
     .filter("selected_addons->>serviceId", "eq", serviceId)
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .is("no_show_at", null)
@@ -276,12 +237,16 @@ export async function countActiveBookingsForService(
 
 // --------------------------------------------------------------- writes
 
-export type BookingUpsert = Insert<"bookings">
+/** The `bookings_no_overlap` exclusion constraint code — a chosen time that
+    collides with an active booking. Surfaced as `reason: "overlap"` so callers
+    ask for another time instead of showing a raw DB error. */
+function overlapError(error: { code?: string; message: string }): boolean {
+  return (
+    error.code === "23P01" || /exclu|overlap|no_overlap/i.test(error.message)
+  )
+}
 
-/** Insert a fresh in-house booking. The `bookings_no_overlap` exclusion
-    constraint rejects a time that collides with an active booking — surfaced as
-    `reason: "overlap"` so the caller can ask for another time instead of showing
-    a raw DB error. */
+/** Insert a fresh in-house booking. */
 export async function insertBooking(
   db: Db,
   values: Insert<"bookings">,
@@ -295,80 +260,73 @@ export async function insertBooking(
     .select("id")
     .single()
   if (error) {
-    const overlap =
-      error.code === "23P01" || /exclu|overlap|no_overlap/i.test(error.message)
-    return { ok: false, reason: overlap ? "overlap" : "error", message: error.message }
+    return {
+      ok: false,
+      reason: overlapError(error) ? "overlap" : "error",
+      message: error.message,
+    }
   }
   return { ok: true, id: data.id }
 }
 
-/** Insert-or-update a booking keyed by Cal's numeric id. Returns the row id
-    so the caller can hang related records (terms acceptance) off it. */
-export async function upsertBooking(
+/** Mark one booking cancelled by row id. `.select()` so a 0-row update (an
+    RLS-blocked write, or a gone row) fails loudly instead of reading as ok. */
+export async function cancelBookingById(
   db: Db,
-  values: BookingUpsert,
-): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
+  id: string,
+): Promise<{ ok: boolean; message?: string }> {
   const { data, error } = await db
     .from("bookings")
-    .upsert(values, { onConflict: "cal_booking_id" })
+    .update({ status: BOOKING_STATUS.cancelled })
+    .eq("id", id)
     .select("id")
-    .single()
   if (error) return { ok: false, message: error.message }
-  return { ok: true, id: data.id }
+  return data.length > 0 ? { ok: true } : { ok: false, message: "no rows updated" }
 }
 
-/** Mark one booking cancelled by Cal uid. */
-export async function cancelBookingByUid(
+/** Move one booking to a new window (status → rescheduled). Guards the overlap
+    race the same way insert does; the row can't collide with itself. */
+export async function rescheduleBookingById(
   db: Db,
-  uid: string,
-): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await db
-    .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_uid", uid)
-  return error ? { ok: false, message: error.message } : { ok: true }
-}
-
-/** Mark cancelled by Cal's numeric id; returns how many rows matched so the
-    webhook can tell "cancelled" from "we never had this booking". */
-export async function cancelBookingByCalId(
-  db: Db,
-  calBookingId: number,
-): Promise<{ ok: true; matched: number } | { ok: false; message: string }> {
+  id: string,
+  startIso: string,
+  endIso: string,
+): Promise<
+  { ok: true } | { ok: false; reason: "overlap" | "error"; message: string }
+> {
   const { data, error } = await db
     .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_booking_id", calBookingId)
-    .select("cal_booking_id")
-  if (error) return { ok: false, message: error.message }
-  return { ok: true, matched: data?.length ?? 0 }
+    .update({
+      start_time: startIso,
+      end_time: endIso,
+      status: BOOKING_STATUS.rescheduled,
+    })
+    .eq("id", id)
+    .select("id")
+  if (error) {
+    return {
+      ok: false,
+      reason: overlapError(error) ? "overlap" : "error",
+      message: error.message,
+    }
+  }
+  // A 0-row update (RLS-blocked or gone) must not read as success.
+  if (data.length === 0) {
+    return { ok: false, reason: "error", message: "no rows updated" }
+  }
+  return { ok: true }
 }
 
-/** Close the booking a reschedule replaced — everything on that uid except
-    the new row Cal just minted. */
-export async function cancelSupersededBooking(
-  db: Db,
-  replacedUid: string,
-  keepCalBookingId: number,
-): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await db
-    .from("bookings")
-    .update({ status: BOOKING_STATUS.cancelled })
-    .eq("cal_uid", replacedUid)
-    .neq("cal_booking_id", keepCalBookingId)
-  return error ? { ok: false, message: error.message } : { ok: true }
-}
-
-/** Set or clear the studio-side no-show marker. */
+/** Set or clear the studio-side no-show marker, by row id. */
 export async function setBookingNoShowAt(
   db: Db,
-  uid: string,
+  id: string,
   at: string | null,
 ): Promise<{ ok: boolean }> {
   const { error } = await db
     .from("bookings")
     .update({ no_show_at: at })
-    .eq("cal_uid", uid)
+    .eq("id", id)
   return { ok: !error }
 }
 

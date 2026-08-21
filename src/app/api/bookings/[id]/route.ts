@@ -1,24 +1,20 @@
-import {
-  metaOf,
-} from "@/shared/booking-policy"
-import { CAL_UID_PATTERN } from "@/modules/booking"
+import { metaOf } from "@/shared/booking-policy"
 import { getServiceWithAddons } from "@/modules/catalog"
 import { localizeSelection } from "@/shared/localize-selection"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
-import { bookingExists, getBookingRecap } from "@/db/bookings"
+import { getBookingRecap } from "@/db/bookings"
 import type { BookingLineItem } from "@/shared/booking-totals"
 
 /**
- * Booking recap by Cal uid — read path for /confirmation, where the booker is
- * usually signed out and RLS would hide the row. The uid is an unguessable
- * capability token (the same one Cal's own public booking page uses), so
- * possession of the link authorizes this read. The response is sanitized:
- * schedule + localized catalog line items only — no client_id, no
- * reschedule/cancel URLs, no PII (we store none).
- *
- * `?probe=1` answers "does the row exist yet?" with a single cheap query and
- * no catalog work — the confirm step's post-booking wait polls this form.
+ * Booking recap by row id — the read path for /confirmation, where the booker is
+ * usually signed out and RLS would hide the row. The booking id is an
+ * unguessable capability token, so possession of the link authorizes this read.
+ * The response is sanitized: schedule + localized catalog line items only — no
+ * client_id, no PII (we store none here).
  */
+
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type BookingRecap = {
   status: string
@@ -32,44 +28,31 @@ type BookingRecap = {
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ uid: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { uid } = await params
-  if (!CAL_UID_PATTERN.test(uid)) {
+  const { id } = await params
+  if (!UUID.test(id)) {
     return Response.json({ error: "not found" }, { status: 404 })
   }
 
   const search = new URL(request.url).searchParams
   const supabase = createSupabaseServiceRoleClient()
 
-  if (search.get("probe") === "1") {
-    try {
-      const exists = await bookingExists(supabase, uid)
-      return exists
-        ? Response.json({ ok: true })
-        : Response.json({ error: "not found" }, { status: 404 })
-    } catch (error) {
-      console.error("[bookings-recap] probe failed", messageOf(error))
-      return Response.json({ error: "unavailable" }, { status: 500 })
-    }
-  }
-
   const locale = search.get("locale") ?? "da"
   let booking
   try {
-    booking = await getBookingRecap(supabase, uid)
+    booking = await getBookingRecap(supabase, id)
   } catch (error) {
     console.error("[bookings-recap] read failed", messageOf(error))
     return Response.json({ error: "unavailable" }, { status: 500 })
   }
-  // 404 while the webhook hasn't landed yet — callers poll briefly.
   if (!booking) {
     return Response.json({ error: "not found" }, { status: 404 })
   }
 
   const meta = metaOf(booking)
 
-  // Render what was booked: the webhook validated the selection at write
+  // Render what was booked: the create action validated the selection at write
   // time, so the stored addonIds are trusted as-is (re-checking today's
   // incompatibility rules here would silently drop paid line items from old
   // bookings). Unknown/archived ids simply don't resolve to catalog rows.

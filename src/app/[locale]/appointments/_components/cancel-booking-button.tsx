@@ -24,10 +24,10 @@ import {
  * twice.
  */
 export function CancelBookingButton({
-  uid,
+  id,
   disabled = false,
 }: {
-  uid: string
+  id: string
   disabled?: boolean
 }) {
   const t = useTranslations("bookings")
@@ -37,7 +37,7 @@ export function CancelBookingButton({
   const confirm = () =>
     startTransition(async () => {
       try {
-        const result = await cancelBooking(uid)
+        const result = await cancelBooking(id)
         if (result.ok) {
           toast.success(t("cancelDone"))
         } else if (result.error === "within_policy") {

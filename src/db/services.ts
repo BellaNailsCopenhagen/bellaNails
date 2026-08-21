@@ -4,7 +4,7 @@ import { flattenServiceAddons } from "./service-addons"
 /**
  * `services` table access. Two column sets, because the public surfaces and
  * the admin surfaces genuinely want different things: the public reads never
- * see archived rows or Cal wiring, the admin read sees everything.
+ * see archived rows, the admin read sees everything.
  */
 
 const UUID_PATTERN =
@@ -15,10 +15,10 @@ const PUBLIC_COLUMNS =
 
 /** Add-ons come through the service_addons join (many-to-many). */
 const ADMIN_COLUMNS =
-  "id, name_en, name_dk, description_en, description_dk, base_price_cents, base_duration_mins, cal_event_slug, category_id, archived_at, service_addons(addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins, archived_at))"
+  "id, name_en, name_dk, description_en, description_dk, base_price_cents, base_duration_mins, category_id, archived_at, service_addons(addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins, archived_at))"
 
 const BOOKABLE_COLUMNS =
-  "id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_id, cal_event_slug, service_addons(addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins, archived_at))"
+  "id, name_en, name_dk, base_price_cents, base_duration_mins, service_addons(addons(id, name_en, name_dk, extra_price_cents, extra_duration_mins, archived_at))"
 
 export type PublicServiceRow = Pick<
   Row<"services">,
@@ -50,7 +50,6 @@ export type AdminServiceRow = Pick<
   | "description_dk"
   | "base_price_cents"
   | "base_duration_mins"
-  | "cal_event_slug"
   | "category_id"
   | "archived_at"
 > & { addons: AddonRow[] }
@@ -80,7 +79,7 @@ export async function getPublicServiceRow(
   return data ?? null
 }
 
-/** The three featured services for the home page, in Cal-event order. */
+/** The three featured services for the home page, oldest first (stable order). */
 export async function listFeaturedServiceRows(
   db: Db,
   limit: number,
@@ -90,7 +89,7 @@ export async function listFeaturedServiceRows(
     .select(PUBLIC_COLUMNS)
     .eq("is_featured", true)
     .is("archived_at", null)
-    .order("cal_event_id", { ascending: true })
+    .order("created_at", { ascending: true })
     .limit(limit)
   if (error) throw new Error(error.message)
   return data ?? []
@@ -103,8 +102,6 @@ export type BookableServiceRow = Pick<
   | "name_dk"
   | "base_price_cents"
   | "base_duration_mins"
-  | "cal_event_id"
-  | "cal_event_slug"
 > & { service_addons: { addons: AddonRow | null }[] }
 
 /** An active service plus its add-ons — the booking customizer's source.
@@ -218,39 +215,8 @@ export async function getAdminService(
   return data ? flattenAdminService(data as unknown as RawAdminService) : null
 }
 
-export type ServiceCalWiring = Pick<
-  Row<"services">,
-  "cal_event_id" | "base_duration_mins"
->
-
-/** The Cal event id + base duration — what a slot resync needs. */
-export async function getServiceCalWiring(
-  db: Db,
-  id: string,
-): Promise<ServiceCalWiring | null> {
-  const { data } = await db
-    .from("services")
-    .select("cal_event_id, base_duration_mins")
-    .eq("id", id)
-    .maybeSingle()
-  return data ?? null
-}
-
-/** The Cal event id alone — the archive toggle hides/shows that event type. */
-export async function getServiceCalEventId(
-  db: Db,
-  id: string,
-): Promise<{ cal_event_id: number | null } | null> {
-  const { data } = await db
-    .from("services")
-    .select("cal_event_id")
-    .eq("id", id)
-    .maybeSingle()
-  return data ?? null
-}
-
 /** Current duration + price, read before an update so the caller can tell
-    what actually changed (duration → Cal resync, price → history entry). */
+    what actually changed (price → history entry). */
 export async function getServicePricing(
   db: Db,
   id: string,

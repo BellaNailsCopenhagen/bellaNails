@@ -31,11 +31,11 @@ export default async function ConfirmationPage({
   if (!hasLocale(routing.locales, locale)) notFound()
   setRequestLocale(locale)
 
-  const uid = singleParam(query.uid) ?? null
+  const id = singleParam(query.id) ?? null
 
   return (
     <main className="flex flex-1 flex-col">
-      <Confirmation uid={uid} />
+      <Confirmation id={id} />
     </main>
   )
 }

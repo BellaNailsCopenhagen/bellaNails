@@ -41,7 +41,7 @@ export function createAuthedSupabaseServerClient(): Promise<
 
 /**
  * Service-role Supabase client — **bypasses RLS**. Server-only, for trusted
- * mutations where there is no end-user session: the Cal.com webhook upsert and
+ * mutations where there is no end-user session: guest booking creation and
  * owner/admin writes. Never import this from client code or expose its results
  * without an explicit authorization check.
  */

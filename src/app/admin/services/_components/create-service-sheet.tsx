@@ -14,11 +14,8 @@ import { createService } from "@/modules/catalog/service-actions"
 const fieldLabel = "text-[10px] tracking-widest-lux"
 const DURATION_STEP = 15
 
-/**
- * Create a service from the admin — its Cal event type is created via the API
- * (no Cal.com dashboard needed). Requires CALCOM_API_KEY; without it the action
- * returns a "Cal sync failed" message.
- */
+/** Create a service from the admin. Availability is computed in-house from the
+    studio schedule — nothing external to provision. */
 export function CreateServiceSheet({
   categories,
 }: {

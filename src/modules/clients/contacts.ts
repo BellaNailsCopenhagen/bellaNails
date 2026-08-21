@@ -19,8 +19,7 @@ export async function fetchClientContacts(
   try {
     const data = await listClientContacts(createSupabaseServiceRoleClient(), ids)
     for (const c of data) {
-      // Anonymized clients expose nothing — and must never be re-hydrated from
-      // another source (the Cal phone fill honours `anonymized`).
+      // Anonymized clients expose nothing (GDPR erasure).
       if (c.anonymized_at) {
         contacts[c.id] = {
           firstName: null,

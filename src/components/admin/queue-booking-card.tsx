@@ -66,12 +66,11 @@ export function QueueBookingCard({
   const clientHref = row.client_id
     ? `/admin/clients/${row.client_id}`
     : null
-  const hasUid = Boolean(row.cal_uid)
   const isNoShow = Boolean(row.no_show_at)
-  const canToggleNoShow = hasUid && noShowEligible
+  const canToggleNoShow = noShowEligible
   // Future-only, and gone once the booking is a no-show.
-  const canReschedule = hasUid && actionable && !isNoShow
-  const canCancel = hasUid && actionable && !isNoShow
+  const canReschedule = actionable && !isNoShow
+  const canCancel = actionable && !isNoShow
   const hasActions = canReschedule || canCancel || canToggleNoShow
   const canAddMedia =
     now != null &&
@@ -232,19 +231,19 @@ export function QueueBookingCard({
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border pt-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {canCancel ? (
-              <AdminCancelButton uid={row.cal_uid!} clientName={clientName} />
+              <AdminCancelButton id={row.id} clientName={clientName} />
             ) : null}
             {canToggleNoShow ? (
-              <AdminNoShowButton uid={row.cal_uid!} marked={isNoShow} />
+              <AdminNoShowButton id={row.id} marked={isNoShow} />
             ) : null}
           </div>
           {canReschedule ? (
-            /* In-app reschedule-on-behalf — same Cal embed as the client. */
+            /* In-app reschedule-on-behalf — same in-house picker as the client. */
             <Button
               variant="outline"
               size="sm"
               nativeButton={false}
-              render={<Link href={`/admin/reschedule/${row.cal_uid}`} />}
+              render={<Link href={`/admin/reschedule/${row.id}`} />}
             >
               Reschedule
             </Button>

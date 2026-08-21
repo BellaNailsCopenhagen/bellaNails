@@ -29,17 +29,11 @@ export type CreateBookingResult =
   | { ok: false; error: string }
 
 /**
- * Create an in-house booking (replaces the Cal flow). Public — a guest books by
- * email (ensureUser create-or-finds their client row). The slot is re-validated
- * server-side (never trust the client) and the exclusion constraint guards the
- * overlap race. Booking a session records service-terms acceptance (best-effort:
- * a no-op if no terms are published yet — mirrors the Cal flow).
- *
- * NOTE — not yet wired to a UI. In-house bookings leave the Cal columns
- * (cal_booking_id / cal_uid / cancel_url / reschedule_url) NULL, so Phase 3b MUST
- * make those Row types nullable and update the appointment cards (cancel /
- * reschedule become in-house actions, not Cal URLs; the React key must not use
- * cal_booking_id) before wiring a caller. Public-abuse hardening (rate-limit /
+ * Create an in-house booking. Public — a guest books by email (ensureUser
+ * create-or-finds their client row). The slot is re-validated server-side
+ * (never trust the client) and the exclusion constraint guards the overlap
+ * race. Booking a session records service-terms acceptance (best-effort: a
+ * no-op if no terms are published yet). Public-abuse hardening (rate-limit /
  * captcha) is tracked in FOLLOWUPS before launch.
  */
 export async function createBooking(

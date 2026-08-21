@@ -12,14 +12,14 @@
 export {
   getAdminAppointments,
   getAdminQueue,
-  getBookingLifecycleAsOwner,
-  getMyBookingLifecycle,
+  getBookingForManageAsOwner,
+  getMyBookingForManage,
   getClientBookingHistory,
   getMyBookings,
   type AdminBookingView,
 } from "./reads"
 
-// In-house scheduler (replacing Cal): available slots + booking creation.
+// In-house scheduler: available slots + booking creation.
 // Client components import ./create-booking-actions directly (it's "use server").
 export { getAvailableSlots } from "./availability"
 export { createBooking } from "./create-booking-actions"
@@ -29,21 +29,12 @@ export { createBooking } from "./create-booking-actions"
 export {
   cancelBooking,
   cancelBookingAsOwner,
+  rescheduleBooking,
+  rescheduleBookingAsOwner,
   setBookingNoShow,
-  syncBooking,
 } from "./actions"
 
 // Server-side resolution helpers.
 export { toDisplayBookings } from "./booking-view"
 export { resolveAdminBookings } from "./admin-view"
 export { getBookingMediaThumbs } from "./booking-media"
-
-// The Cal integration seam — the webhook route and the reschedule flow.
-export {
-  CAL_UID_PATTERN,
-  markBookingCancelledFromCal,
-  persistCalBooking,
-  syncBookingFromCal,
-  type CalBookingSnapshot,
-  type PersistResult,
-} from "./sync-from-cal"

@@ -355,9 +355,6 @@ export type Database = {
       }
       bookings: {
         Row: {
-          cal_booking_id: number
-          cal_uid: string | null
-          cancel_url: string
           client_id: string
           client_notes: string | null
           created_at: string | null
@@ -365,17 +362,12 @@ export type Database = {
           id: string
           income_override_cents: number | null
           no_show_at: string | null
-          reschedule_url: string
-          rescheduled_from_uid: string | null
           selected_addons: Json | null
           start_time: string
           status: string
           total_price_cents: number
         }
         Insert: {
-          cal_booking_id?: number | null
-          cal_uid?: string | null
-          cancel_url?: string | null
           client_id: string
           client_notes?: string | null
           created_at?: string | null
@@ -383,17 +375,12 @@ export type Database = {
           id?: string
           income_override_cents?: number | null
           no_show_at?: string | null
-          reschedule_url?: string | null
-          rescheduled_from_uid?: string | null
           selected_addons?: Json | null
           start_time: string
           status: string
           total_price_cents: number
         }
         Update: {
-          cal_booking_id?: number
-          cal_uid?: string | null
-          cancel_url?: string
           client_id?: string
           client_notes?: string | null
           created_at?: string | null
@@ -401,8 +388,6 @@ export type Database = {
           id?: string
           income_override_cents?: number | null
           no_show_at?: string | null
-          reschedule_url?: string
-          rescheduled_from_uid?: string | null
           selected_addons?: Json | null
           start_time?: string
           status?: string
@@ -517,8 +502,6 @@ export type Database = {
           archived_at: string | null
           base_duration_mins: number
           base_price_cents: number
-          cal_event_id: number
-          cal_event_slug: string | null
           category_id: string | null
           created_at: string | null
           description_dk: string | null
@@ -534,8 +517,6 @@ export type Database = {
           archived_at?: string | null
           base_duration_mins: number
           base_price_cents: number
-          cal_event_id: number
-          cal_event_slug?: string | null
           category_id?: string | null
           created_at?: string | null
           description_dk?: string | null
@@ -551,8 +532,6 @@ export type Database = {
           archived_at?: string | null
           base_duration_mins?: number
           base_price_cents?: number
-          cal_event_id?: number
-          cal_event_slug?: string | null
           category_id?: string | null
           created_at?: string | null
           description_dk?: string | null

@@ -242,7 +242,7 @@ export function AdminQueue({
                           <ul className="space-y-3">
                             {day.bookings.map((booking) => (
                               <QueueBookingCard
-                                key={booking.row.cal_booking_id}
+                                key={booking.row.id}
                                 booking={booking}
                                 contact={contacts[booking.row.client_id]}
                                 clientNoShowCount={

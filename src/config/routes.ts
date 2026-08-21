@@ -40,9 +40,9 @@ type FooterLabelKey = keyof (typeof enMessages)["footer"]
 export type NavItem = { href: Route; labelKey: NavLabelKey }
 
 /** In-app reschedule for one appointment (dynamic — hence a builder, not a
-    constant; the segment must match app/[locale]/appointments/reschedule/[uid]). */
-export function rescheduleBookingPath(uid: string): string {
-  return `${routes.appointments}/reschedule/${encodeURIComponent(uid)}`
+    constant; the segment must match app/[locale]/appointments/reschedule/[id]). */
+export function rescheduleBookingPath(id: string): string {
+  return `${routes.appointments}/reschedule/${encodeURIComponent(id)}`
 }
 
 /** Public "learn more" detail page for one service (app/[locale]/services/[id]). */

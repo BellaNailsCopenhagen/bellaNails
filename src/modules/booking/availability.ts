@@ -2,7 +2,10 @@ import type { Db } from "@/db/client"
 import { getBookingSettings } from "@/db/booking-settings"
 import { listActiveBookingSpansBetween } from "@/db/bookings"
 import { getBookableService } from "@/db/services"
-import { createSupabaseServerClient } from "@/platform/supabase/server"
+import {
+  createSupabaseServerClient,
+  createSupabaseServiceRoleClient,
+} from "@/platform/supabase/server"
 import { generateSlots, type Slot } from "@/shared/booking-slots"
 import { studioDayNumber } from "@/shared/studio-time"
 import { getStudioHours } from "@/modules/studio"
@@ -21,6 +24,8 @@ export async function getAvailableSlots(
   serviceId: string,
   addonIds: string[],
   db: Db = createSupabaseServerClient(),
+  // Owner reschedule places bookings free of the public 24 h lead time.
+  opts?: { ignoreLeadTime?: boolean },
 ): Promise<Slot[]> {
   try {
     const [settings, service, hours] = await Promise.all([
@@ -47,8 +52,11 @@ export async function getAvailableSlots(
     const windowStart = new Date(now - settings.buffer_mins * MIN).toISOString()
     const lastDay = studioDayNumber(now) + settings.max_advance_days
     const windowEnd = new Date((lastDay + 2) * DAY_MS).toISOString()
+    // Every booking blocks a slot, not just the caller's — and `bookings` is
+    // RLS-private (anon reads nothing). Read spans with service-role; only the
+    // times cross back into the pure generator, never any booking PII.
     const busySpans = await listActiveBookingSpansBetween(
-      db,
+      createSupabaseServiceRoleClient(),
       windowStart,
       windowEnd,
     )
@@ -63,7 +71,7 @@ export async function getAvailableSlots(
       rules: {
         slotIntervalMins: settings.slot_interval_mins,
         bufferMins: settings.buffer_mins,
-        minLeadMins: settings.min_lead_mins,
+        minLeadMins: opts?.ignoreLeadTime ? 0 : settings.min_lead_mins,
         maxAdvanceDays: settings.max_advance_days,
       },
       now,

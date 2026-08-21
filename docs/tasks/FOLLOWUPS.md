@@ -16,9 +16,21 @@ From the Phase 3a review of `createBooking`:
 - **Minor efficiency**: `createBooking` loads the service, then `getAvailableSlots`
   loads it again + regenerates the whole window to test one slot's membership. A
   targeted "is this one slot free" check would avoid the duplicate I/O.
-- **Phase 3b coupling**: making the bookings Row types nullable + updating the
-  appointment cards (cancel/reschedule → in-house actions, React key off
-  `cal_booking_id`) MUST happen before a UI wires `createBooking`.
+
+From the Cal-removal (3b/3c) review — low severity, deferred:
+- **Reschedule end vs. price drift**: `resolveNewSlotEnd` derives the new `end`
+  from *live* availability (current `base_duration_mins` + add-on durations), but
+  `rescheduleBookingById` leaves `total_price_cents` as-booked. If a service's
+  duration changed after booking, a moved appointment's length reflects the new
+  duration while its price stays old. Prefer the as-booked
+  `meta.totalDurationMins` snapshot for the new end.
+- **Owner can reschedule a no-show without clearing the mark**:
+  `rescheduleBookingAsOwner` gates on `isActiveBookingStatus` only; a no-show row
+  keeps an active `status` (the mark is `no_show_at`), so the moved appointment
+  still renders "no-show". Clear `no_show_at` on owner reschedule.
+- **Menu ordering fallback**: featured/menu ordering moved from `cal_event_id` to
+  `created_at`; a row with a null `created_at` sorts non-deterministically (the
+  column has a `now()` default, so effectively never null today).
 
 ### Localize the auth surfaces (login + My space)
 `/[locale]/login` (supabase-login-form) and `/[locale]/account` (My space page +
@@ -43,17 +55,20 @@ only flips status + revalidates `/admin/clients/{id}` — unlike `withdrawMediaC
 public render yet) but will silently fail to take content down once it ships. Add
 `notifyOwner` (extend `OwnerNotificationKind`) + `revalidatePublicSurfaces()`.
 
-### Retire the Cal phone read-through
-`booking-phones.ts` `fetchCalPhones` still runs on every admin list render, but
-`clients.phone` now exists (populated by `ensureUser`). One-time backfill
-`clients.phone` from Cal for historic clients, then drop `fetchCalPhones` + its
-branch in `resolveAdminBookings` — removes a per-render Cal call and stops
-re-exposing phone to Cal.
+### Transactional email (booking confirmation / cancellation / reschedule)
+Cal used to email the client on book/cancel/reschedule; removing Cal removed
+that, and **no email infra exists** (only Supabase Auth OTP + in-app owner
+notifications). Client-facing copy still promises "a confirmation will arrive by
+email" (`messages/*.json` `booking.confirmIntro`, `bookings.cancelDialogBody`,
+etc.). Build an env-guarded email adapter (Zoho SMTP — the studio's email
+vendor), da/en templates for confirm/cancel/reschedule, and wire it into
+`createBooking` / `cancelBooking` / `rescheduleBooking`. Until then the copy
+over-promises. Degrade to a no-op without SMTP creds (keys added later).
 
 ### Don't log raw DB errors on identity/upsert paths (PII)
-`booking-sync.ts` + the Cal webhook log verbatim DB error messages; a unique
-violation on `clients.email` can echo the email (`Key (email)=(…)`) into logs.
-Log error codes, not full messages, on the identity/upsert paths.
+`ensureUser` / `insertBooking` on the `createBooking` path log verbatim DB error
+messages; a unique violation on `clients.email` can echo the email
+(`Key (email)=(…)`) into logs. Log error codes, not full messages.
 
 ## Done
 

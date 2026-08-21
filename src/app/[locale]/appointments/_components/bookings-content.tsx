@@ -81,7 +81,7 @@ function UpcomingSection({
       <ul className="space-y-6">
         {bookings.map((booking) => (
           <BookingsUpcomingCard
-            key={booking.row.cal_booking_id}
+            key={booking.row.id}
             booking={booking}
             now={now}
           />
@@ -108,7 +108,7 @@ function PastSection({
       <ul>
         {bookings.map((booking) => (
           <BookingsPastRow
-            key={booking.row.cal_booking_id}
+            key={booking.row.id}
             booking={booking}
             photos={photosByBooking[booking.row.id] ?? []}
           />

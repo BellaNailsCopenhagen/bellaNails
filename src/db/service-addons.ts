@@ -43,32 +43,6 @@ export async function listAddonsForService(
   )
 }
 
-/** Which services link this add-on — the set whose Cal slots must resync. */
-export async function listServiceIdsForAddon(
-  db: Db,
-  addonId: string,
-): Promise<string[]> {
-  const { data } = await db
-    .from("service_addons")
-    .select("service_id")
-    .eq("addon_id", addonId)
-  return [...new Set((data ?? []).map((row) => row.service_id))]
-}
-
-/** Services linking BOTH add-ons — the set a compatibility change affects. */
-export async function listServiceIdsForAddonPair(
-  db: Db,
-  addonA: string,
-  addonB: string,
-): Promise<string[]> {
-  const [a, b] = await Promise.all([
-    listServiceIdsForAddon(db, addonA),
-    listServiceIdsForAddon(db, addonB),
-  ])
-  const withB = new Set(b)
-  return a.filter((id) => withB.has(id))
-}
-
 export async function linkAddonToService(
   db: Db,
   serviceId: string,

@@ -252,7 +252,7 @@ export function AdminBookings({
                   <ul>
                     {section.bookings.map((booking) => (
                       <BookingListRow
-                        key={booking.row.cal_booking_id}
+                        key={booking.row.id}
                         booking={booking}
                         contact={contacts[booking.row.client_id]}
                         clientNoShowCount={noShowCounts[booking.row.client_id]}

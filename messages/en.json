@@ -92,7 +92,11 @@
     "timeNote": "You'll choose the date and time in the next step.",
     "totalLabel": "Total",
     "paymentNote": "Payment is collected at the studio. 24-hour cancellation policy applies.",
-    "termsLink": "Terms of service"
+    "termsLink": "Terms of service",
+    "pickDateLabel": "Choose a date",
+    "pickTimeLabel": "Choose a time",
+    "noTimes": "No available times right now — please check back soon or contact the studio.",
+    "bookingError": "Something went wrong — please pick another time."
   },
   "bookings": {
     "metaTitle": "My Space – Bella Nails",
@@ -206,7 +210,14 @@
     "shareThanksBody": "Thank you for sharing — it means the world to us. Your photos stay private to the studio and are never published without your permission; you can remove them any time.",
     "sharePromptBody": "Loved your set? Share a photo with Bella Nails. Your photos stay private to the studio and are never published without your permission — you can remove them any time.",
     "requestBanner": "{count, plural, =1 {Bella Nails has a request for you} other {Bella Nails has # requests for you}}",
-    "requestBannerTap": "tap to review"
+    "requestBannerTap": "tap to review",
+    "pickDateLabel": "Choose a date",
+    "pickTimeLabel": "Choose a time",
+    "rescheduleNoTimes": "No available times right now — please contact the studio.",
+    "rescheduleConfirm": "Confirm new time",
+    "rescheduling": "Moving your appointment…",
+    "rescheduleFailed": "We couldn't move it — try another time or contact the studio.",
+    "rescheduleDone": "Your appointment has been moved."
   },
   "gallery": {
     "metaTitle": "Gallery",

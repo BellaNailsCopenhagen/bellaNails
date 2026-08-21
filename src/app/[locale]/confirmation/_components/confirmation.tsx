@@ -12,15 +12,14 @@ import { routes } from "@/config/routes"
 import { STUDIO_ADDRESS } from "@/config/studio"
 
 /**
- * Confirmation — the branded post-booking success page. The recap arrives via
- * a short client-side poll (the webhook that writes the row races this page),
- * and the hero secondary action is completing the account: passwordless
- * email-code / Google / Apple via the prebuilt <SignUp/>, prefilled with the
- * booking email. Signed-in visitors (including "just activated here" — Show
- * is reactive) get the "view my bookings" CTA instead. A direct hit without a
- * uid renders a calm generic confirmed state — never an error.
+ * Confirmation — the branded post-booking success page. The recap is fetched by
+ * booking id, and the hero secondary action is completing the account: sign-in
+ * prefilled with the booking email. Signed-in visitors (including "just
+ * activated here" — Show is reactive) get the "view my bookings" CTA instead. A
+ * direct hit without an id renders a calm generic confirmed state — never an
+ * error.
  */
-export async function Confirmation({ uid }: { uid: string | null }) {
+export async function Confirmation({ id }: { id: string | null }) {
   const t = await getTranslations("confirmation")
 
   return (
@@ -39,7 +38,7 @@ export async function Confirmation({ uid }: { uid: string | null }) {
             account card and the summary can't share a row without overlapping.
             `lg:flex-row-reverse` keeps desktop as recap right, content left. */}
         <div className="flex flex-col gap-12 lg:flex-row-reverse lg:items-start lg:justify-between lg:gap-16">
-          {uid ? <ConfirmationRecap uid={uid} /> : null}
+          {id ? <ConfirmationRecap id={id} /> : null}
 
           <div className="w-full min-w-0 flex-1 space-y-10">
             <div className="space-y-2">

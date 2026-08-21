@@ -12,7 +12,7 @@ import { linkAddon, unlinkAddon } from "@/modules/catalog/addon-actions"
 /**
  * Add-ons linked to one service. Add-ons are standalone now (managed on the
  * Add-ons tab, incompatibilities included) — here we just link existing ones or
- * create-and-link a new one, and unlink. Each link resyncs the Cal slot options.
+ * create-and-link a new one, and unlink.
  */
 export function AddonsManager({
   serviceId,

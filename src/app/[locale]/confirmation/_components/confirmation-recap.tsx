@@ -3,24 +3,22 @@
 import { useQuery } from "@tanstack/react-query"
 import { useLocale, useTranslations } from "next-intl"
 
-import type { BookingRecap } from "@/app/api/bookings/[uid]/route"
+import type { BookingRecap } from "@/app/api/bookings/[id]/route"
 import { AppointmentSummary } from "@/components/booking/appointment-summary"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Caption, Eyebrow } from "@/components/ui/typography"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
-/** The confirm step already waits for the webhook row before navigating
-    here, so the first fetch normally succeeds instantly. The retry tail is
-    a safety net for that wait's ~15 s timeout path and direct/old-link
-    visits, where the row may land seconds later. */
+/** In-house bookings are written synchronously, so the first fetch normally
+    succeeds instantly. The retry tail is a safety net for a transient server
+    hiccup and direct/old-link visits. */
 const RETRY_DELAYS_MS = [1500, 4000, 8000, 15000]
 
-/** 404 = webhook lag (retry until the row lands); anything else non-OK is a
-    server hiccup worth the same retries. */
-async function fetchRecap(uid: string, locale: string): Promise<BookingRecap> {
+/** Any non-OK response is a transient hiccup worth the same retries. */
+async function fetchRecap(id: string, locale: string): Promise<BookingRecap> {
   const res = await fetch(
-    `/api/bookings/${encodeURIComponent(uid)}?locale=${locale}`,
+    `/api/bookings/${encodeURIComponent(id)}?locale=${locale}`,
   )
   if (!res.ok) throw new Error(`recap not ready (${res.status})`)
   return (await res.json()) as BookingRecap
@@ -33,13 +31,13 @@ async function fetchRecap(uid: string, locale: string): Promise<BookingRecap> {
  * email", cancelled booking (revisited old link) → explicit notice — never
  * a broken card.
  */
-export function ConfirmationRecap({ uid }: { uid: string }) {
+export function ConfirmationRecap({ id }: { id: string }) {
   const t = useTranslations("confirmation")
   const locale = useLocale()
 
   const { data: recap, isError } = useQuery({
-    queryKey: ["booking-recap", uid, locale],
-    queryFn: () => fetchRecap(uid, locale),
+    queryKey: ["booking-recap", id, locale],
+    queryFn: () => fetchRecap(id, locale),
     retry: RETRY_DELAYS_MS.length,
     retryDelay: (attemptIndex) =>
       RETRY_DELAYS_MS[attemptIndex] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1],
@@ -70,9 +68,8 @@ export function ConfirmationRecap({ uid }: { uid: string }) {
     )
   }
 
-  // A revisited link for a booking that was cancelled (or replaced by a
-  // reschedule — Cal issues the new time a fresh uid) must not present the
-  // old slot as reserved.
+  // A revisited link for a booking that was later cancelled must not present
+  // the old slot as reserved.
   if (recap.status === BOOKING_STATUS.cancelled) {
     return (
       <TintedCard className="lg:max-w-[22.5rem]">

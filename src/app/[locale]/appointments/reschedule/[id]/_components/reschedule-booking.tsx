@@ -1,25 +1,32 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { Container, Section } from "@/components/layout/container"
-import { RescheduleEmbed } from "@/app/[locale]/appointments/reschedule/[uid]/_components/reschedule-embed"
+import { RescheduleSlotStep } from "@/app/[locale]/appointments/reschedule/[id]/_components/reschedule-slot-step"
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
+import { getAvailableSlots } from "@/modules/booking"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 
-/** RescheduleBooking — back link, editorial header, the current slot, and
-    Cal's inline reschedule view. Eligibility is the page's job. */
+/** RescheduleBooking — back link, editorial header, the current slot, and the
+    in-house time picker. Eligibility is the page's job; availability is fetched
+    here from the booking's own service + add-ons. */
 export async function RescheduleBooking({
-  uid,
+  id,
   startTime,
+  serviceId,
+  addonIds,
 }: {
-  uid: string
+  id: string
   startTime: string
+  serviceId: string | null
+  addonIds: string[]
 }) {
-  const [t, locale] = await Promise.all([
+  const [t, locale, slots] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
+    serviceId ? getAvailableSlots(serviceId, addonIds) : Promise.resolve([]),
   ])
 
   return (
@@ -40,7 +47,7 @@ export async function RescheduleBooking({
           {t("rescheduleCurrent")}: {formatStudioDate(startTime, locale)} ·{" "}
           {formatStudioTime(startTime, locale)}
         </BodySm>
-        <RescheduleEmbed uid={uid} />
+        <RescheduleSlotStep id={id} slots={slots} />
       </Container>
     </Section>
   )

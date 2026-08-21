@@ -11,7 +11,7 @@ export type AdminCategoryRow = Pick<
 export type MenuServiceRow = Pick<
   Row<"services">,
   "id" | "name_en" | "name_dk" | "base_price_cents" | "base_duration_mins"
-> & { cal_event_slug: string | null }
+>
 
 export type MenuCategoryRow = Pick<
   Row<"categories">,
@@ -43,12 +43,12 @@ export async function listMenuCategories(
   const { data, error } = await db
     .from("categories")
     .select(
-      "id, name_en, name_dk, description_en, description_dk, image_url, services(id, name_en, name_dk, base_price_cents, base_duration_mins, cal_event_slug)",
+      "id, name_en, name_dk, description_en, description_dk, image_url, services(id, name_en, name_dk, base_price_cents, base_duration_mins)",
     )
     .is("archived_at", null)
     .is("services.archived_at", null)
     .order("sort_order", { ascending: true })
-    .order("cal_event_id", { referencedTable: "services", ascending: true })
+    .order("created_at", { referencedTable: "services", ascending: true })
   if (error) {
     throw new Error(`Failed to load the service menu: ${error.message}`)
   }

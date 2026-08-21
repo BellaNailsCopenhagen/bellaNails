@@ -2,7 +2,7 @@
     which may only export async functions. */
 
 export type ServiceActionResult =
-  | { ok: true; syncError?: string }
+  | { ok: true }
   | { ok: false; error: string }
 
 export type ServiceEditInput = {

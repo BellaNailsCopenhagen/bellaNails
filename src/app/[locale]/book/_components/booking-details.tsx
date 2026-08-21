@@ -33,8 +33,8 @@ type Field = {
 }
 
 /**
- * BookingDetails — step 02 · Your details: contact fields (prefilled into the
- * Cal.com embed at step 03) beside the same appointment summary as step 01.
+ * BookingDetails — step 02 · Your details: contact fields (carried into the
+ * confirm step) beside the same appointment summary as step 01.
  * The selection arrives via the URL (`?service=…&addons=a,b&step=details`),
  * so this step is shareable/refreshable and back-navigation keeps state.
  * Field defaults: URL values (back-navigation) win over the signed-in user's

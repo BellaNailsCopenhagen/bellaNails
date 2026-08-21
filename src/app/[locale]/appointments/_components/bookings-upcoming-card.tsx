@@ -21,27 +21,9 @@ import {
 import { rescheduleBookingPath } from "@/config/routes"
 import { STUDIO_EMAIL } from "@/config/studio"
 
-/** Disabled inside the policy window; otherwise an in-app link (external
-    Cal fallback for legacy rows without a cal_uid). */
-const manageLinkProps = (
-  withinPolicy: boolean,
-  inAppHref: string | null,
-  fallbackHref: string,
-) =>
-  withinPolicy
-    ? { disabled: true }
-    : {
-        nativeButton: false as const,
-        render: inAppHref ? (
-          <Link href={inAppHref} />
-        ) : (
-          <a href={fallbackHref} target="_blank" rel="noreferrer" />
-        ),
-      }
-
 /**
  * BookingsUpcomingCard — one upcoming appointment: date/time, countdown,
- * service + add-ons, stored total, reschedule/cancel via the row's Cal URLs.
+ * service + add-ons, stored total, and in-app reschedule/cancel by booking id.
  */
 function BookingsUpcomingCard({
   booking,
@@ -115,32 +97,23 @@ function BookingsUpcomingCard({
           <PriceTag cents={row.total_price_cents} className="text-lg" />
         </div>
 
-        {/* Inside the 24 h window the actions render disabled with the
-            reason — failing at Cal's page would be a worse surprise. */}
+        {/* Inside the 24 h window the actions render disabled with the reason —
+            the server action would refuse anyway. */}
         <div className="space-y-3">
           <div className="flex flex-wrap gap-3">
             <Button
               variant="outline"
               size="sm"
-              {...manageLinkProps(
-                withinPolicy,
-                row.cal_uid ? rescheduleBookingPath(row.cal_uid) : null,
-                row.reschedule_url,
-              )}
+              {...(withinPolicy
+                ? { disabled: true }
+                : {
+                    nativeButton: false as const,
+                    render: <Link href={rescheduleBookingPath(row.id)} />,
+                  })}
             >
               {t("reschedule")}
             </Button>
-            {row.cal_uid ? (
-              <CancelBookingButton uid={row.cal_uid} disabled={withinPolicy} />
-            ) : (
-              <Button
-                variant="destructive"
-                size="sm"
-                {...manageLinkProps(withinPolicy, null, row.cancel_url)}
-              >
-                {t("cancel")}
-              </Button>
-            )}
+            <CancelBookingButton id={row.id} disabled={withinPolicy} />
           </div>
           {withinPolicy ? (
             <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">

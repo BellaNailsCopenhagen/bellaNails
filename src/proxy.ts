@@ -87,7 +87,7 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   // Pages only — skip API routes, Next internals, and files with an extension.
-  // /api/* (webhooks, /api/auth/callback, /api/media) run without the proxy;
-  // their route handlers read the session cookie directly.
+  // /api/* (/api/auth/callback, /api/media, /api/bookings) run without the
+  // proxy; their route handlers read the session cookie directly.
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 }

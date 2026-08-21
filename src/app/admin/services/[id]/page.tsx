@@ -77,11 +77,6 @@ export default async function AdminServiceDetailPage({
                   Archived
                 </Badge>
               ) : null}
-              {!service.cal_event_slug ? (
-                <Badge variant="warning" size="xs">
-                  No Cal event
-                </Badge>
-              ) : null}
             </div>
             <p className="font-functional text-sm text-muted-foreground">
               {service.name_dk}
