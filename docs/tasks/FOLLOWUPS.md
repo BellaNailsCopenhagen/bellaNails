@@ -2,6 +2,24 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
+### In-house booking hardening (before launch)
+From the Phase 3a review of `createBooking`:
+- **Public-abuse guard** (blocker before launch): `createBooking` is a public
+  service-role write with no auth/rate-limit — an attacker can spam bookings +
+  junk `clients` rows and fill the calendar. Add rate-limiting / captcha /
+  honeypot (Cal had bot protection; we removed it).
+- **Buffer is app-enforced, not DB-enforced**: the `bookings_no_overlap`
+  exclusion constraint guarantees no raw overlap, but a rare concurrent race can
+  create back-to-back bookings that skip the `buffer_mins` cleanup gap (both pass
+  re-validation before either commits). If it matters, bake a fixed buffer into
+  the constraint's `tstzrange`.
+- **Minor efficiency**: `createBooking` loads the service, then `getAvailableSlots`
+  loads it again + regenerates the whole window to test one slot's membership. A
+  targeted "is this one slot free" check would avoid the duplicate I/O.
+- **Phase 3b coupling**: making the bookings Row types nullable + updating the
+  appointment cards (cancel/reschedule → in-house actions, React key off
+  `cal_booking_id`) MUST happen before a UI wires `createBooking`.
+
 ### Localize the auth surfaces (login + My space)
 `/[locale]/login` (supabase-login-form) and `/[locale]/account` (My space page +
 account-actions + the AccountMenu aria/title) are hardcoded **English**. The app

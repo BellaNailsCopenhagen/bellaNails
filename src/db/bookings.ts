@@ -278,6 +278,30 @@ export async function countActiveBookingsForService(
 
 export type BookingUpsert = Insert<"bookings">
 
+/** Insert a fresh in-house booking. The `bookings_no_overlap` exclusion
+    constraint rejects a time that collides with an active booking — surfaced as
+    `reason: "overlap"` so the caller can ask for another time instead of showing
+    a raw DB error. */
+export async function insertBooking(
+  db: Db,
+  values: Insert<"bookings">,
+): Promise<
+  | { ok: true; id: string }
+  | { ok: false; reason: "overlap" | "error"; message: string }
+> {
+  const { data, error } = await db
+    .from("bookings")
+    .insert(values)
+    .select("id")
+    .single()
+  if (error) {
+    const overlap =
+      error.code === "23P01" || /exclu|overlap|no_overlap/i.test(error.message)
+    return { ok: false, reason: overlap ? "overlap" : "error", message: error.message }
+  }
+  return { ok: true, id: data.id }
+}
+
 /** Insert-or-update a booking keyed by Cal's numeric id. Returns the row id
     so the caller can hang related records (terms acceptance) off it. */
 export async function upsertBooking(
