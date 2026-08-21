@@ -36,17 +36,17 @@ Read `AGENTS.md` and the relevant guide under `node_modules/next/dist/docs/01-ap
 | Page shell | `src/app/[locale]/<route>/page.tsx` — pattern below |
 | Layout primitives | `Container`, `Section` (`src/components/layout/container.tsx`) |
 | Editorial page intro | `PageHeader` (`src/components/ui/page-header.tsx`) — eyebrow + 2-line display + intro |
-| Step indicator | `BookingSteps` (`src/components/sections/booking-steps.tsx`) — `current` is `0 | 1 | 2` |
-| Running total card | `AppointmentSummary` (`src/components/sections/appointment-summary.tsx`), `BookingLineItem` type |
+| Step indicator | `BookingSteps` (`src/app/[locale]/book/_components/booking-steps.tsx`) — `current` is `0 | 1 | 2` |
+| Running total card | `AppointmentSummary` (`src/components/booking/appointment-summary.tsx`), `BookingLineItem` type |
 | Prices | `PriceTag` (`src/components/ui/price-tag.tsx`) — cents in, `locale` prop, `sign` for deltas |
 | Buttons / inputs | `src/components/ui/{button,input,textarea,label,checkbox,separator,badge}.tsx` |
 | Localized link/redirect | `@/i18n/navigation` (`Link`, `redirect`) — never `next/link` for locale routes |
 | Route constants | `@/config/routes` (`routes.book`, `routes.bookings`, `routes.signIn`, …) |
-| Supabase (public reads) | `createSupabaseServerClient()` (`src/lib/supabase/server.ts`) |
+| Supabase (public reads) | `createSupabaseServerClient()` (`src/platform/supabase/server.ts`) |
 | Supabase (authed / RLS) | `createAuthedSupabaseServerClient()` (same file) |
 | Supabase (service-role, webhook only) | service-role client in `server.ts` (`server-only`) — **never import into a client/RSC render path** |
-| DB types | `src/lib/supabase/types.ts` (generated) |
-| Service+addons fetch | `getServiceWithAddons(id)` (`src/lib/services/get-service-with-addons.ts`) |
+| DB types | `src/platform/supabase/types.ts` (generated) |
+| Service+addons fetch | `getServiceWithAddons(id)` (`getServiceWithAddons` in `src/modules/catalog`) |
 
 ### Canonical page pattern
 
@@ -66,11 +66,11 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
 }
 ```
 
-Keep page files thin; put UI in `src/components/sections/`.
+Keep page files thin; put single-use UI in the route's `_components/` and shared UI in `src/components/`.
 
 ## Data conventions (do not deviate)
 
-- **Localized columns use the `_dk` suffix** (not `_da`) + `_en`. The `da` locale maps to `_dk`. Resolve with `pickLocalized(locale, en, dk)` (`src/lib/i18n/localized.ts`).
+- **Localized columns use the `_dk` suffix** (not `_da`) + `_en`. The `da` locale maps to `_dk`. Resolve with `pickLocalized(locale, en, dk)` (`src/shared/localized.ts`).
 - **Prices in cents** (`base_price_cents`, `extra_price_cents`, `total_price_cents`). Never floats. Render only via `PriceTag`.
 - **Soft-delete** via `archived_at` — reads filter `WHERE archived_at IS NULL`. Never hard-delete.
 - `bookings` columns: `cal_booking_id` (unique), `clerk_user_id`, `status` (`confirmed|rescheduled|cancelled`), `start_time`, `end_time`, `reschedule_url`, `cancel_url`, `total_price_cents`, `selected_addons` (jsonb).

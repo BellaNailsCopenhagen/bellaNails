@@ -1,5 +1,10 @@
 # Service detail pages, sections, addon UX, price history
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../../architecture.md).
+
 Autonomous multi-phase build. Each phase: `tsc`+`eslint`+`build` → review → commit → deploy. Migrations are applied by the owner (present) as we go.
 
 ## Vision (owner-confirmed)

@@ -1,5 +1,10 @@
 # Storage Migration — Cloudinary → Scaleway Object Storage
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../architecture.md).
+
 > **Why:** move artist/client image storage to an EU-native, GDPR-sovereign provider (Scaleway, France — no US parent / CLOUD Act exposure) with a generous free tier (75 GB storage + 75 GB egress/month). All storage access is server-mediated: Scaleway keys never reach the browser, including when the client site is installed as a PWA.
 >
 > **Related:** [PROJECT_BIBLE.md](../../PROJECT_BIBLE.md) · [docs/PLAN.md](../PLAN.md) · [docs/INFRASTRUCTURE.md](../INFRASTRUCTURE.md) · [docs/tasks/explorations/auth-ownership-and-gdpr.md](explorations/auth-ownership-and-gdpr.md)

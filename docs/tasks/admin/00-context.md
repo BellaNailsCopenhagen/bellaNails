@@ -62,12 +62,12 @@ design direction** for every task in this folder:
 
 | Need | Use |
 |---|---|
-| Booking persist (create/reschedule) | `persistCalBooking` / `syncBookingFromCal` (`src/lib/booking-sync.ts`) |
+| Booking persist (create/reschedule) | `persistCalBooking` / `syncBookingFromCal` (`src/modules/booking/sync-from-cal.ts`) |
 | Cal API v2 | `CALCOM_API_BASE` + `CALCOM_API_KEY` (see `cancel-booking.ts` for the call shape; `cal-api-version` headers: bookings `2024-08-13`, event types `2024-06-14`) |
-| Booking display shapes | `src/lib/booking-display.ts` (`BOOKING_DISPLAY_COLUMNS`, `toDisplayBooking`, `fetchBookingCatalog`, `canManageBooking`) |
+| Booking display shapes | `src/db/bookings.ts` (columns + `BookingRow`), `src/shared/booking-view.ts` (`toDisplayBooking`), `src/shared/booking-policy.ts` (`canManageBooking`), `src/modules/booking/booking-view.ts` (`toDisplayBookings`) |
 | Status chip | `BookingStatusBadge` (size it up via `size` prop for the queue) |
 | Statuses | `BOOKING_STATUS` / `ACTIVE_BOOKING_STATUSES` — new statuses (`requested`, `declined`) land WITH the request flow, extending these |
-| Dates/times | `src/lib/studio-time.ts` (always studio TZ) |
+| Dates/times | `src/shared/studio-time.ts` (always studio TZ) |
 | Slot-length math | `computeBookingTotals` (`booking-totals.ts`) — Task 03 derives `lengthInMinutesOptions` from it |
 | Client identity | Clerk Backend API via `clerkClient()` (see `ensure-user.ts`) — the owner MAY see client name/email/phone (fetched from Clerk per booking, never stored in our DB) |
 
@@ -97,7 +97,7 @@ for 02, and needs the studio's working hours defined (occupancy denominator).
 
 - [ ] Set `publicMetadata.role = "owner"` on the artist's Clerk user (and the
       owner's own account) in the Clerk dashboard.
-- [ ] Regenerate `src/lib/supabase/types.ts` from the live schema.
+- [ ] Regenerate `src/platform/supabase/types.ts` from the live schema.
 - [ ] Apply [supabase/gallery-ordering.sql](../../../supabase/gallery-ordering.sql) (Task 04 depends on it).
 - [ ] Task 06 ships `supabase/booking-origin.sql` (origin + client_accepted_at) — migration before its deploy, as always.
 - [ ] Task 07 ships `supabase/clients.sql` (`client_notes` + `client_media`, owner-only RLS) — same rule; needs a privacy-policy paragraph from the owner (client records: notes + reference photos, retention, erasure).

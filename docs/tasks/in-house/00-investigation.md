@@ -1,5 +1,10 @@
 # In-house scheduling & identity — investigation brief
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../../architecture.md).
+
 > Owner of this doc: whoever picks up [Phase 11](../../PLAN.md#phase-11--in-house-scheduling--identity-retire-calcom--clerk).
 > **This is not a build brief.** It is the list of things that must be answered *with code or a
 > vendor doc in hand* before any of Phase 11's five steps gets an implementation task.

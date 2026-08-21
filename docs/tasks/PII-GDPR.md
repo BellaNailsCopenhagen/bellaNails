@@ -79,7 +79,7 @@ must keep. Do this instead:
 4. Delete **only the client's OWN, unused uploads** — `client_media` with
    `source='client'` and no `published_asset_id` (not placed/used by the artist)
    — plus their **Scaleway private originals** (via `purgeMediaArtifacts`,
-   `src/lib/media-erasure.ts`).
+   `src/modules/media/erasure.ts`).
 
 **Ownership is the line.** A client erasure removes everything the **client
 owns** — their PII (scrubbed) and their own unused uploads (deleted). Everything

@@ -1,5 +1,10 @@
 # Bella Nails — Build Plan
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](architecture.md).
+
 > Phased, dependency-ordered plan to take Bella Nails from scaffold to MVP.
 > Honors the locked build order: **design system → i18n/routes → schema → integrations → features**.
 > See [PROJECT_BIBLE.md](../PROJECT_BIBLE.md) for the why, and [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) for the how of each service.

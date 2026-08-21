@@ -1,5 +1,10 @@
 # Phase 11 — retire Clerk + Cal.com: decision & plan
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../../architecture.md).
+
 ## Decision (2026-08-19)
 **Retire both Clerk and Cal.com.** Rationale is recorded in `docs/PLAN.md` Phase 11 (email ownership, EU-sovereign PII, Cal is now a thin slice of a thick flow). Doing it now — before more of the schema/code grows around `clerk_user_id` and Cal ids — is the right call.
 

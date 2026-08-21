@@ -1,5 +1,10 @@
 # Exploration — Owning users/login + GDPR (Denmark/EU)
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../../architecture.md).
+
 > Status: **exploration, not committed.** Owner trigger (July 2026): Clerk's
 > free plan can't store a client's **phone** (phone isn't an enabled identifier
 > and the accounts we mint are never activated as logins), so our

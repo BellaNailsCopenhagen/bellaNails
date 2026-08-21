@@ -16,10 +16,10 @@ guard), but nothing surfaces a withdrawn/declined item: media inbox lists only
 `requested` ([consent-centre.tsx](../../src/components/.../consent-centre.tsx)),
 the gallery manage dialog only `granted`. Add an "Allow again" control wired to
 `decide*Consent(..., "granted")`.
-- **Paired bug**: `grantMediaConsentRow` ([client-consent.ts](../../src/lib/actions/client-consent.ts)) on re-grant of a *used-&-withdrawn* photo sets a NEW `published_asset_id` without clearing `needs_takedown_at` or reusing/cleaning the old asset → orphans the old `assets`/`asset_usages` + Scaleway object and leaves a stale "used & withdrawn" flag. Fix alongside: clear `needs_takedown_at` + reconcile the existing asset.
+- **Paired bug**: `grantMediaConsentRow` ([consent-actions.ts](../../src/modules/media/consent-actions.ts)) on re-grant of a *used-&-withdrawn* photo sets a NEW `published_asset_id` without clearing `needs_takedown_at` or reusing/cleaning the old asset → orphans the old `assets`/`asset_usages` + Scaleway object and leaves a stale "used & withdrawn" flag. Fix alongside: clear `needs_takedown_at` + reconcile the existing asset.
 
 ### withdrawDataConsent doesn't notify owner / revalidate
-[client-consent.ts](../../src/lib/actions/client-consent.ts) `withdrawDataConsent`
+[consent-actions.ts](../../src/modules/media/consent-actions.ts) `withdrawDataConsent`
 only flips status + revalidates `/admin/clients/{id}` — unlike `withdrawMediaConsent`
 (notifyOwner + revalidate public surfaces). Latent today (name/testimonial has no
 public render yet) but will silently fail to take content down once it ships. Add

@@ -26,7 +26,7 @@ nothing built yet. Start after auth is confirmed working.**
 
 ---
 
-## Pillar 1 — Booking engine (`src/lib/booking/` facade)
+## Pillar 1 — Booking engine (`src/modules/booking/`)
 
 Every component calls the facade, never a provider (per DECISION.md):
 ```
@@ -66,13 +66,13 @@ email needed), so make it quick: prefill the current client + service.
 
 ---
 
-## Pillar 2 — Transactional email system (`src/lib/email/`)
+## Pillar 2 — Transactional email system (`src/platform/email/` + `src/modules/email/`)
 
 ### Provider
 **Reuse an already-paid SMTP — no new vendor/cost.** Send via **Zoho Mail SMTP**
 (or **DanDomain** SMTP — whichever hosts the domain's email, for SPF/DKIM
 alignment). This is the same SMTP Supabase Auth uses, so one config covers both.
-`src/lib/email/send.ts` is a thin, env-guarded SMTP wrapper (`to, subject, html,
+`src/platform/email/send.ts` is a thin, env-guarded SMTP wrapper (`to, subject, html,
 text`) — **degrade-without-keys**: no creds → log, don't throw
 ([[build-degrade-without-keys]]). Mailbox SMTP has a daily send cap (hundreds–low
 thousands/day) which comfortably covers studio volume; only if we ever outgrow it
@@ -88,7 +88,7 @@ do we move to ZeptoMail (Zoho's transactional product, ~free) — not now.
   `title` (subject), `body` (markdown), `locale`, `created_at`, `created_by`.
   Artist-authored ad-hoc templates. **Editing UI is deferred** — edit rows
   in-place for now; a preview + constrained WYSIWYG (Tiptap/markdown) comes later.
-- **Render pipeline** (`src/lib/email/render.ts`): markdown + merge fields
+- **Render pipeline** (`src/modules/email/render.ts`): markdown + merge fields
   (`{{client_name}}`, `{{date}}`, `{{time}}`, `{{location}}`, …) → HTML; defaults
   append the locked details block. One pipeline serves both tiers.
 
@@ -176,7 +176,7 @@ is only a fallback for clients who didn't rebook in person.
    and **Send email** (pick default/custom, auto-fill, preview, send).
 4. **Email-only consent** — token page + batch digest email (reuses grant logic).
 5. **Booking engine** — `booking_settings`, exclusion constraint, slot gen +
-   `src/lib/booking/` CRUD facade.
+   `src/modules/booking/` service layer (table access in `src/db/`).
 6. **Client booking UI** replacing the Cal embed; admin create/edit + "book next
    session".
 7. **Reminders** — enqueue on the booking lifecycle.
@@ -193,7 +193,7 @@ preview + mandatory-field validation) — edit rows in place until then; email
 - Mandatory email fields: locked details block, renderer-injected.
 - Degrade without keys: no ZeptoMail key → log, never crash.
 - Idempotent cron: status transitions + `SKIP LOCKED` + retry cap.
-- Everything behind `src/lib/booking/` and `src/lib/email/` (provider-agnostic).
+- Everything behind `src/modules/booking/` and `src/modules/email/` (provider-agnostic).
 
 ## Owner prerequisites (gather before build)
 - SMTP creds from the existing mailbox host (email is on **Zoho**; DNS is at

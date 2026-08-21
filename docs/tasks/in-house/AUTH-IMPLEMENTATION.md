@@ -1,5 +1,10 @@
 # Auth swap — Clerk → Supabase Auth (implementation plan)
 
+> **File paths below predate the Aug 2026 restructure.** `src/lib/**` and
+> `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
+> `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
+> was done — for current locations see [architecture.md](../../architecture.md).
+
 Concrete, file-by-file plan for retiring Clerk in favour of **Supabase Auth**
 (Google OAuth + passwordless email OTP). Grounded in a full map of the current
 wiring (see the two inventories that produced this). Companion to `DECISION.md`

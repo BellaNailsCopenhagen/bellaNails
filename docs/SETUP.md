@@ -155,7 +155,7 @@ Fill the six `SCALEWAY_*` vars.
    that already has real rows (they guard against double-seeding).
 
 After changing the schema, keep the hand-maintained types in sync:
-[`src/lib/supabase/types.ts`](../src/lib/supabase/types.ts) (edit by hand to match,
+[`src/platform/supabase/types.ts`](../src/platform/supabase/types.ts) (edit by hand to match,
 or regenerate with the Supabase CLI).
 
 ---
