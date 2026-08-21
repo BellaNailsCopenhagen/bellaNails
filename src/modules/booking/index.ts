@@ -19,6 +19,9 @@ export {
   type AdminBookingView,
 } from "./reads"
 
+// In-house scheduler (replacing Cal): available slots for the booking flow.
+export { getAvailableSlots } from "./availability"
+
 // Mutations. Re-exported for server callers; client components import
 // ./actions directly so they never pull this barrel into the browser bundle.
 export {

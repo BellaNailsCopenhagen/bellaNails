@@ -326,6 +326,33 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_settings: {
+        Row: {
+          buffer_mins: number
+          id: boolean
+          max_advance_days: number
+          min_lead_mins: number
+          slot_interval_mins: number
+          updated_at: string
+        }
+        Insert: {
+          buffer_mins?: number
+          id?: boolean
+          max_advance_days?: number
+          min_lead_mins?: number
+          slot_interval_mins?: number
+          updated_at?: string
+        }
+        Update: {
+          buffer_mins?: number
+          id?: boolean
+          max_advance_days?: number
+          min_lead_mins?: number
+          slot_interval_mins?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           cal_booking_id: number

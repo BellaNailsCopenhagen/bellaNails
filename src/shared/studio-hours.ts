@@ -52,13 +52,13 @@ function isoDate(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-/**
- * Resolve the opening hours for one date: a matching special day wins (closed,
- * or its special hours), otherwise the weekday's weekly hours. The date is
- * treated as studio-local (the scheduler passes a studio-local date).
- */
-export function hoursForDate(hours: StudioHours, date: Date): DayHours {
-  const iso = isoDate(date)
+/** Special-day match wins (closed, or its special hours), else the weekday's
+    weekly hours. The one body shared by both resolvers below. */
+function resolveDayHours(
+  hours: StudioHours,
+  iso: string,
+  weekday: WeekdayKey,
+): DayHours {
   const special = hours.special.find(
     (s) => iso >= s.startsOn && iso <= (s.endsOn ?? s.startsOn),
   )
@@ -69,6 +69,30 @@ export function hoursForDate(hours: StudioHours, date: Date): DayHours {
       label: special.label ?? undefined,
     }
   }
-  const ranges = hours.weekly[WEEKDAY_BY_JS[date.getDay()]] ?? []
+  const ranges = hours.weekly[weekday] ?? []
   return { closed: ranges.length === 0, ranges }
+}
+
+/** Opening hours for one date, treated as studio-local (the editor passes a
+    studio-local date). */
+export function hoursForDate(hours: StudioHours, date: Date): DayHours {
+  return resolveDayHours(hours, isoDate(date), WEEKDAY_BY_JS[date.getDay()])
+}
+
+// Weekday order, derived from WEEKDAYS so it can't drift. 0 = Monday; epoch day
+// 0 (1970-01-01) was a Thursday, hence the (dayNumber + 3) offset below.
+const WEEKDAY_BY_INDEX: WeekdayKey[] = WEEKDAYS.map((w) => w.key)
+
+/**
+ * Like `hoursForDate` but keyed by a studio day-number (days since epoch of the
+ * studio-local calendar date). Timezone-safe — resolves the weekday and date
+ * from day-number arithmetic, never a local `getDay()`, so it's correct
+ * regardless of the server's timezone. Used by the slot generator.
+ */
+export function hoursForDayNumber(
+  hours: StudioHours,
+  dayNumber: number,
+): DayHours {
+  const iso = new Date(dayNumber * 86_400_000).toISOString().slice(0, 10)
+  return resolveDayHours(hours, iso, WEEKDAY_BY_INDEX[(dayNumber + 3) % 7])
 }

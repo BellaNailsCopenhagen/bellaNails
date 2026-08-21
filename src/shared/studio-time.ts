@@ -127,3 +127,45 @@ export function formatCountdown(
 
   return rtf.format(studioDayNumber(target) - studioDayNumber(now), "day")
 }
+
+// Wall-clock parts of an instant in the studio timezone — the inverse input to
+// studioWallTimeToInstant's offset calculation.
+const STUDIO_WALL_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: STUDIO_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
+/** UTC instant (ms) for a wall-clock "HH:MM" on a studio day-number —
+    DST-correct: the zone offset is computed AT the target instant, so a slot
+    generated across a DST boundary lands on the right absolute time. */
+export function studioWallTimeToInstant(dayNumber: number, hhmm: string): number {
+  const date = new Date(dayNumber * 86_400_000)
+  const [hour, minute] = hhmm.split(":").map(Number)
+  // The desired wall time read as if it were UTC…
+  const asUtc = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    hour,
+    minute,
+  )
+  // …then correct by however far the zone is from UTC at that instant.
+  const parts = STUDIO_WALL_FORMAT.formatToParts(new Date(asUtc))
+  const get = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value)
+  const shown = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour"),
+    get("minute"),
+    get("second"),
+  )
+  return asUtc - (shown - asUtc)
+}

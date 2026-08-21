@@ -207,6 +207,25 @@ export type BookingSpan = Pick<
   "client_id" | "start_time" | "end_time"
 >
 
+export type TimeSpan = Pick<Row<"bookings">, "start_time" | "end_time">
+
+/** Active bookings whose window overlaps [startIso, endIso) — the slot
+    generator subtracts these (plus a buffer) from availability. */
+export async function listActiveBookingSpansBetween(
+  db: Db,
+  startIso: string,
+  endIso: string,
+): Promise<TimeSpan[]> {
+  const { data, error } = await db
+    .from("bookings")
+    .select("start_time, end_time")
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .lt("start_time", endIso)
+    .gt("end_time", startIso)
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 /** Every booking reduced to client + window — the admin client directory
     aggregates visit counts and last-seen from this. */
 export async function listBookingSpans(db: Db): Promise<BookingSpan[]> {
