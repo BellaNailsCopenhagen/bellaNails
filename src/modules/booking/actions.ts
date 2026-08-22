@@ -11,6 +11,7 @@ import {
 } from "@/db/bookings"
 import type { Db } from "@/db/client"
 import { getAvailableSlots } from "@/modules/booking/availability"
+import { manageUrlFor, verifyBookingToken } from "@/modules/booking/manage-token"
 import { fetchClientContacts } from "@/modules/clients"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
@@ -57,9 +58,11 @@ function revalidateAdminBookingViews(): void {
  * caller (the pre-write `booking` still holds the previous time).
  */
 async function emailManagedBooking(
+  id: string,
   booking: BookingManageState,
   kind: "cancelled" | "moved",
-  window: { startIso: string; previousStartIso?: string },
+  window: { startIso: string; endIso: string; previousStartIso?: string },
+  actor: "client" | "studio",
 ): Promise<void> {
   try {
     const contact = (await fetchClientContacts([booking.client_id]))[
@@ -80,7 +83,12 @@ async function emailManagedBooking(
         isEn ? a.nameEn : a.nameDk ?? a.nameEn,
       ),
       startIso: window.startIso,
+      endIso: window.endIso,
       previousStartIso: window.previousStartIso,
+      // Only a move keeps the booking live enough to manage again.
+      manageUrl: kind === "moved" ? manageUrlFor(locale, id) : undefined,
+      bookingId: id,
+      actor,
       locale,
     }
     if (kind === "cancelled") await sendBookingCancellationEmail(detail)
@@ -94,12 +102,13 @@ async function emailManagedBooking(
 }
 
 // The reschedule email's before/after: the booking's previous start and the
-// new one (service/add-ons/duration are unchanged by a move).
+// new window (service/add-ons/duration are unchanged by a move).
 function rescheduleWindow(
   booking: BookingManageState,
   newStart: string,
-): { startIso: string; previousStartIso: string } {
-  return { previousStartIso: booking.start_time, startIso: newStart }
+  newEnd: string,
+): { startIso: string; endIso: string; previousStartIso: string } {
+  return { previousStartIso: booking.start_time, startIso: newStart, endIso: newEnd }
 }
 
 type CancelResult =
@@ -134,9 +143,13 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
   const result = await cancelBookingById(createSupabaseServiceRoleClient(), id)
   if (!result.ok) return { ok: false, error: "failed" }
 
-  await emailManagedBooking(booking, "cancelled", {
-    startIso: booking.start_time,
-  })
+  await emailManagedBooking(
+    id,
+    booking,
+    "cancelled",
+    { startIso: booking.start_time, endIso: booking.end_time },
+    "client",
+  )
   revalidatePath("/[locale]/appointments", "page")
   return { ok: true }
 }
@@ -167,9 +180,13 @@ export async function cancelBookingAsOwner(
   const result = await cancelBookingById(service, id)
   if (!result.ok) return { ok: false, error: "failed" }
 
-  await emailManagedBooking(booking, "cancelled", {
-    startIso: booking.start_time,
-  })
+  await emailManagedBooking(
+    id,
+    booking,
+    "cancelled",
+    { startIso: booking.start_time, endIso: booking.end_time },
+    "studio",
+  )
   revalidateAdminBookingViews()
   return { ok: true }
 }
@@ -208,6 +225,12 @@ async function resolveNewSlotEnd(
   return slot?.end ?? null
 }
 
+// The applied move carries the new `end` so the reschedule email + .ics get the
+// correct window without re-deriving it.
+type ApplyResult =
+  | { ok: true; end: string }
+  | { ok: false; error: "unavailable" | "failed" }
+
 // `writeDb` is service-role in both paths (ownership is already proven by the
 // caller's read); `ignoreLeadTime` lets the owner path reach near-term slots.
 async function applyReschedule(
@@ -216,7 +239,7 @@ async function applyReschedule(
   booking: BookingManageState,
   newStart: string,
   ignoreLeadTime: boolean,
-): Promise<RescheduleResult> {
+): Promise<ApplyResult> {
   const end = await resolveNewSlotEnd(booking, newStart, ignoreLeadTime)
   if (!end) return { ok: false, error: "unavailable" }
 
@@ -224,7 +247,7 @@ async function applyReschedule(
   if (!result.ok) {
     return { ok: false, error: result.reason === "overlap" ? "unavailable" : "failed" }
   }
-  return { ok: true }
+  return { ok: true, end }
 }
 
 /**
@@ -248,18 +271,24 @@ export async function rescheduleBooking(
   }
 
   // Ownership proven by the authed read; write with service-role, public rules.
-  const result = await applyReschedule(
+  const applied = await applyReschedule(
     createSupabaseServiceRoleClient(),
     id,
     booking,
     newStart,
     false,
   )
-  if (result.ok) {
-    await emailManagedBooking(booking, "moved", rescheduleWindow(booking, newStart))
-    revalidatePath("/[locale]/appointments", "page")
-  }
-  return result
+  if (!applied.ok) return applied
+
+  await emailManagedBooking(
+    id,
+    booking,
+    "moved",
+    rescheduleWindow(booking, newStart, applied.end),
+    "client",
+  )
+  revalidatePath("/[locale]/appointments", "page")
+  return { ok: true }
 }
 
 /**
@@ -280,12 +309,80 @@ export async function rescheduleBookingAsOwner(
   }
 
   // The studio isn't bound by the public 24 h lead time.
-  const result = await applyReschedule(service, id, booking, newStart, true)
-  if (result.ok) {
-    await emailManagedBooking(booking, "moved", rescheduleWindow(booking, newStart))
-    revalidateAdminBookingViews()
+  const applied = await applyReschedule(service, id, booking, newStart, true)
+  if (!applied.ok) return applied
+
+  await emailManagedBooking(
+    id,
+    booking,
+    "moved",
+    rescheduleWindow(booking, newStart, applied.end),
+    "studio",
+  )
+  revalidateAdminBookingViews()
+  return { ok: true }
+}
+
+// --- Guest self-service (email link) --------------------------------------
+// The signed token IS the authorization (it proves the caller holds the booking
+// email); the write is service-role, still gated by the same 24 h policy. Public
+// booking rules apply — a guest is no more privileged than the public flow.
+
+export async function cancelBookingByToken(token: string): Promise<CancelResult> {
+  const id = verifyBookingToken(token)
+  if (!id) return { ok: false, error: "not_found" }
+
+  const service = createSupabaseServiceRoleClient()
+  const booking = await getBookingForManage(service, id)
+  if (!booking) return { ok: false, error: "not_found" }
+  if (booking.status === BOOKING_STATUS.cancelled) {
+    revalidatePath("/[locale]/manage/[token]", "page")
+    return { ok: true }
   }
-  return result
+  if (!canManageBooking(booking, Date.now())) {
+    return { ok: false, error: "within_policy" }
+  }
+
+  const result = await cancelBookingById(service, id)
+  if (!result.ok) return { ok: false, error: "failed" }
+
+  await emailManagedBooking(
+    id,
+    booking,
+    "cancelled",
+    { startIso: booking.start_time, endIso: booking.end_time },
+    "client",
+  )
+  revalidatePath("/[locale]/manage/[token]", "page")
+  return { ok: true }
+}
+
+export async function rescheduleBookingByToken(
+  token: string,
+  newStart: string,
+): Promise<RescheduleResult> {
+  const id = verifyBookingToken(token)
+  if (!id) return { ok: false, error: "not_found" }
+
+  const service = createSupabaseServiceRoleClient()
+  const booking = await getBookingForManage(service, id)
+  if (!booking) return { ok: false, error: "not_found" }
+  if (!canManageBooking(booking, Date.now())) {
+    return { ok: false, error: "within_policy" }
+  }
+
+  const applied = await applyReschedule(service, id, booking, newStart, false)
+  if (!applied.ok) return applied
+
+  await emailManagedBooking(
+    id,
+    booking,
+    "moved",
+    rescheduleWindow(booking, newStart, applied.end),
+    "client",
+  )
+  revalidatePath("/[locale]/manage/[token]", "page")
+  return { ok: true }
 }
 
 type NoShowResult =

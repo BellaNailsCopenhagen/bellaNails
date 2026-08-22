@@ -16,6 +16,9 @@ export type EmailMessage = {
   html: string
   text: string
   replyTo?: string
+  // Optional iCalendar invite (text/calendar) — nodemailer attaches it as an
+  // alternative part so mail clients offer "add to calendar".
+  calendar?: { content: string; method?: string; filename?: string }
 }
 
 export type EmailResult = { ok: boolean; skipped?: boolean }
@@ -67,6 +70,13 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
       html: msg.html,
       text: msg.text,
       replyTo: msg.replyTo,
+      icalEvent: msg.calendar
+        ? {
+            method: msg.calendar.method ?? "PUBLISH",
+            filename: msg.calendar.filename ?? "invite.ics",
+            content: msg.calendar.content,
+          }
+        : undefined,
     })
     return { ok: true }
   } catch (error) {

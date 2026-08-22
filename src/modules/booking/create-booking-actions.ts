@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { insertBooking } from "@/db/bookings"
 import { getBookableService } from "@/db/services"
 import { getAvailableSlots } from "@/modules/booking/availability"
+import { manageUrlFor } from "@/modules/booking/manage-token"
 import { ensureUser } from "@/modules/identity/ensure-user"
 import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
@@ -137,7 +138,11 @@ export async function createBooking(
     serviceName: isEn ? service.name_en : service.name_dk ?? service.name_en,
     addonNames: addons.map((a) => (isEn ? a.name_en : a.name_dk ?? a.name_en)),
     startIso: input.start,
+    endIso: end.toISOString(),
     priceCents: totalPriceCents,
+    manageUrl: manageUrlFor(locale, result.id),
+    bookingId: result.id,
+    actor: "client",
     locale,
   })
 

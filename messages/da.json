@@ -126,6 +126,10 @@
     "rescheduleHeading2": "nyt tidspunkt",
     "rescheduleIntro": "Vælg det tidspunkt, der passer dig bedre — din behandling og dine oplysninger følger med din tid, og en ny bekræftelse kommer på e-mail.",
     "rescheduleCurrent": "Nuværende tid",
+    "manageMetaTitle": "Administrér din tid",
+    "manageHeading1": "Administrér din",
+    "manageHeading2": "tid",
+    "manageIntro": "Flyt eller aflys din tid nedenfor — indtil 24 timer før den starter.",
     "backToBookings": "Tilbage til mine tider",
     "bookAgain": "Book igen",
     "addonsLabel": "Tilvalg",
@@ -225,7 +229,7 @@
     "rescheduleConfirm": "Bekræft nyt tidspunkt",
     "rescheduling": "Flytter din aftale…",
     "rescheduleFailed": "Vi kunne ikke flytte den — prøv et andet tidspunkt eller kontakt studiet.",
-    "rescheduleDone": "Din aftale er flyttet."
+    "rescheduleDone": "Du har flyttet din tid."
   },
   "gallery": {
     "metaTitle": "Galleri",

@@ -126,6 +126,10 @@
     "rescheduleHeading2": "New Time",
     "rescheduleIntro": "Pick the time that suits you better — your treatment and details move with your appointment, and a new confirmation arrives by email.",
     "rescheduleCurrent": "Currently booked for",
+    "manageMetaTitle": "Manage your appointment",
+    "manageHeading1": "Manage your",
+    "manageHeading2": "Appointment",
+    "manageIntro": "Reschedule or cancel your appointment below — up to 24 hours before it starts.",
     "backToBookings": "Back to my appointments",
     "bookAgain": "Book again",
     "addonsLabel": "Add-ons",
@@ -225,7 +229,7 @@
     "rescheduleConfirm": "Confirm new time",
     "rescheduling": "Moving your appointment…",
     "rescheduleFailed": "We couldn't move it — try another time or contact the studio.",
-    "rescheduleDone": "Your appointment has been moved."
+    "rescheduleDone": "You've rescheduled your appointment."
   },
   "gallery": {
     "metaTitle": "Gallery",

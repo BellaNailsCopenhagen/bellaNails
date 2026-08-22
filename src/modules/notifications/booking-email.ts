@@ -5,17 +5,22 @@ import {
   BOOKING_FROM_EMAIL,
   STUDIO_ADDRESS,
   STUDIO_EMAIL,
+  STUDIO_MAPS_URL,
   STUDIO_NAME,
 } from "@/config/studio"
 import { sendEmail } from "@/platform/email/client"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
+import { buildBookingIcs } from "./booking-ics"
+import { pick, type Kind } from "./booking-email-copy"
+
 /**
  * Transactional booking emails (Cal used to send these). Each takes PLAIN data
  * — no db access here, callers pass what they hold — and is best-effort: every
  * error is swallowed and logged so a mail failure can never fail the booking
- * action it trails. Danish default, English when `locale === "en"`.
+ * action it trails. Copy lives in ./booking-email-copy; the invite in
+ * ./booking-ics. Danish default, English when `locale === "en"`.
  */
 
 export type BookingEmailDetail = {
@@ -24,72 +29,17 @@ export type BookingEmailDetail = {
   serviceName: string
   addonNames: string[]
   startIso: string
+  endIso: string
   priceCents?: number
   previousStartIso?: string
+  // Guest self-service link (confirm + reschedule carry it; cancel doesn't).
+  manageUrl?: string
+  // Stable UID for the .ics event, so a reschedule updates the same entry.
+  bookingId: string
+  // Who acted — drives the cancel/reschedule intro wording.
+  actor: "client" | "studio"
   locale: string
 }
-
-type Kind = "confirmed" | "cancelled" | "moved"
-
-// ── Copy (natural da / en, not machine-translated) ──────────────────────────
-const COPY = {
-  da: {
-    greeting: (n: string | null) => (n ? `Hej ${n},` : "Hej,"),
-    labels: {
-      service: "Behandling",
-      addons: "Tillæg",
-      date: "Dato",
-      time: "Tidspunkt",
-      previous: "Tidligere",
-      newTime: "Ny tid",
-      price: "Pris",
-    },
-    at: (date: string, time: string) => `${date} kl. ${time}`,
-    subject: {
-      confirmed: `Din booking hos ${STUDIO_NAME} er bekræftet`,
-      cancelled: `Din booking hos ${STUDIO_NAME} er aflyst`,
-      moved: `Din booking hos ${STUDIO_NAME} er flyttet`,
-    },
-    intro: {
-      confirmed: "Tak for din booking — din tid er hermed bekræftet.",
-      cancelled:
-        "Din tid er blevet aflyst. Du er altid velkommen til at booke en ny.",
-      moved: "Din tid er blevet flyttet. Her er de nye detaljer.",
-    },
-    payment: "Betaling foregår i salonen.",
-    policy: "Ombooking eller aflysning kan ske indtil 24 timer før din tid.",
-    reply: "Har du spørgsmål, så svar blot på denne e-mail.",
-  },
-  en: {
-    greeting: (n: string | null) => (n ? `Hi ${n},` : "Hi,"),
-    labels: {
-      service: "Service",
-      addons: "Add-ons",
-      date: "Date",
-      time: "Time",
-      previous: "Previous",
-      newTime: "New time",
-      price: "Price",
-    },
-    at: (date: string, time: string) => `${date} at ${time}`,
-    subject: {
-      confirmed: `Your booking at ${STUDIO_NAME} is confirmed`,
-      cancelled: `Your booking at ${STUDIO_NAME} has been cancelled`,
-      moved: `Your booking at ${STUDIO_NAME} has been moved`,
-    },
-    intro: {
-      confirmed: "Thank you for your booking — your appointment is confirmed.",
-      cancelled:
-        "Your appointment has been cancelled. You're always welcome to book a new time.",
-      moved: "Your appointment has been moved. Here are the new details.",
-    },
-    payment: "Payment is collected at the studio.",
-    policy: "You can reschedule or cancel up to 24 hours before your appointment.",
-    reply: "Questions? Just reply to this email.",
-  },
-} as const
-
-const pick = (locale: string) => (locale === "en" ? COPY.en : COPY.da)
 
 // Escape values that come from the catalog (names) before inlining into HTML.
 function esc(s: string): string {
@@ -97,6 +47,7 @@ function esc(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
 }
 
 // The one place the label/value pairs are decided — HTML + text share it.
@@ -138,14 +89,18 @@ function detailRows(
 // Shared chrome — one wordmark/footer wrapper so all three stay on-brand (DRY).
 const FONT = "Georgia, 'Times New Roman', serif"
 
-function renderHtml(opts: {
+type RenderParts = {
   greeting: string
   intro: string
   rows: [string, string][]
   paymentNote?: string
   policy: string
+  manageUrl?: string
+  manageCta?: string
   reply: string
-}): string {
+}
+
+function renderHtml(opts: RenderParts): string {
   const rowsHtml = opts.rows
     .map(([label, value], i) => {
       const border =
@@ -162,6 +117,11 @@ function renderHtml(opts: {
   const paymentHtml = opts.paymentNote
     ? `<tr><td style="padding:20px 8px 0;font-size:14px;color:${BRAND.textSecondary};">${esc(opts.paymentNote)}</td></tr>`
     : ""
+
+  const manageHtml =
+    opts.manageUrl && opts.manageCta
+      ? `<div style="margin-bottom:8px;"><a href="${esc(opts.manageUrl)}" style="color:${BRAND.cta};text-decoration:underline;">${esc(opts.manageCta)}</a></div>`
+      : ""
 
   return `<div style="background:${BRAND.background};margin:0;padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
@@ -183,7 +143,8 @@ function renderHtml(opts: {
         <tr><td style="padding:28px 8px 0;">
           <div style="border-top:1px solid ${BRAND.divider};padding-top:20px;font-size:13px;line-height:1.7;color:${BRAND.textSecondary};">
             <div style="margin-bottom:8px;">${esc(opts.policy)}</div>
-            <div style="margin-bottom:8px;">${esc(STUDIO_ADDRESS)}</div>
+            ${manageHtml}
+            <div style="margin-bottom:8px;"><a href="${esc(STUDIO_MAPS_URL)}" style="color:${BRAND.textSecondary};text-decoration:underline;">${esc(STUDIO_ADDRESS)}</a></div>
             <div>${esc(opts.reply)}</div>
           </div>
         </td></tr>
@@ -193,14 +154,7 @@ function renderHtml(opts: {
 </div>`
 }
 
-function renderText(opts: {
-  greeting: string
-  intro: string
-  rows: [string, string][]
-  paymentNote?: string
-  policy: string
-  reply: string
-}): string {
+function renderText(opts: RenderParts): string {
   const lines = [
     STUDIO_NAME,
     "",
@@ -211,22 +165,38 @@ function renderText(opts: {
     ...opts.rows.map(([label, value]) => `${label}: ${value}`),
   ]
   if (opts.paymentNote) lines.push("", opts.paymentNote)
-  lines.push("", opts.policy, STUDIO_ADDRESS, opts.reply)
+  lines.push("", opts.policy)
+  if (opts.manageUrl && opts.manageCta) {
+    lines.push(`${opts.manageCta}: ${opts.manageUrl}`)
+  }
+  lines.push(`${STUDIO_ADDRESS} — ${STUDIO_MAPS_URL}`, opts.reply)
   return lines.join("\n")
 }
 
 async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
   try {
     const t = pick(d.locale)
-    const rows = detailRows(d, kind, t)
-    const parts = {
+    const introRaw = t.intro[kind]
+    const parts: RenderParts = {
       greeting: t.greeting(d.firstName),
-      intro: t.intro[kind],
-      rows,
+      intro: typeof introRaw === "string" ? introRaw : introRaw[d.actor],
+      rows: detailRows(d, kind, t),
       paymentNote: kind === "confirmed" ? t.payment : undefined,
       policy: t.policy,
+      manageUrl: d.manageUrl,
+      manageCta: d.manageUrl ? t.manageCta : undefined,
       reply: t.reply,
     }
+    // The invite rides confirm + reschedule only; a cancel has nothing to add.
+    const ics =
+      kind === "cancelled"
+        ? undefined
+        : buildBookingIcs({
+            bookingId: d.bookingId,
+            startIso: d.startIso,
+            endIso: d.endIso,
+            serviceName: d.serviceName,
+          })
     await sendEmail({
       from: BOOKING_FROM_EMAIL,
       replyTo: STUDIO_EMAIL,
@@ -234,6 +204,9 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       subject: t.subject[kind],
       html: renderHtml(parts),
       text: renderText(parts),
+      calendar: ics
+        ? { content: ics, method: "PUBLISH", filename: "appointment.ics" }
+        : undefined,
     })
   } catch (error) {
     // A failed email must never surface to the booking action.
