@@ -16,9 +16,11 @@ import { ADMIN_LOCALE } from "@/config/admin"
 export function AdminRescheduleSlotStep({
   id,
   slots,
+  maxAdvanceDays,
 }: {
   id: string
   slots: Slot[]
+  maxAdvanceDays: number
 }) {
   const router = useRouter()
 
@@ -45,6 +47,10 @@ export function AdminRescheduleSlotStep({
         confirm: "Confirm new time",
         confirming: "Moving…",
         genericError: "Couldn’t move it — try another time.",
+        advanceNote: `You can book up to ${maxAdvanceDays} days in advance.`,
+        availableLegend: "Available",
+        prevMonth: "Previous month",
+        nextMonth: "Next month",
       }}
     />
   )

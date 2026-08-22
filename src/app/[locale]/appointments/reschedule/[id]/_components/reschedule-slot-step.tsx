@@ -14,7 +14,15 @@ import { routes } from "@/config/routes"
  * server action re-verifies ownership + the 24 h policy and re-validates the
  * slot; we then return to /appointments with a fresh render.
  */
-export function RescheduleSlotStep({ id, slots }: { id: string; slots: Slot[] }) {
+export function RescheduleSlotStep({
+  id,
+  slots,
+  maxAdvanceDays,
+}: {
+  id: string
+  slots: Slot[]
+  maxAdvanceDays: number
+}) {
   const t = useTranslations("bookings")
   const locale = useLocale()
   const router = useRouter()
@@ -46,6 +54,10 @@ export function RescheduleSlotStep({ id, slots }: { id: string; slots: Slot[] })
         confirm: t("rescheduleConfirm"),
         confirming: t("rescheduling"),
         genericError: t("rescheduleFailed"),
+        advanceNote: t("advanceNote", { days: maxAdvanceDays }),
+        availableLegend: t("availableLegend"),
+        prevMonth: t("prevMonth"),
+        nextMonth: t("nextMonth"),
       }}
     />
   )

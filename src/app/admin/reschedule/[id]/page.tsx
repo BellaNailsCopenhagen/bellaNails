@@ -7,7 +7,11 @@ import { H2 } from "@/components/ui/typography"
 import { AdminRescheduleSlotStep } from "@/app/admin/reschedule/[id]/_components/admin-reschedule-slot-step"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { metaOf } from "@/shared/booking-policy"
-import { getAvailableSlots, getBookingForManageAsOwner } from "@/modules/booking"
+import {
+  getAvailableSlots,
+  getBookingForManageAsOwner,
+  getMaxAdvanceDays,
+} from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Reschedule" }
 
@@ -35,11 +39,14 @@ export default async function AdminReschedulePage({
 
   const meta = metaOf(booking)
   // Owner picker mirrors rescheduleBookingAsOwner: no public 24 h lead time.
-  const slots = meta.serviceId
-    ? await getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
-        ignoreLeadTime: true,
-      })
-    : []
+  const [slots, maxAdvanceDays] = await Promise.all([
+    meta.serviceId
+      ? getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
+          ignoreLeadTime: true,
+        })
+      : Promise.resolve([]),
+    getMaxAdvanceDays(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -53,7 +60,11 @@ export default async function AdminReschedulePage({
         </Link>
         <H2>Reschedule</H2>
       </div>
-      <AdminRescheduleSlotStep id={id} slots={slots} />
+      <AdminRescheduleSlotStep
+        id={id}
+        slots={slots}
+        maxAdvanceDays={maxAdvanceDays}
+      />
     </div>
   )
 }

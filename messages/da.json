@@ -96,7 +96,11 @@
     "pickDateLabel": "Vælg en dato",
     "pickTimeLabel": "Vælg et tidspunkt",
     "noTimes": "Ingen ledige tider lige nu — prøv igen snart eller kontakt studiet.",
-    "bookingError": "Noget gik galt — vælg venligst et andet tidspunkt."
+    "bookingError": "Noget gik galt — vælg venligst et andet tidspunkt.",
+    "advanceNote": "Du kan booke op til {days} dage frem.",
+    "availableLegend": "Ledig",
+    "prevMonth": "Forrige måned",
+    "nextMonth": "Næste måned"
   },
   "bookings": {
     "metaTitle": "Mit rum – Bella Nails",
@@ -213,6 +217,10 @@
     "requestBannerTap": "tryk for at se",
     "pickDateLabel": "Vælg en dato",
     "pickTimeLabel": "Vælg et tidspunkt",
+    "advanceNote": "Du kan booke op til {days} dage frem.",
+    "availableLegend": "Ledig",
+    "prevMonth": "Forrige måned",
+    "nextMonth": "Næste måned",
     "rescheduleNoTimes": "Ingen ledige tider lige nu — kontakt venligst studiet.",
     "rescheduleConfirm": "Bekræft nyt tidspunkt",
     "rescheduling": "Flytter din aftale…",

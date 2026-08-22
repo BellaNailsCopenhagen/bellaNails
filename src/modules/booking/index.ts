@@ -21,7 +21,7 @@ export {
 
 // In-house scheduler: available slots + booking creation.
 // Client components import ./create-booking-actions directly (it's "use server").
-export { getAvailableSlots } from "./availability"
+export { getAvailableSlots, getMaxAdvanceDays } from "./availability"
 export { createBooking } from "./create-booking-actions"
 
 // Mutations. Re-exported for server callers; client components import

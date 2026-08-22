@@ -67,6 +67,25 @@ export function formatStudioWeekday(ms: number, locale: string): string {
   }).format(new Date(ms))
 }
 
+/** Short weekday in studio time — "Mon" / "man." (calendar column headers). */
+export function formatStudioWeekdayShort(ms: number, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    timeZone: STUDIO_TIME_ZONE,
+  }).format(new Date(ms))
+}
+
+/** Studio day-number for a studio-local calendar date — the inverse of the
+    Y/M/D that `studioDayNumber` yields. Month is 1-based. Used to lay out a
+    calendar month grid entirely in day-numbers. */
+export function studioDayNumberForDate(
+  year: number,
+  month: number,
+  day: number,
+): number {
+  return Date.UTC(year, month - 1, day) / 86_400_000
+}
+
 /** Short day + month in studio time — "18 Jul". */
 export function formatStudioDayMonth(ms: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, {

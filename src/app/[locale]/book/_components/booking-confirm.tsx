@@ -7,7 +7,7 @@ import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-
 import { Container, Section } from "@/components/layout/container"
 import { BodySm } from "@/components/ui/typography"
 import { localizeSelection } from "@/shared/localize-selection"
-import { getAvailableSlots } from "@/modules/booking"
+import { getAvailableSlots, getMaxAdvanceDays } from "@/modules/booking"
 import type { ServiceWithAddons } from "@/modules/catalog"
 import type { BookingContact } from "@/shared/contact-validation"
 import { routes } from "@/config/routes"
@@ -28,10 +28,11 @@ export async function BookingConfirm({
   selectedAddonIds: string[]
   prefill: BookingContact
 }) {
-  const [t, locale, slots] = await Promise.all([
+  const [t, locale, slots, maxAdvanceDays] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
     getAvailableSlots(service.id, selectedAddonIds),
+    getMaxAdvanceDays(),
   ])
 
   const { service: localizedService, addons: selectedAddons } =
@@ -70,6 +71,7 @@ export async function BookingConfirm({
               serviceId={service.id}
               addonIds={selectedAddons.map((a) => a.id)}
               slots={slots}
+              maxAdvanceDays={maxAdvanceDays}
               prefill={prefill}
             />
 

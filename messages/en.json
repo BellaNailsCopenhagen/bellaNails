@@ -96,7 +96,11 @@
     "pickDateLabel": "Choose a date",
     "pickTimeLabel": "Choose a time",
     "noTimes": "No available times right now — please check back soon or contact the studio.",
-    "bookingError": "Something went wrong — please pick another time."
+    "bookingError": "Something went wrong — please pick another time.",
+    "advanceNote": "You can book up to {days} days in advance.",
+    "availableLegend": "Available",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "bookings": {
     "metaTitle": "My Space – Bella Nails",
@@ -213,6 +217,10 @@
     "requestBannerTap": "tap to review",
     "pickDateLabel": "Choose a date",
     "pickTimeLabel": "Choose a time",
+    "advanceNote": "You can book up to {days} days in advance.",
+    "availableLegend": "Available",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
     "rescheduleNoTimes": "No available times right now — please contact the studio.",
     "rescheduleConfirm": "Confirm new time",
     "rescheduling": "Moving your appointment…",

@@ -5,7 +5,7 @@ import { RescheduleSlotStep } from "@/app/[locale]/appointments/reschedule/[id]/
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
-import { getAvailableSlots } from "@/modules/booking"
+import { getAvailableSlots, getMaxAdvanceDays } from "@/modules/booking"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 
@@ -23,10 +23,11 @@ export async function RescheduleBooking({
   serviceId: string | null
   addonIds: string[]
 }) {
-  const [t, locale, slots] = await Promise.all([
+  const [t, locale, slots, maxAdvanceDays] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
     serviceId ? getAvailableSlots(serviceId, addonIds) : Promise.resolve([]),
+    getMaxAdvanceDays(),
   ])
 
   return (
@@ -47,7 +48,11 @@ export async function RescheduleBooking({
           {t("rescheduleCurrent")}: {formatStudioDate(startTime, locale)} ·{" "}
           {formatStudioTime(startTime, locale)}
         </BodySm>
-        <RescheduleSlotStep id={id} slots={slots} />
+        <RescheduleSlotStep
+          id={id}
+          slots={slots}
+          maxAdvanceDays={maxAdvanceDays}
+        />
       </Container>
     </Section>
   )

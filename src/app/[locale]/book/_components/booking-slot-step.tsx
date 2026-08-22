@@ -19,11 +19,13 @@ export function BookingSlotStep({
   serviceId,
   addonIds,
   slots,
+  maxAdvanceDays,
   prefill,
 }: {
   serviceId: string
   addonIds: string[]
   slots: Slot[]
+  maxAdvanceDays: number
   prefill: BookingContact
 }) {
   const t = useTranslations("booking")
@@ -64,6 +66,10 @@ export function BookingSlotStep({
         confirm: t("confirmCta"),
         confirming: t("securingBooking"),
         genericError: t("bookingError"),
+        advanceNote: t("advanceNote", { days: maxAdvanceDays }),
+        availableLegend: t("availableLegend"),
+        prevMonth: t("prevMonth"),
+        nextMonth: t("nextMonth"),
       }}
     />
   )

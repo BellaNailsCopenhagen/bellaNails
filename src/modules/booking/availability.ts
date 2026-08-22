@@ -12,6 +12,19 @@ import { getStudioHours } from "@/modules/studio"
 
 const DAY_MS = 86_400_000
 const MIN = 60_000
+const DEFAULT_MAX_ADVANCE_DAYS = 60
+
+/**
+ * How many days ahead booking is open (the `booking_settings` horizon) — for
+ * the picker's "book up to N days" note. Degrades to the default if settings
+ * can't be read, so the note never blocks the page.
+ */
+export async function getMaxAdvanceDays(
+  db: Db = createSupabaseServerClient(),
+): Promise<number> {
+  const settings = await getBookingSettings(db).catch(() => null)
+  return settings?.max_advance_days ?? DEFAULT_MAX_ADVANCE_DAYS
+}
 
 /**
  * Free start times for a service (+ selected add-ons) — the client booking
