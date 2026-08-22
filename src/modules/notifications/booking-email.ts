@@ -1,7 +1,12 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import { STUDIO_ADDRESS, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import {
+  BOOKING_FROM_EMAIL,
+  STUDIO_ADDRESS,
+  STUDIO_EMAIL,
+  STUDIO_NAME,
+} from "@/config/studio"
 import { sendEmail } from "@/platform/email/client"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
@@ -223,7 +228,7 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       reply: t.reply,
     }
     await sendEmail({
-      from: STUDIO_EMAIL,
+      from: BOOKING_FROM_EMAIL,
       replyTo: STUDIO_EMAIL,
       to: d.to,
       subject: t.subject[kind],

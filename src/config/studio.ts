@@ -14,6 +14,11 @@ export const STUDIO_NAME = "Bella Nails"
 /** Public contact (decided July 2026: email-first, no messaging system). */
 export const STUDIO_EMAIL = "hello@bellanails.dk"
 
+/** Sender for transactional booking emails — a Zoho send-as alias of the
+    STUDIO_EMAIL mailbox (which is what SMTP authenticates as). Replies still
+    go to STUDIO_EMAIL. */
+export const BOOKING_FROM_EMAIL = "bookings@bellanails.dk"
+
 /** Times are stored UTC; every client-facing time renders in studio time. */
 export const STUDIO_TIME_ZONE = "Europe/Copenhagen"
 
