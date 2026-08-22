@@ -6,6 +6,7 @@ import { insertBooking } from "@/db/bookings"
 import { getBookableService } from "@/db/services"
 import { getAvailableSlots } from "@/modules/booking/availability"
 import { ensureUser } from "@/modules/identity/ensure-user"
+import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { BOOKING_STATUS } from "@/shared/booking-status"
@@ -120,6 +121,21 @@ export async function createBooking(
     context: "booking",
     referenceId: result.id,
   })
+
+  // Best-effort confirmation email — the sender swallows all errors, so a mail
+  // failure can't affect the already-saved booking.
+  const locale = input.locale ?? "da"
+  const isEn = locale === "en"
+  await sendBookingConfirmationEmail({
+    to: email,
+    firstName: input.name.trim().split(/\s+/)[0] || null,
+    serviceName: isEn ? service.name_en : service.name_dk ?? service.name_en,
+    addonNames: addons.map((a) => (isEn ? a.name_en : a.name_dk ?? a.name_en)),
+    startIso: input.start,
+    priceCents: totalPriceCents,
+    locale,
+  })
+
   revalidatePath("/[locale]/appointments", "page")
   return { ok: true, id: result.id }
 }

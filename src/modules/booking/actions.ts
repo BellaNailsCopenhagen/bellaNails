@@ -11,8 +11,14 @@ import {
 } from "@/db/bookings"
 import type { Db } from "@/db/client"
 import { getAvailableSlots } from "@/modules/booking/availability"
+import { fetchClientContacts } from "@/modules/clients"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
+import {
+  sendBookingCancellationEmail,
+  sendBookingRescheduleEmail,
+  type BookingEmailDetail,
+} from "@/modules/notifications/booking-email"
 import {
   createAuthedSupabaseServerClient,
   createSupabaseServiceRoleClient,
@@ -41,6 +47,59 @@ function revalidateAdminBookingViews(): void {
   revalidatePath("/admin")
   revalidatePath("/admin/appointments")
   revalidatePath("/admin/clients/[id]", "page")
+}
+
+/**
+ * Send the client the cancel/reschedule email for a managed booking — always
+ * best-effort. Resolves the recipient from the client row and localizes the
+ * service/add-on names off the as-booked snapshot; no email on file → skipped
+ * (the action still succeeds). The reschedule window is threaded in by the
+ * caller (the pre-write `booking` still holds the previous time).
+ */
+async function emailManagedBooking(
+  booking: BookingManageState,
+  kind: "cancelled" | "moved",
+  window: { startIso: string; previousStartIso?: string },
+): Promise<void> {
+  try {
+    const contact = (await fetchClientContacts([booking.client_id]))[
+      booking.client_id
+    ]
+    if (!contact?.email) return
+
+    const meta = metaOf(booking)
+    const locale = meta.locale ?? "da"
+    const isEn = locale === "en"
+    const detail: BookingEmailDetail = {
+      to: contact.email,
+      firstName: contact.firstName,
+      serviceName:
+        (isEn ? meta.serviceNameEn : meta.serviceNameDk ?? meta.serviceNameEn) ??
+        (isEn ? "Treatment" : "Behandling"),
+      addonNames: (meta.addonSnapshots ?? []).map((a) =>
+        isEn ? a.nameEn : a.nameDk ?? a.nameEn,
+      ),
+      startIso: window.startIso,
+      previousStartIso: window.previousStartIso,
+      locale,
+    }
+    if (kind === "cancelled") await sendBookingCancellationEmail(detail)
+    else await sendBookingRescheduleEmail(detail)
+  } catch (error) {
+    console.error(
+      "[booking] manage email failed —",
+      error instanceof Error ? error.message : error,
+    )
+  }
+}
+
+// The reschedule email's before/after: the booking's previous start and the
+// new one (service/add-ons/duration are unchanged by a move).
+function rescheduleWindow(
+  booking: BookingManageState,
+  newStart: string,
+): { startIso: string; previousStartIso: string } {
+  return { previousStartIso: booking.start_time, startIso: newStart }
 }
 
 type CancelResult =
@@ -75,6 +134,9 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
   const result = await cancelBookingById(createSupabaseServiceRoleClient(), id)
   if (!result.ok) return { ok: false, error: "failed" }
 
+  await emailManagedBooking(booking, "cancelled", {
+    startIso: booking.start_time,
+  })
   revalidatePath("/[locale]/appointments", "page")
   return { ok: true }
 }
@@ -105,6 +167,9 @@ export async function cancelBookingAsOwner(
   const result = await cancelBookingById(service, id)
   if (!result.ok) return { ok: false, error: "failed" }
 
+  await emailManagedBooking(booking, "cancelled", {
+    startIso: booking.start_time,
+  })
   revalidateAdminBookingViews()
   return { ok: true }
 }
@@ -190,7 +255,10 @@ export async function rescheduleBooking(
     newStart,
     false,
   )
-  if (result.ok) revalidatePath("/[locale]/appointments", "page")
+  if (result.ok) {
+    await emailManagedBooking(booking, "moved", rescheduleWindow(booking, newStart))
+    revalidatePath("/[locale]/appointments", "page")
+  }
   return result
 }
 
@@ -213,7 +281,10 @@ export async function rescheduleBookingAsOwner(
 
   // The studio isn't bound by the public 24 h lead time.
   const result = await applyReschedule(service, id, booking, newStart, true)
-  if (result.ok) revalidateAdminBookingViews()
+  if (result.ok) {
+    await emailManagedBooking(booking, "moved", rescheduleWindow(booking, newStart))
+    revalidateAdminBookingViews()
+  }
   return result
 }
 

@@ -8,6 +8,9 @@ export const STUDIO_ADDRESS_LINE_1 = "Halldór Laxness Vej 3, 2. th"
 export const STUDIO_ADDRESS_LINE_2 = "2300 København S"
 export const STUDIO_ADDRESS = `${STUDIO_ADDRESS_LINE_1} · ${STUDIO_ADDRESS_LINE_2}`
 
+/** Studio display name — wordmark in emails, and anywhere the brand is named. */
+export const STUDIO_NAME = "Bella Nails"
+
 /** Public contact (decided July 2026: email-first, no messaging system). */
 export const STUDIO_EMAIL = "hello@bellanails.dk"
 

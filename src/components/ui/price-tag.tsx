@@ -1,28 +1,13 @@
 import * as React from "react"
 
 import { cn } from "@/shared/cn"
+import { formatPrice } from "@/shared/money"
 
 /**
  * Prices are stored in cents (per the schema). PriceTag renders them in the
- * editorial face using the standard Danish currency format — e.g. 65000 →
- * "650,00 kr.", with `sign` adding the locale's "+"/"−" for add-on deltas.
- *
- * Locale defaults to `da-DK` (our market); pass the active locale once
- * next-intl lands (Phase 2) if other locales ever need their own format.
+ * editorial face via the canonical `formatPrice` — e.g. 65000 → "650,00 kr.",
+ * with `sign` adding the locale's "+"/"−" for add-on deltas.
  */
-function formatPrice(
-  cents: number,
-  locale = "da-DK",
-  currency = "DKK",
-  sign = false,
-) {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    signDisplay: sign ? "always" : "auto",
-  }).format(cents / 100)
-}
-
 type PriceTagProps = React.ComponentProps<"span"> & {
   /** Amount in cents (e.g. `65000` → "650,00 kr."). */
   cents: number
@@ -53,5 +38,5 @@ function PriceTag({
   )
 }
 
-export { PriceTag, formatPrice }
+export { PriceTag }
 export type { PriceTagProps }

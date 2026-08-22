@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 
-import { formatPrice } from "@/components/ui/price-tag"
+import { formatPrice } from "@/shared/money"
 import { getPriceHistory } from "@/modules/catalog/service-actions"
 import type { PriceEntity, PricePoint } from "@/db/price-history"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"

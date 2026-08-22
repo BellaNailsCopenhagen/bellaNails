@@ -14,6 +14,8 @@ export type BookingMeta = {
   serviceId?: string | null
   addonIds?: string[] | null
   totalDurationMins?: number | null
+  // Locale the booking was made in — drives the language of follow-up emails.
+  locale?: string | null
   // Historic product snapshot (captured at persist time).
   serviceNameEn?: string | null
   serviceNameDk?: string | null
