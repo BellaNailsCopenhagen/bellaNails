@@ -22,8 +22,9 @@ type EnsureUserInput = {
  * login; a later Google/OTP login links this row by email (the
  * on_auth_user_created trigger sets auth_user_id).
  *
- * Existing rows are filled-if-empty — booking data never clobbers what a client
- * set themselves. Used by the Cal webhook sync and the booking-flow opt-in.
+ * Name is filled-if-empty (a booking typo never clobbers a client's chosen
+ * display name); phone is refreshed to the latest one they book with, since a
+ * booking gives the current contact number. Used by the booking flow.
  */
 export async function ensureUser({
   email,
@@ -37,7 +38,7 @@ export async function ensureUser({
   if (existing) {
     const patch: { name?: string; phone?: string } = {}
     if (!existing.name && name) patch.name = name
-    if (!existing.phone && phone) patch.phone = phone
+    if (phone && phone !== existing.phone) patch.phone = phone
     if (Object.keys(patch).length) {
       await updateClientContact(supabase, existing.id, patch)
     }

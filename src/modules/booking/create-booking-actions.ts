@@ -10,6 +10,7 @@ import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-em
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { BOOKING_STATUS } from "@/shared/booking-status"
+import { toE164 } from "@/shared/contact-validation"
 
 const MIN = 60_000
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -77,7 +78,11 @@ export async function createBooking(
     clientId = await ensureUser({
       email,
       name: input.name.trim() || undefined,
-      phone: input.phone,
+      // Store a clean E.164 number; fall back to the trimmed input if it can't
+      // be normalised (it already passed the phone-pattern gate).
+      phone: input.phone
+        ? (toE164(input.phone) ?? input.phone.trim())
+        : undefined,
     })
   } catch {
     return { ok: false, error: "Couldn't save your details — please try again." }
