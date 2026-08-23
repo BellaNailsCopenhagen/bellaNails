@@ -10,6 +10,7 @@ import {
   type ClientRosterEntry,
 } from "@/app/admin/clients/_components/client-directory"
 import { getClientDirectory, type DirectoryEntry } from "@/modules/clients"
+import { clientSearchText } from "@/shared/client-search"
 import { contactDisplayName } from "@/shared/contact"
 import { routes } from "@/shared/routes"
 
@@ -26,11 +27,13 @@ function toRosterEntry(entry: DirectoryEntry): ClientRosterEntry {
     activated: Boolean(contact?.activated),
     count: entry.visits,
     lastVisitMs: entry.lastVisitMs,
-    // Name + email haystack so search hits last name and email fragments.
-    search: [contact?.firstName, contact?.fullName, contact?.email]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase(),
+    // Name + phone + email haystack — searchable by any of them.
+    search: clientSearchText({
+      firstName: contact?.firstName,
+      fullName: contact?.fullName,
+      email: contact?.email,
+      phone: contact?.phone,
+    }),
   }
 }
 

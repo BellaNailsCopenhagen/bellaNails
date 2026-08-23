@@ -4,7 +4,7 @@ import type { ServiceAddon } from "@/modules/catalog"
 export type ClientOption = {
   id: string
   name: string
-  /** Lower-cased name + email haystack, so search hits last name and email. */
+  /** Lower-cased name + email + digits-only phone haystack (see client-search). */
   search: string
 }
 

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BodySm, Caption } from "@/components/ui/typography"
 import { fieldLabel } from "@/components/admin/field-label"
+import { matchesClientSearch } from "@/shared/client-search"
 import { EMAIL_PATTERN } from "@/shared/contact-validation"
 
 import type { ClientOption, ClientRef } from "./types"
@@ -30,9 +31,10 @@ export function ClientStep({ clients, onSelect }: {
   const [phone, setPhone] = useState("")
 
   const matches = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    if (!needle) return clients.slice(0, MAX_ROWS)
-    return clients.filter((c) => c.search.includes(needle)).slice(0, MAX_ROWS)
+    if (!query.trim()) return clients.slice(0, MAX_ROWS)
+    return clients
+      .filter((c) => matchesClientSearch(c.search, query))
+      .slice(0, MAX_ROWS)
   }, [query, clients])
 
   const canAddNew = name.trim().length >= 2 && EMAIL_PATTERN.test(email.trim())
@@ -105,7 +107,7 @@ export function ClientStep({ clients, onSelect }: {
     <div className="space-y-6">
       <Input
         type="search"
-        placeholder="Search name or email"
+        placeholder="Search name, phone, or email"
         value={query}
         onValueChange={setQuery}
         aria-label="Search clients"

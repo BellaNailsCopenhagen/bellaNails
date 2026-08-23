@@ -9,6 +9,7 @@ import type {
 import { getMaxAdvanceDays } from "@/modules/booking"
 import { getAdminCatalog, type AdminService } from "@/modules/catalog"
 import { getClientDirectory } from "@/modules/clients"
+import { clientSearchText } from "@/shared/client-search"
 import { contactDisplayName } from "@/shared/contact"
 
 export const metadata: Metadata = { title: "New booking" }
@@ -52,10 +53,12 @@ export default async function AdminNewPage({
     return {
       id: entry.id,
       name: contactDisplayName(contact),
-      search: [contact?.firstName, contact?.fullName, contact?.email]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase(),
+      search: clientSearchText({
+        firstName: contact?.firstName,
+        fullName: contact?.fullName,
+        email: contact?.email,
+        phone: contact?.phone,
+      }),
     }
   })
 

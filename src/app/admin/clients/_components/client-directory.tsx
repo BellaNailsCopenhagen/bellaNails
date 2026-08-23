@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm } from "@/components/ui/typography"
 import { TabBar } from "@/components/ui/tab-bar"
+import { matchesClientSearch } from "@/shared/client-search"
 import { routes } from "@/shared/routes"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -21,7 +22,7 @@ export type ClientRosterEntry = {
   count: number
   /** Most recent past appointment (ms), or null if they've only booked ahead. */
   lastVisitMs: number | null
-  /** Lower-cased name + email haystack, so search hits last name and email. */
+  /** Lower-cased name + email + digits-only phone haystack (see client-search). */
   search: string
 }
 
@@ -63,7 +64,7 @@ function ClientRows({ clients }: { clients: ClientRosterEntry[] }) {
  * The client directory — every client who has ever booked, split by whether
  * they've activated their own account (Active = reachable outside a booking) or
  * are booking-only. Tabs with counts + a one-line explanation each; client-side
- * search over name + email (the roster is small at studio scale).
+ * search over name, phone + email (the roster is small at studio scale).
  */
 type ClientTab = "active" | "booking-only"
 
@@ -77,10 +78,7 @@ export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
   const [tab, setTab] = useState<ClientTab>("active")
 
   const { activated, bookingOnly } = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    const matches = needle
-      ? clients.filter((c) => c.search.includes(needle))
-      : clients
+    const matches = clients.filter((c) => matchesClientSearch(c.search, query))
     return {
       activated: matches.filter((c) => c.activated),
       bookingOnly: matches.filter((c) => !c.activated),
@@ -93,7 +91,7 @@ export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
     <div className="space-y-6">
       <Input
         type="search"
-        placeholder="Search name or email"
+        placeholder="Search name, phone, or email"
         value={query}
         onValueChange={setQuery}
         aria-label="Search clients"
