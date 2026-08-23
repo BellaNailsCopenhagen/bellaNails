@@ -26,14 +26,19 @@ const toServiceOption = (s: AdminService): ServiceOption => ({
 /**
  * Admin "New booking" — the owner books for a client (new or existing) and
  * rebooks. Loads the roster + bookable catalog, then hands a client stepper the
- * lean shapes it needs. `?client=<id>` pre-selects a client (the rebook entry).
+ * lean shapes it needs. `?client=<id>` pre-selects a client; `?service=<id>` +
+ * `?addons=<id,id>` are the one-tap "Book again" deep link from a booking card.
  */
 export default async function AdminNewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ client?: string }>
+  searchParams: Promise<{ client?: string; service?: string; addons?: string }>
 }) {
-  const { client: preselectId } = await searchParams
+  const {
+    client: preselectId,
+    service: preselectServiceId,
+    addons: preselectAddons,
+  } = await searchParams
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
   const [{ clients: roster }, catalog, maxAdvanceDays] = await Promise.all([
@@ -69,12 +74,26 @@ export default async function AdminNewPage({
   const initialClient =
     (preselectId && clients.find((c) => c.id === preselectId)) || null
 
+  // Rebook prefill — resolve the service against the live, bookable list only, so
+  // a since-archived service quietly falls back to the picker. Live add-ons are
+  // intersected client-side once the flow loads them.
+  const services = categories.flatMap((group) => group.services)
+  const initialService =
+    (preselectServiceId && services.find((s) => s.id === preselectServiceId)) ||
+    null
+  const initialAddonIds =
+    initialService && preselectAddons
+      ? preselectAddons.split(",").filter(Boolean)
+      : []
+
   return (
     <AdminNewBooking
       clients={clients}
       categories={categories}
       maxAdvanceDays={maxAdvanceDays}
       initialClient={initialClient}
+      initialService={initialService}
+      initialAddonIds={initialAddonIds}
     />
   )
 }

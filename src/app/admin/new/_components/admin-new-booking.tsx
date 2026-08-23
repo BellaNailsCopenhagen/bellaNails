@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
@@ -43,42 +43,86 @@ export function AdminNewBooking({
   categories,
   maxAdvanceDays,
   initialClient,
+  initialService,
+  initialAddonIds,
 }: {
   clients: ClientOption[]
   categories: CategoryGroup[]
   maxAdvanceDays: number
   initialClient: ClientOption | null
+  /** "Book again" deep link: client + service prefilled, its add-ons pre-checked. */
+  initialService: ServiceOption | null
+  initialAddonIds: string[]
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
+  // A card's "Book again" lands here with both client + service prefilled (its
+  // add-ons load on mount). Null on a plain New booking.
+  const prefill =
+    initialClient && initialService
+      ? { service: initialService, addonIds: initialAddonIds }
+      : null
 
-  const [step, setStep] = useState<Step>(initialClient ? "service" : "client")
+  const [step, setStep] = useState<Step>(
+    prefill ? "addons" : initialClient ? "service" : "client",
+  )
   const [clientRef, setClientRef] = useState<ClientRef | null>(
     initialClient
       ? { kind: "existing", id: initialClient.id, name: initialClient.name }
       : null,
   )
-  const [service, setService] = useState<ServiceOption | null>(null)
+  const [service, setService] = useState<ServiceOption | null>(
+    prefill ? prefill.service : null,
+  )
   const [addons, setAddons] = useState<ServiceAddon[]>([])
   const [incompatiblePairs, setIncompatiblePairs] = useState<[string, string][]>([])
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set())
   const [notes, setNotes] = useState("")
   const [slots, setSlots] = useState<Slot[]>([])
+  // The rebook prefill resolves its add-ons async — hold the UI until it lands.
+  const [bootstrapping, setBootstrapping] = useState(prefill !== null)
+  const bootstrapped = useRef(false)
 
-  const selectService = (chosen: ServiceOption) => {
+  // Load a service's add-ons and open the add-ons step (which doubles as the
+  // notes + total review, even when there are none). A rebook may carry add-ons
+  // since archived — keep only the ones still on offer.
+  const enterService = (chosen: ServiceOption, preselectIds: string[]) => {
     setService(chosen)
-    setSelectedAddonIds(new Set())
     startTransition(async () => {
       try {
         const { addons, incompatiblePairs } = await getServiceAddonsForOwner(chosen.id)
         setAddons(addons)
         setIncompatiblePairs(incompatiblePairs)
+        // Keep preselected add-ons still on offer, greedily dropping any that
+        // clash — a rebook can carry a pair the catalog has since made incompatible.
+        const live = new Set(addons.map((a) => a.id))
+        const kept: string[] = []
+        for (const id of preselectIds) {
+          if (!live.has(id)) continue
+          const clashes = incompatiblePairs.some(
+            ([a, b]) => (a === id && kept.includes(b)) || (b === id && kept.includes(a)),
+          )
+          if (!clashes) kept.push(id)
+        }
+        setSelectedAddonIds(new Set(kept))
         setStep("addons")
       } catch {
         toast.error("Couldn’t load add-ons — try again.")
+        setStep("service")
       }
     })
   }
+
+  const selectService = (chosen: ServiceOption) => enterService(chosen, [])
+
+  // Rebook deep link: preload the prefilled service's add-ons once on mount.
+  useEffect(() => {
+    if (bootstrapped.current || !prefill) return
+    bootstrapped.current = true
+    enterService(prefill.service, prefill.addonIds)
+    setBootstrapping(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only prefill
+  }, [])
 
   const toggleAddon = (id: string) =>
     setSelectedAddonIds((prev) => {
@@ -169,7 +213,7 @@ export function AdminNewBooking({
         </button>
       ) : null}
 
-      {pending ? (
+      {pending || bootstrapping ? (
         <BodySm>Loading…</BodySm>
       ) : step === "client" ? (
         <ClientStep

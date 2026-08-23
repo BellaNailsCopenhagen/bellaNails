@@ -1,6 +1,6 @@
 import type * as React from "react"
 import Link from "next/link"
-import { Mail, Phone, TriangleAlert, User } from "lucide-react"
+import { CalendarPlus, Mail, Phone, TriangleAlert, User } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import {
+  metaOf,
   NO_SHOW_ALERT_THRESHOLD,
 } from "@/shared/booking-policy"
 import { BOOKING_STATUS } from "@/shared/booking-status"
@@ -72,6 +73,14 @@ export function QueueBookingCard({
   const canReschedule = actionable && !isNoShow
   const canCancel = actionable && !isNoShow
   const hasActions = canReschedule || canCancel || canToggleNoShow
+  // Book again — done bookings only (not `actionable`); rebooks the same service
+  // + client from the as-booked snapshot (the flow re-resolves against live ones).
+  const meta = metaOf(row)
+  const rebookHref =
+    !actionable && row.client_id && meta.serviceId
+      ? `/admin/new?client=${row.client_id}&service=${meta.serviceId}` +
+        (meta.addonIds?.length ? `&addons=${meta.addonIds.join(",")}` : "")
+      : null
   const canAddMedia =
     now != null &&
     Boolean(row.client_id) &&
@@ -225,9 +234,9 @@ export function QueueBookingCard({
       ) : null}
 
       {/* Card actions — the destructive one (Cancel or No-show, never both) sits
-          left; Reschedule/Rebook is the primary action, kept right. Contact
-          actions live at the top of the card, by the client's name. */}
-      {hasActions ? (
+          left; the right holds Reschedule (active) or Book again (done) — never
+          both. Contact actions live at the top of the card, by the client. */}
+      {hasActions || rebookHref ? (
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border pt-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {canCancel ? (
@@ -237,17 +246,29 @@ export function QueueBookingCard({
               <AdminNoShowButton id={row.id} marked={isNoShow} />
             ) : null}
           </div>
-          {canReschedule ? (
-            /* In-app reschedule-on-behalf — same in-house picker as the client. */
-            <Button
-              variant="outline"
-              size="sm"
-              nativeButton={false}
-              render={<Link href={`/admin/reschedule/${row.id}`} />}
-            >
-              Reschedule
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {canReschedule ? (
+              /* In-app reschedule-on-behalf — same in-house picker as the client. */
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link href={`/admin/reschedule/${row.id}`} />}
+              >
+                Reschedule
+              </Button>
+            ) : null}
+            {rebookHref ? (
+              <Button
+                size="sm"
+                nativeButton={false}
+                render={<Link href={rebookHref} />}
+              >
+                <CalendarPlus className="size-3.5" />
+                Book again
+              </Button>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </TintedCard>

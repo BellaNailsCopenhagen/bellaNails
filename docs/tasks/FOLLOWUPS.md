@@ -16,6 +16,13 @@ From the Phase 3a review of `createBooking`:
 - **Minor efficiency**: `createBooking` loads the service, then `getAvailableSlots`
   loads it again + regenerates the whole window to test one slot's membership. A
   targeted "is this one slot free" check would avoid the duplicate I/O.
+- **Add-on incompatibility is UI-enforced only**: `prepareBooking` filters add-ons
+  to live+attached and sums them, but never checks `incompatiblePairs`, so a
+  crafted request (or any non-UI caller) can persist an incompatible combo. Both
+  create paths rely on the picker disabling clashers. The admin rebook prefill
+  now drops clashing pre-selected add-ons client-side, but the real fix is to
+  reject incompatible combos server-side in `prepareBooking` (load the pairs, as
+  the availability engine already can).
 
 From the Cal-removal (3b/3c) review — low severity, deferred:
 - **Reschedule end vs. price drift**: `resolveNewSlotEnd` derives the new `end`
