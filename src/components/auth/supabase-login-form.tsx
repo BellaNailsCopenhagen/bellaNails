@@ -12,6 +12,52 @@ import {
 } from "@/modules/identity/actions"
 
 /**
+ * A displayable message for an auth error, or `fallback`.
+ *
+ * Supabase's own validation errors read well, but a transport failure gets the
+ * raw response body stringified into `message` — a 500 with an empty body
+ * literally arrives as "{}", which is what the form used to print at the user.
+ * So: never trust a 5xx (its body is diagnostics), and never trust a message
+ * that is empty or is serialized JSON rather than prose.
+ */
+function messageOf(error: unknown, fallback: string): string {
+  const { message, status } = (error ?? {}) as {
+    message?: unknown
+    status?: unknown
+  }
+  if (typeof status === "number" && status >= 500) return fallback
+  if (typeof message !== "string") return fallback
+  const text = message.trim()
+  if (!text || text.startsWith("{") || text.startsWith("[")) return fallback
+  return text
+}
+
+/**
+ * Run a supabase-js auth call and reduce it to an error message, or null on
+ * success. It normally *returns* `{ error }`, but when the endpoint replies with
+ * an empty body its fetch layer THROWS instead ("Unexpected end of JSON input"),
+ * which otherwise escapes as an uncaught rejection and leaves the form stuck.
+ * A thrown parse failure is plumbing, so the user gets `fallback`, not its text.
+ */
+async function attempt(
+  run: () => Promise<{ error: unknown }>,
+  fallback: string,
+): Promise<string | null> {
+  try {
+    const { error } = await run()
+    if (!error) return null
+    // AuthRetryableFetchError carries an empty message and logs as "{}" — the
+    // name + HTTP status are the only parts that say what actually happened.
+    const { name, status } = error as { name?: string; status?: number }
+    console.error("[login]", fallback, { name, status, error })
+    return messageOf(error, fallback)
+  } catch (thrown) {
+    console.error("[login] auth call threw", thrown)
+    return fallback
+  }
+}
+
+/**
  * Supabase Auth login: Google OAuth + passwordless email OTP. `next` is where to
  * land after auth (already validated to a local path by the page).
  */
@@ -25,29 +71,38 @@ export function SupabaseLoginForm({ next = "/" }: { next?: string }) {
   const google = async () => {
     setPending(true)
     setError(null)
-    const { error } = await signInWithGoogle(next)
-    if (error) {
-      setError(error.message)
+    const failure = await attempt(
+      () => signInWithGoogle(next),
+      "Couldn’t start Google sign-in — try again.",
+    )
+    // On success the browser navigates to Google — no further work here.
+    if (failure) {
+      setError(failure)
       setPending(false)
     }
-    // On success the browser navigates to Google — no further work here.
   }
 
   const send = async () => {
     setPending(true)
     setError(null)
-    const { error } = await sendEmailOtp(email)
+    const failure = await attempt(
+      () => sendEmailOtp(email),
+      "Couldn’t send the code — try again in a moment.",
+    )
     setPending(false)
-    if (error) setError(error.message)
+    if (failure) setError(failure)
     else setStep("otp")
   }
 
   const verify = async () => {
     setPending(true)
     setError(null)
-    const { error } = await verifyEmailOtp(email, otp)
-    if (error) {
-      setError(error.message)
+    const failure = await attempt(
+      () => verifyEmailOtp(email, otp),
+      "That code didn’t work — request a new one.",
+    )
+    if (failure) {
+      setError(failure)
       setPending(false)
     } else {
       window.location.assign(next)
@@ -98,6 +153,20 @@ export function SupabaseLoginForm({ next = "/" }: { next?: string }) {
           >
             {pending ? "Sending…" : "Email me a code"}
           </Button>
+          {/* The code step is otherwise only reachable through a successful
+              send, stranding anyone whose email arrived late or in a closed
+              tab — and anyone holding a code while sending is down. */}
+          <button
+            type="button"
+            disabled={!email}
+            onClick={() => {
+              setError(null)
+              setStep("otp")
+            }}
+            className="font-functional text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+          >
+            I already have a code
+          </button>
         </form>
       ) : (
         <form
