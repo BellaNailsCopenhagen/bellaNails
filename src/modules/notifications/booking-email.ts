@@ -187,16 +187,14 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       manageCta: d.manageUrl ? t.manageCta : undefined,
       reply: t.reply,
     }
-    // The invite rides confirm + reschedule only; a cancel has nothing to add.
-    const ics =
-      kind === "cancelled"
-        ? undefined
-        : buildBookingIcs({
-            bookingId: d.bookingId,
-            startIso: d.startIso,
-            endIso: d.endIso,
-            serviceName: d.serviceName,
-          })
+    // Add-to-calendar on confirm/reschedule; a CANCEL invite drops the entry.
+    const ics = buildBookingIcs({
+      bookingId: d.bookingId,
+      startIso: d.startIso,
+      endIso: d.endIso,
+      serviceName: d.serviceName,
+      cancelled: kind === "cancelled",
+    })
     await sendEmail({
       from: BOOKING_FROM_EMAIL,
       replyTo: STUDIO_EMAIL,
@@ -205,7 +203,11 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       html: renderHtml(parts),
       text: renderText(parts),
       calendar: ics
-        ? { content: ics, method: "PUBLISH", filename: "appointment.ics" }
+        ? {
+            content: ics,
+            method: kind === "cancelled" ? "CANCEL" : "PUBLISH",
+            filename: "appointment.ics",
+          }
         : undefined,
     })
   } catch (error) {

@@ -1,11 +1,12 @@
 import { STUDIO_ADDRESS } from "@/config/studio"
 
 /**
- * A minimal RFC 5545 calendar invite for a booking, attached to the confirm +
- * reschedule emails so the client can add the appointment in one tap. The UID
- * is stable (`<bookingId>@bellanails.dk`) and SEQUENCE increments per build, so
- * a reschedule updates the same event in clients that honour it. Best-effort:
- * any failure returns undefined and the email still sends without it.
+ * A minimal RFC 5545 calendar invite for a booking, attached to booking emails
+ * so the client can add the appointment in one tap (and drop it on cancel). The
+ * UID is stable (`<bookingId>@bellanails.dk`) and SEQUENCE increments per build,
+ * so a reschedule updates — and a cancel removes — the same event in clients
+ * that honour it. Best-effort: any failure returns undefined and the email still
+ * sends without it.
  */
 
 // ISO instant → the UTC "basic format" a VEVENT wants (20260822T103000Z).
@@ -51,6 +52,9 @@ export function buildBookingIcs(e: {
   startIso: string
   endIso: string
   serviceName: string
+  // A cancellation invite (METHOD:CANCEL + STATUS:CANCELLED) removes the entry
+  // a prior PUBLISH added — same UID, higher SEQUENCE, so clients supersede it.
+  cancelled?: boolean
 }): string | undefined {
   const nowMs = Date.now()
   const dtStart = icsUtc(e.startIso)
@@ -62,7 +66,7 @@ export function buildBookingIcs(e: {
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//Bella Nails//Booking//EN",
-    "METHOD:PUBLISH",
+    `METHOD:${e.cancelled ? "CANCEL" : "PUBLISH"}`,
     "BEGIN:VEVENT",
     `UID:${e.bookingId}@bellanails.dk`,
     // Seconds-since-epoch — rises with each (re)build so a later invite supersedes.
@@ -72,6 +76,7 @@ export function buildBookingIcs(e: {
     `DTEND:${dtEnd}`,
     `SUMMARY:${icsText(e.serviceName)}`,
     `LOCATION:${icsText(STUDIO_ADDRESS)}`,
+    ...(e.cancelled ? ["STATUS:CANCELLED"] : []),
     "END:VEVENT",
     "END:VCALENDAR",
   ]
