@@ -11,6 +11,7 @@ import {
 import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
 import { requireOwner } from "@/modules/identity/require-owner"
 
+import { getServiceWithAddons, type ServiceAddon } from "./public-catalog"
 import { revalidateCatalogSurfaces } from "./revalidate"
 import type {
   ServiceActionResult,
@@ -27,6 +28,25 @@ import { krToCents, nameTaken } from "./validation"
 function revalidateService(id: string) {
   revalidateCatalogSurfaces()
   revalidatePath(`/admin/services/${id}`)
+}
+
+export type OwnerServiceAddons = {
+  addons: ServiceAddon[]
+  /** Unordered incompatible addon-id pairs, so the picker can block combos. */
+  incompatiblePairs: [string, string][]
+}
+
+/** A service's active add-ons for the admin "New booking" flow — owner-gated
+    wrapper over the public read (service-role client). Empty for a missing id. */
+export async function getServiceAddonsForOwner(
+  serviceId: string,
+): Promise<OwnerServiceAddons> {
+  const db = await requireOwner()
+  if (!db) return { addons: [], incompatiblePairs: [] }
+  const data = await getServiceWithAddons(serviceId, db)
+  return data
+    ? { addons: data.addons, incompatiblePairs: data.incompatiblePairs }
+    : { addons: [], incompatiblePairs: [] }
 }
 
 /** Price history for one catalog item, newest first — for the edit dialog. */

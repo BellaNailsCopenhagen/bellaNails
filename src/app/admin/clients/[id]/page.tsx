@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
+import { CalendarPlus, ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
@@ -120,6 +120,10 @@ export default async function AdminClientPage({
 
         {/* Reach the client, and a reputation flag if they're a repeat no-show. */}
         <div className="flex flex-wrap items-center gap-4">
+          <Link href={`/admin/new?client=${id}`} className={cardActionNeutral("gap-1")}>
+            <CalendarPlus className="size-3.5" />
+            New booking
+          </Link>
           {contact?.phone ? (
             <a href={telHref(contact.phone)} className={cardActionNeutral("gap-1")}>
               <Phone className="size-3.5" />
