@@ -13,6 +13,7 @@ import {
   type SectionFields,
 } from "@/db/service-sections"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { routes } from "@/shared/routes"
 
 export type SectionResult = { ok: true } | { ok: false; error: string }
 
@@ -45,7 +46,7 @@ export async function addSection(
   const saved = await insertSection(db, serviceId, sortOrder, toRow(input))
   if (!saved.ok) return { ok: false, error: "Couldn’t add the section." }
 
-  revalidatePath(`/admin/services/${serviceId}`)
+  revalidatePath(routes.admin.service(serviceId))
   return { ok: true }
 }
 
@@ -59,7 +60,7 @@ export async function updateSection(
   const saved = await updateSectionRow(db, sectionId, toRow(input))
   if (!saved.ok) return { ok: false, error: "Couldn’t save the section." }
 
-  revalidatePath(`/admin/services/${saved.serviceId}`)
+  revalidatePath(routes.admin.service(saved.serviceId))
   return { ok: true }
 }
 
@@ -70,7 +71,7 @@ export async function deleteSection(sectionId: string): Promise<SectionResult> {
   const removed = await deleteSectionRow(db, sectionId)
   if (!removed.ok) return { ok: false, error: "Couldn’t remove the section." }
 
-  revalidatePath(`/admin/services/${removed.serviceId}`)
+  revalidatePath(routes.admin.service(removed.serviceId))
   return { ok: true }
 }
 
@@ -98,6 +99,6 @@ export async function moveSection(
   const second = await setSectionSortOrder(db, neighbor.id, section.sort_order)
   if (!second.ok) return { ok: false, error: "Couldn’t reorder." }
 
-  revalidatePath(`/admin/services/${section.service_id}`)
+  revalidatePath(routes.admin.service(section.service_id))
   return { ok: true }
 }

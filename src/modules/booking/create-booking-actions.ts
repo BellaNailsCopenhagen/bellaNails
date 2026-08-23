@@ -18,6 +18,7 @@ import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
+import { routes, revalidatePatterns } from "@/shared/routes"
 
 const MIN = 60_000
 
@@ -216,7 +217,7 @@ export async function createBooking(
     locale,
   )
 
-  revalidatePath("/[locale]/appointments", "page")
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true, id: result.id }
 }
 
@@ -296,10 +297,10 @@ export async function createBookingAsOwner(
     )
   }
 
-  revalidatePath("/admin")
-  revalidatePath("/admin/appointments")
-  revalidatePath("/admin/clients/[id]", "page")
-  revalidatePath("/[locale]/appointments", "page")
+  revalidatePath(routes.admin.home)
+  revalidatePath(routes.admin.appointments)
+  revalidatePath(revalidatePatterns.adminClient, "page")
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true, id: result.id }
 }
 

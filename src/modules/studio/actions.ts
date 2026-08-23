@@ -9,6 +9,7 @@ import {
 } from "@/db/studio-special-days"
 import { requireOwner } from "@/modules/identity/require-owner"
 import type { Json } from "@/platform/supabase/types"
+import { routes } from "@/shared/routes"
 import type { TimeRange, WeeklyHours } from "@/shared/studio-hours"
 
 export type HoursResult = { ok: true } | { ok: false; error: string }
@@ -47,7 +48,7 @@ export async function saveWeeklyHours(
   const saved = await saveWeeklyHoursRow(supabase, weekly as Json)
   if (!saved.ok) return { ok: false, error: "Couldn’t save hours." }
 
-  revalidatePath("/admin/hours")
+  revalidatePath(routes.admin.hours)
   return { ok: true }
 }
 
@@ -77,7 +78,7 @@ export async function addSpecialDay(input: {
   })
   if (!saved.ok) return { ok: false, error: "Couldn’t add the special day." }
 
-  revalidatePath("/admin/hours")
+  revalidatePath(routes.admin.hours)
   return { ok: true }
 }
 
@@ -88,6 +89,6 @@ export async function deleteSpecialDay(id: string): Promise<HoursResult> {
   const removed = await deleteSpecialDayRow(supabase, id)
   if (!removed.ok) return { ok: false, error: "Couldn’t remove the special day." }
 
-  revalidatePath("/admin/hours")
+  revalidatePath(routes.admin.hours)
   return { ok: true }
 }

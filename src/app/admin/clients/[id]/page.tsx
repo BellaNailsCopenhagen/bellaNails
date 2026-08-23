@@ -22,6 +22,7 @@ import { routing } from "@/i18n/routing"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/shared/booking-policy"
 import { contactDisplayName } from "@/shared/contact"
+import { routes } from "@/shared/routes"
 import { getHubAssets } from "@/modules/media/asset-hub"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -93,7 +94,7 @@ export default async function AdminClientPage({
     <div className="space-y-14">
       <div className="space-y-3">
         <Link
-          href="/admin"
+          href={routes.admin.home}
           className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-3.5" />
@@ -122,7 +123,7 @@ export default async function AdminClientPage({
 
         {/* Reach the client, and a reputation flag if they're a repeat no-show. */}
         <div className="flex flex-wrap items-center gap-4">
-          <Link href={`/admin/new?client=${id}`} className={cardActionNeutral("gap-1")}>
+          <Link href={routes.admin.newBooking({ client: id })} className={cardActionNeutral("gap-1")}>
             <CalendarPlus className="size-3.5" />
             New booking
           </Link>

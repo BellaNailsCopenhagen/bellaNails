@@ -11,6 +11,7 @@ import {
 } from "@/modules/notifications/reads"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import { contactDisplayName } from "@/shared/contact"
+import { routes } from "@/shared/routes"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -34,9 +35,9 @@ function describe(n: OwnerNotification): string {
 // down); everything else goes to the client.
 function hrefFor(n: OwnerNotification): string {
   if (n.kind === "media_consent_withdrawn" && n.clientMediaId) {
-    return `/admin/assets?highlight=${n.clientMediaId}`
+    return routes.admin.assetHighlight(n.clientMediaId)
   }
-  return `/admin/clients/${n.clientId}`
+  return routes.admin.client(n.clientId)
 }
 
 /**
@@ -53,7 +54,7 @@ export default async function AdminNotificationsPage() {
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/more"
+        href={routes.admin.more}
         className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft className="size-3.5" />

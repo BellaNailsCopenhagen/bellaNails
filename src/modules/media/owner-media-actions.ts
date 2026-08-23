@@ -9,6 +9,7 @@ import { upsertConsent, upsertConsents } from "@/db/media-consents"
 import { requireOwner } from "@/modules/identity/require-owner"
 import type { MediaPurpose } from "@/modules/media/client-gallery"
 import { objectUrl } from "@/platform/storage/scaleway"
+import { routes } from "@/shared/routes"
 
 /**
  * Owner-side media + consent management: record a client's image, archive it,
@@ -63,8 +64,8 @@ export async function addClientMedia(input: {
     return { ok: false, error: "Couldn’t add the image." }
   }
 
-  revalidatePath(`/admin/clients/${input.clientId}`)
-  if (serviceId) revalidatePath(`/admin/services/${serviceId}`)
+  revalidatePath(routes.admin.client(input.clientId))
+  if (serviceId) revalidatePath(routes.admin.service(serviceId))
   return { ok: true }
 }
 
@@ -103,7 +104,7 @@ export async function requestMediaPublish(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clientId}`)
+  revalidatePath(routes.admin.client(clientId))
   return { ok: true }
 }
 
@@ -122,7 +123,7 @@ export async function requestBothPublish(
   ])
   if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clientId}`)
+  revalidatePath(routes.admin.client(clientId))
   return { ok: true }
 }
 
@@ -149,6 +150,6 @@ export async function requestDataConsent(
   })
   if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
 
-  revalidatePath(`/admin/clients/${clientId}`)
+  revalidatePath(routes.admin.client(clientId))
   return { ok: true }
 }

@@ -21,6 +21,7 @@ import {
 } from "@/shared/booking-policy"
 import type { AgendaWeek } from "@/shared/booking-agenda"
 import type { ClientContact } from "@/shared/contact"
+import { routes } from "@/shared/routes"
 import {
   dayNumberToMs,
   formatStudioDayMonth,
@@ -148,7 +149,7 @@ export function AdminQueue({
 
         <div className="flex items-center gap-3">
           <Link
-            href="/admin/appointments"
+            href={routes.admin.appointments}
             className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
           >
             Appointments

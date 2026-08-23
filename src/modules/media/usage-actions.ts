@@ -11,6 +11,7 @@ import {
   isPublicSurface,
   surfacesForPurpose,
 } from "@/shared/asset-surfaces"
+import { routes } from "@/shared/routes"
 
 export type AssetUsageResult = { ok: true } | { ok: false; error: string }
 
@@ -40,7 +41,7 @@ export async function addAssetUsage(
   const saved = await placeAsset(supabase, assetId, surface, url?.trim() || null)
   if (!saved.ok) return { ok: false, error: "Couldn’t save the use-case." }
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   if (isPublicSurface(surface)) revalidatePublicSurfaces()
   return { ok: true }
 }
@@ -57,7 +58,7 @@ export async function removeAssetUsage(
   const removed = await removeUsage(supabase, usageId)
   if (!removed.ok) return { ok: false, error: "Couldn’t remove the use-case." }
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   if (removed.surface && isPublicSurface(removed.surface)) {
     revalidatePublicSurfaces()
   }

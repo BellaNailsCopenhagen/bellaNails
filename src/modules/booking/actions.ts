@@ -29,6 +29,7 @@ import {
   BOOKING_STATUS,
   isActiveBookingStatus,
 } from "@/shared/booking-status"
+import { routes, revalidatePatterns } from "@/shared/routes"
 
 /**
  * Every booking mutation a UI can trigger — now fully in-house (no Cal). Each
@@ -45,9 +46,9 @@ const UUID =
 /** Admin surfaces that render a booking's manage buttons — all revalidated
     together after an owner mutation so none is left showing stale state. */
 function revalidateAdminBookingViews(): void {
-  revalidatePath("/admin")
-  revalidatePath("/admin/appointments")
-  revalidatePath("/admin/clients/[id]", "page")
+  revalidatePath(routes.admin.home)
+  revalidatePath(routes.admin.appointments)
+  revalidatePath(revalidatePatterns.adminClient, "page")
 }
 
 /**
@@ -133,7 +134,7 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
   if (booking.status === BOOKING_STATUS.cancelled) {
     // Already cancelled out-of-band — refresh the stale card that offered
     // the button.
-    revalidatePath("/[locale]/appointments", "page")
+    revalidatePath(revalidatePatterns.publicAppointments, "page")
     return { ok: true }
   }
   if (!canManageBooking(booking, Date.now())) {
@@ -151,7 +152,7 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
     { startIso: booking.start_time, endIso: booking.end_time },
     "client",
   )
-  revalidatePath("/[locale]/appointments", "page")
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true }
 }
 
@@ -288,7 +289,7 @@ export async function rescheduleBooking(
     rescheduleWindow(booking, newStart, applied.end),
     "client",
   )
-  revalidatePath("/[locale]/appointments", "page")
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true }
 }
 
@@ -337,7 +338,7 @@ export async function cancelBookingByToken(token: string): Promise<CancelResult>
   const booking = await getBookingForManage(service, id)
   if (!booking) return { ok: false, error: "not_found" }
   if (booking.status === BOOKING_STATUS.cancelled) {
-    revalidatePath("/[locale]/manage/[token]", "page")
+    revalidatePath(revalidatePatterns.publicManage, "page")
     return { ok: true }
   }
   if (!canManageBooking(booking, Date.now())) {
@@ -354,7 +355,7 @@ export async function cancelBookingByToken(token: string): Promise<CancelResult>
     { startIso: booking.start_time, endIso: booking.end_time },
     "client",
   )
-  revalidatePath("/[locale]/manage/[token]", "page")
+  revalidatePath(revalidatePatterns.publicManage, "page")
   return { ok: true }
 }
 
@@ -382,7 +383,7 @@ export async function rescheduleBookingByToken(
     rescheduleWindow(booking, newStart, applied.end),
     "client",
   )
-  revalidatePath("/[locale]/manage/[token]", "page")
+  revalidatePath(revalidatePatterns.publicManage, "page")
   return { ok: true }
 }
 

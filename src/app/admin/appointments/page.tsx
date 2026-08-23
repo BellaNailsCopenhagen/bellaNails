@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { AdminBookings } from "@/app/admin/appointments/_components/admin-bookings"
 import { getAdminAppointments } from "@/modules/booking"
+import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Appointments" }
 
@@ -34,7 +35,7 @@ export default async function AdminAppointmentsPage() {
     <div className="space-y-8">
       <div className="space-y-2">
         <Link
-          href="/admin"
+          href={routes.admin.home}
           className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-3.5" />

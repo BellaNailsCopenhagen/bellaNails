@@ -7,6 +7,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { routes } from "@/shared/routes"
+
 /**
  * Admin tab bar. Per the design's rendered bottom bar, **New is the centered
  * action** (slot 3 of 5), so the visual order is Queue · Clients · New ·
@@ -27,16 +29,16 @@ export type AdminTab = {
 }
 
 export const adminTabs: AdminTab[] = [
-  { href: "/admin", label: "Queue", icon: List },
-  { href: "/admin/clients", label: "Clients", icon: User },
-  { href: "/admin/new", label: "New", icon: Plus, primary: true },
-  { href: "/admin/services", label: "Services", icon: AlignLeft },
-  { href: "/admin/more", label: "More", icon: MoreHorizontal },
+  { href: routes.admin.home, label: "Queue", icon: List },
+  { href: routes.admin.clients, label: "Clients", icon: User },
+  { href: routes.admin.newBooking(), label: "New", icon: Plus, primary: true },
+  { href: routes.admin.services, label: "Services", icon: AlignLeft },
+  { href: routes.admin.more, label: "More", icon: MoreHorizontal },
 ]
 
 /** Is `tab` the active one for the current pathname? /admin matches exactly;
     the others match their subtree so nested pages keep the tab lit. */
 export function isTabActive(tab: AdminTab, pathname: string): boolean {
-  if (tab.href === "/admin") return pathname === "/admin"
+  if (tab.href === routes.admin.home) return pathname === routes.admin.home
   return pathname === tab.href || pathname.startsWith(`${tab.href}/`)
 }

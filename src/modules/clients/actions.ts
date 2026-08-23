@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { updateClientCommunicationLocale, updateClientProfile } from "@/db/clients"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { revalidatePatterns } from "@/shared/routes"
 
 export type ProfileResult = { ok: true } | { ok: false; error: string }
 
@@ -49,6 +50,6 @@ export async function setClientCommunicationLocale(
   const saved = await updateClientCommunicationLocale(db, clientId, locale)
   if (!saved.ok) return { ok: false, error: "Couldn't save." }
 
-  revalidatePath("/admin/clients/[id]", "page")
+  revalidatePath(revalidatePatterns.adminClient, "page")
   return { ok: true }
 }

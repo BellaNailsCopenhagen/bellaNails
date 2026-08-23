@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/clients/_components/client-directory"
 import { getClientDirectory, type DirectoryEntry } from "@/modules/clients"
 import { contactDisplayName } from "@/shared/contact"
+import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Clients" }
 
@@ -50,7 +51,7 @@ export default async function AdminClientsPage() {
     <div className="space-y-8">
       <div className="space-y-2">
         <Link
-          href="/admin"
+          href={routes.admin.home}
           className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-3.5" />

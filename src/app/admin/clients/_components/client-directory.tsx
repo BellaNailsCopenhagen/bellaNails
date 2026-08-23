@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm } from "@/components/ui/typography"
 import { TabBar } from "@/components/ui/tab-bar"
+import { routes } from "@/shared/routes"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -39,7 +40,7 @@ function ClientRows({ clients }: { clients: ClientRosterEntry[] }) {
       {clients.map((client) => (
         <li key={client.id} className="border-b border-border">
           <Link
-            href={`/admin/clients/${client.id}`}
+            href={routes.admin.client(client.id)}
             className="flex items-center justify-between gap-3 py-3"
           >
             <div className="min-w-0">

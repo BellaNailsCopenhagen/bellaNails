@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { deleteReview as deleteReviewRow, insertReview } from "@/db/reviews"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { routes } from "@/shared/routes"
 
 export type ReviewResult = { ok: true } | { ok: false; error: string }
 
@@ -29,7 +30,7 @@ export async function addReview(
   })
   if (!saved.ok) return { ok: false, error: "Couldn’t save the review." }
 
-  revalidatePath(`/admin/services/${serviceId}`)
+  revalidatePath(routes.admin.service(serviceId))
   return { ok: true }
 }
 
@@ -40,6 +41,6 @@ export async function deleteReview(reviewId: string): Promise<ReviewResult> {
   const removed = await deleteReviewRow(db, reviewId)
   if (!removed.ok) return { ok: false, error: "Couldn’t remove the review." }
 
-  revalidatePath(`/admin/services/${removed.serviceId}`)
+  revalidatePath(routes.admin.service(removed.serviceId))
   return { ok: true }
 }

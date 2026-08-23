@@ -17,6 +17,7 @@ import {
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import type { DisplayBooking } from "@/shared/booking-view"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
+import { routes } from "@/shared/routes"
 import { formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -65,7 +66,7 @@ export function QueueBookingCard({
   // `client_id` is the client's stable key — links to their profile + booking
   // history. Route is /admin/clients/[id].
   const clientHref = row.client_id
-    ? `/admin/clients/${row.client_id}`
+    ? routes.admin.client(row.client_id)
     : null
   const isNoShow = Boolean(row.no_show_at)
   const canToggleNoShow = noShowEligible
@@ -78,8 +79,11 @@ export function QueueBookingCard({
   const meta = metaOf(row)
   const rebookHref =
     !actionable && row.client_id && meta.serviceId
-      ? `/admin/new?client=${row.client_id}&service=${meta.serviceId}` +
-        (meta.addonIds?.length ? `&addons=${meta.addonIds.join(",")}` : "")
+      ? routes.admin.newBooking({
+          client: row.client_id,
+          service: meta.serviceId,
+          addons: meta.addonIds ?? undefined,
+        })
       : null
   const canAddMedia =
     now != null &&
@@ -212,7 +216,7 @@ export function QueueBookingCard({
           {photos.slice(0, 6).map((photo) => (
             <Link
               key={photo.id}
-              href={`/admin/assets?highlight=${photo.id}`}
+              href={routes.admin.assetHighlight(photo.id)}
               aria-label="Open in assets"
               className="block shrink-0"
             >
@@ -253,7 +257,7 @@ export function QueueBookingCard({
                 variant="outline"
                 size="sm"
                 nativeButton={false}
-                render={<Link href={`/admin/reschedule/${row.id}`} />}
+                render={<Link href={routes.admin.reschedule(row.id)} />}
               >
                 Reschedule
               </Button>

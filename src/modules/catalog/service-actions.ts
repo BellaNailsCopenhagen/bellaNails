@@ -10,6 +10,7 @@ import {
 } from "@/db/services"
 import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { routes } from "@/shared/routes"
 
 import { getServiceWithAddons, type ServiceAddon } from "./public-catalog"
 import { revalidateCatalogSurfaces } from "./revalidate"
@@ -27,7 +28,7 @@ import { krToCents, nameTaken } from "./validation"
 
 function revalidateService(id: string) {
   revalidateCatalogSurfaces()
-  revalidatePath(`/admin/services/${id}`)
+  revalidatePath(routes.admin.service(id))
 }
 
 export type OwnerServiceAddons = {

@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { H2 } from "@/components/ui/typography"
 import { getUnreadNotificationCount } from "@/modules/notifications/reads"
+import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "More" }
 export const dynamic = "force-dynamic"
@@ -36,31 +37,31 @@ const ITEMS: MoreItem[] = [
     label: "Notifications",
     description: "Consent withdrawals and studio alerts",
     icon: Bell,
-    href: "/admin/notifications",
+    href: routes.admin.notifications,
   },
   {
     label: "Appointments",
     description: "Full history, filters, and past bookings",
     icon: CalendarRange,
-    href: "/admin/appointments",
+    href: routes.admin.appointments,
   },
   {
     label: "Shared assets",
     description: "Place approved client photos into use-cases",
     icon: Images,
-    href: "/admin/assets",
+    href: routes.admin.assets,
   },
   {
     label: "Terms",
     description: "Booking terms and the data-use / privacy notice",
     icon: ScrollText,
-    href: "/admin/terms",
+    href: routes.admin.terms,
   },
   {
     label: "Working hours",
     description: "Weekly opening hours + special/closed days",
     icon: Clock,
-    href: "/admin/hours",
+    href: routes.admin.hours,
   },
   {
     label: "Gallery & testimonials",
@@ -116,7 +117,7 @@ function ItemBody({ item, count = 0 }: { item: MoreItem; count?: number }) {
 export default async function AdminMorePage() {
   const unread = await getUnreadNotificationCount()
   const countFor = (item: MoreItem) =>
-    item.href === "/admin/notifications" ? unread : 0
+    item.href === routes.admin.notifications ? unread : 0
 
   return (
     <div className="space-y-8">

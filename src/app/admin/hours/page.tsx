@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { StudioHoursEditor } from "@/app/admin/hours/_components/studio-hours-editor"
 import { getStudioHours } from "@/modules/studio/hours"
+import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Hours" }
 export const dynamic = "force-dynamic"
@@ -20,7 +21,7 @@ export default async function AdminHoursPage() {
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/more"
+        href={routes.admin.more}
         className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft className="size-3.5" />

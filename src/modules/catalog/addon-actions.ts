@@ -15,6 +15,7 @@ import {
 import { recordPricePoint } from "@/db/price-history"
 import { linkAddonToService, unlinkAddonFromService } from "@/db/service-addons"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { routes } from "@/shared/routes"
 
 import type { AddonEditInput, ServiceActionResult } from "./types"
 import { krToCents, nameTaken } from "./validation"
@@ -26,8 +27,8 @@ import { krToCents, nameTaken } from "./validation"
  */
 
 function revalidateService(id: string) {
-  revalidatePath("/admin/services")
-  revalidatePath(`/admin/services/${id}`)
+  revalidatePath(routes.admin.services)
+  revalidatePath(routes.admin.service(id))
 }
 
 /** Create or edit a STANDALONE add-on (no service link — link separately).
@@ -65,14 +66,14 @@ export async function saveAddon(
     if (priorPrice !== null && priorPrice !== cents) {
       await recordPricePoint(db, "addon", addonId, cents)
     }
-    revalidatePath("/admin/services")
+    revalidatePath(routes.admin.services)
     return { ok: true, id: addonId }
   }
 
   const created = await insertAddon(db, fields)
   if (!created.ok) return { ok: false, error: "Couldn’t save the add-on." }
   await recordPricePoint(db, "addon", created.id, cents)
-  revalidatePath("/admin/services")
+  revalidatePath(routes.admin.services)
   return { ok: true, id: created.id }
 }
 
@@ -91,7 +92,7 @@ export async function archiveAddon(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update the add-on." }
 
-  revalidatePath("/admin/services")
+  revalidatePath(routes.admin.services)
   return { ok: true }
 }
 
@@ -143,6 +144,6 @@ export async function setAddonCompatibility(
     : await removeIncompatiblePair(db, a, b)
   if (!saved.ok) return { ok: false, error: "Couldn’t save compatibility." }
 
-  revalidatePath("/admin/services")
+  revalidatePath(routes.admin.services)
   return { ok: true }
 }

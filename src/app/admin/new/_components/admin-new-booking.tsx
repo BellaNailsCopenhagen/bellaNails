@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { H2, BodySm, Caption } from "@/components/ui/typography"
 import type { SlotPickerOutcome } from "@/components/booking/slot-picker"
 import type { Slot } from "@/shared/booking-slots"
+import { routes } from "@/shared/routes"
 import { createBookingAsOwner, getOwnerSlots } from "@/modules/booking/create-booking-actions"
 import { getServiceAddonsForOwner } from "@/modules/catalog/service-actions"
 
@@ -159,7 +160,7 @@ export function AdminNewBooking({
     })
     if (!result.ok) return { ok: false, error: result.error }
     toast.success("Booking created")
-    router.push("/admin")
+    router.push(routes.admin.home)
     router.refresh()
     return { ok: true }
   }
@@ -180,7 +181,7 @@ export function AdminNewBooking({
     <div className="space-y-8">
       <div className="space-y-2">
         <Link
-          href="/admin"
+          href={routes.admin.home}
           className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-3.5" />

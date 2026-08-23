@@ -7,6 +7,7 @@ import { H2 } from "@/components/ui/typography"
 import { AdminRescheduleSlotStep } from "@/app/admin/reschedule/[id]/_components/admin-reschedule-slot-step"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { metaOf } from "@/shared/booking-policy"
+import { routes } from "@/shared/routes"
 import {
   getAvailableSlots,
   getBookingForManageAsOwner,
@@ -52,7 +53,7 @@ export default async function AdminReschedulePage({
     <div className="space-y-6">
       <div className="space-y-2">
         <Link
-          href="/admin"
+          href={routes.admin.home}
           className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="size-3.5" />

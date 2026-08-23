@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 import { cn } from "@/shared/cn"
+import { routes } from "@/shared/routes"
 import { Button } from "@/components/ui/button"
 import { adminTabs, isTabActive } from "@/app/admin/_components/admin-nav"
 import { AdminReviewBanner } from "@/app/admin/_components/admin-review-banner"
@@ -34,7 +35,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-4 px-4">
           <Link
-            href="/admin"
+            href={routes.admin.home}
             className="flex items-center gap-2.5"
             aria-label="Bella Nails Studio — queue"
           >

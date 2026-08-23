@@ -7,6 +7,7 @@ import { Bell } from "lucide-react"
 
 import { countUnread } from "@/db/owner-notifications"
 import { useSupabaseBrowserClient } from "@/platform/supabase/client"
+import { routes } from "@/shared/routes"
 
 /**
  * Global "to review" bar in the admin shell — shows unread notifications on
@@ -33,11 +34,11 @@ export function AdminReviewBanner() {
     }
   }, [supabase, pathname])
 
-  if (unread <= 0 || pathname === "/admin/notifications") return null
+  if (unread <= 0 || pathname === routes.admin.notifications) return null
 
   return (
     <Link
-      href="/admin/notifications"
+      href={routes.admin.notifications}
       className="flex items-center gap-2 border-b border-border bg-secondary/10 px-4 py-2.5 font-functional text-sm text-foreground transition-colors hover:bg-secondary/20"
     >
       <Bell className="size-4 shrink-0 text-secondary" />

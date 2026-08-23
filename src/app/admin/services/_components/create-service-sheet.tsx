@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { CategorySelect } from "@/components/admin/category-select"
 import { createService } from "@/modules/catalog/service-actions"
 import { fieldLabel } from "@/components/admin/field-label"
+import { routes } from "@/shared/routes"
 
 const DURATION_STEP = 15
 
@@ -44,7 +45,7 @@ export function CreateServiceSheet({
       if (result.ok) {
         toast.success("Service created")
         setOpen(false)
-        router.push(`/admin/services/${result.id}`)
+        router.push(routes.admin.service(result.id))
       } else {
         toast.error(result.error || "Couldn’t create.")
       }

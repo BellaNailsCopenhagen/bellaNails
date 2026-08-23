@@ -19,6 +19,7 @@ import {
 import { requireOwner } from "@/modules/identity/require-owner"
 import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
 import { deleteObject } from "@/platform/storage/scaleway"
+import { routes } from "@/shared/routes"
 
 export type AssetHubResult = { ok: true } | { ok: false; error: string }
 
@@ -73,7 +74,7 @@ export async function bulkAddToGallery(
     await upsertConsent(supabase, { ...base, auto_place: true })
   }
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   revalidatePublicSurfaces()
   return { ok: true }
 }
@@ -105,7 +106,7 @@ export async function confirmTakedown(
     needs_takedown_at: null,
   })
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   return { ok: true }
 }
 
@@ -125,7 +126,7 @@ export async function setMediaFavorite(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update." }
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   return { ok: true }
 }
 
@@ -145,6 +146,6 @@ export async function setMediaDismissed(
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update." }
 
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.assets)
   return { ok: true }
 }

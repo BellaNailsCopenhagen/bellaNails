@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { PriceTag } from "@/components/ui/price-tag"
 import type { AdminService } from "@/modules/catalog"
+import { routes } from "@/shared/routes"
 
 /**
  * One line in the services list — name, duration, price. The whole row opens
@@ -12,7 +13,7 @@ export function ServiceRow({ service }: { service: AdminService }) {
   return (
     <li className="border-b border-border">
       <Link
-        href={`/admin/services/${service.id}`}
+        href={routes.admin.service(service.id)}
         className="flex items-center justify-between gap-4 py-3"
       >
         <div className="min-w-0">

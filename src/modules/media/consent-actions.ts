@@ -25,6 +25,7 @@ import {
   updateConsent,
 } from "@/db/media-consents"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { routes } from "@/shared/routes"
 
 /**
  * The CLIENT's own consent decisions (from /bookings). Every action re-verifies
@@ -141,7 +142,7 @@ export async function decideMediaConsent(
       granted_at: null,
       withdrawn_at: null,
     })
-    revalidatePath(`/admin/clients/${userId}`)
+    revalidatePath(routes.admin.client(userId))
     return { ok: true }
   }
 
@@ -152,7 +153,7 @@ export async function decideMediaConsent(
     consent.id,
     mediaId,
   )
-  revalidatePath(`/admin/clients/${userId}`)
+  revalidatePath(routes.admin.client(userId))
   return { ok: true, note }
 }
 
@@ -180,7 +181,7 @@ export async function acceptAllPendingConsents(): Promise<ConsentActionResult> {
     if (result.note) note = result.note // surface the last deferral, if any
   }
 
-  revalidatePath(`/admin/clients/${userId}`)
+  revalidatePath(routes.admin.client(userId))
   return { ok: true, note }
 }
 
@@ -240,8 +241,8 @@ export async function withdrawMediaConsent(
     purpose,
   })
 
-  revalidatePath(`/admin/clients/${userId}`)
-  revalidatePath("/admin/assets")
+  revalidatePath(routes.admin.client(userId))
+  revalidatePath(routes.admin.assets)
   revalidatePublicSurfaces() // withdrawal drops any public placements
   return { ok: true }
 }
@@ -265,7 +266,7 @@ export async function decideDataConsent(
       ? { granted_at: now, declined_at: null, withdrawn_at: null }
       : { declined_at: now, granted_at: null, withdrawn_at: null }
   await updateDataConsent(supabase, consent.id, { status: decision, ...stamp })
-  revalidatePath(`/admin/clients/${userId}`)
+  revalidatePath(routes.admin.client(userId))
   return { ok: true }
 }
 
@@ -277,6 +278,6 @@ export async function withdrawDataConsent(
   const supabase = createSupabaseServiceRoleClient()
 
   await withdrawDataConsentFor(supabase, userId, purpose)
-  revalidatePath(`/admin/clients/${userId}`)
+  revalidatePath(routes.admin.client(userId))
   return { ok: true }
 }

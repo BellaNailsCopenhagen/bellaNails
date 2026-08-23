@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache"
 
 import { routing } from "@/i18n/routing"
+import { routes } from "@/shared/routes"
 
 /**
  * The public pages that render placed client assets: the home page (showcase
@@ -10,7 +11,7 @@ import { routing } from "@/i18n/routing"
  */
 export function revalidatePublicSurfaces() {
   for (const locale of routing.locales) {
-    revalidatePath(`/${locale}`)
-    revalidatePath(`/${locale}/gallery`)
+    revalidatePath(routes.public.localeHome(locale))
+    revalidatePath(routes.public.gallery(locale))
   }
 }

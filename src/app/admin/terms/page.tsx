@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { TermsEditor } from "@/app/admin/terms/_components/terms-editor"
 import { getTermsVersions, TERMS_KINDS } from "@/modules/terms/terms"
+import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Terms" }
 export const dynamic = "force-dynamic"
@@ -34,7 +35,7 @@ export default async function AdminTermsPage() {
   return (
     <div className="space-y-6">
       <Link
-        href="/admin/more"
+        href={routes.admin.more}
         className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronLeft className="size-3.5" />

@@ -13,6 +13,7 @@ import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
 import { purgeMediaArtifacts } from "@/modules/media/erasure"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { routes } from "@/shared/routes"
 
 export type AnonymizeResult = { ok: true } | { ok: false; error: string }
 
@@ -95,8 +96,8 @@ export async function anonymizeClient(
   if (!admin) return { ok: false, error: "unauthorized" }
   const result = await runAnonymize(admin, clientId)
   if (result.ok) {
-    revalidatePath(`/admin/clients/${clientId}`)
-    revalidatePath("/admin/clients")
+    revalidatePath(routes.admin.client(clientId))
+    revalidatePath(routes.admin.clients)
   }
   return result
 }

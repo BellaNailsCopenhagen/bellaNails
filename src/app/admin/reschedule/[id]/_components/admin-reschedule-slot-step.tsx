@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
 import { rescheduleBookingAsOwner } from "@/modules/booking/actions"
 import type { Slot } from "@/shared/booking-slots"
+import { routes } from "@/shared/routes"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 /**
@@ -30,7 +31,7 @@ export function AdminRescheduleSlotStep({
       return { ok: false, error: "Couldn’t move it — try another time." }
     }
     toast.success("Appointment moved")
-    router.replace("/admin")
+    router.replace(routes.admin.home)
     router.refresh()
     return { ok: true }
   }

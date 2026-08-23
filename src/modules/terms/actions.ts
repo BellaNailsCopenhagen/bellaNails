@@ -10,6 +10,7 @@ import {
 } from "@/db/terms"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { isTermsKind, type TermsKind } from "@/modules/terms/terms"
+import { routes } from "@/shared/routes"
 
 export type TermsActionResult = { ok: true } | { ok: false; error: string }
 
@@ -57,6 +58,6 @@ export async function saveTermsVersion(
   const promoted = await setTermsCurrent(supabase, inserted.id)
   if (!promoted.ok) return { ok: false, error: "Couldn’t publish the terms." }
 
-  revalidatePath("/admin/terms")
+  revalidatePath(routes.admin.terms)
   return { ok: true }
 }
