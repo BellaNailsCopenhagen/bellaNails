@@ -58,7 +58,7 @@
     },
     "addonsIntro": "Forfin din behandling med et eller flere tilvalg — alt udføres i den samme private session. Din samlede pris og varighed opdateres, mens du vælger, og i næste trin finder du dato og tidspunkt.",
     "noAddons": "Denne behandling har ingen tilvalg — fortsæt direkte til valg af tidspunkt.",
-    "continue": "Fortsæt",
+    "toDetailsCta": "Fortsæt til dine oplysninger",
     "incompatible": "Kan ikke kombineres med {name}",
     "headingDetails1": "Dine",
     "headingDetails2": "oplysninger",
@@ -75,6 +75,7 @@
       "notesPlaceholder": "Noget vi bør vide før din session"
     },
     "privacyNote": "Dine oplysninger opbevares fortroligt og deles aldrig. Vi kontakter dig kun i forbindelse med din tid.",
+    "toTimeCta": "Vælg et tidspunkt",
     "confirmCta": "Bekræft session",
     "signInPrompt": "Allerede kunde? <link>Log ind</link>, så udfylder vi felterne for dig.",
     "headingConfirm1": "Vælg",
@@ -262,9 +263,7 @@
     "accountTitle": "Opret en konto for at administrere dine tider",
     "accountBody": "Bekræft din e-mail med en engangskode — ingen adgangskode nødvendig — og flyt, aflys eller book igen ét samlet sted.",
     "signedInBody": "Din tid er knyttet til din konto — flyt, aflys eller book igen, når det passer dig.",
-    "viewBookings": "Se mine tider",
-    "backHome": "Tilbage til forsiden",
-    "browseMenu": "Se menuen"
+    "viewBookings": "Se mine tider"
   },
   "errors": {
     "eyebrow": "Noget gik galt",

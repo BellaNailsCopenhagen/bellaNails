@@ -25,6 +25,17 @@ export const routes = {
 
 export type Route = (typeof routes)[keyof typeof routes]
 
+/** The booking funnel. Its chrome is stripped to the wordmark + locale so the
+    visitor isn't offered a way out mid-flow. */
+const checkoutRoutes: string[] = [routes.book, routes.confirmation]
+
+/** `pathname` must be locale-stripped (next-intl's `usePathname()`). */
+export function isCheckoutPath(pathname: string): boolean {
+  return checkoutRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  )
+}
+
 /** Outbound social links (open in a new tab). */
 export const externalLinks = {
   instagram: "https://instagram.com",

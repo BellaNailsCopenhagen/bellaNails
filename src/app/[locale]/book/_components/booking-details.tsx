@@ -222,7 +222,7 @@ export async function BookingDetails({
             <BodySm className="text-xs">{t("privacyNote")}</BodySm>
 
             <Button size="lg" type="submit">
-              {t("confirmCta")}
+              {t("toTimeCta")}
             </Button>
           </form>
 

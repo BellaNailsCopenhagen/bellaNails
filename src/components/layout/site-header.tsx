@@ -5,6 +5,7 @@ import { MenuIcon } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import { SignedOut } from "@/components/auth/auth-gate"
 import { Container } from "@/components/layout/container"
+import { HideOnCheckout } from "@/components/layout/hide-on-checkout"
 import { LocaleToggle } from "@/components/layout/locale-toggle"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -49,83 +50,89 @@ export async function SiteHeader() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <HideOnCheckout>
+          <nav className="hidden items-center gap-7 lg:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </HideOnCheckout>
 
         <div className="flex items-center gap-3">
-          <Button
-            size="sm"
-            nativeButton={false}
-            render={<Link href={routes.book} />}
-            className="hidden sm:inline-flex"
-          >
-            {t("reserve")}
-          </Button>
-
-          <SignedOut>
-            <Link
-              href={routes.signIn}
-              className="hidden font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground sm:inline"
+          <HideOnCheckout>
+            <Button
+              size="sm"
+              nativeButton={false}
+              render={<Link href={routes.book} />}
+              className="hidden sm:inline-flex"
             >
-              {t("signIn")}
-            </Link>
-          </SignedOut>
+              {t("reserve")}
+            </Button>
+
+            <SignedOut>
+              <Link
+                href={routes.signIn}
+                className="hidden font-functional text-xs uppercase tracking-widest-lux text-foreground/80 transition-colors hover:text-foreground sm:inline"
+              >
+                {t("signIn")}
+              </Link>
+            </SignedOut>
+          </HideOnCheckout>
 
           <LocaleToggle />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <button
-                  type="button"
-                  className={buttonVariants({
-                    variant: "outline",
-                    size: "icon-sm",
-                    className: "lg:hidden",
-                  })}
-                  aria-label="Open navigation menu"
-                >
-                  <MenuIcon />
-                </button>
-              }
-            />
-            <DropdownMenuContent align="end" className="lg:hidden">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>{t("account")}</DropdownMenuLabel>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              {navLinks.map((link) => (
+          <HideOnCheckout>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "icon-sm",
+                      className: "lg:hidden",
+                    })}
+                    aria-label="Open navigation menu"
+                  >
+                    <MenuIcon />
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="end" className="lg:hidden">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>{t("account")}</DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                {navLinks.map((link) => (
+                  <DropdownMenuItem
+                    key={link.href}
+                    render={<Link href={link.href} className="w-full" />}
+                  >
+                    {link.label}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  key={link.href}
-                  render={<Link href={link.href} className="w-full" />}
+                  render={<Link href={routes.book} className="w-full" />}
                 >
-                  {link.label}
+                  {t("reserve")}
                 </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                render={<Link href={routes.book} className="w-full" />}
-              >
-                {t("reserve")}
-              </DropdownMenuItem>
-              <SignedOut>
-                <DropdownMenuItem
-                  render={<Link href={routes.signIn} className="w-full" />}
-                >
-                  {t("signIn")}
-                </DropdownMenuItem>
-              </SignedOut>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <SignedOut>
+                  <DropdownMenuItem
+                    render={<Link href={routes.signIn} className="w-full" />}
+                  >
+                    {t("signIn")}
+                  </DropdownMenuItem>
+                </SignedOut>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </HideOnCheckout>
         </div>
       </Container>
     </header>

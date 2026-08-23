@@ -117,15 +117,11 @@ export function BookingCustomizer({
         ) : (
           <BodySm>{t("noAddons")}</BodySm>
         )}
-      </div>
 
-      {/* Continue lives under the overview: the total is the last thing read
-          before committing (and on mobile it puts the CTA at the bottom). */}
-      <div className="flex w-full flex-col gap-6 md:max-w-[22.5rem]">
-        <AppointmentSummary service={service} selectedAddons={selectedAddons} />
+        {/* Under the choices, on the left — the same column the details step
+            puts its submit in, so the CTA doesn't jump sides between steps. */}
         <Button
           size="lg"
-          className="w-full"
           nativeButton={false}
           render={
             <Link
@@ -142,9 +138,11 @@ export function BookingCustomizer({
             />
           }
         >
-          {t("continue")}
+          {t("toDetailsCta")}
         </Button>
       </div>
+
+      <AppointmentSummary service={service} selectedAddons={selectedAddons} />
     </div>
   )
 }

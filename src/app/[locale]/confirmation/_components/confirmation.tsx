@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation"
 import { ConfirmationRecap } from "@/app/[locale]/confirmation/_components/confirmation-recap"
 import { Container, Section } from "@/components/layout/container"
 import { PageHeader } from "@/components/ui/page-header"
-import { ArrowLink } from "@/components/ui/arrow-link"
 import { Button } from "@/components/ui/button"
 import { BodySm, Eyebrow, H3 } from "@/components/ui/typography"
 import { routes } from "@/config/routes"
@@ -73,11 +72,6 @@ export async function Confirmation({ id }: { id: string | null }) {
                 </Button>
               </div>
             </SignedIn>
-
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
-              <ArrowLink href={routes.home}>{t("backHome")}</ArrowLink>
-              <ArrowLink href={routes.services}>{t("browseMenu")}</ArrowLink>
-            </div>
           </div>
         </div>
       </Container>

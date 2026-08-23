@@ -58,7 +58,7 @@
     },
     "addonsIntro": "Enhance your appointment with one or more add-ons — everything is performed within the same private session. Your total price and duration update as you choose, and you'll pick a date and time in the next step.",
     "noAddons": "This treatment has no add-ons — continue straight to choosing your time.",
-    "continue": "Continue",
+    "toDetailsCta": "Continue to your details",
     "incompatible": "Not compatible with {name}",
     "headingDetails1": "Your",
     "headingDetails2": "Details",
@@ -75,6 +75,7 @@
       "notesPlaceholder": "Anything we should know before your session"
     },
     "privacyNote": "Your details are held privately and never shared. We'll only contact you in relation to your appointment.",
+    "toTimeCta": "Choose a time",
     "confirmCta": "Confirm session",
     "signInPrompt": "Already a client? <link>Sign in</link> and we'll fill these in for you.",
     "headingConfirm1": "Choose",
@@ -262,9 +263,7 @@
     "accountTitle": "Create an account to manage your appointments",
     "accountBody": "Verify your email with a one-time code — no password needed — and reschedule, cancel or rebook in one place.",
     "signedInBody": "Your appointment is linked to your account — reschedule, cancel or rebook whenever you need.",
-    "viewBookings": "View my appointments",
-    "backHome": "Back to home",
-    "browseMenu": "Browse the menu"
+    "viewBookings": "View my appointments"
   },
   "errors": {
     "eyebrow": "Something went wrong",

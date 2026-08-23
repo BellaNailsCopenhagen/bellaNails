@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { QueryProvider } from "@/components/providers/query-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { HideOnCheckout } from "@/components/layout/hide-on-checkout"
 import { SiteHeader } from "@/components/layout/site-header"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { routing } from "@/i18n/routing"
@@ -80,7 +81,9 @@ export default async function LocaleLayout({
           <NextIntlClientProvider>
             <SiteHeader />
             {children}
-            <SiteFooter />
+            <HideOnCheckout>
+              <SiteFooter />
+            </HideOnCheckout>
           </NextIntlClientProvider>
         </QueryProvider>
         <Toaster />
