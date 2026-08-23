@@ -1,0 +1,19 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/statusline.sh\"",
+    "padding": 0
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"$(git rev-parse --show-toplevel 2>/dev/null || echo .)/.claude/progress.md\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
