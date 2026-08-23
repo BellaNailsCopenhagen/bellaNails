@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { ArchivedServices } from "@/app/admin/services/_components/archived-services"
 import { AddonsTab } from "@/app/admin/services/_components/addons-tab"
+import { CategoriesTab } from "@/app/admin/services/_components/categories-tab"
 import { ServiceRow } from "@/app/admin/services/_components/service-row"
 import { ServicesTabs } from "@/app/admin/services/_components/services-tabs"
 import {
@@ -22,15 +23,19 @@ export const dynamic = "force-dynamic"
 function CategorySection({
   label,
   services,
+  archived = false,
 }: {
   label: string
   services: AdminService[]
+  /** An archived category still lists its services here, but they are off the
+      public menu — say so rather than showing an ordinary-looking section. */
+  archived?: boolean
 }) {
   if (services.length === 0) return null
   return (
     <section className="space-y-2 pl-2">
       <div className="flex items-center justify-between gap-3">
-        <Eyebrow as="h3">{label}</Eyebrow>
+        <Eyebrow as="h3">{archived ? `${label} · archived` : label}</Eyebrow>
         <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
           {services.length}
         </span>
@@ -105,6 +110,7 @@ export default async function AdminServicesPage() {
             key={category.id}
             label={category.name_en}
             services={active(category.services)}
+            archived={Boolean(category.archived_at)}
           />
         ))}
         <CategorySection label="Uncategorized" services={active(uncategorized)} />
@@ -118,12 +124,21 @@ export default async function AdminServicesPage() {
       <ServicesTabs
         servicesCount={servicesCount}
         addonsCount={activeAddons.length}
+        categoriesCount={categories.length}
         newServiceCategories={categories
           .filter((c) => !c.archived_at)
           .map((c) => ({ id: c.id, name_en: c.name_en }))}
         servicesContent={servicesContent}
         addonsContent={
           <AddonsTab addons={allAddons} incompatiblePairs={incompatiblePairs} />
+        }
+        categoriesContent={
+          <CategoriesTab
+            categories={categories.map(({ services, ...category }) => ({
+              ...category,
+              serviceCount: active(services).length,
+            }))}
+          />
         }
       />
     </div>

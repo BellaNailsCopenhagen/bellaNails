@@ -15,8 +15,7 @@ import { saveTermsVersion } from "@/modules/terms/actions"
 import type { TermsKind, TermsRecord } from "@/modules/terms/terms"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
-
-const fieldLabel = "text-[10px] tracking-widest-lux"
+import { fieldLabel } from "@/components/admin/field-label"
 
 /**
  * Owner editor for one terms document. Editing always publishes the NEXT

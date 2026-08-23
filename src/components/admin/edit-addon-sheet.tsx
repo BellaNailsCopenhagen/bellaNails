@@ -13,8 +13,8 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { BodySm } from "@/components/ui/typography"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { linkAddon, saveAddon, setAddonCompatibility } from "@/modules/catalog/addon-actions"
+import { fieldLabel } from "@/components/admin/field-label"
 
-const fieldLabel = "text-[10px] tracking-widest-lux"
 const sectionLabel =
   "font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground"
 const DURATION_STEP = 15

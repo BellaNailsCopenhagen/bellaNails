@@ -3,11 +3,7 @@ import "server-only"
 import { listAllAddons, type AddonRow } from "@/db/addons"
 import { listAllIncompatiblePairs, listIncompatiblePairsAmong } from "@/db/addon-incompatibilities"
 import { countActiveBookingsForService } from "@/db/bookings"
-import {
-  getCategoryName,
-  listAdminCategories,
-  type AdminCategoryRow,
-} from "@/db/categories"
+import { listAdminCategories, type AdminCategoryRow } from "@/db/categories"
 import {
   getAdminService,
   listAdminServices,
@@ -73,7 +69,11 @@ export async function getAllIncompatibilities(): Promise<[string, string][]> {
 
 export type ServiceDetail = {
   service: AdminService
-  categoryName: string | null
+  /** The category this service is filed under, if any. */
+  category: AdminCategoryRow | null
+  /** Every category, archived included, so the picker never drops the one the
+      service is already filed under. In menu order. */
+  categories: AdminCategoryRow[]
   /** Add-on id pairs that can't be combined, within this service. */
   incompatiblePairs: [string, string][]
   /** Honoured bookings (active status, not a no-show) — the "valid" count. */
@@ -90,14 +90,18 @@ export async function getServiceDetail(
   const service = await getAdminService(db, id)
   if (!service) return null
 
-  const [validBookings, categoryName, incompatiblePairs] = await Promise.all([
+  const [validBookings, categories, incompatiblePairs] = await Promise.all([
     countActiveBookingsForService(db, id),
-    service.category_id ? getCategoryName(db, service.category_id) : null,
+    listAdminCategories(db),
     listIncompatiblePairsAmong(
       db,
       service.addons.map((addon) => addon.id),
     ),
   ])
 
-  return { service, categoryName, incompatiblePairs, validBookings }
+  const category =
+    categories.find(({ id: categoryId }) => categoryId === service.category_id) ??
+    null
+
+  return { service, category, categories, incompatiblePairs, validBookings }
 }

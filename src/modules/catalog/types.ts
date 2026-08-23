@@ -12,6 +12,8 @@ export type ServiceEditInput = {
   descriptionDa: string
   priceKr: number
   durationMins: number
+  /** Null files the service under "Uncategorized" — a service has at most one. */
+  categoryId: string | null
 }
 
 export type ServiceCreateInput = {
@@ -27,4 +29,13 @@ export type AddonEditInput = {
   nameDa: string
   priceKr: number
   durationMins: number
+}
+
+export type CategoryInput = {
+  nameEn: string
+  nameDa: string
+  descriptionEn: string
+  descriptionDa: string
+  /** Public URL of a published studio image, or null for no menu image. */
+  imageUrl: string | null
 }

@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import { ImagePicker, type PickedImage } from "@/app/admin/services/[id]/_components/image-picker"
+import { ImagePicker, type PickedImage } from "@/components/admin/image-picker"
+import { publishStudioAsset } from "@/modules/catalog/image-actions"
 import {
   addSection,
   updateSection,
@@ -20,8 +21,8 @@ import {
   moveSection,
 } from "@/modules/catalog/section-actions"
 import type { ServiceSection, PickableAsset } from "@/modules/catalog"
+import { fieldLabel } from "@/components/admin/field-label"
 
-const fieldLabel = "text-[10px] tracking-widest-lux"
 const iconBtn =
   "flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
 
@@ -199,6 +200,7 @@ function SectionEditor({
           <Label className={fieldLabel}>Image</Label>
           <ImagePicker
             value={image}
+            publish={publishStudioAsset}
             consentedAssets={consentedAssets}
             onChange={setImage}
           />

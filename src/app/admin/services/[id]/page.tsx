@@ -39,7 +39,7 @@ export default async function AdminServiceDetailPage({
   })
   if (!detail) notFound()
 
-  const { service, categoryName, validBookings } = detail
+  const { service, category, categories, validBookings } = detail
   const activeAddons = service.addons.filter((a) => !a.archived_at)
   const allAddons = await getAllAddons().catch(() => [])
 
@@ -64,12 +64,12 @@ export default async function AdminServiceDetailPage({
             <ChevronLeft className="size-3.5" />
             Services
           </Link>
-          <EditServiceSheet service={service} />
+          <EditServiceSheet service={service} categories={categories} />
         </div>
 
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1">
-            <Eyebrow>{categoryName ?? "Service"}</Eyebrow>
+            <Eyebrow>{category?.name_en ?? "Uncategorized"}</Eyebrow>
             <div className="flex flex-wrap items-center gap-2">
               <H2>{service.name_en}</H2>
               {service.archived_at ? (

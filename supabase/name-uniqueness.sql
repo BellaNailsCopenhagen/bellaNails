@@ -18,3 +18,10 @@ create unique index if not exists addons_name_en_unique
   on public.addons (lower(name_en)) where archived_at is null;
 create unique index if not exists addons_name_dk_unique
   on public.addons (lower(name_dk)) where archived_at is null;
+
+-- Categories are named and picked the same way, and the app checks them with
+-- the same JS comparison — they need the same backstop.
+create unique index if not exists categories_name_en_unique
+  on public.categories (lower(name_en)) where archived_at is null;
+create unique index if not exists categories_name_dk_unique
+  on public.categories (lower(name_dk)) where archived_at is null;

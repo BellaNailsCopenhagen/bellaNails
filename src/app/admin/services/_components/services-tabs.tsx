@@ -4,29 +4,46 @@ import { useState, type ReactNode } from "react"
 
 import { TabBar } from "@/components/ui/tab-bar"
 import { CreateServiceSheet } from "@/app/admin/services/_components/create-service-sheet"
+import { EditCategorySheet } from "@/app/admin/services/_components/edit-category-sheet"
 import { EditAddonSheet } from "@/components/admin/edit-addon-sheet"
 
-type TabValue = "services" | "addons"
+type TabValue = "services" | "addons" | "categories"
 
 /**
- * Services / Add-ons tabs. The content of each tab is server-rendered and
- * passed in; this only owns the active tab and the New button (which switches
- * to "New service" or "New add-on" with the tab).
+ * Services / Add-ons / Categories tabs. The content of each tab is
+ * server-rendered and passed in; this only owns the active tab and the New
+ * button, which creates whatever the current tab lists.
  */
 export function ServicesTabs({
   servicesCount,
   addonsCount,
+  categoriesCount,
   newServiceCategories,
   servicesContent,
   addonsContent,
+  categoriesContent,
 }: {
   servicesCount: number
   addonsCount: number
+  categoriesCount: number
   newServiceCategories: { id: string; name_en: string }[]
   servicesContent: ReactNode
   addonsContent: ReactNode
+  categoriesContent: ReactNode
 }) {
   const [tab, setTab] = useState<TabValue>("services")
+
+  const newAction = {
+    services: <CreateServiceSheet categories={newServiceCategories} />,
+    addons: <EditAddonSheet triggerLabel="New add-on" />,
+    categories: <EditCategorySheet triggerLabel="New category" />,
+  }[tab]
+
+  const content = {
+    services: servicesContent,
+    addons: addonsContent,
+    categories: categoriesContent,
+  }[tab]
 
   return (
     <div className="space-y-8">
@@ -35,18 +52,15 @@ export function ServicesTabs({
           tabs={[
             { value: "services", label: "Services", count: servicesCount },
             { value: "addons", label: "Add-ons", count: addonsCount },
+            { value: "categories", label: "Categories", count: categoriesCount },
           ]}
           active={tab}
           onChange={setTab}
         />
-        {tab === "services" ? (
-          <CreateServiceSheet categories={newServiceCategories} />
-        ) : (
-          <EditAddonSheet triggerLabel="New add-on" />
-        )}
+        {newAction}
       </div>
 
-      {tab === "services" ? servicesContent : addonsContent}
+      {content}
     </div>
   )
 }

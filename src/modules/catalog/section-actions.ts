@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache"
 
-import { insertAsset } from "@/db/assets"
 import {
   deleteSection as deleteSectionRow,
   getAdjacentSection,
@@ -14,7 +13,6 @@ import {
   type SectionFields,
 } from "@/db/service-sections"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { publishToPublic } from "@/platform/storage/scaleway"
 
 export type SectionResult = { ok: true } | { ok: false; error: string }
 
@@ -34,40 +32,6 @@ function toRow(input: SectionInput): SectionFields {
     body_dk: input.bodyDk.trim() || null,
     asset_id: input.assetId,
   }
-}
-
-/**
- * Publish a freshly-uploaded studio image (private storage key from uploadMedia)
- * to the public bucket and record it as an asset — so a section can use a brand
- * new image, not only a consented one. Returns the asset id to link.
- */
-export async function publishStudioImage(
-  storageKey: string,
-): Promise<
-  { ok: true; assetId: string; url: string } | { ok: false; error: string }
-> {
-  const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
-  if (!storageKey) return { ok: false, error: "No file uploaded." }
-
-  const published = await publishToPublic(storageKey)
-  if (!published.ok) {
-    return {
-      ok: false,
-      error:
-        published.error === "not_configured"
-          ? "Storage isn’t set up yet."
-          : "Couldn’t publish the image.",
-    }
-  }
-
-  const asset = await insertAsset(db, {
-    url: published.data.url,
-    media_type: "image",
-    storage_key: published.data.key,
-  })
-  if (!asset.ok) return { ok: false, error: "Couldn’t save the image." }
-  return { ok: true, assetId: asset.id, url: published.data.url }
 }
 
 export async function addSection(

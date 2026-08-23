@@ -9,10 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import {
+  CategorySelect,
+  type CategoryOption,
+} from "@/components/admin/category-select"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { archiveService, updateService } from "@/modules/catalog/service-actions"
+import { fieldLabel } from "@/components/admin/field-label"
 
-const fieldLabel = "text-[10px] tracking-widest-lux"
 const DURATION_STEP = 15
 
 export type EditableService = {
@@ -23,10 +27,18 @@ export type EditableService = {
   description_dk: string | null
   base_price_cents: number
   base_duration_mins: number
+  category_id: string | null
   archived_at: string | null
 }
 
-export function EditServiceSheet({ service }: { service: EditableService }) {
+export function EditServiceSheet({
+  service,
+  categories,
+}: {
+  service: EditableService
+  /** Every category, archived included — see CategorySelect. */
+  categories: CategoryOption[]
+}) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -36,6 +48,7 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
   const [descriptionDa, setDescriptionDa] = useState(service.description_dk ?? "")
   const [priceKr, setPriceKr] = useState(String(service.base_price_cents / 100))
   const [durationMins, setDurationMins] = useState(service.base_duration_mins)
+  const [categoryId, setCategoryId] = useState(service.category_id ?? "")
 
   const archived = Boolean(service.archived_at)
 
@@ -48,6 +61,7 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
         descriptionDa,
         priceKr: Number(priceKr),
         durationMins,
+        categoryId: categoryId || null,
       })
       if (result.ok) {
         toast.success("Service saved")
@@ -176,6 +190,13 @@ export function EditServiceSheet({ service }: { service: EditableService }) {
               />
             </div>
           </div>
+
+          <CategorySelect
+            id="edit-category"
+            value={categoryId}
+            options={categories}
+            onChange={setCategoryId}
+          />
 
           <PriceHistoryPanel entityType="service" entityId={service.id} />
 

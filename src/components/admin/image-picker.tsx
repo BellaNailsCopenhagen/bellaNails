@@ -6,23 +6,32 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { uploadMedia } from "@/shared/upload-media"
-import { publishStudioImage } from "@/modules/catalog/section-actions"
+import type { PublishedImage } from "@/modules/catalog/image-actions"
 import type { PickableAsset } from "@/modules/catalog"
 
-export type PickedImage = { assetId: string; url: string }
+/** `assetId` is null on a URL-only surface, where nothing links back to the
+    asset row. */
+export type PickedImage = { assetId: string | null; url: string }
 
 /**
- * Choose an image for a section: either pick a consented client photo from the
- * shared gallery, or upload a fresh studio image (published to a public asset).
+ * Choose a catalog image: upload a fresh studio one (published to a public
+ * asset), or pick a consented client photo when the caller offers a pool.
  * Controlled — the parent owns the selected value.
  */
 export function ImagePicker({
   value,
+  publish,
   consentedAssets,
   onChange,
 }: {
   value: PickedImage | null
-  consentedAssets: PickableAsset[]
+  /** How an upload becomes a public image — the caller picks the variant that
+      matches how its table stores the result (`asset_id` vs. a bare URL). */
+  publish: (storageKey: string) => Promise<PublishedImage>
+  /** Omit to offer upload only. A surface that stores a bare URL rather than an
+      `asset_id` can't follow a consent withdrawal, so it must not use client
+      photos — withdrawal deletes the asset and would leave a dead image. */
+  consentedAssets?: PickableAsset[]
   onChange: (value: PickedImage | null) => void
 }) {
   const [showGallery, setShowGallery] = useState(false)
@@ -45,7 +54,7 @@ export function ImagePicker({
         )
         return
       }
-      const published = await publishStudioImage(up.key)
+      const published = await publish(up.key)
       if (!published.ok) {
         toast.error(published.error)
         return
@@ -79,14 +88,16 @@ export function ImagePicker({
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setShowGallery((s) => !s)}
-        >
-          {showGallery ? "Hide gallery" : "Choose from gallery"}
-        </Button>
+        {consentedAssets ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGallery((s) => !s)}
+          >
+            {showGallery ? "Hide gallery" : "Choose from gallery"}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="outline"
@@ -106,7 +117,7 @@ export function ImagePicker({
         />
       </div>
 
-      {showGallery ? (
+      {showGallery && consentedAssets ? (
         consentedAssets.length ? (
           <ul className="grid max-h-56 grid-cols-4 gap-1.5 overflow-y-auto">
             {consentedAssets.map((asset) => (

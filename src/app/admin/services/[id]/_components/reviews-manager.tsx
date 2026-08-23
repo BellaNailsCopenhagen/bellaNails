@@ -11,8 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { addReview, deleteReview } from "@/modules/catalog/review-actions"
 import type { Review } from "@/modules/catalog"
-
-const fieldLabel = "text-[10px] tracking-widest-lux"
+import { fieldLabel } from "@/components/admin/field-label"
 
 /** Owner manager for a service's client reviews ("what clients say"). */
 export function ReviewsManager({

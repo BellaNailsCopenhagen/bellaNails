@@ -11,6 +11,7 @@ import {
 import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
 import { requireOwner } from "@/modules/identity/require-owner"
 
+import { revalidateCatalogSurfaces } from "./revalidate"
 import type {
   ServiceActionResult,
   ServiceCreateInput,
@@ -24,7 +25,7 @@ import { krToCents, nameTaken } from "./validation"
  */
 
 function revalidateService(id: string) {
-  revalidatePath("/admin/services")
+  revalidateCatalogSurfaces()
   revalidatePath(`/admin/services/${id}`)
 }
 
@@ -68,7 +69,7 @@ export async function createService(
   if (!created.ok) return { ok: false, error: "Couldn’t create the service." }
 
   await recordPricePoint(db, "service", created.id, cents)
-  revalidatePath("/admin/services")
+  revalidateService(created.id)
   return { ok: true, id: created.id }
 }
 
@@ -101,6 +102,7 @@ export async function updateService(
     description_dk: input.descriptionDa.trim() || null,
     base_price_cents: cents,
     base_duration_mins: input.durationMins,
+    category_id: input.categoryId,
   })
   if (!saved.ok) return { ok: false, error: "Couldn’t save the service." }
 

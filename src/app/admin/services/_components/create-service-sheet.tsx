@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { CategorySelect } from "@/components/admin/category-select"
 import { createService } from "@/modules/catalog/service-actions"
+import { fieldLabel } from "@/components/admin/field-label"
 
-const fieldLabel = "text-[10px] tracking-widest-lux"
 const DURATION_STEP = 15
 
 /** Create a service from the admin. Availability is computed in-house from the
@@ -131,24 +132,12 @@ export function CreateServiceSheet({
             </div>
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="new-category" className={fieldLabel}>
-              Category
-            </Label>
-            <select
-              id="new-category"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-sm border border-border bg-transparent px-3 py-2 font-functional text-sm text-foreground"
-            >
-              <option value="">Uncategorized</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name_en}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CategorySelect
+            id="new-category"
+            value={categoryId}
+            options={categories}
+            onChange={setCategoryId}
+          />
 
           <div className="flex justify-end">
             <Button size="sm" disabled={pending} onClick={create}>

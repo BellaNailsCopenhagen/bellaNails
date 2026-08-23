@@ -59,8 +59,10 @@ export {
   setAddonCompatibility,
   unlinkAddon,
 } from "./addon-actions"
+export { archiveCategory, moveCategory, saveCategory } from "./category-actions"
 export type {
   AddonEditInput,
+  CategoryInput,
   ServiceActionResult,
   ServiceCreateInput,
   ServiceEditInput,
