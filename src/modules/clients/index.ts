@@ -13,7 +13,11 @@ export {
   type MySpace,
 } from "./my-space"
 export { getClientDirectory, type DirectoryEntry } from "./directory"
-export { updateMyProfile, type ProfileResult } from "./actions"
+export {
+  updateMyProfile,
+  setClientCommunicationLocale,
+  type ProfileResult,
+} from "./actions"
 export {
   anonymizeClient,
   deleteMyAccount,

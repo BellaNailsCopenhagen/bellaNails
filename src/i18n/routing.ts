@@ -1,3 +1,4 @@
+import { hasLocale } from "next-intl"
 import { defineRouting } from "next-intl/routing"
 
 /**
@@ -15,3 +16,14 @@ export const routing = defineRouting({
 })
 
 export type Locale = (typeof routing.locales)[number]
+
+/**
+ * Narrow any candidate (a form value, a stored column, a URL segment) to a
+ * supported `Locale`, falling back to the market default. The one place da/en
+ * membership is decided — callers must never re-hardcode the pair inline.
+ */
+export function resolveLocale(value: string | null | undefined): Locale {
+  return value != null && hasLocale(routing.locales, value)
+    ? value
+    : routing.defaultLocale
+}

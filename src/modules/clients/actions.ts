@@ -1,7 +1,12 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
+import { hasLocale } from "next-intl"
+
+import { routing } from "@/i18n/routing"
 import { getCurrentUser } from "@/modules/identity/server"
-import { updateClientProfile } from "@/db/clients"
+import { requireOwner } from "@/modules/identity/require-owner"
+import { updateClientCommunicationLocale, updateClientProfile } from "@/db/clients"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 export type ProfileResult = { ok: true } | { ok: false; error: string }
@@ -27,5 +32,23 @@ export async function updateMyProfile(input: {
     phone: phone || null,
   })
   if (!saved.ok) return { ok: false, error: saved.message ?? "failed" }
+  return { ok: true }
+}
+
+/** The owner sets which language a client's transactional emails use (da/en). */
+export async function setClientCommunicationLocale(
+  clientId: string,
+  locale: string,
+): Promise<ProfileResult> {
+  const db = await requireOwner()
+  if (!db) return { ok: false, error: "Not authorized." }
+  if (!hasLocale(routing.locales, locale)) {
+    return { ok: false, error: "Invalid locale." }
+  }
+
+  const saved = await updateClientCommunicationLocale(db, clientId, locale)
+  if (!saved.ok) return { ok: false, error: "Couldn't save." }
+
+  revalidatePath("/admin/clients/[id]", "page")
   return { ok: true }
 }

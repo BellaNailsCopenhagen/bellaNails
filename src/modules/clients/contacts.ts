@@ -1,6 +1,7 @@
 import "server-only"
 
 import { listClientContacts } from "@/db/clients"
+import { resolveLocale, routing } from "@/i18n/routing"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import type { ClientContact } from "@/shared/contact"
 
@@ -28,6 +29,7 @@ export async function fetchClientContacts(
           phone: null,
           activated: false,
           anonymized: true,
+          communicationLocale: routing.defaultLocale,
         }
         continue
       }
@@ -39,6 +41,8 @@ export async function fetchClientContacts(
         phone: c.phone,
         // Has logged in at least once (auth_user_id linked) vs a guest stub.
         activated: c.auth_user_id != null,
+        // Unknown/null/pre-migration falls back to the market default.
+        communicationLocale: resolveLocale(c.communication_locale),
       }
     }
   } catch (error) {

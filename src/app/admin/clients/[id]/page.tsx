@@ -11,12 +11,14 @@ import {
   ClientMediaGallery,
   ClientDataConsent,
 } from "@/app/admin/clients/[id]/_components/client-media-section"
+import { ClientEmailLanguage } from "@/app/admin/clients/[id]/_components/client-email-language"
 import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-status-badge"
 import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { getClientBookingHistory } from "@/modules/booking"
 import { getClientPrivacyRecord } from "@/modules/clients"
+import { routing } from "@/i18n/routing"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/shared/booking-policy"
 import { contactDisplayName } from "@/shared/contact"
@@ -171,6 +173,11 @@ export default async function AdminClientPage({
             defaultBookingId={defaultBookingId}
           />
         }
+      />
+
+      <ClientEmailLanguage
+        clientId={id}
+        locale={contact?.communicationLocale ?? routing.defaultLocale}
       />
 
       <ClientDataConsent clientId={id} dataConsents={dataConsents} />

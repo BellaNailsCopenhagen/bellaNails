@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache"
 
 import type { Db, Insert } from "@/db/client"
 import { insertBooking } from "@/db/bookings"
+import { updateClientCommunicationLocale } from "@/db/clients"
 import { getBookableService } from "@/db/services"
+import { resolveLocale, type Locale } from "@/i18n/routing"
 import { getAvailableSlots } from "@/modules/booking/availability"
 import { manageUrlFor } from "@/modules/booking/manage-token"
 import type { Slot } from "@/shared/booking-slots"
@@ -128,7 +130,7 @@ async function sendConfirmation(
   to: string,
   firstName: string | null,
   startIso: string,
-  locale: string,
+  locale: Locale,
 ): Promise<void> {
   const isEn = locale === "en"
   await sendBookingConfirmationEmail({
@@ -186,6 +188,15 @@ export async function createBooking(
     return { ok: false, error: "Couldn't save your details — please try again." }
   }
 
+  const locale = resolveLocale(input.locale)
+  // Remember the site locale so this client's future emails match — best-effort;
+  // a pre-migration missing column must never fail the booking.
+  try {
+    await updateClientCommunicationLocale(db, clientId, locale)
+  } catch {
+    /* booking proceeds regardless */
+  }
+
   const result = await insertBooking(db, { client_id: clientId, ...draft.values })
   if (!result.ok) return { ok: false, error: overlapMessage(result.reason) }
 
@@ -196,7 +207,6 @@ export async function createBooking(
     referenceId: result.id,
   })
 
-  const locale = input.locale ?? "da"
   await sendConfirmation(
     draft,
     result.id,
@@ -239,15 +249,19 @@ export async function createBookingAsOwner(
   if (!prepared.ok) return prepared
   const { draft } = prepared
 
-  // Resolve the client + who to email: an existing client, else a new one.
+  // Resolve the client + who to email: an existing client, else a new one. An
+  // existing client's saved locale wins; a new one gets the locale it booked in.
+  const bookedLocale = resolveLocale(input.locale)
   let clientId: string
   let recipientEmail: string | null
   let firstName: string | null
+  let emailLocale: Locale
   if (input.clientId) {
     clientId = input.clientId
     const contact = (await fetchClientContacts([clientId]))[clientId]
     recipientEmail = contact?.email ?? null
     firstName = contact?.firstName ?? null
+    emailLocale = contact?.communicationLocale ?? bookedLocale
   } else {
     const email = input.email?.trim().toLowerCase() ?? ""
     if (!EMAIL_PATTERN.test(email)) return { ok: false, error: "Enter a valid client email." }
@@ -262,6 +276,7 @@ export async function createBookingAsOwner(
     }
     recipientEmail = email
     firstName = input.name?.trim().split(/\s+/)[0] || null
+    emailLocale = bookedLocale
   }
 
   const result = await insertBooking(db, { client_id: clientId, ...draft.values })
@@ -277,7 +292,7 @@ export async function createBookingAsOwner(
       recipientEmail,
       firstName,
       input.start,
-      input.locale ?? "da",
+      emailLocale,
     )
   }
 

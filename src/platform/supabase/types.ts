@@ -667,6 +667,7 @@ export type Database = {
         Row: {
           anonymized_at: string | null
           auth_user_id: string | null
+          communication_locale: string
           created_at: string
           email: string
           id: string
@@ -677,6 +678,7 @@ export type Database = {
         Insert: {
           anonymized_at?: string | null
           auth_user_id?: string | null
+          communication_locale?: string
           created_at?: string
           email: string
           id?: string
@@ -687,6 +689,7 @@ export type Database = {
         Update: {
           anonymized_at?: string | null
           auth_user_id?: string | null
+          communication_locale?: string
           created_at?: string
           email?: string
           id?: string

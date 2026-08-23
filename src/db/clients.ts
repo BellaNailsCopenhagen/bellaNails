@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/routing"
+
 import type { Db, Row } from "./client"
 
 /** `clients` — one row per person the studio knows, whether they signed in or
@@ -6,7 +8,13 @@ import type { Db, Row } from "./client"
 
 export type ClientContactRow = Pick<
   Row<"clients">,
-  "id" | "name" | "email" | "phone" | "auth_user_id" | "anonymized_at"
+  | "id"
+  | "name"
+  | "email"
+  | "phone"
+  | "auth_user_id"
+  | "anonymized_at"
+  | "communication_locale"
 >
 
 export type ClientProfile = Pick<Row<"clients">, "name" | "phone" | "email">
@@ -19,7 +27,7 @@ export async function listClientContacts(
   if (ids.length === 0) return []
   const { data } = await db
     .from("clients")
-    .select("id, name, email, phone, auth_user_id, anonymized_at")
+    .select("id, name, email, phone, auth_user_id, anonymized_at, communication_locale")
     .in("id", ids)
   return data ?? []
 }
@@ -123,6 +131,20 @@ export async function updateClientContact(
   patch: { name?: string; phone?: string },
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("clients").update(patch).eq("id", clientId)
+  return { ok: !error }
+}
+
+/** Set which language a client's emails use. Returns `{ ok: false }` (never
+    throws) so a caller can treat a pre-migration missing column as best-effort. */
+export async function updateClientCommunicationLocale(
+  db: Db,
+  clientId: string,
+  locale: Locale,
+): Promise<{ ok: boolean }> {
+  const { error } = await db
+    .from("clients")
+    .update({ communication_locale: locale })
+    .eq("id", clientId)
   return { ok: !error }
 }
 

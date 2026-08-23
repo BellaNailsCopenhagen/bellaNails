@@ -1,3 +1,4 @@
+import { resolveLocale } from "@/i18n/routing"
 import { metaOf } from "@/shared/booking-policy"
 import { getServiceWithAddons } from "@/modules/catalog"
 import { localizeSelection } from "@/shared/localize-selection"
@@ -38,7 +39,7 @@ export async function GET(
   const search = new URL(request.url).searchParams
   const supabase = createSupabaseServiceRoleClient()
 
-  const locale = search.get("locale") ?? "da"
+  const locale = resolveLocale(search.get("locale"))
   let booking
   try {
     booking = await getBookingRecap(supabase, id)

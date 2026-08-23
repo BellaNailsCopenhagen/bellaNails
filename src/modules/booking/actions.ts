@@ -71,7 +71,8 @@ async function emailManagedBooking(
     if (!contact?.email) return
 
     const meta = metaOf(booking)
-    const locale = meta.locale ?? "da"
+    // Emails follow the client's saved language preference.
+    const locale = contact.communicationLocale
     const isEn = locale === "en"
     const detail: BookingEmailDetail = {
       to: contact.email,

@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/routing"
+
 /**
  * Client-safe contact shape + display helper. Kept separate from
  * `client-contacts.ts` (which is `server-only` — it uses the service-role
@@ -14,6 +16,8 @@ export type ClientContact = {
   activated: boolean
   /** PII erased (anonymized) — details are blanked (GDPR erasure). */
   anonymized?: boolean
+  /** Language this client's transactional emails use. Defaults to "da". */
+  communicationLocale: Locale
 }
 
 /** Preferred display name for a booking's client: first name, then full name,
