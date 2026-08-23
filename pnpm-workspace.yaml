@@ -6,3 +6,13 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   utf-8-validate: false
+
+# Security overrides — force patched transitive versions (see `pnpm audit`).
+# sharp: libvips CVEs (runtime image optimizer). The rest are dev/build tooling.
+overrides:
+  sharp: '0.35.3'
+  postcss: '^8.5.23'
+  nanoid: '^3.3.18'
+  js-yaml: '^4.3.1'
+  'brace-expansion@1': '^1.1.18'
+  'brace-expansion@5': '^5.0.9'
