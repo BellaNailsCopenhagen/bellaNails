@@ -71,6 +71,8 @@ export async function BookingDetails({
     ? { addons: selectedAddons.map((a) => a.id).join(",") }
     : {}
   const backQuery = { service: service.id, ...addonsParam }
+  // No add-ons on this service → the customise step is skipped; back = picker.
+  const hasAddons = addons.length > 0
 
   // All three are required — enforced natively here (required/type/pattern,
   // browser-localized messages) and again at the /book routing gate
@@ -121,8 +123,11 @@ export async function BookingDetails({
       <Container className="max-w-4xl">
         <BookingStepHeader
           current={1}
-          backHref={{ pathname: routes.book, query: backQuery }}
-          backLabel={t("backToCustomise")}
+          skipCustomise={!hasAddons}
+          backHref={
+            hasAddons ? { pathname: routes.book, query: backQuery } : routes.book
+          }
+          backLabel={hasAddons ? t("backToCustomise") : t("back")}
           eyebrow={t("eyebrow")}
           lead={t("headingDetails1")}
           muted={t("headingDetails2")}

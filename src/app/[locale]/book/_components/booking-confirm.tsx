@@ -57,6 +57,7 @@ export async function BookingConfirm({
       <Container className="max-w-4xl">
         <BookingStepHeader
           current={2}
+          skipCustomise={addons.length === 0}
           backHref={{ pathname: routes.book, query: backQuery }}
           backLabel={t("backToDetails")}
           eyebrow={t("eyebrow")}

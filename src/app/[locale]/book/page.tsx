@@ -3,7 +3,9 @@ import { notFound } from "next/navigation"
 import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
+import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
+import { routes } from "@/config/routes"
 import { BookingAddons } from "@/app/[locale]/book/_components/booking-addons"
 import { BookingConfirm } from "@/app/[locale]/book/_components/booking-confirm"
 import { BookingDetails } from "@/app/[locale]/book/_components/booking-details"
@@ -102,6 +104,16 @@ export default async function BookPage({
           prefill={contact}
         />
       )
+    }
+    // No add-ons to choose — skip the customise step, straight to details.
+    if (selection.addons.length === 0) {
+      redirect({
+        href: {
+          pathname: routes.book,
+          query: { service: selection.service.id, step: "details" },
+        },
+        locale,
+      })
     }
     return <BookingAddons {...selection} selectedAddonIds={selectedAddonIds} />
   }

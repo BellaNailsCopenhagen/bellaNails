@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
  */
 export async function BookingStepHeader({
   current,
+  skipCustomise = false,
   backHref,
   backLabel,
   eyebrow,
@@ -21,6 +22,7 @@ export async function BookingStepHeader({
   intro,
 }: {
   current: ComponentProps<typeof BookingSteps>["current"]
+  skipCustomise?: boolean
   backHref: ComponentProps<typeof Link>["href"]
   backLabel: React.ReactNode
   eyebrow: React.ReactNode
@@ -34,7 +36,7 @@ export async function BookingStepHeader({
         <ArrowLink back href={backHref} className="text-[10px]">
           {backLabel}
         </ArrowLink>
-        <BookingSteps current={current} />
+        <BookingSteps current={current} skipCustomise={skipCustomise} />
       </div>
 
       <Separator />
