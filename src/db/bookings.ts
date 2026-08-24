@@ -133,6 +133,23 @@ export async function listActiveBookingsFrom(
   return data ?? []
 }
 
+/** How many active (upcoming, non-cancelled) bookings a client currently holds —
+    backs the public booking cap ("hands + feet" = 2 at a time). */
+export async function countActiveUpcomingBookingsForClient(
+  db: Db,
+  clientId: string,
+  nowIso: string,
+): Promise<number> {
+  const { count, error } = await db
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", clientId)
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .gte("end_time", nowIso)
+  if (error) throw new Error(error.message)
+  return count ?? 0
+}
+
 /** Every booking not yet finished, any status — admin agenda "upcoming". */
 export async function listBookingsFrom(
   db: Db,

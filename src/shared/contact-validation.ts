@@ -43,6 +43,8 @@ export type BookingContact = {
   email?: string
   phone?: string
   notes?: string
+  /** Honeypot field ("company") — carried through the flow; a filled value is a bot. */
+  honeypot?: string
 }
 
 /** Server-side caps — HTML `maxLength` is bypassable via a hand-edited URL. */

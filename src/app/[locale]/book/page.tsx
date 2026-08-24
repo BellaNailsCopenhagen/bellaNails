@@ -79,6 +79,8 @@ export default async function BookPage({
       sanitizeContactText(singleParam(query.notes), MAX_NOTES_LENGTH, {
         allowNewlines: true,
       }) ?? undefined,
+    // Honeypot — carried from the details form's hidden non-autocomplete field.
+    honeypot: singleParam(query.contact_reason_x)?.trim(),
   }
 
   const renderStep = () => {

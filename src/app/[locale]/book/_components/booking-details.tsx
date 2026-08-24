@@ -176,6 +176,19 @@ export async function BookingDetails({
               />
             ) : null}
             <input type="hidden" name="step" value="confirm" />
+            {/* Honeypot: off-screen + aria-hidden + not tabbable, so neither
+                sighted nor screen-reader users ever fill it. A non-autocomplete
+                name so browsers/password managers won't autofill it; a bot that
+                fills it is rejected server-side in createBooking. */}
+            <input
+              type="text"
+              name="contact_reason_x"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              defaultValue=""
+              className="pointer-events-none absolute -left-[9999px] h-px w-px opacity-0"
+            />
             {fields.map((field) => (
               <div key={field.id} className="space-y-1">
                 <Label

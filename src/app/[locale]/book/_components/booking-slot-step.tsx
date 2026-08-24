@@ -42,6 +42,7 @@ export function BookingSlotStep({
       phone: prefill.phone,
       notes: prefill.notes,
       locale,
+      honeypot: prefill.honeypot,
     })
     if (!result.ok) return { ok: false, error: result.error }
     router.replace({

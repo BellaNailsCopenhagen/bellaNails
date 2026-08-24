@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache"
 
 import type { Db, Insert } from "@/db/client"
 import { listIncompatiblePairsAmong } from "@/db/addon-incompatibilities"
-import { insertBooking } from "@/db/bookings"
+import {
+  countActiveUpcomingBookingsForClient,
+  insertBooking,
+} from "@/db/bookings"
 import { updateClientCommunicationLocale } from "@/db/clients"
 import { getBookableService } from "@/db/services"
 import { resolveLocale, type Locale } from "@/i18n/routing"
@@ -22,6 +25,8 @@ import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes, revalidatePatterns } from "@/shared/routes"
 
 const MIN = 60_000
+// A real client holds at most this many active bookings at once (hands + feet).
+const MAX_ACTIVE_BOOKINGS = 2
 
 export type CreateBookingInput = {
   serviceId: string
@@ -32,6 +37,8 @@ export type CreateBookingInput = {
   phone?: string
   notes?: string
   locale?: string
+  /** Honeypot — a hidden form field; a non-empty value means a bot filled it. */
+  honeypot?: string
 }
 
 export type CreateBookingResult =
@@ -175,14 +182,21 @@ const overlapMessage = (reason: "overlap" | "error") =>
  * Create an in-house booking. Public — a guest books by email (ensureUser
  * create-or-finds their client row). The slot is re-validated server-side and
  * the exclusion constraint guards the overlap race. Records service-terms
- * acceptance (best-effort). Public-abuse hardening (rate-limit / captcha) is
- * tracked in FOLLOWUPS before launch.
+ * acceptance (best-effort). Guarded against public abuse by a hidden honeypot
+ * field and a cap of 2 active bookings per client.
  */
 export async function createBooking(
   input: CreateBookingInput,
 ): Promise<CreateBookingResult> {
+  // Honeypot — a hidden field only a bot fills. Reject generically (don't reveal
+  // the trap), same message as a create failure.
+  if (input.honeypot?.trim()) return { ok: false, error: "Couldn't create the booking." }
+
   const email = input.email.trim().toLowerCase()
-  if (!EMAIL_PATTERN.test(email)) return { ok: false, error: "Enter a valid email." }
+  // 254 = RFC 5321 max — the pattern is otherwise unbounded (name/notes are capped).
+  if (email.length > 254 || !EMAIL_PATTERN.test(email)) {
+    return { ok: false, error: "Enter a valid email." }
+  }
 
   const db = createSupabaseServiceRoleClient()
   const prepared = await prepareBooking(db, input, false)
@@ -200,6 +214,26 @@ export async function createBooking(
     })
   } catch {
     return { ok: false, error: "Couldn't save your details — please try again." }
+  }
+
+  // Cap active bookings per client (hands + feet). Beyond that, point them at the
+  // studio — the request-to-artist overflow is a later feature. Fail open on a
+  // count hiccup: a read error must never block an otherwise-valid booking.
+  try {
+    const active = await countActiveUpcomingBookingsForClient(
+      db,
+      clientId,
+      new Date().toISOString(),
+    )
+    if (active >= MAX_ACTIVE_BOOKINGS) {
+      return {
+        ok: false,
+        error:
+          "You already have 2 active bookings (the maximum). Please contact the studio to arrange another.",
+      }
+    }
+  } catch {
+    /* count failed — allow rather than block */
   }
 
   const locale = resolveLocale(input.locale)
