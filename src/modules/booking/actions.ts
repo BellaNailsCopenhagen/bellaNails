@@ -224,7 +224,14 @@ async function resolveNewSlotEnd(
     ignoreLeadTime,
   })
   const slot = slots.find((s) => new Date(s.start).getTime() === startMs)
-  return slot?.end ?? null
+  if (!slot) return null
+  // Keep the AS-BOOKED length: the price stays as-booked, so a since-changed
+  // service/add-on duration must not stretch or shrink an existing booking.
+  // Bookings without the snapshot (pre-Cal-removal) fall back to the live end.
+  const bookedMins = meta.totalDurationMins
+  return typeof bookedMins === "number" && bookedMins > 0
+    ? new Date(startMs + bookedMins * 60_000).toISOString()
+    : slot.end
 }
 
 // The applied move carries the new `end` so the reschedule email + .ics get the

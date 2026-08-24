@@ -285,7 +285,8 @@ export async function cancelBookingById(
 }
 
 /** Move one booking to a new window (status → rescheduled). Guards the overlap
-    race the same way insert does; the row can't collide with itself. */
+    race the same way insert does; the row can't collide with itself. Clears any
+    no-show mark — a moved booking is live again (no-op if it was never marked). */
 export async function rescheduleBookingById(
   db: Db,
   id: string,
@@ -300,6 +301,7 @@ export async function rescheduleBookingById(
       start_time: startIso,
       end_time: endIso,
       status: BOOKING_STATUS.rescheduled,
+      no_show_at: null,
     })
     .eq("id", id)
     .select("id")

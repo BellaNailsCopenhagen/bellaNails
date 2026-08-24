@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import type { Db, Insert } from "@/db/client"
+import { listIncompatiblePairsAmong } from "@/db/addon-incompatibilities"
 import { insertBooking } from "@/db/bookings"
 import { updateClientCommunicationLocale } from "@/db/clients"
 import { getBookableService } from "@/db/services"
@@ -75,6 +76,18 @@ async function prepareBooking(
       (a): a is NonNullable<typeof a> =>
         !!a && !a.archived_at && input.addonIds.includes(a.id),
     )
+
+  // Fail closed on an incompatible add-on combo — the picker disables clashers,
+  // but the server must never trust the client and persist an invalid pair.
+  try {
+    const clashes = await listIncompatiblePairsAmong(db, addons.map((a) => a.id))
+    if (clashes.length > 0) {
+      return { ok: false, error: "Those add-ons can’t be combined — please adjust your selection." }
+    }
+  } catch {
+    return { ok: false, error: "Couldn’t validate the add-ons — please try again." }
+  }
+
   const durationMins =
     service.base_duration_mins +
     addons.reduce((sum, a) => sum + a.extra_duration_mins, 0)

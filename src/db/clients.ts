@@ -115,13 +115,18 @@ export async function getClientErasureState(
 export async function insertClient(
   db: Db,
   values: { email: string; name: string | null; phone: string | null },
-): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
+): Promise<
+  { ok: true; id: string } | { ok: false; message: string; code?: string }
+> {
   const { data, error } = await db
     .from("clients")
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  // Return the PG error code (no PII) so callers can log it without the message,
+  // which can echo the email on a unique-violation (Key (email)=(…)).
+  if (error || !data)
+    return { ok: false, message: error?.message ?? "no row", code: error?.code }
   return { ok: true, id: data.id }
 }
 

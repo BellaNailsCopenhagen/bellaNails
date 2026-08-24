@@ -55,5 +55,7 @@ export async function ensureUser({
   // create-then-find race: a concurrent login/booking inserted it first.
   const raced = await findClientIdByEmail(supabase, normalizedEmail)
   if (raced) return raced
-  throw new Error(`ensureUser: could not create client — ${created.message}`)
+  // Log the PG error CODE only — the raw message can echo the email (PII).
+  console.error("[ensureUser] client insert failed", { code: created.code })
+  throw new Error("ensureUser: could not create client")
 }
