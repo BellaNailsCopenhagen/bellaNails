@@ -11,7 +11,7 @@ import { routes, serviceDetailPath } from "@/config/routes"
  * ServiceRow — the shared bookable service line (name + duration left, price +
  * hover CTA right) used by the services menu and the booking picker. The whole
  * row books via a "stretched" overlay link; in the menu a quiet "learn more"
- * link sits under the price ON TOP of that overlay, so tapping it opens the
+ * link sits under the name ON TOP of that overlay, so tapping it opens the
  * detail page instead of booking — a distinct secondary action, not nested
  * inside the booking link. The booking picker omits it.
  */
@@ -47,6 +47,14 @@ export function ServiceRow({
           <Caption className="block text-[11px] tracking-wide">
             {service.base_duration_mins} {minutesLabel}
           </Caption>
+          {learnMoreLabel ? (
+            <Link
+              href={serviceDetailPath(service.id)}
+              className="relative z-10 inline-block font-functional text-[11px] lowercase text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
+            >
+              {learnMoreLabel}
+            </Link>
+          ) : null}
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex items-baseline gap-5">
@@ -57,14 +65,6 @@ export function ServiceRow({
               <HoverArrow />
             </Caption>
           </div>
-          {learnMoreLabel ? (
-            <Link
-              href={serviceDetailPath(service.id)}
-              className="relative z-10 font-functional text-[11px] lowercase text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
-            >
-              {learnMoreLabel}
-            </Link>
-          ) : null}
         </div>
       </div>
       <Separator />

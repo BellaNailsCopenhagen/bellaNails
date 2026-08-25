@@ -2,27 +2,18 @@ import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { ProfileForm } from "@/app/[locale]/appointments/_components/profile-form"
 import { DeleteAccountButton } from "@/app/[locale]/appointments/_components/delete-account-button"
 import { SignOutButton } from "@/components/auth/sign-out-button"
-import type { TermsAcceptance } from "@/modules/terms/acceptance"
 
-const TERMS_LABEL: Record<string, string> = {
-  service: "Booking terms",
-  data: "Privacy & data use",
-}
-
-/** Account settings — the "gear" panel of My Space: contact details, accepted
-    terms, sign out, and a separated danger zone to delete the account. */
+/** Account settings — the "gear" panel of My Space: contact details, sign out,
+    and a separated danger zone to delete the account. (The terms-acceptance
+    record is kept server-side for compliance, not shown to the client.) */
 export function AccountSettings({
   email,
   name,
   phone,
-  terms,
-  locale,
 }: {
   email: string | null
   name: string | null
   phone: string | null
-  terms: TermsAcceptance[]
-  locale: string
 }) {
   return (
     <div className="max-w-lg space-y-8">
@@ -33,27 +24,6 @@ export function AccountSettings({
         ) : null}
         <ProfileForm name={name} phone={phone} />
       </section>
-
-      {terms.length ? (
-        <section className="space-y-3">
-          <Eyebrow as="h3">Accepted terms</Eyebrow>
-          <ul className="space-y-2">
-            {terms.map((t) => (
-              <li
-                key={t.id}
-                className="flex items-center justify-between gap-3 font-functional text-sm"
-              >
-                <span className="text-foreground">
-                  {TERMS_LABEL[t.kind] ?? t.kind}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  v{t.version} · {new Date(t.acceptedAt).toLocaleDateString(locale)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <SignOutButton />
 

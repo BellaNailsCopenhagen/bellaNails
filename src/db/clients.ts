@@ -49,10 +49,10 @@ export async function getClientProfile(
 export async function findClientByAuthUser(
   db: Db,
   authUserId: string,
-): Promise<Pick<Row<"clients">, "id" | "name"> | null> {
+): Promise<Pick<Row<"clients">, "id" | "name" | "phone"> | null> {
   const { data } = await db
     .from("clients")
-    .select("id, name")
+    .select("id, name, phone")
     .eq("auth_user_id", authUserId)
     .maybeSingle()
   return data ?? null

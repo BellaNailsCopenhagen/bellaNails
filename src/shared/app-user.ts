@@ -12,4 +12,5 @@ export type AppUser = {
   isOwner: boolean
   email?: string | null
   name?: string | null
+  phone?: string | null
 }

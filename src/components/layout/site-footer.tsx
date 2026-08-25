@@ -12,19 +12,23 @@ import {
 } from "@/config/studio"
 
 /**
- * SiteFooter — logo column, address column, three nav columns, and a separate
- * copyright band. The year is derived server-side so it stays current without
- * manual maintenance. Nav columns come from the shared route registry
- * (`footerNav`); labels are resolved here so the footer can localize them.
+ * SiteFooter — a Studio block (brand, address, areas served + the Reserve
+ * action) beside the link categories, which form one group that wraps together
+ * so a wrap never tucks a category under the studio info; plus a copyright band.
+ * The year is derived server-side. Columns come from the shared route registry
+ * (`footerNav`); the Reserve link is lifted out of it and shown under Studio.
  */
 export async function SiteFooter() {
   const t = await getTranslations("footer")
   const tNav = await getTranslations("nav")
   const year = new Date().getFullYear()
+  // Reserve moves under the Studio block; the rest stay one wrapping group.
+  const navColumns = footerNav.filter((col) => col.headingKey !== "session")
 
   return (
     <footer className="mt-auto border-t border-background/10 bg-primary text-primary-foreground">
-      <Container className="grid gap-10 py-18 xs:grid-cols-2 sm:grid-cols-3 sm:gap-6 lg:grid-cols-[1.5fr_repeat(5,minmax(0,1fr))]">
+      <Container className="flex flex-col gap-12 py-18 lg:flex-row lg:justify-between lg:gap-16">
+        {/* Studio: brand, address, areas served, and the Reserve action. */}
         <div className="text-left">
           <Link
             href={routes.home}
@@ -69,40 +73,50 @@ export async function SiteFooter() {
               </li>
             ))}
           </Caption>
+          <Link
+            href={routes.book}
+            className="mt-6 ml-2 inline-block font-functional text-[12px] font-medium uppercase tracking-[0.06em] text-primary-foreground underline underline-offset-4 transition-colors hover:text-primary-foreground/80"
+          >
+            {tNav("reserve")}
+          </Link>
         </div>
 
-        {footerNav.map((col) => (
-          <div key={col.headingKey} className="space-y-4">
-            <Eyebrow className="text-[0.65rem] text-primary-foreground/65">
-              {t(col.headingKey)}
-            </Eyebrow>
-            <ul className="space-y-2.5">
-              {col.links.map((link) => (
-                <li key={link.href}>
-                  {link.external ? (
-                    <a
-                      href={link.href}
-                      // mailto opens the mail client, not a new browser tab.
-                      {...(link.href.startsWith("mailto:")
-                        ? {}
-                        : { target: "_blank", rel: "noreferrer" })}
-                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
-                    >
-                      {t(link.labelKey)}
-                    </a>
-                  ) : (
-                    <Link
-                      href={link.href}
-                      className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
-                    >
-                      {tNav(link.labelKey)}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {/* Link categories: one group that wraps together (2-up on mobile, a row
+            on desktop), so a wrap never tucks a category under the studio info. */}
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10 lg:gap-14">
+          {navColumns.map((col) => (
+            <div key={col.headingKey} className="space-y-4">
+              <Eyebrow className="text-[0.65rem] text-primary-foreground/65">
+                {t(col.headingKey)}
+              </Eyebrow>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        // mailto opens the mail client, not a new browser tab.
+                        {...(link.href.startsWith("mailto:")
+                          ? {}
+                          : { target: "_blank", rel: "noreferrer" })}
+                        className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
+                      >
+                        {t(link.labelKey)}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="cursor-pointer font-functional text-[12px] font-medium tracking-[0.02em] text-primary-foreground/82 transition-colors hover:text-primary-foreground"
+                      >
+                        {tNav(link.labelKey)}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </Container>
 
       <div className="border-t border-primary-foreground/12">

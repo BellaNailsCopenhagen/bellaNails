@@ -42,5 +42,6 @@ export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
     isOwner: isOwnerUser(user),
     email: user.email ?? null,
     name: client?.name ?? null,
+    phone: client?.phone ?? null,
   }
 })

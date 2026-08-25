@@ -58,9 +58,9 @@ export async function BookingDetails({
   const defaults = {
     name: prefill.name ?? user?.name ?? undefined,
     email: prefill.email ?? user?.email ?? undefined,
-    // Seed the +45 country code so clients enter a full E.164 number, not a
-    // bare 8-digit local one (toE164 still backstops mis-entries).
-    phone: prefill.phone ?? "+45 ",
+    // A signed-in client's saved phone wins; otherwise seed the +45 country code
+    // so they enter a full E.164 number (toE164 still backstops mis-entries).
+    phone: prefill.phone ?? user?.phone ?? "+45 ",
     notes: prefill.notes,
   }
 

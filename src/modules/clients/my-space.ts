@@ -20,7 +20,6 @@ export type MySpace = {
   media: ClientMediaItem[]
   dataConsents: DataConsentItem[]
   requestCount: number
-  terms: TermsAcceptance[]
   profile: ClientProfile | null
 }
 
@@ -28,20 +27,18 @@ export const EMPTY_MY_SPACE: MySpace = {
   media: [],
   dataConsents: [],
   requestCount: 0,
-  terms: [],
   profile: null,
 }
 
 export async function getMySpace(clientId: string): Promise<MySpace> {
   const db = await createAuthedSupabaseServerClient()
-  const [media, dataConsents, requestCount, terms, profile] = await Promise.all([
+  const [media, dataConsents, requestCount, profile] = await Promise.all([
     getClientMedia(db, clientId).catch(() => []),
     getClientDataConsents(db, clientId).catch(() => []),
     pendingRequestCount(db, clientId).catch(() => 0),
-    getTermsAcceptances(db, clientId).catch(() => []),
     getClientProfile(db, clientId).catch(() => null),
   ])
-  return { media, dataConsents, requestCount, terms, profile }
+  return { media, dataConsents, requestCount, profile }
 }
 
 /** The consent + terms panels on a client's admin detail page. */

@@ -21,7 +21,6 @@ import type {
 } from "@/modules/media/client-gallery"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getMySpace } from "@/modules/clients"
-import type { TermsAcceptance } from "@/modules/terms/acceptance"
 import { singleParam } from "@/shared/search-params"
 
 export async function generateMetadata({
@@ -58,7 +57,6 @@ export default async function BookingsPage({
   let media: ClientMediaItem[] = []
   let dataConsents: DataConsentItem[] = []
   let requestCount = 0
-  let terms: TermsAcceptance[] = []
   let profile: {
     name: string | null
     phone: string | null
@@ -69,7 +67,6 @@ export default async function BookingsPage({
     media = space.media
     dataConsents = space.dataConsents
     requestCount = space.requestCount
-    terms = space.terms
     profile = space.profile
   }
 
@@ -117,8 +114,6 @@ export default async function BookingsPage({
                 email={profile?.email ?? null}
                 name={profile?.name ?? null}
                 phone={profile?.phone ?? null}
-                terms={terms}
-                locale={locale}
               />
             }
           />
