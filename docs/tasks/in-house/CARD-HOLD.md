@@ -9,7 +9,10 @@ per-IP rate-limit + honeypot (`feat/booking-abuse-guard`) stays as the cheap flo
   clients are never actually charged.
 - **Guests / first-timers only** — activated clients with a clean record book as
   they do today. (All spam is "new", so it's fully covered.)
-- **No phone OTP** — a card is stronger proof-of-human; avoids a second vendor.
+- **No phone/SMS OTP** — avoids a second vendor; the existing **email-OTP** is the
+  validation path instead (see "Spam gate").
+- **Guest spam gate = validated sign-in OR card** — email-OTP (free, ships before
+  Stripe) is the spam layer; the card adds the no-show cover on top.
 
 ## Why this shape
 - Attacks spam **economically** (no real card → no booking) instead of guessing at
@@ -45,10 +48,33 @@ removes A's only real downside.
 - Client — a card step (Stripe `PaymentElement`) in `/book`, rendered **only when
   gated**.
 
-## Gating — who needs a card
-Require a card if **any**: not signed in (guest email) · signed-in but not
-`activated` / first booking · prior no-show(s) (`NO_SHOW_ALERT_THRESHOLD`).
-Skip for an activated client with a clean record.
+## Gating — who needs a card (or a validated sign-in)
+A guard applies if **any**: not signed in (guest email) · signed-in but not
+`activated` / first booking · prior no-show(s) (`NO_SHOW_ALERT_THRESHOLD`). For
+those, the booker must clear the **spam gate** below — a card, *or* a validated
+email sign-in. Skip entirely for an activated client with a clean record.
+
+## Spam gate: validated identity OR card
+A guest doesn't have to hand over a card to prove they're real — validating an
+email is a cheaper alternative, and we already have it (Supabase email-OTP is the
+whole login). So the guest gate is a **choice**:
+
+> returning signed-in client (clean record) → book free ·
+> guest → **sign in (validate email)** OR **add a card**.
+
+- **Email validation = the SPAM layer.** It forces the booker to control an inbox
+  and read a code, which kills casual/fake-email spam. Nearly free (reuses the
+  existing OTP) and **can ship before the Stripe work** as an interim defense.
+- **The card = the NO-SHOW layer.** A validated-email account holder can still
+  no-show for free; only the hold deters that. The two are complementary —
+  email-validation covers spam, the card covers no-shows.
+- **Honest limit:** disposable/temp-email services let a determined bot validate
+  throwaway inboxes at scale, so email-OTP stops casual spam, not a serious
+  attacker. Optional hardening: a disposable-email domain blocklist (an arms
+  race; skip unless abused).
+
+Sequencing: land the **sign-in half now** (no Stripe) as the interim spam gate,
+then add the **card option** with the hold work (which also brings no-show cover).
 
 ## Lifecycle
 ```
