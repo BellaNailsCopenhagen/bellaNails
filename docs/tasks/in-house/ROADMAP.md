@@ -52,11 +52,12 @@ studio-entered, client uploads never auto-publish — so it's not urgent).
 - Connected (when built): **Vercel Cron** / **Supabase pg_cron** / **Upstash QStash**
   — see [SCHEDULER-OPTIONS.md](SCHEDULER-OPTIONS.md).
 
-### E · Feature-flag switchboard  — **DEFERRED**
-- `studio_settings` / `feature_flags` row + admin toggles: client uploads, public
-  gallery, public reviews, review requests, guest video approval. Enforce the rule
-  "no client content goes public without owner approval". Follows the existing
-  single-row `booking_settings` pattern.
+### E · Feature-flag admin UI  — **DEFERRED**
+- **The flag *config* already exists** (`src/config/features.ts` — env on/off for
+  serviceDetail, serviceGallery, homeShowcase, reviews, testimonials, favorites).
+  What's missing is an **artist-facing toggle panel** (so the artist flips features
+  without env vars) + confirming the base/optional split with the owner. A thin UI
+  over existing config, not new machinery.
 
 ---
 
@@ -90,6 +91,51 @@ studio-entered, client uploads never auto-publish — so it's not urgent).
 - Minor: buffer DB-enforcement · `createBooking` duplicate I/O · menu-order null fallback.
 
 ---
+
+## Reconciled from the master plan ([PLAN.md](../../PLAN.md)) — not-yet-built
+PLAN.md predates the in-house migration, so ignore its **Cal.com / Clerk mechanics**
+(retired). These forward items were in it and are **not** covered above:
+
+### I · Insights — income & occupancy overview  — **NOT BUILT** (Task 10)
+Owner-only `/admin/overview` (a "More → Insights" link exists; the page doesn't):
+monthly **revenue** = Σ effective income of *completed* appointments · per-appointment
+**income override** (`income_override_cents`, never overwrites the booked price) ·
+**occupancy %** (footprint = duration + 30-min buffer ÷ working minutes). Big "info
+only — not accounting" disclaimer. Reuses studio-hours (now first-class).
+
+### J · Testimonials system  — **NOT BUILT** (Phase 7/8)
+`testimonials` table + **client-submitted** ("Share your experience" + prompt cards +
+`testimonial_requests`) + artist **publish/decline** + home section switches i18n→DB.
+NOTE: `reviews` (studio-entered, per-service) already exists and is **separate**. This
+subsumes "request testimonial" in B.
+
+### K · Local SEO  — **NOT BUILT** (Phase 10 + [seo-plan.md](../../seo-plan.md))
+On-page: `LocalBusiness`/`NailSalon` **JSON-LD** · **sitemap** + robots · **hreflang**
++ canonical · per-locale titles/desc · keyworded h1 · crawlable NAP + areas-served ·
+image alts · **FAQ + FAQPage schema**. Off-page: Google Business Profile, citations,
+review engine. High-leverage for "neglesalon Ørestad". Blocked on: public phone,
+final domain, geo, social URLs.
+
+### L · Launch hardening  — **NOT BUILT** (Phase 9)
+Final **legal-content** review (real terms/privacy text — owner) · a11y/Lighthouse +
+no-flicker · prod env wiring + full booking smoke test · **SETUP.md** dev runbook ·
+**consolidate schema** into one ordered `supabase/schema.sql`.
+
+### M · Media performance  — **NOT BUILT**
+Scaleway has **no CDN / image transforms** — the photo gallery is the likely dominant
+load. Pre-size/optimize + record an LCP/TTFB baseline before/after.
+
+### Candidates / opens
+- **Artist CRM notes** on a client — PLAN recommends owner-only + minimal (not shown
+  to clients); currently deferred. (Booking-level `client_notes` exists; per-client
+  artist notes don't.)
+- **ICS calendar feed** (read-only, signed) — the artist lost her external calendar
+  when Cal went; a phone-calendar feed is the cheap replacement.
+- **Waitlist / cancellation backfill** — cheap once we own slots (client-PWA idea).
+- **Studio-proposal → client-accept** (`origin` + `client_accepted_at`) — if the owner
+  wants studio bookings the client confirms, vs the confirmed-directly path we built.
+- **H starter SQL exists** — `supabase/booking-requests.sql` (update `clerk_user_id` →
+  `client_id`, then apply).
 
 ## Connected services (summary)
 | Service | Status | Used by |
