@@ -1,8 +1,20 @@
 # Scheduler options — running the timed jobs
 
-Status: **decision doc.** The card-hold plan ([CARD-HOLD.md](CARD-HOLD.md)) plus
-reminders and review requests all need something to run on a schedule. This lays
-out every option so we can pick one.
+Status: **DECIDED — deferred.** The reminder ships as an **admin-triggered "Send
+reminders" button** for now (see [ROADMAP.md](ROADMAP.md) item A), so no scheduler
+is built yet. Review/testimonial/video-approval requests are admin-triggered too,
+so **the reminder is the only future cron candidate**. When volume justifies
+automating it, flip the manual route to a daily cron (one-line trigger swap) using
+one of the options below. The far-future card-hold placement (CARD-HOLD fork A)
+also needs a scheduler when that lands.
+
+The options below stand for when we do automate — Option A (Vercel Cron on Pro)
+remains the default; Option B1 (Supabase `pg_cron`) is the free path.
+
+---
+
+The card-hold plan ([CARD-HOLD.md](CARD-HOLD.md)) plus reminders all need something
+to run on a schedule. This lays out every option so we can pick one when we do.
 
 ## The workload (and why it's forgiving)
 Jobs to run on a schedule:
