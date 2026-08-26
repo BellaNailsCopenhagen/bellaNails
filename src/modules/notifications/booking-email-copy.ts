@@ -7,7 +7,7 @@ import { STUDIO_NAME } from "@/config/studio"
  * by who acted — the client from their manage page, or the studio.
  */
 
-export type Kind = "confirmed" | "cancelled" | "moved"
+export type Kind = "confirmed" | "cancelled" | "moved" | "reminder"
 
 export const COPY = {
   da: {
@@ -26,6 +26,7 @@ export const COPY = {
       confirmed: `Din booking hos ${STUDIO_NAME} er bekræftet`,
       cancelled: `Din booking hos ${STUDIO_NAME} er aflyst`,
       moved: `Din booking hos ${STUDIO_NAME} er flyttet`,
+      reminder: `Påmindelse: din tid hos ${STUDIO_NAME} i morgen`,
     },
     intro: {
       confirmed: "Tak for din booking — din tid er hermed bekræftet.",
@@ -38,6 +39,7 @@ export const COPY = {
         client: "Du har flyttet din tid — her er de nye detaljer.",
         studio: "Salonen har flyttet din tid. Her er de nye detaljer.",
       },
+      reminder: "En venlig påmindelse om din tid i morgen. Vi glæder os til at se dig.",
     },
     payment: "Betaling foregår i salonen.",
     policy: "Ombooking eller aflysning kan ske indtil 24 timer før din tid.",
@@ -60,6 +62,7 @@ export const COPY = {
       confirmed: `Your booking at ${STUDIO_NAME} is confirmed`,
       cancelled: `Your booking at ${STUDIO_NAME} has been cancelled`,
       moved: `Your booking at ${STUDIO_NAME} has been moved`,
+      reminder: `Reminder: your appointment at ${STUDIO_NAME} tomorrow`,
     },
     intro: {
       confirmed: "Thank you for your booking — your appointment is confirmed.",
@@ -73,6 +76,8 @@ export const COPY = {
         client: "You've rescheduled your appointment — here are the new details.",
         studio: "The studio has rescheduled your appointment. Here are the new details.",
       },
+      reminder:
+        "A friendly reminder about your appointment tomorrow — we look forward to seeing you.",
     },
     payment: "Payment is collected at the studio.",
     policy: "You can reschedule or cancel up to 24 hours before your appointment.",

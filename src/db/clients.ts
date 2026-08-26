@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/routing"
+import { redactedEmail } from "@/shared/anonymize"
 
 import type { Db, Row } from "./client"
 
@@ -177,7 +178,7 @@ export async function anonymizeClientRow(
     .update({
       name: null,
       phone: null,
-      email: `redacted-${clientId}@anonymized.invalid`,
+      email: redactedEmail(clientId),
       auth_user_id: null,
       anonymized_at: new Date().toISOString(),
     })

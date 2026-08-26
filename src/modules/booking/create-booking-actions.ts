@@ -18,6 +18,10 @@ import { fetchClientContacts } from "@/modules/clients"
 import { ensureUser } from "@/modules/identity/ensure-user"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
+import {
+  recordCommunication,
+  statusFromEmailResult,
+} from "@/modules/notifications/communications"
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { BOOKING_STATUS } from "@/shared/booking-status"
@@ -148,13 +152,14 @@ async function prepareBooking(
 async function sendConfirmation(
   draft: BookingDraft,
   bookingId: string,
+  clientId: string,
   to: string,
   firstName: string | null,
   startIso: string,
   locale: Locale,
 ): Promise<void> {
   const isEn = locale === "en"
-  await sendBookingConfirmationEmail({
+  const res = await sendBookingConfirmationEmail({
     to,
     firstName,
     serviceName: isEn
@@ -170,6 +175,15 @@ async function sendConfirmation(
     bookingId,
     actor: "client",
     locale,
+  })
+  await recordCommunication({
+    clientId,
+    bookingId,
+    kind: "confirmation",
+    trigger: "auto",
+    recipient: to,
+    status: statusFromEmailResult(res),
+    error: res.error,
   })
 }
 
@@ -258,6 +272,7 @@ export async function createBooking(
   await sendConfirmation(
     draft,
     result.id,
+    clientId,
     email,
     input.name.trim().split(/\s+/)[0] || null,
     input.start,
@@ -337,6 +352,7 @@ export async function createBookingAsOwner(
     await sendConfirmation(
       draft,
       result.id,
+      clientId,
       recipientEmail,
       firstName,
       input.start,

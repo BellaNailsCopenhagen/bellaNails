@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { AdminQueue } from "@/app/admin/_components/admin-queue"
+import { SendRemindersButton } from "@/app/admin/_components/send-reminders-button"
 import { getAdminQueue } from "@/modules/booking"
 
 export const metadata: Metadata = { title: "Queue" }
@@ -21,13 +22,18 @@ export default async function AdminQueuePage() {
     await getAdminQueue(now)
 
   return (
-    <AdminQueue
-      weeks={weeks}
-      contacts={contacts}
-      noShowCounts={noShowCounts}
-      now={now}
-      photosByBooking={photosByBooking}
-      loadError={loadError}
-    />
+    <>
+      <div className="flex justify-end pb-4">
+        <SendRemindersButton />
+      </div>
+      <AdminQueue
+        weeks={weeks}
+        contacts={contacts}
+        noShowCounts={noShowCounts}
+        now={now}
+        photosByBooking={photosByBooking}
+        loadError={loadError}
+      />
+    </>
   )
 }

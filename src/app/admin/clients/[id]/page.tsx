@@ -12,12 +12,14 @@ import {
   ClientDataConsent,
 } from "@/app/admin/clients/[id]/_components/client-media-section"
 import { ClientEmailLanguage } from "@/app/admin/clients/[id]/_components/client-email-language"
+import { ClientCommunications } from "@/app/admin/clients/[id]/_components/client-communications"
 import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-status-badge"
 import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { getClientBookingHistory } from "@/modules/booking"
 import { getClientPrivacyRecord } from "@/modules/clients"
+import { getClientCommunications } from "@/modules/notifications"
 import { routing } from "@/i18n/routing"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/shared/booking-policy"
@@ -62,9 +64,10 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, privacy] = await Promise.all([
+  const [hubAssets, privacy, comms] = await Promise.all([
     getHubAssets(id).catch(() => []),
     getClientPrivacyRecord(id),
+    getClientCommunications(id),
   ])
   const { dataConsents, terms: termsAcceptances } = privacy
 
@@ -180,6 +183,8 @@ export default async function AdminClientPage({
         clientId={id}
         locale={contact?.communicationLocale ?? routing.defaultLocale}
       />
+
+      <ClientCommunications comms={comms} />
 
       <ClientDataConsent clientId={id} dataConsents={dataConsents} />
 

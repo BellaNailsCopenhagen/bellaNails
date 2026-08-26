@@ -10,5 +10,11 @@ export {
   sendBookingConfirmationEmail,
   sendBookingCancellationEmail,
   sendBookingRescheduleEmail,
+  sendBookingReminderEmail,
   type BookingEmailDetail,
 } from "./booking-email"
+export {
+  recordCommunication,
+  getClientCommunications,
+  type CommunicationView,
+} from "./communications"

@@ -8,6 +8,7 @@ import {
   listOwnUploadsForClient,
 } from "@/db/client-media"
 import { anonymizeClientRow, getClientErasureState } from "@/db/clients"
+import { scrubCommunicationsForClient } from "@/db/communications"
 import { hasArtistUseSignal } from "@/db/media-consents"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
@@ -80,6 +81,10 @@ async function runAnonymize(
     // 3. Scrub PII (keep the row + id + all links). Stamp anonymized last.
     const notes = await clearClientNotes(admin, clientId)
     if (!notes.ok) return { ok: false, error: notes.message! }
+    // Communications' only PII is the recipient email — scrub it, keep the log
+    // (kind/status/when), like the anonymized bookings it trails.
+    const comms = await scrubCommunicationsForClient(admin, clientId)
+    if (!comms.ok) return { ok: false, error: comms.message! }
     const scrubbed = await anonymizeClientRow(admin, clientId)
     if (!scrubbed.ok) return { ok: false, error: scrubbed.message! }
     return { ok: true }

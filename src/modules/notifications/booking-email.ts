@@ -8,7 +8,7 @@ import {
   STUDIO_MAPS_URL,
   STUDIO_NAME,
 } from "@/config/studio"
-import { sendEmail } from "@/platform/email/client"
+import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
@@ -80,7 +80,7 @@ function detailRows(
     rows.push([t.labels.time, formatStudioTime(d.startIso, locale)])
   }
 
-  if (kind === "confirmed" && d.priceCents != null) {
+  if ((kind === "confirmed" || kind === "reminder") && d.priceCents != null) {
     rows.push([t.labels.price, formatPrice(d.priceCents)])
   }
   return rows
@@ -173,7 +173,7 @@ function renderText(opts: RenderParts): string {
   return lines.join("\n")
 }
 
-async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
+async function send(d: BookingEmailDetail, kind: Kind): Promise<EmailResult> {
   try {
     const t = pick(d.locale)
     const introRaw = t.intro[kind]
@@ -181,7 +181,8 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       greeting: t.greeting(d.firstName),
       intro: typeof introRaw === "string" ? introRaw : introRaw[d.actor],
       rows: detailRows(d, kind, t),
-      paymentNote: kind === "confirmed" ? t.payment : undefined,
+      paymentNote:
+        kind === "confirmed" || kind === "reminder" ? t.payment : undefined,
       policy: t.policy,
       manageUrl: d.manageUrl,
       manageCta: d.manageUrl ? t.manageCta : undefined,
@@ -195,7 +196,7 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       serviceName: d.serviceName,
       cancelled: kind === "cancelled",
     })
-    await sendEmail({
+    return await sendEmail({
       from: BOOKING_FROM_EMAIL,
       replyTo: STUDIO_EMAIL,
       to: d.to,
@@ -216,6 +217,8 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<void> {
       `[booking-email] ${kind} failed —`,
       error instanceof Error ? error.message : error,
     )
+    // Non-PII name only (an .ics/render throw here, not the SMTP message).
+    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
   }
 }
 
@@ -225,3 +228,5 @@ export const sendBookingCancellationEmail = (d: BookingEmailDetail) =>
   send(d, "cancelled")
 export const sendBookingRescheduleEmail = (d: BookingEmailDetail) =>
   send(d, "moved")
+export const sendBookingReminderEmail = (d: BookingEmailDetail) =>
+  send(d, "reminder")

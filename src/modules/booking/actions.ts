@@ -21,10 +21,19 @@ import {
   type BookingEmailDetail,
 } from "@/modules/notifications/booking-email"
 import {
+  recordCommunication,
+  statusFromEmailResult,
+} from "@/modules/notifications/communications"
+import {
   createAuthedSupabaseServerClient,
   createSupabaseServiceRoleClient,
 } from "@/platform/supabase/server"
-import { canManageBooking, canMarkNoShow, metaOf } from "@/shared/booking-policy"
+import {
+  canManageBooking,
+  canMarkNoShow,
+  localizedBookingNames,
+  metaOf,
+} from "@/shared/booking-policy"
 import {
   BOOKING_STATUS,
   isActiveBookingStatus,
@@ -74,16 +83,12 @@ async function emailManagedBooking(
     const meta = metaOf(booking)
     // Emails follow the client's saved language preference.
     const locale = contact.communicationLocale
-    const isEn = locale === "en"
+    const { serviceName, addonNames } = localizedBookingNames(meta, locale)
     const detail: BookingEmailDetail = {
       to: contact.email,
       firstName: contact.firstName,
-      serviceName:
-        (isEn ? meta.serviceNameEn : meta.serviceNameDk ?? meta.serviceNameEn) ??
-        (isEn ? "Treatment" : "Behandling"),
-      addonNames: (meta.addonSnapshots ?? []).map((a) =>
-        isEn ? a.nameEn : a.nameDk ?? a.nameEn,
-      ),
+      serviceName,
+      addonNames,
       startIso: window.startIso,
       endIso: window.endIso,
       previousStartIso: window.previousStartIso,
@@ -93,8 +98,21 @@ async function emailManagedBooking(
       actor,
       locale,
     }
-    if (kind === "cancelled") await sendBookingCancellationEmail(detail)
-    else await sendBookingRescheduleEmail(detail)
+    const res =
+      kind === "cancelled"
+        ? await sendBookingCancellationEmail(detail)
+        : await sendBookingRescheduleEmail(detail)
+    if (booking.client_id) {
+      await recordCommunication({
+        clientId: booking.client_id,
+        bookingId: id,
+        kind: kind === "cancelled" ? "cancellation" : "reschedule",
+        trigger: "auto",
+        recipient: contact.email,
+        status: statusFromEmailResult(res),
+        error: res.error,
+      })
+    }
   } catch (error) {
     console.error(
       "[booking] manage email failed —",

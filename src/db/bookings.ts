@@ -150,6 +150,24 @@ export async function countActiveUpcomingBookingsForClient(
   return count ?? 0
 }
 
+/** Active bookings STARTING within [startIso, endIso) — the daily reminder batch
+    (tomorrow's window). */
+export async function listActiveBookingsStartingBetween(
+  db: Db,
+  startIso: string,
+  endIso: string,
+): Promise<BookingRow[]> {
+  const { data, error } = await db
+    .from("bookings")
+    .select(BOOKING_COLUMNS)
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .gte("start_time", startIso)
+    .lt("start_time", endIso)
+    .order("start_time", { ascending: true })
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 /** Every booking not yet finished, any status — admin agenda "upcoming". */
 export async function listBookingsFrom(
   db: Db,

@@ -21,7 +21,9 @@ export type EmailMessage = {
   calendar?: { content: string; method?: string; filename?: string }
 }
 
-export type EmailResult = { ok: boolean; skipped?: boolean }
+// `error` is a non-PII failure CODE/name (never the SMTP message, which can echo
+// the recipient address) — safe to persist for diagnosing failed sends.
+export type EmailResult = { ok: boolean; skipped?: boolean; error?: string }
 
 function config() {
   const user = process.env.ZOHO_SMTP_USER
@@ -89,6 +91,6 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
           ? error.name
           : "unknown"
     console.error("[email] send failed —", info)
-    return { ok: false }
+    return { ok: false, error: String(info) }
   }
 }

@@ -395,6 +395,48 @@ export type Database = {
         }
         Relationships: []
       }
+      communications: {
+        Row: {
+          booking_id: string | null
+          channel: string
+          client_id: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          recipient: string | null
+          reminder_for: string | null
+          status: string
+          trigger: string
+        }
+        Insert: {
+          booking_id?: string | null
+          channel?: string
+          client_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          recipient?: string | null
+          reminder_for?: string | null
+          status: string
+          trigger: string
+        }
+        Update: {
+          booking_id?: string | null
+          channel?: string
+          client_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          recipient?: string | null
+          reminder_for?: string | null
+          status?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           archived_at: string | null

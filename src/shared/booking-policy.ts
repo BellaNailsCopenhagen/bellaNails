@@ -27,6 +27,23 @@ export type BookingMeta = {
 export const metaOf = (row: { selected_addons: unknown }) =>
   (row.selected_addons ?? {}) as BookingMeta
 
+/** Localized service + add-on names off the as-booked snapshot — the one place
+    the DK/EN precedence and the generic fallback live (booking emails share it). */
+export function localizedBookingNames(
+  meta: BookingMeta,
+  locale: string,
+): { serviceName: string; addonNames: string[] } {
+  const isEn = locale === "en"
+  return {
+    serviceName:
+      (isEn ? meta.serviceNameEn : meta.serviceNameDk ?? meta.serviceNameEn) ??
+      (isEn ? "Treatment" : "Behandling"),
+    addonNames: (meta.addonSnapshots ?? []).map((a) =>
+      isEn ? a.nameEn : a.nameDk ?? a.nameEn,
+    ),
+  }
+}
+
 /** 24-hour cancellation policy: inside this window the manage actions are
     withheld and the client is pointed at the studio instead. */
 export const POLICY_WINDOW_MS = 24 * 60 * 60 * 1000
