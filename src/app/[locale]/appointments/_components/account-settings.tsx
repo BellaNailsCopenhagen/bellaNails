@@ -1,6 +1,7 @@
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { ProfileForm } from "@/app/[locale]/appointments/_components/profile-form"
 import { DeleteAccountButton } from "@/app/[locale]/appointments/_components/delete-account-button"
+import { DownloadMyDataButton } from "@/app/[locale]/appointments/_components/download-my-data-button"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 /** Account settings — the "gear" panel of My Space: contact details, sign out,
@@ -26,6 +27,15 @@ export function AccountSettings({
       </section>
 
       <SignOutButton />
+
+      <section className="space-y-3">
+        <Eyebrow as="h3">Your data</Eyebrow>
+        <BodySm className="text-sm text-muted-foreground">
+          Download everything we hold about you — your profile, bookings,
+          messages, and consent choices — as a file.
+        </BodySm>
+        <DownloadMyDataButton />
+      </section>
 
       {/* Danger zone — set apart with space + a red frame (GitHub-style). */}
       <section className="mt-8 space-y-3 rounded-md border border-destructive/40 p-5">
