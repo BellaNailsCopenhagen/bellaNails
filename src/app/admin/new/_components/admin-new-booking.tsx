@@ -7,9 +7,11 @@ import { ChevronLeft } from "lucide-react"
 import { toast } from "sonner"
 
 import { H2, BodySm, Caption } from "@/components/ui/typography"
+import { Button } from "@/components/ui/button"
 import type { SlotPickerOutcome } from "@/components/booking/slot-picker"
 import type { Slot } from "@/shared/booking-slots"
 import { routes } from "@/shared/routes"
+import { studioInputToIso } from "@/shared/studio-time"
 import { createBookingAsOwner, getOwnerSlots } from "@/modules/booking/create-booking-actions"
 import { getServiceAddonsForOwner } from "@/modules/catalog/service-actions"
 
@@ -80,6 +82,9 @@ export function AdminNewBooking({
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set())
   const [notes, setNotes] = useState("")
   const [slots, setSlots] = useState<Slot[]>([])
+  // "Ignore all limits" — swap the availability grid for a free date/time picker.
+  const [ignoreLimits, setIgnoreLimits] = useState(false)
+  const [overrideStart, setOverrideStart] = useState("")
   // The rebook prefill resolves its add-ons async — hold the UI until it lands.
   const [bootstrapping, setBootstrapping] = useState(prefill !== null)
   const bootstrapped = useRef(false)
@@ -157,6 +162,7 @@ export function AdminNewBooking({
       addonIds: [...selectedAddonIds],
       start,
       notes: notes.trim() || undefined,
+      ignoreLimits,
     })
     if (!result.ok) return { ok: false, error: result.error }
     toast.success("Booking created")
@@ -238,7 +244,53 @@ export function AdminNewBooking({
           onContinue={goToTime}
         />
       ) : step === "time" ? (
-        <TimeStep slots={slots} maxAdvanceDays={maxAdvanceDays} onConfirm={confirm} />
+        <div className="space-y-5">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={ignoreLimits}
+              onChange={(e) => setIgnoreLimits(e.target.checked)}
+              className="size-4"
+            />
+            <span className="font-functional text-sm text-foreground">
+              Ignore all limits — book any day &amp; time
+            </span>
+          </label>
+
+          {ignoreLimits ? (
+            <div className="space-y-3">
+              <BodySm className="text-xs text-muted-foreground">
+                Picks any time (hours, day availability and lead time are skipped;
+                an overlap with another booking is still blocked).
+              </BodySm>
+              <input
+                type="datetime-local"
+                value={overrideStart}
+                onChange={(e) => setOverrideStart(e.target.value)}
+                className="w-full rounded-sm border border-border bg-background p-2 font-functional text-sm text-foreground"
+              />
+              <Button
+                disabled={pending || !studioInputToIso(overrideStart)}
+                onClick={() => {
+                  const iso = studioInputToIso(overrideStart)
+                  if (!iso) return
+                  startTransition(async () => {
+                    const res = await confirm(iso)
+                    if (!res.ok) toast.error(res.error)
+                  })
+                }}
+              >
+                Create booking
+              </Button>
+            </div>
+          ) : (
+            <TimeStep
+              slots={slots}
+              maxAdvanceDays={maxAdvanceDays}
+              onConfirm={confirm}
+            />
+          )}
+        </div>
       ) : null}
     </div>
   )

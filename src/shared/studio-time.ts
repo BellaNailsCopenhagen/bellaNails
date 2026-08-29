@@ -174,7 +174,8 @@ export function studioInputValue(iso: string): string {
     STUDIO wall-clock → the ISO instant, DST-correct. `null` for a malformed /
     cleared value (so callers guard instead of throwing on `new Date("")`). */
 export function studioInputToIso(value: string): string | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value)
+  // Some browsers append seconds to a datetime-local value — accept + ignore them.
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})?$/.exec(value)
   if (!m) return null
   const [, y, mo, d, hh, mm] = m
   const dayNumber = studioDayNumberForDate(Number(y), Number(mo), Number(d))

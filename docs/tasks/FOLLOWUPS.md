@@ -2,6 +2,16 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
+### Booking-request copy → move into the next-intl catalog
+The client booking-request UI (`booking-request-form.tsx` + the "Can't find a
+time?" ghost button in `booking-slot-step.tsx`) uses a hand-rolled bilingual COPY
+map / inline `locale === "en"` ternary instead of `t()` from the `booking`
+namespace like the rest of `/book`. Copy is correct da/en but lives outside the
+catalog. Add the keys to `messages/{da,en}.json` and switch to `useTranslations`.
+Minor: the `datetime-local` + `studioInputToIso` submit block is duplicated
+between the admin override (`admin-new-booking.tsx`) and the request form — a tiny
+`<StudioDateTimeInput>` would DRY it.
+
 ### Blocked-booking states → a request flow, not a dead end
 When the client hits a hard block at the confirm step — today the **2-active-booking
 cap** ("You already have 2 active bookings…"), and later an **outside-normal-hours

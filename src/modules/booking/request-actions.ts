@@ -79,6 +79,17 @@ export async function createBookingRequest(
     return { ok: false, error: "Enter a valid email." }
   }
 
+  // The slot check is off for a request, so guard the time here: must be in the
+  // future and within a year (an outside-hours pick is otherwise unbounded).
+  const startMs = new Date(input.start).getTime()
+  const nowMs = Date.now()
+  if (!Number.isFinite(startMs) || startMs < nowMs) {
+    return { ok: false, error: "Pick a time in the future." }
+  }
+  if (startMs > nowMs + 366 * 24 * 60 * 60 * 1000) {
+    return { ok: false, error: "That's too far ahead — pick a nearer date." }
+  }
+
   const db = createSupabaseServiceRoleClient()
   const prepared = await buildBookingDraft(
     db,

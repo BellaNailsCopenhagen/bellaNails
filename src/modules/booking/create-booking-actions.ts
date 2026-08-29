@@ -46,7 +46,7 @@ export type CreateBookingInput = {
 
 export type CreateBookingResult =
   | { ok: true; id: string }
-  | { ok: false; error: string }
+  | { ok: false; error: string; code?: "cap" }
 
 // The client's confirmation email — best-effort (the sender swallows errors).
 async function sendConfirmation(
@@ -142,8 +142,9 @@ export async function createBooking(
     if (active >= MAX_ACTIVE_BOOKINGS) {
       return {
         ok: false,
+        code: "cap",
         error:
-          "You already have 2 active bookings (the maximum). Please contact the studio to arrange another.",
+          "You already have 2 active bookings (the maximum). You can send a request for this time instead.",
       }
     }
   } catch {
@@ -194,6 +195,9 @@ export type OwnerCreateBookingInput = {
   start: string
   notes?: string
   locale?: string
+  /** "Ignore all limits" — skip the slot/hours/day check so the artist can place
+      an appointment on any day at any time (overlap constraint still applies). */
+  ignoreLimits?: boolean
 }
 
 /**
@@ -209,7 +213,7 @@ export async function createBookingAsOwner(
   if (!db) return { ok: false, error: "Not authorized." }
 
   const prepared = await buildBookingDraft(db, input, {
-    checkSlot: true,
+    checkSlot: !input.ignoreLimits,
     ignoreLeadTime: true,
   })
   if (!prepared.ok) return prepared
