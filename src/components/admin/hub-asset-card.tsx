@@ -9,12 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
 import { AssetUsageManager } from "@/components/admin/asset-usage-manager"
-import {
-  requestBothPublish,
-  requestMediaPublish,
-} from "@/modules/media/owner-media-actions"
+import { requestMediaRelease } from "@/modules/media/owner-media-actions"
 import {
   confirmTakedown,
+  publishMedia,
   setMediaDismissed,
   setMediaFavorite,
 } from "@/modules/media/asset-actions"
@@ -25,16 +23,18 @@ import {
   STATE_ICON,
   toSimpleState,
 } from "@/components/admin/asset-state"
-import type { MediaPurpose } from "@/modules/media/client-gallery"
 import { cn } from "@/shared/cn"
 
-const PURPOSES: { key: MediaPurpose; label: string; request: string }[] = [
-  { key: "site", label: "Website", request: "Request website" },
-  { key: "some", label: "Social", request: "Request social" },
+type PublishPurpose = "website" | "social"
+
+const PURPOSES: { key: PublishPurpose; label: string; request: string }[] = [
+  { key: "website", label: "Website", request: "Request website" },
+  { key: "social", label: "Social", request: "Request social" },
 ]
 
+// A release can be (re)requested when it's absent, declined, or withdrawn.
 const canRequest = (status?: string) =>
-  !status || status === "declined" || status === "withdrawn"
+  !status || status === "none" || status === "declined" || status === "withdrawn"
 
 export function HubAssetCard({
   asset,
@@ -52,6 +52,7 @@ export function HubAssetCard({
 
   const simple = toSimpleState(asset.state)
   const { Icon: StateIcon, className: stateClass } = STATE_ICON[simple]
+  const bookingId = asset.bookingId
 
   return (
     <li
@@ -136,73 +137,91 @@ export function HubAssetCard({
             {asset.source === "client" ? "client upload" : "studio"}
           </BodySm>
 
-          {canRequest(asset.consents.site?.status) &&
-          canRequest(asset.consents.some?.status) ? (
-            <Button
-              size="sm"
-              disabled={pending}
-              onClick={() =>
-                run(() => requestBothPublish(asset.mediaId, asset.clientId))
-              }
-            >
-              Request website &amp; social
-            </Button>
-          ) : null}
+          {!bookingId ? (
+            <BodySm className="text-xs text-warning">
+              Not linked to a booking — releases are requested per appointment, so
+              this image can’t be published.
+            </BodySm>
+          ) : (
+            <>
+              {canRequest(asset.releases.website) &&
+              canRequest(asset.releases.social) ? (
+                <Button
+                  size="sm"
+                  disabled={pending}
+                  onClick={() =>
+                    run(() =>
+                      requestMediaRelease(bookingId, ["website", "social"]),
+                    )
+                  }
+                >
+                  Request website &amp; social
+                </Button>
+              ) : null}
 
-          {PURPOSES.map(({ key, label, request }) => {
-            const consent = asset.consents[key]
-            return (
-              <div key={key} className="space-y-2 border-t border-border pt-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-functional text-sm text-foreground">
-                    {label}
-                  </span>
-                  <Badge variant="outline" size="xs">
-                    {consent?.needsTakedown
-                      ? "taken down?"
-                      : (consent?.status ?? "not shared")}
-                  </Badge>
-                </div>
+              {PURPOSES.map(({ key, label, request }) => {
+                const status = asset.releases[key]
+                const published = asset.published.find((p) => p.purpose === key)
+                return (
+                  <div key={key} className="space-y-2 border-t border-border pt-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-functional text-sm text-foreground">
+                        {label}
+                      </span>
+                      <Badge variant="outline" size="xs">
+                        {published?.needsTakedown
+                          ? "taken down?"
+                          : (status === "none" ? "not shared" : status)}
+                      </Badge>
+                    </div>
 
-                {consent?.needsTakedown ? (
-                  <div className="space-y-1">
-                    <BodySm className="text-xs text-destructive/80">
-                      Client withdrew — remove the post, then confirm.
-                    </BodySm>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={pending}
-                      onClick={() => run(() => confirmTakedown(consent.id))}
-                    >
-                      Confirm taken down
-                    </Button>
+                    {published?.needsTakedown ? (
+                      <div className="space-y-1">
+                        <BodySm className="text-xs text-destructive/80">
+                          Client withdrew — remove the post, then confirm.
+                        </BodySm>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          disabled={pending}
+                          onClick={() => run(() => confirmTakedown(published.assetId))}
+                        >
+                          Confirm taken down
+                        </Button>
+                      </div>
+                    ) : published ? (
+                      <AssetUsageManager
+                        assetId={published.assetId}
+                        purpose={key}
+                        usages={published.usages}
+                      />
+                    ) : status === "granted" ? (
+                      <Button
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => run(() => publishMedia(asset.mediaId, key))}
+                      >
+                        Publish to {label.toLowerCase()}
+                      </Button>
+                    ) : status === "requested" ? (
+                      <BodySm className="text-xs">Waiting on the client…</BodySm>
+                    ) : canRequest(status) ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={pending}
+                        onClick={() =>
+                          run(() => requestMediaRelease(bookingId, [key]))
+                        }
+                      >
+                        {request}
+                      </Button>
+                    ) : null}
                   </div>
-                ) : consent?.status === "granted" && consent.publishedAssetId ? (
-                  <AssetUsageManager
-                    assetId={consent.publishedAssetId}
-                    purpose={key}
-                    usages={consent.usages}
-                  />
-                ) : consent?.status === "requested" ? (
-                  <BodySm className="text-xs">Waiting on the client…</BodySm>
-                ) : canRequest(consent?.status) ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={pending}
-                    onClick={() =>
-                      run(() =>
-                        requestMediaPublish(asset.mediaId, asset.clientId, key),
-                      )
-                    }
-                  >
-                    {request}
-                  </Button>
-                ) : null}
-              </div>
-            )
-          })}
+                )
+              })}
+            </>
+          )}
 
           <div className="border-t border-border pt-4">
             {asset.dismissed ? (

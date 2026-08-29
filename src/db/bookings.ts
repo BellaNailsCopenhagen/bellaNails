@@ -70,15 +70,38 @@ export async function getBookingRecap(
   return data ?? null
 }
 
+export type BookingLabelRow = Pick<
+  Row<"bookings">,
+  "id" | "status" | "start_time" | "selected_addons"
+>
+
+/** Minimal fields to label a set of bookings (status + service name + date) —
+    the My Space release cards. */
+export async function listBookingLabelsByIds(
+  db: Db,
+  ids: string[],
+): Promise<BookingLabelRow[]> {
+  const unique = [...new Set(ids.filter(Boolean))]
+  if (unique.length === 0) return []
+  const { data } = await db
+    .from("bookings")
+    .select("id, status, start_time, selected_addons")
+    .in("id", unique)
+  return data ?? []
+}
+
 /** Owner + booked product of one booking by row id — the media uploader
     verifies the booking belongs to the client before linking an image. */
 export async function getBookingOwner(
   db: Db,
   bookingId: string,
-): Promise<Pick<Row<"bookings">, "id" | "client_id" | "selected_addons"> | null> {
+): Promise<Pick<
+  Row<"bookings">,
+  "id" | "client_id" | "selected_addons" | "start_time"
+> | null> {
   const { data } = await db
     .from("bookings")
-    .select("id, client_id, selected_addons")
+    .select("id, client_id, selected_addons, start_time")
     .eq("id", bookingId)
     .maybeSingle()
   return data ?? null

@@ -1,6 +1,5 @@
-import { listAssetUrlsByIds } from "@/db/assets"
+import { listAssetUrlsByIds, listWebsiteAssets } from "@/db/assets"
 import type { Db } from "@/db/client"
-import { listGrantedSiteAssetIds } from "@/db/media-consents"
 import { listSectionsForService } from "@/db/service-sections"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 
@@ -49,16 +48,12 @@ export type PickableAsset = { id: string; url: string }
 
 /**
  * The pool the image picker offers under "use one from the shared gallery":
- * public copies the client consented to publish ON THE WEBSITE (purpose = site).
- * A social-only consent must NOT be pickable here — section images render on the
- * public site. Two plain queries (consents → asset ids → assets) since the FK
- * isn't in the hand-maintained types. Deduplicated across any duplicate rows.
+ * public copies published ON THE WEBSITE (purpose = website). A social-only copy
+ * must NOT be pickable here — section images render on the public site.
  */
 export async function getConsentedAssets(
   db: Db = createSupabaseServerClient(),
 ): Promise<PickableAsset[]> {
-  const ids = await listGrantedSiteAssetIds(db)
-  if (!ids.length) return []
-  const assets = await listAssetUrlsByIds(db, ids)
+  const assets = await listWebsiteAssets(db)
   return assets.map((a) => ({ id: a.id, url: a.url }))
 }

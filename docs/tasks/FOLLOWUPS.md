@@ -2,6 +2,24 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
+### Blocked-booking states → a request flow, not a dead end
+When the client hits a hard block at the confirm step — today the **2-active-booking
+cap** ("You already have 2 active bookings…"), and later an **outside-normal-hours
+slot** — the confirm button should switch from "Confirm session" to **"Send email /
+Request"** and open a request to the studio for the **artist to approve**, instead of
+dead-ending with "contact the studio". The over-cap request and the outside-hours
+request are the **same mechanism** — build them together as **Feature H ·
+booking_requests** (see [ROADMAP](in-house/ROADMAP.md); starter SQL
+`supabase/booking-requests.sql` exists). Pairs with the admin "override all limits"
+toggle below (artist side of the same problem).
+
+### Admin booking: override all availability limits
+When the ARTIST creates a booking (`/admin/new`), she should not be bound by the
+client-facing limits (studio hours, day availability, lead time, 2-active cap,
+slot grid). Add an **"ignore limits" toggle** on the admin booking flow that
+frees every slot on every day — the artist can book anything, anytime (e.g. an
+after-hours or same-slot appointment). Client flow stays limited as-is.
+
 ### In-house booking hardening (before launch)
 From the Phase 3a review of `createBooking`:
 - **Public-abuse guard** (blocker before launch): `createBooking` is a public

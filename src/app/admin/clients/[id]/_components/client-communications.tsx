@@ -8,6 +8,8 @@ const KIND_LABEL: Record<CommunicationView["kind"], string> = {
   cancellation: "Cancellation",
   reschedule: "Reschedule",
   reminder: "Reminder",
+  media_release_request: "Media release request",
+  review_request: "Review request",
 }
 
 const STATUS_LABEL: Record<CommunicationView["status"], string> = {

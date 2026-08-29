@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { placeAsset, removeUsage } from "@/db/asset-usages"
-import { getPurposeForPublishedAsset } from "@/db/media-consents"
+import { getAssetPurpose } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
 import {
@@ -28,8 +28,8 @@ export async function addAssetUsage(
   if (!isAssetSurface(surface)) return { ok: false, error: "Unknown use-case." }
 
   // The asset must be a published copy, and the surface must fall within what
-  // the client actually consented to — never trust the UI's gating alone.
-  const purpose = await getPurposeForPublishedAsset(supabase, assetId)
+  // the client actually released — never trust the UI's gating alone.
+  const purpose = await getAssetPurpose(supabase, assetId)
   if (!purpose) return { ok: false, error: "Asset not found." }
   if (!surfacesForPurpose(purpose).includes(surface)) {
     return {

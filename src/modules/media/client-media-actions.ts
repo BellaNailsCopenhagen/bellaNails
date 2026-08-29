@@ -9,7 +9,7 @@ import {
   getMediaOwner,
   insertMedia,
 } from "@/db/client-media"
-import { countPublishedConsents } from "@/db/media-consents"
+import { hasPublishedAssetForMedia } from "@/db/assets"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { getBookingOwner } from "@/db/bookings"
 
@@ -81,12 +81,12 @@ export async function deleteOwnMedia(
   // Was this image published anywhere? If so, deleting it fully erases the
   // published copy too (and its use-cases cascade away) — so leave the studio a
   // note to check their showcases / social posts.
-  const sharedCount = await countPublishedConsents(supabase, mediaId)
+  const wasShared = await hasPublishedAssetForMedia(supabase, mediaId)
 
   await purgeMediaArtifacts(mediaId)
   await archiveMedia(supabase, mediaId)
 
-  if (sharedCount > 0) {
+  if (wasShared) {
     await notifyOwner(supabase, { kind: "shared_image_deleted", clientId: userId })
   }
   return { ok: true }

@@ -18,7 +18,10 @@ import { ADMIN_LOCALE } from "@/config/admin"
 export const metadata: Metadata = { title: "Notifications" }
 export const dynamic = "force-dynamic"
 
-const PURPOSE_LABEL: Record<string, string> = { site: "website", some: "social" }
+const PURPOSE_LABEL: Record<string, string> = {
+  website: "website",
+  social: "social",
+}
 
 function describe(n: OwnerNotification): string {
   if (n.kind === "media_consent_withdrawn") {
@@ -92,7 +95,7 @@ export default async function AdminNotificationsPage() {
                       Fully removed — check any showcases or social posts that
                       used it.
                     </BodySm>
-                  ) : n.purpose === "some" ? (
+                  ) : n.purpose === "social" ? (
                     <BodySm className="text-xs text-destructive/80">
                       Remove it from your social posts — the website copy is
                       already gone.

@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { MyBookings } from "@/app/[locale]/appointments/_components/my-bookings"
 import { ConsentCentre } from "@/app/[locale]/appointments/_components/consent-centre"
+import { MediaReleaseCards } from "@/app/[locale]/appointments/_components/media-release-cards"
 import { ClientGallery } from "@/app/[locale]/appointments/_components/client-gallery"
 import {
   BookingsTabs,
@@ -19,6 +20,7 @@ import type {
   ClientMediaItem,
   DataConsentItem,
 } from "@/modules/media/client-gallery"
+import type { ReleaseRequestCard } from "@/shared/media-release"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getMySpace } from "@/modules/clients"
 import { singleParam } from "@/shared/search-params"
@@ -56,6 +58,7 @@ export default async function BookingsPage({
   const user = await getCurrentUser()
   let media: ClientMediaItem[] = []
   let dataConsents: DataConsentItem[] = []
+  let releaseRequests: ReleaseRequestCard[] = []
   let requestCount = 0
   let profile: {
     name: string | null
@@ -66,6 +69,7 @@ export default async function BookingsPage({
     const space = await getMySpace(user.id)
     media = space.media
     dataConsents = space.dataConsents
+    releaseRequests = space.releaseRequests
     requestCount = space.requestCount
     profile = space.profile
   }
@@ -100,8 +104,14 @@ export default async function BookingsPage({
             }
             gallery={<ClientGallery media={media} />}
             requests={
-              media.length || dataConsents.length ? (
-                <ConsentCentre media={media} dataConsents={dataConsents} />
+              releaseRequests.length ||
+              dataConsents.some(
+                (c) => c.status === "requested" || c.status === "granted",
+              ) ? (
+                <div className="space-y-8">
+                  <MediaReleaseCards cards={releaseRequests} />
+                  <ConsentCentre dataConsents={dataConsents} />
+                </div>
               ) : (
                 <EmptyState
                   title={t("requestsEmptyTitle")}

@@ -2,6 +2,7 @@ import type { BookingRow } from "@/db/bookings"
 
 import { metaOf } from "@/shared/booking-policy"
 import { pickLocalized } from "@/shared/localized"
+import type { ReleasePurposeState } from "@/shared/media-release"
 
 /**
  * The booking view model and its pure mapper. Lives in `shared/` because
@@ -31,6 +32,9 @@ export type DisplayBooking = {
   /** Catalog entry still exists (RLS hides archived services) — gates the
       "book again" deep link. */
   rebookable: boolean
+  /** Media-release state per purpose (admin view only) — attached by
+      resolveAdminBookings; undefined on client-facing surfaces. */
+  releases?: ReleasePurposeState[]
 }
 
 /** One attached image, already resolved to a viewable URL. */

@@ -7,7 +7,7 @@ const OWN_COLUMNS =
   "id, source, kind, url, storage_key, caption, service_id, booking_id, in_gallery, created_at"
 
 const HUB_COLUMNS =
-  "id, client_id, url, storage_key, kind, caption, created_at, source, dismissed_at, favorited_at"
+  "id, client_id, booking_id, url, storage_key, kind, caption, created_at, source, dismissed_at, favorited_at"
 
 export type OwnMediaRow = Pick<
   Row<"client_media">,
@@ -27,6 +27,7 @@ export type HubMediaRow = Pick<
   Row<"client_media">,
   | "id"
   | "client_id"
+  | "booking_id"
   | "url"
   | "storage_key"
   | "kind"
@@ -163,6 +164,26 @@ export async function getMediaFile(
     .eq("id", mediaId)
     .maybeSingle()
   return data ?? null
+}
+
+export type MediaPublishRow = Pick<
+  Row<"client_media">,
+  "id" | "client_id" | "booking_id" | "storage_key" | "kind"
+>
+
+/** The fields the publish flow needs: the booking (to check its release) + the
+    file to copy. Batch form — serves the single publish and the bulk gallery add. */
+export async function listMediaForPublish(
+  db: Db,
+  mediaIds: string[],
+): Promise<MediaPublishRow[]> {
+  const ids = [...new Set(mediaIds.filter(Boolean))]
+  if (ids.length === 0) return []
+  const { data } = await db
+    .from("client_media")
+    .select("id, client_id, booking_id, storage_key, kind")
+    .in("id", ids)
+  return data ?? []
 }
 
 export type MediaInsert = {

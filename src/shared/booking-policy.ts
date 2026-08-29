@@ -77,6 +77,34 @@ export function canMarkNoShow(
   )
 }
 
+/** Media capture starts around the appointment — the "request media release" and
+    "request review" actions appear on the card from 30 min before the start and
+    stay after it ends. Not shown on far-future cards. */
+export const MEDIA_REQUEST_LEAD_MS = 30 * 60 * 1000
+
+export function canRequestMediaConsent(
+  row: { status: string; start_time: string },
+  now: number,
+): boolean {
+  return (
+    isActiveBookingStatus(row.status) &&
+    now >= new Date(row.start_time).getTime() - MEDIA_REQUEST_LEAD_MS
+  )
+}
+
+/** "Request review" appears near the END of the appointment (30 min before it
+    finishes) and after — a review only makes sense once the visit is basically
+    done. */
+export function canRequestReview(
+  row: { status: string; end_time: string },
+  now: number,
+): boolean {
+  return (
+    isActiveBookingStatus(row.status) &&
+    now >= new Date(row.end_time).getTime() - MEDIA_REQUEST_LEAD_MS
+  )
+}
+
 /** At/above this, a client is a repeat offender (gate + admin share it). */
 export const NO_SHOW_ALERT_THRESHOLD = 2
 

@@ -9,8 +9,11 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { AddBookingMediaButton } from "@/components/admin/add-booking-media-button"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
+import { BookingRequestActions } from "@/components/admin/booking-request-actions"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import {
+  canRequestMediaConsent,
+  canRequestReview,
   metaOf,
   NO_SHOW_ALERT_THRESHOLD,
 } from "@/shared/booking-policy"
@@ -24,6 +27,12 @@ import { ADMIN_LOCALE } from "@/config/admin"
 // Keep only digits and a leading "+", so odd separators (dots, spaces, 00…)
 // can't produce an unparseable tel: URI.
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
+
+const RELEASE_LABEL: Record<string, string> = {
+  website: "Website",
+  social: "Social",
+  education: "Education",
+}
 
 /**
  * A booking card — the queue's list item and the Bookings view's expanded
@@ -89,6 +98,17 @@ export function QueueBookingCard({
     now != null &&
     Boolean(row.client_id) &&
     now >= new Date(row.start_time).getTime() - ADD_MEDIA_LEAD_MS
+  // Media release opens 30 min before the START (shots begin during the visit);
+  // review opens 30 min before the END (only worth asking once it's basically done).
+  const hasClient = now != null && Boolean(row.client_id)
+  const canRequestMedia = hasClient && canRequestMediaConsent(row, now!)
+  const canRequestReviewNow = hasClient && canRequestReview(row, now!)
+  // Media-release state (admin only) — hidden for cancelled bookings.
+  const releases =
+    row.status === BOOKING_STATUS.cancelled ? [] : (booking.releases ?? [])
+  const shownReleases = releases.filter(
+    (r) => r.status === "granted" || r.status === "requested",
+  )
 
   return (
     <TintedCard as={as} className="space-y-3 p-4 sm:p-5">
@@ -210,6 +230,26 @@ export function QueueBookingCard({
         </div>
       </div>
 
+      {/* Media-release state — visible even before the appointment (e.g. a
+          confirmation pre-approval); granted vs still-pending per purpose. */}
+      {shownReleases.length ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
+            Media
+          </span>
+          {shownReleases.map((r) => (
+            <Badge
+              key={r.purpose}
+              variant={r.status === "granted" ? "outline" : "warning"}
+              size="xs"
+            >
+              {RELEASE_LABEL[r.purpose] ?? r.purpose}
+              {r.status === "granted" ? " ✓" : " · pending"}
+            </Badge>
+          ))}
+        </div>
+      ) : null}
+
       {/* Attached media — tap a thumbnail to open it in the Assets hub. */}
       {photos.length ? (
         <div className="flex flex-wrap gap-1.5">
@@ -273,6 +313,18 @@ export function QueueBookingCard({
               </Button>
             ) : null}
           </div>
+        </div>
+      ) : null}
+
+      {/* Admin-triggered requests — media release (from 30 min before start) and
+          review (from 30 min before end). */}
+      {canRequestMedia || canRequestReviewNow ? (
+        <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+          <BookingRequestActions
+            bookingId={row.id}
+            canMedia={canRequestMedia}
+            canReview={canRequestReviewNow}
+          />
         </div>
       ) : null}
     </TintedCard>

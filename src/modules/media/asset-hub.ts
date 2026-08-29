@@ -1,21 +1,25 @@
 import "server-only"
 
-import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
 import { listUsagesForAssets } from "@/db/asset-usages"
+import { listAssetsForMedia } from "@/db/assets"
 import { listHubMedia } from "@/db/client-media"
-import { listHubConsents } from "@/db/media-consents"
+import { listReleasesForBookings } from "@/db/media-releases"
+import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { RELEASE_PURPOSES } from "@/shared/media-release"
 
 /**
- * The asset hub's read model — every client image across all clients, enriched
- * with consent + placement, and bucketed into one state for the hub's tabs.
+ * The asset hub's read model — every client image/video across all clients,
+ * enriched with its booking-level RELEASE state (per purpose) + any published
+ * public copies and their placements, bucketed into one state for the hub tabs.
  * Service-role, owner-gated route. Degrade-safe: missing tables → [].
  */
 
 export type HubState =
   | "new"
   | "awaiting"
-  | "unlinked"
+  | "granted"
+  | "published"
   | "in_use"
   | "declined"
   | "withdrawn"
@@ -24,11 +28,10 @@ export type HubState =
 
 export type HubUsage = { id: string; surface: string; url: string | null }
 
-export type HubConsent = {
-  id: string
-  purpose: string // 'site' | 'some'
-  status: string
-  publishedAssetId: string | null
+/** A published public copy of this original, for one purpose (website/social). */
+export type HubPublished = {
+  assetId: string
+  purpose: string
   needsTakedown: boolean
   usages: HubUsage[]
 }
@@ -36,6 +39,7 @@ export type HubConsent = {
 export type HubAsset = {
   mediaId: string
   clientId: string
+  bookingId: string | null
   url: string
   kind: string
   caption: string | null
@@ -44,53 +48,61 @@ export type HubAsset = {
   dismissed: boolean
   favorited: boolean
   state: HubState
-  /** Consent by purpose ('site' / 'some'). */
-  consents: Record<string, HubConsent>
+  /** Booking-level release status by purpose (website/social/education). */
+  releases: Record<string, string>
+  published: HubPublished[]
 }
 
 function deriveState(
-  consents: HubConsent[],
+  releases: Record<string, string>,
+  published: HubPublished[],
   dismissed: boolean,
 ): HubState {
-  if (consents.some((c) => c.needsTakedown)) return "takedown"
-  if (consents.some((c) => c.usages.length > 0)) return "in_use"
-  if (consents.some((c) => c.status === "granted")) return "unlinked"
-  if (consents.some((c) => c.status === "requested")) return "awaiting"
-  if (consents.some((c) => c.status === "declined")) return "declined"
-  if (consents.some((c) => c.status === "withdrawn")) return "withdrawn"
+  // This media's OWN publication wins first — releases are booking-level (shared
+  // by every photo of the booking), so a pending request for one purpose must not
+  // mask a photo that's already live for another.
+  if (published.some((p) => p.needsTakedown)) return "takedown"
+  if (published.some((p) => p.usages.length > 0)) return "in_use"
+  if (published.length > 0) return "published"
+  const statuses = Object.values(releases)
+  if (statuses.includes("granted")) return "granted"
+  if (statuses.includes("requested")) return "awaiting"
+  if (statuses.includes("declined")) return "declined"
+  if (statuses.includes("withdrawn")) return "withdrawn"
   if (dismissed) return "dismissed"
   return "new"
-}
-
-type MediaRow = {
-  id: string
-  client_id: string
-  url: string
-  storage_key: string | null
-  kind: string
-  caption: string | null
-  created_at: string
-  source: string
-  dismissed_at: string | null
-  favorited_at?: string | null
 }
 
 export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
   const supabase = createSupabaseServiceRoleClient()
 
-  const media = (await listHubMedia(supabase, clientId)) as MediaRow[]
+  const media = await listHubMedia(supabase, clientId)
   if (!media.length) return []
 
-  const consents = await listHubConsents(
+  const releaseRows = await listReleasesForBookings(
+    supabase,
+    media.map((m) => m.booking_id ?? "").filter(Boolean),
+  )
+  const releasesByBooking = new Map<string, Record<string, string>>()
+  const blank = () =>
+    Object.fromEntries(RELEASE_PURPOSES.map((p) => [p, "none"])) as Record<
+      string,
+      string
+    >
+  for (const r of releaseRows) {
+    const cur = releasesByBooking.get(r.booking_id) ?? blank()
+    cur[r.purpose] = r.status
+    releasesByBooking.set(r.booking_id, cur)
+  }
+
+  const assets = await listAssetsForMedia(
     supabase,
     media.map((m) => m.id),
   )
-
-  const assetIds = consents
-    .map((c) => c.published_asset_id)
-    .filter((id): id is string => Boolean(id))
-  const usages = await listUsagesForAssets(supabase, assetIds)
-
+  const usages = await listUsagesForAssets(
+    supabase,
+    assets.map((a) => a.id),
+  )
   const usagesByAsset = new Map<string, HubUsage[]>()
   for (const u of usages) {
     const list = usagesByAsset.get(u.asset_id) ?? []
@@ -98,20 +110,17 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
     usagesByAsset.set(u.asset_id, list)
   }
 
-  const consentsByMedia = new Map<string, HubConsent[]>()
-  for (const c of consents) {
-    const list = consentsByMedia.get(c.client_media_id) ?? []
+  const publishedByMedia = new Map<string, HubPublished[]>()
+  for (const a of assets) {
+    if (!a.client_media_id) continue
+    const list = publishedByMedia.get(a.client_media_id) ?? []
     list.push({
-      id: c.id,
-      purpose: c.purpose,
-      status: c.status,
-      publishedAssetId: c.published_asset_id,
-      needsTakedown: Boolean(c.needs_takedown_at),
-      usages: c.published_asset_id
-        ? (usagesByAsset.get(c.published_asset_id) ?? [])
-        : [],
+      assetId: a.id,
+      purpose: a.purpose ?? "website",
+      needsTakedown: Boolean(a.needs_takedown_at),
+      usages: usagesByAsset.get(a.id) ?? [],
     })
-    consentsByMedia.set(c.client_media_id, list)
+    publishedByMedia.set(a.client_media_id, list)
   }
 
   // Presign private-original view URLs in parallel.
@@ -129,12 +138,12 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
   const urlByMedia = new Map(urlEntries)
 
   return media.map((m) => {
-    const list = consentsByMedia.get(m.id) ?? []
-    const consentsByPurpose: Record<string, HubConsent> = {}
-    for (const c of list) consentsByPurpose[c.purpose] = c
+    const releases = (m.booking_id && releasesByBooking.get(m.booking_id)) || blank()
+    const published = publishedByMedia.get(m.id) ?? []
     return {
       mediaId: m.id,
       clientId: m.client_id,
+      bookingId: m.booking_id,
       url: urlByMedia.get(m.id) ?? m.url,
       kind: m.kind,
       caption: m.caption,
@@ -142,8 +151,9 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
       source: m.source,
       dismissed: Boolean(m.dismissed_at),
       favorited: Boolean(m.favorited_at),
-      state: deriveState(list, Boolean(m.dismissed_at)),
-      consents: consentsByPurpose,
+      state: deriveState(releases, published, Boolean(m.dismissed_at)),
+      releases,
+      published,
     }
   })
 }

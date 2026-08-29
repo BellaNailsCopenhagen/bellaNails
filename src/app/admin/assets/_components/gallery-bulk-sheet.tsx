@@ -12,13 +12,13 @@ import { bulkAddToGallery } from "@/modules/media/asset-actions"
 import type { HubAsset } from "@/modules/media/asset-hub"
 import { cn } from "@/shared/cn"
 
-type Candidate = { asset: HubAsset; ready: boolean }
+type Candidate = { asset: HubAsset }
 
 /**
- * Bulk "add to website gallery" in one flow. Candidates (not already on the
- * gallery, not pending/declined for the site) start all-selected; deselect to
- * exclude. "Ready" photos go up now; the rest get a consent request that
- * auto-places on grant.
+ * Bulk "add to website gallery" in one flow. Candidates are media whose booking
+ * is RELEASED for the website but not yet on the gallery surface — start
+ * all-selected; deselect to exclude. (Requesting a release is booking-level, done
+ * from the booking card / hub, so this sheet only places already-released media.)
  */
 export function GalleryBulkSheet({
   assets,
@@ -36,20 +36,16 @@ export function GalleryBulkSheet({
   const candidates: Candidate[] = useMemo(
     () =>
       assets.flatMap((asset) => {
-        const site = asset.consents.site
-        const onGallery = (site?.usages ?? []).some(
+        // Only bookings the client released for the website qualify.
+        if (asset.releases.website !== "granted") return []
+        const websitePublished = asset.published.find(
+          (p) => p.purpose === "website",
+        )
+        const onGallery = (websitePublished?.usages ?? []).some(
           (u) => u.surface === "clients_gallery",
         )
-        // Skip if live, pending, or the client already said no (declined/withdrawn).
-        if (
-          onGallery ||
-          site?.status === "requested" ||
-          site?.status === "declined" ||
-          site?.status === "withdrawn"
-        )
-          return []
-        const ready = site?.status === "granted" && Boolean(site.publishedAssetId)
-        return [{ asset, ready }]
+        if (onGallery) return []
+        return [{ asset }]
       }),
     [assets],
   )
@@ -58,8 +54,6 @@ export function GalleryBulkSheet({
     ? candidates.filter((c) => c.asset.favorited)
     : candidates
   const chosen = shown.filter((c) => !deselected.has(c.asset.mediaId))
-  const readyCount = chosen.filter((c) => c.ready).length
-  const requestCount = chosen.length - readyCount
 
   const toggle = (id: string) =>
     setDeselected((prev) => {
@@ -92,7 +86,7 @@ export function GalleryBulkSheet({
         {shown.length ? (
           <>
             <ul className="grid max-h-[46vh] grid-cols-3 gap-1.5 overflow-y-auto">
-              {shown.map(({ asset, ready }) => {
+              {shown.map(({ asset }) => {
                 const on = !deselected.has(asset.mediaId)
                 return (
                   <li key={asset.mediaId}>
@@ -115,16 +109,6 @@ export function GalleryBulkSheet({
                           <Check className="size-3" />
                         </span>
                       ) : null}
-                      <span
-                        className={cn(
-                          "absolute right-1 bottom-1 rounded-full px-1.5 py-0.5 font-functional text-[0.5rem] uppercase tracking-widest-lux",
-                          ready
-                            ? "bg-success/90 text-background"
-                            : "bg-warning/90 text-background",
-                        )}
-                      >
-                        {ready ? "ready" : "will ask"}
-                      </span>
                     </button>
                   </li>
                 )
@@ -133,13 +117,8 @@ export function GalleryBulkSheet({
 
             <BodySm className="text-xs text-muted-foreground">
               <span className="text-foreground">{chosen.length}</span> photo
-              {chosen.length === 1 ? "" : "s"} → website gallery.{" "}
-              {readyCount > 0
-                ? `${readyCount} already approved (show right away). `
-                : ""}
-              {requestCount > 0
-                ? `${requestCount} need the client's OK — we ask automatically and they appear once granted.`
-                : ""}
+              {chosen.length === 1 ? "" : "s"} → website gallery. All are released
+              for the website and appear right away.
             </BodySm>
 
             <div className="flex justify-end">

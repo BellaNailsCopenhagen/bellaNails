@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
 import { ConfirmationRecap } from "@/app/[locale]/confirmation/_components/confirmation-recap"
+import { ConfirmationRelease } from "@/app/[locale]/confirmation/_components/confirmation-release"
+import { signBookingToken } from "@/modules/booking/manage-token"
 import { Container, Section } from "@/components/layout/container"
 import { PageHeader } from "@/components/ui/page-header"
 import { Button } from "@/components/ui/button"
@@ -20,6 +22,16 @@ import { STUDIO_ADDRESS } from "@/config/studio"
  */
 export async function Confirmation({ id }: { id: string | null }) {
   const t = await getTranslations("confirmation")
+  // Sign a token so the (possibly guest) client can pre-approve the media release
+  // for this booking. Guarded — a missing token secret just hides the opt-in.
+  let releaseToken: string | null = null
+  if (id) {
+    try {
+      releaseToken = signBookingToken(id)
+    } catch {
+      releaseToken = null
+    }
+  }
 
   return (
     <Section>
@@ -62,14 +74,27 @@ export async function Confirmation({ id }: { id: string | null }) {
             </SignedOut>
 
             <SignedIn>
-              <div className="space-y-4 border-t border-border pt-10">
-                <BodySm className="max-w-md">{t("signedInBody")}</BodySm>
-                <Button
-                  nativeButton={false}
-                  render={<Link href={routes.appointments} />}
-                >
-                  {t("viewBookings")}
-                </Button>
+              <div className="border-t border-border pt-10">
+                {releaseToken ? (
+                  // Media-release opt-in leads; it hands back to the manage-booking
+                  // note once saved or skipped.
+                  <ConfirmationRelease
+                    token={releaseToken}
+                    signedInBody={t("signedInBody")}
+                    viewBookingsLabel={t("viewBookings")}
+                    appointmentsHref={routes.appointments}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <BodySm className="max-w-md">{t("signedInBody")}</BodySm>
+                    <Button
+                      nativeButton={false}
+                      render={<Link href={routes.appointments} />}
+                    >
+                      {t("viewBookings")}
+                    </Button>
+                  </div>
+                )}
               </div>
             </SignedIn>
           </div>

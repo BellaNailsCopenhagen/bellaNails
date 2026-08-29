@@ -19,10 +19,10 @@ export const SURFACE_LABELS: Record<AssetSurface, string> = {
   some: "Social",
 }
 
-/** Site consent → website surfaces; SoMe consent → social. Placement can't
-    outrun what the client approved. */
+/** website release → website surfaces; social release → SoMe. Placement can't
+    outrun what the client approved. (`education` never produces an on-site copy.) */
 export function surfacesForPurpose(purpose: string): AssetSurface[] {
-  return purpose === "some"
+  return purpose === "social"
     ? ["some"]
     : ["clients_gallery", "showcase", "testimonial"]
 }

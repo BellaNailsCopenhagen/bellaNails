@@ -1,6 +1,7 @@
 /**
- * The media module's server surface: client photos, the consent lifecycle that
- * governs publishing them, and the published copies on public surfaces.
+ * The media module's server surface: client photos/videos, the booking-level
+ * RELEASE lifecycle that governs publishing them, and the published copies on
+ * public surfaces.
  *
  * **Client components must not import this** — it is transitively
  * `server-only`. They import the `*-actions` files directly.
@@ -13,10 +14,15 @@ export {
   type ClientMediaItem,
   type ConsentStatus,
   type DataConsentItem,
-  type MediaPurpose,
 } from "./client-gallery"
-export { getHubAssets, type HubAsset, type HubConsent, type HubUsage } from "./asset-hub"
+export {
+  getHubAssets,
+  type HubAsset,
+  type HubPublished,
+  type HubUsage,
+} from "./asset-hub"
 export { pendingRequestCount } from "./consent-requests"
+export { getReleaseRequestForToken } from "./release-reads"
 export { getPublicAssetsBySurface, type PublicAsset } from "./public-assets"
 export {
   getGalleryPreviewItems,
@@ -28,27 +34,23 @@ export { purgeMediaArtifacts } from "./erasure"
 
 // Writes. Re-exported for server callers; client components import the
 // ./*-actions modules directly.
+export { decideDataConsent, withdrawDataConsent } from "./consent-actions"
 export {
-  acceptAllPendingConsents,
-  decideDataConsent,
-  decideMediaConsent,
-  withdrawDataConsent,
-  withdrawMediaConsent,
-} from "./consent-actions"
+  decideMediaRelease,
+  respondToReleaseToken,
+  withdrawMediaRelease,
+} from "./release-actions"
 export { addOwnBookingMedia, deleteOwnMedia } from "./client-media-actions"
 export {
   addClientMedia,
-  requestBothPublish,
   requestDataConsent,
-  requestMediaPublish,
+  requestMediaRelease,
 } from "./owner-media-actions"
 export {
   bulkAddToGallery,
   confirmTakedown,
+  publishMedia,
   setMediaDismissed,
   setMediaFavorite,
 } from "./asset-actions"
-export {
-  addAssetUsage,
-  removeAssetUsage,
-} from "./usage-actions"
+export { addAssetUsage, removeAssetUsage } from "./usage-actions"

@@ -21,6 +21,8 @@ export type CommunicationKind =
   | "cancellation"
   | "reschedule"
   | "reminder"
+  | "media_release_request"
+  | "review_request"
 export type CommunicationTrigger = "auto" | "manual"
 export type CommunicationChannel = "email" | "in_app" | "push"
 // `sent` = accepted by the mail server (NOT proof of inbox delivery — plain SMTP

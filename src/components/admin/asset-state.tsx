@@ -68,7 +68,8 @@ export function toSimpleState(state: string): SimpleState {
   switch (state) {
     case "awaiting":
       return "awaiting"
-    case "unlinked":
+    case "granted": // released, not yet published
+    case "published": // public copy made, not yet placed
       return "ready"
     case "in_use":
       return "live"

@@ -5,17 +5,31 @@ import { revalidatePath } from "next/cache"
 import { getBookingOwner } from "@/db/bookings"
 import { insertMedia } from "@/db/client-media"
 import { upsertDataConsent } from "@/db/client-consents"
-import { upsertConsent, upsertConsents } from "@/db/media-consents"
+import {
+  listReleasesForBookings,
+  upsertReleases,
+  type ReleasePurpose,
+  type ReleaseUpsert,
+} from "@/db/media-releases"
+import { approveUrlFor } from "@/modules/booking/manage-token"
+import { fetchClientContacts } from "@/modules/clients/contacts"
 import { requireOwner } from "@/modules/identity/require-owner"
-import type { MediaPurpose } from "@/modules/media/client-gallery"
+import {
+  recordCommunication,
+  statusFromEmailResult,
+} from "@/modules/notifications/communications"
+import { sendMediaReleaseRequestEmail } from "@/modules/notifications/release-email"
 import { objectUrl } from "@/platform/storage/scaleway"
+import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
+import { bookingRef } from "@/shared/media-release"
 import { routes } from "@/shared/routes"
+import { formatStudioDate } from "@/shared/studio-time"
 
 /**
- * Owner-side media + consent management: record a client's image, archive it,
- * set the service feature image, and REQUEST the client's consent to publish an
- * image (site/SoMe) or use their data. The client decides via client-consent.ts;
- * the owner never grants on their behalf.
+ * Owner-side media + consent management: record a client's image, and REQUEST the
+ * client's BOOKING-LEVEL release to use that appointment's media (website / social
+ * / education) or to use their data (name / testimonial). The client decides via
+ * release-actions.ts; the owner never grants on their behalf.
  */
 
 export type MediaActionResult = { ok: true } | { ok: false; error: string }
@@ -69,14 +83,14 @@ export async function addClientMedia(input: {
   return { ok: true }
 }
 
-// A fresh "requested" consent row — resets any prior declined/withdrawn state.
-function requestedConsentRow(
-  mediaId: string,
+// A fresh "requested" release row — resets any prior declined/withdrawn state.
+function requestedReleaseRow(
+  bookingId: string,
   clientId: string,
-  purpose: MediaPurpose,
-) {
+  purpose: ReleasePurpose,
+): ReleaseUpsert {
   return {
-    client_media_id: mediaId,
+    booking_id: bookingId,
     client_id: clientId,
     purpose,
     status: "requested",
@@ -84,46 +98,91 @@ function requestedConsentRow(
     granted_at: null,
     declined_at: null,
     withdrawn_at: null,
-    needs_takedown_at: null,
-    published_asset_id: null,
   }
 }
 
-/** Ask the client to consent to publishing an image for a purpose. */
-export async function requestMediaPublish(
-  mediaId: string,
+/** Email the client the approval link + log it. Best-effort — a mail failure
+    must not fail the request (the ask is also visible in My Space). */
+async function emailReleaseRequest(
+  bookingId: string,
   clientId: string,
-  purpose: MediaPurpose,
-): Promise<MediaActionResult> {
-  const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  selectedAddons: unknown,
+  startIso: string | null,
+  purposes: ReleasePurpose[],
+): Promise<void> {
+  const contact = (await fetchClientContacts([clientId]))[clientId]
+  if (!contact?.email) return
+  const locale = contact.communicationLocale
+  const approveUrl = approveUrlFor(locale, bookingId)
+  if (!approveUrl) return
 
-  const saved = await upsertConsent(
-    supabase,
-    requestedConsentRow(mediaId, clientId, purpose),
-  )
-  if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
+  const { serviceName } = localizedBookingNames(metaOf({ selected_addons: selectedAddons }), locale)
+  const when = startIso ? formatStudioDate(startIso, locale) : ""
 
-  revalidatePath(routes.admin.client(clientId))
-  return { ok: true }
+  const res = await sendMediaReleaseRequestEmail({
+    to: contact.email,
+    firstName: contact.firstName,
+    locale,
+    serviceName,
+    when,
+    ref: bookingRef(bookingId),
+    purposes,
+    approveUrl,
+  })
+  await recordCommunication({
+    clientId,
+    bookingId,
+    kind: "media_release_request",
+    trigger: "manual",
+    recipient: contact.email,
+    status: statusFromEmailResult(res),
+    error: res.error,
+  })
 }
 
-/** Request BOTH website + social in one go (from the hub's New tab, so the card
-    doesn't jump to Awaiting after only one purpose). */
-export async function requestBothPublish(
-  mediaId: string,
-  clientId: string,
+/** Ask the client to release a BOOKING's media for one or more purposes. Covers
+    every photo + video from that appointment (consent is booking-level). */
+export async function requestMediaRelease(
+  bookingId: string,
+  purposes: ReleasePurpose[],
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
+  if (purposes.length === 0) return { ok: true }
 
-  const saved = await upsertConsents(supabase, [
-    requestedConsentRow(mediaId, clientId, "site"),
-    requestedConsentRow(mediaId, clientId, "some"),
-  ])
-  if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
+  const booking = await getBookingOwner(supabase, bookingId)
+  if (!booking) return { ok: false, error: "Booking not found." }
 
-  revalidatePath(routes.admin.client(clientId))
+  // Only ask for what's still open: skip purposes the client already GRANTED
+  // (e.g. pre-approved at booking) — re-requesting must never reset a grant.
+  const existing = await listReleasesForBookings(supabase, [bookingId])
+  const granted = new Set(
+    existing.filter((r) => r.status === "granted").map((r) => r.purpose),
+  )
+  const toRequest = purposes.filter((p) => !granted.has(p))
+  if (toRequest.length === 0) return { ok: true } // all purposes already granted
+
+  // The approval link already lists every currently-requested purpose, so if a
+  // request is pending we skip a second email — the existing link covers the
+  // newly-added purpose too.
+  const alreadyPending = existing.some((r) => r.status === "requested")
+
+  const saved = await upsertReleases(
+    supabase,
+    toRequest.map((p) => requestedReleaseRow(bookingId, booking.client_id, p)),
+  )
+  if (!saved.ok) return { ok: false, error: "Couldn’t request the release." }
+
+  revalidatePath(routes.admin.client(booking.client_id))
+  if (!alreadyPending) {
+    await emailReleaseRequest(
+      bookingId,
+      booking.client_id,
+      booking.selected_addons,
+      booking.start_time,
+      toRequest,
+    )
+  }
   return { ok: true }
 }
 

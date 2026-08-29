@@ -2,8 +2,10 @@ import "server-only"
 
 import { countNoShowsByClient, type BookingRow } from "@/db/bookings"
 import type { Db } from "@/db/client"
+import { listReleasesForBookings } from "@/db/media-releases"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import type { ClientContact } from "@/shared/contact"
+import { groupReleasesByBooking } from "@/shared/media-release"
 import { ADMIN_LOCALE } from "@/config/admin"
 import { toDisplayBookings } from "./booking-view"
 import type { DisplayBooking } from "@/shared/booking-view"
@@ -22,7 +24,7 @@ export async function resolveAdminBookings(
   contacts: Record<string, ClientContact>
   noShowCounts: Record<string, number>
 }> {
-  const [bookings, contacts, noShowCounts] = await Promise.all([
+  const [bookings, contacts, noShowCounts, releaseRows] = await Promise.all([
     toDisplayBookings(supabase, rows, ADMIN_LOCALE, context),
     fetchClientContacts(rows.map((row) => row.client_id)),
     countNoShowsByClient(
@@ -35,7 +37,19 @@ export async function resolveAdminBookings(
       )
       return {}
     }),
+    listReleasesForBookings(
+      supabase,
+      rows.map((row) => row.id),
+    ).catch(() => []),
   ])
 
-  return { bookings, contacts, noShowCounts }
+  // Attach the media-release state per booking so the card can show it (incl.
+  // future bookings pre-approved at confirmation).
+  const releasesByBooking = groupReleasesByBooking(releaseRows)
+  const withReleases = bookings.map((b) => ({
+    ...b,
+    releases: releasesByBooking.get(b.row.id) ?? [],
+  }))
+
+  return { bookings: withReleases, contacts, noShowCounts }
 }

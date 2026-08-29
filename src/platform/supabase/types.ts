@@ -98,28 +98,37 @@ export type Database = {
       }
       assets: {
         Row: {
+          client_media_id: string | null
           cloudinary_public_id: string | null
           created_at: string | null
           id: string
           media_type: string
+          needs_takedown_at: string | null
+          purpose: string | null
           storage_key: string | null
           storage_provider: string
           url: string
         }
         Insert: {
+          client_media_id?: string | null
           cloudinary_public_id?: string | null
           created_at?: string | null
           id?: string
           media_type: string
+          needs_takedown_at?: string | null
+          purpose?: string | null
           storage_key?: string | null
           storage_provider?: string
           url: string
         }
         Update: {
+          client_media_id?: string | null
           cloudinary_public_id?: string | null
           created_at?: string | null
           id?: string
           media_type?: string
+          needs_takedown_at?: string | null
+          purpose?: string | null
           storage_key?: string | null
           storage_provider?: string
           url?: string
@@ -219,44 +228,38 @@ export type Database = {
         }
         Relationships: []
       }
-      media_consents: {
+      media_releases: {
         Row: {
-          auto_place: boolean
-          client_media_id: string
+          booking_id: string
           client_id: string
+          consent_version: string | null
           declined_at: string | null
           granted_at: string | null
           id: string
-          needs_takedown_at: string | null
-          published_asset_id: string | null
           purpose: string
           requested_at: string
           status: string
           withdrawn_at: string | null
         }
         Insert: {
-          auto_place?: boolean
-          client_media_id: string
+          booking_id: string
           client_id: string
+          consent_version?: string | null
           declined_at?: string | null
           granted_at?: string | null
           id?: string
-          needs_takedown_at?: string | null
-          published_asset_id?: string | null
           purpose: string
           requested_at?: string
           status?: string
           withdrawn_at?: string | null
         }
         Update: {
-          auto_place?: boolean
-          client_media_id?: string
+          booking_id?: string
           client_id?: string
-          needs_takedown_at?: string | null
+          consent_version?: string | null
           declined_at?: string | null
           granted_at?: string | null
           id?: string
-          published_asset_id?: string | null
           purpose?: string
           requested_at?: string
           status?: string

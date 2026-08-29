@@ -56,3 +56,13 @@ export function manageUrlFor(locale: string, bookingId: string): string | undefi
     return undefined
   }
 }
+
+/** The guest media-release approval link — same signed token, /approve route. */
+export function approveUrlFor(locale: string, bookingId: string): string | undefined {
+  if (!SITE_URL) return undefined
+  try {
+    return `${SITE_URL}/${locale}/approve/${signBookingToken(bookingId)}`
+  } catch {
+    return undefined
+  }
+}

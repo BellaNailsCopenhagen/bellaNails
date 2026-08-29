@@ -9,7 +9,7 @@ import {
 } from "@/db/client-media"
 import { anonymizeClientRow, getClientErasureState } from "@/db/clients"
 import { scrubCommunicationsForClient } from "@/db/communications"
-import { hasArtistUseSignal } from "@/db/media-consents"
+import { hasPublishedAssetForMedia } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
 import { purgeMediaArtifacts } from "@/modules/media/erasure"
@@ -30,7 +30,7 @@ async function isArtistInUse(
   media: { id: string; favorited_at: string | null },
 ): Promise<boolean> {
   if (media.favorited_at) return true
-  return hasArtistUseSignal(admin, media.id)
+  return hasPublishedAssetForMedia(admin, media.id)
 }
 
 /**

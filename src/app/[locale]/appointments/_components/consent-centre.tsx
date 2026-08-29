@@ -10,31 +10,21 @@ import {
   withdrawPill,
 } from "@/components/ui/confirm-action-button"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import type {
-  ClientMediaItem,
-  DataConsentItem,
-  MediaPurpose,
-} from "@/modules/media/client-gallery"
+import type { DataConsentItem } from "@/modules/media/client-gallery"
 import {
-  acceptAllPendingConsents,
   decideDataConsent,
-  decideMediaConsent,
   withdrawDataConsent,
 } from "@/modules/media/consent-actions"
 
-type MediaRequest = { media: ClientMediaItem; purpose: MediaPurpose }
-
 /**
- * The client's consent centre on /appointments — every request the studio has
- * made to publish a photo or use their data, with Allow / No, plus an
- * accept-all for the whole list. The client is always in control; nothing is
- * published without an explicit grant, and declines stay per-item.
+ * The client's data-consent centre on /appointments — the studio's requests to
+ * use their name / testimonial, with Allow / No and a withdraw once granted.
+ * (Media use is now a booking-level RELEASE, approved per appointment — see the
+ * release cards.) The client is always in control; declines stay per-item.
  */
 export function ConsentCentre({
-  media,
   dataConsents,
 }: {
-  media: ClientMediaItem[]
   dataConsents: DataConsentItem[]
 }) {
   const t = useTranslations("bookings")
@@ -57,88 +47,20 @@ export function ConsentCentre({
     }
   }
 
-  // Only photos still AWAITING a decision live here — once granted, the client
-  // manages sharing from the photo itself in the Gallery (a quieter, more
-  // considered place for withdrawal). Requests stays a clean to-decide inbox.
-  const requests: MediaRequest[] = []
-  for (const item of media) {
-    for (const purpose of ["site", "some"] as MediaPurpose[]) {
-      if (item[purpose] === "requested") {
-        requests.push({ media: item, purpose })
-      }
-    }
-  }
   const dataRequests = dataConsents.filter(
     (c) => c.status === "requested" || c.status === "granted",
   )
 
-  if (!requests.length && !dataRequests.length) return null
-
-  // Accept-all covers PHOTOS only (data/testimonial consent stays per-item) —
-  // show it only when there are 2+ pending photo requests to speed through.
-  const pendingPhotoCount = requests.length
+  if (!dataRequests.length) return null
 
   return (
     <section className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <Eyebrow>{t("permsEyebrow")}</Eyebrow>
-          <BodySm className="text-xs">{t("permsIntro")}</BodySm>
-        </div>
-        {pendingPhotoCount >= 2 ? (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            className="shrink-0"
-            onClick={() => act(() => acceptAllPendingConsents())}
-          >
-            {t("acceptAllPhotos")}
-          </Button>
-        ) : null}
+      <div className="space-y-1">
+        <Eyebrow>{t("permsEyebrow")}</Eyebrow>
+        <BodySm className="text-xs">{t("permsIntro")}</BodySm>
       </div>
 
       <div className="space-y-3">
-        {requests.map(({ media: item, purpose }) => (
-          <TintedCard
-            key={`${item.id}-${purpose}`}
-            className="flex items-center gap-4 p-4"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={item.url}
-              alt={t("photoAlt")}
-              className="size-16 shrink-0 rounded-sm border border-border object-cover"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="font-functional text-sm text-foreground">
-                {t(purpose === "site" ? "sharePromptSite" : "sharePromptSome")}
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  act(() => decideMediaConsent(item.id, purpose, "declined"))
-                }
-              >
-                {t("consentDecline")}
-              </Button>
-              <Button
-                size="sm"
-                disabled={pending}
-                onClick={() =>
-                  act(() => decideMediaConsent(item.id, purpose, "granted"))
-                }
-              >
-                {t("consentAllow")}
-              </Button>
-            </div>
-          </TintedCard>
-        ))}
-
         {dataRequests.map((consent) => (
           <TintedCard
             key={consent.purpose}
