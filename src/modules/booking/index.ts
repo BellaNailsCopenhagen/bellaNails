@@ -39,4 +39,5 @@ export {
 // Server-side resolution helpers.
 export { toDisplayBookings } from "./booking-view"
 export { resolveAdminBookings } from "./admin-view"
+export { getPendingRequests, type RequestView } from "./request-reads"
 export { getBookingMediaThumbs } from "./booking-media"

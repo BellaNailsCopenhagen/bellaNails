@@ -2,16 +2,17 @@
 
 import { revalidatePath } from "next/cache"
 
-import type { Db, Insert } from "@/db/client"
-import { listIncompatiblePairsAmong } from "@/db/addon-incompatibilities"
 import {
   countActiveUpcomingBookingsForClient,
   insertBooking,
 } from "@/db/bookings"
 import { updateClientCommunicationLocale } from "@/db/clients"
-import { getBookableService } from "@/db/services"
 import { resolveLocale, type Locale } from "@/i18n/routing"
 import { getAvailableSlots } from "@/modules/booking/availability"
+import {
+  buildBookingDraft,
+  type BookingDraft,
+} from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
 import type { Slot } from "@/shared/booking-slots"
 import { fetchClientContacts } from "@/modules/clients"
@@ -24,11 +25,9 @@ import {
 } from "@/modules/notifications/communications"
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
-import { BOOKING_STATUS } from "@/shared/booking-status"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes, revalidatePatterns } from "@/shared/routes"
 
-const MIN = 60_000
 // A real client holds at most this many active bookings at once (hands + feet).
 const MAX_ACTIVE_BOOKINGS = 2
 
@@ -48,105 +47,6 @@ export type CreateBookingInput = {
 export type CreateBookingResult =
   | { ok: true; id: string }
   | { ok: false; error: string }
-
-type DraftInput = {
-  serviceId: string
-  addonIds: string[]
-  start: string
-  notes?: string
-  locale?: string
-}
-
-type BookingDraft = {
-  values: Omit<Insert<"bookings">, "client_id">
-  service: { name_en: string; name_dk: string | null }
-  addons: { name_en: string; name_dk: string | null }[]
-  endIso: string
-  totalPriceCents: number
-}
-
-/**
- * Shared core of both create paths: load the service, keep only its live
- * (non-archived) selected add-ons, re-validate the chosen slot by instant, and
- * assemble the insert (minus client_id) with the as-booked snapshot. Returns an
- * error the caller surfaces verbatim. `ignoreLeadTime` lets the owner path place
- * near-term slots; the exclusion constraint still guards the overlap race.
- */
-async function prepareBooking(
-  db: Db,
-  input: DraftInput,
-  ignoreLeadTime: boolean,
-): Promise<{ ok: true; draft: BookingDraft } | { ok: false; error: string }> {
-  const service = await getBookableService(db, input.serviceId).catch(() => null)
-  if (!service) return { ok: false, error: "Service not found." }
-
-  // Only add-ons that belong to this service and aren't archived.
-  const addons = service.service_addons
-    .map((sa) => sa.addons)
-    .filter(
-      (a): a is NonNullable<typeof a> =>
-        !!a && !a.archived_at && input.addonIds.includes(a.id),
-    )
-
-  // Fail closed on an incompatible add-on combo — the picker disables clashers,
-  // but the server must never trust the client and persist an invalid pair.
-  try {
-    const clashes = await listIncompatiblePairsAmong(db, addons.map((a) => a.id))
-    if (clashes.length > 0) {
-      return { ok: false, error: "Those add-ons can’t be combined — please adjust your selection." }
-    }
-  } catch {
-    return { ok: false, error: "Couldn’t validate the add-ons — please try again." }
-  }
-
-  const durationMins =
-    service.base_duration_mins +
-    addons.reduce((sum, a) => sum + a.extra_duration_mins, 0)
-  const totalPriceCents =
-    service.base_price_cents +
-    addons.reduce((sum, a) => sum + a.extra_price_cents, 0)
-
-  const startMs = new Date(input.start).getTime()
-  if (!Number.isFinite(startMs)) return { ok: false, error: "Pick a valid time." }
-  const slots = await getAvailableSlots(input.serviceId, input.addonIds, db, {
-    ignoreLeadTime,
-  })
-  if (!slots.some((s) => new Date(s.start).getTime() === startMs)) {
-    return { ok: false, error: "That time isn't available — please pick another." }
-  }
-  const endIso = new Date(startMs + durationMins * MIN).toISOString()
-
-  return {
-    ok: true,
-    draft: {
-      service,
-      addons,
-      endIso,
-      totalPriceCents,
-      values: {
-        status: BOOKING_STATUS.confirmed,
-        start_time: input.start,
-        end_time: endIso,
-        total_price_cents: totalPriceCents,
-        client_notes: input.notes?.trim() || null,
-        // As-booked snapshot — a later catalog edit can't rewrite this booking.
-        selected_addons: {
-          serviceId: input.serviceId,
-          addonIds: input.addonIds,
-          totalDurationMins: durationMins,
-          locale: input.locale ?? null,
-          serviceNameEn: service.name_en,
-          serviceNameDk: service.name_dk,
-          addonSnapshots: addons.map((a) => ({
-            id: a.id,
-            nameEn: a.name_en,
-            nameDk: a.name_dk,
-          })),
-        },
-      },
-    },
-  }
-}
 
 // The client's confirmation email — best-effort (the sender swallows errors).
 async function sendConfirmation(
@@ -213,7 +113,7 @@ export async function createBooking(
   }
 
   const db = createSupabaseServiceRoleClient()
-  const prepared = await prepareBooking(db, input, false)
+  const prepared = await buildBookingDraft(db, input, { checkSlot: true })
   if (!prepared.ok) return prepared
   const { draft } = prepared
 
@@ -308,7 +208,10 @@ export async function createBookingAsOwner(
   const db = await requireOwner()
   if (!db) return { ok: false, error: "Not authorized." }
 
-  const prepared = await prepareBooking(db, input, true)
+  const prepared = await buildBookingDraft(db, input, {
+    checkSlot: true,
+    ignoreLeadTime: true,
+  })
   if (!prepared.ok) return prepared
   const { draft } = prepared
 

@@ -1,86 +1,57 @@
--- Out-of-hours booking requests (Phase 8).
--- Source of record — apply to the live project via the Supabase SQL editor / MCP.
---
--- A booking_request is "a client wants a slot" — typically outside normal
--- availability (currently anything but Saturday), which Cal.com won't offer
--- self-service. The artist reviews it, agrees a time, creates the Cal.com
--- booking (host-created, out-of-hours via the API), and links it here; the
--- confirmed row still lands in `bookings` through the existing Cal.com webhook.
---
--- Identity model: client PII (email/name) lives in Clerk. We store only the
--- pseudonymous `clerk_user_id` (the webhook / request flow create-or-find a
--- Clerk user by email), so this table holds no personal data.
+-- Booking requests — a client asks for a slot the self-service flow won't grant:
+--   outside_hours → client picks an ideal date + preferred time (NOT guaranteed)
+--   over_limit    → past the 2-active cap; they already picked a real slot
+-- The artist reviews in the admin, may adjust the time, then ACCEPTS (creates a
+-- real booking, bypassing limits) or REJECTS (with a reason). No prod data, and
+-- the old starter was Clerk/Cal-era (clerk_user_id) — drop and recreate on
+-- client_id, matching the in-house model.
 
--- 1. updated_at helper. SECURITY INVOKER (default) + empty search_path per the
---    Supabase advisor guidance for mutable-search-path functions.
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-  new.updated_at := now();
-  return new;
-end;
-$$;
+drop table if exists public.booking_requests cascade;
 
--- 2. Table.
-create table if not exists public.booking_requests (
+create table public.booking_requests (
   id uuid primary key default gen_random_uuid(),
-  clerk_user_id text not null,
-  services jsonb not null,
-  est_duration_mins integer,
-  est_price_cents integer,
-  preferred_times jsonb,
-  note text,
+  client_id uuid not null references public.clients(id) on delete cascade,
+  kind text not null check (kind in ('outside_hours','over_limit')),
+  -- The requested (ideal) window. over_limit = the slot the client picked;
+  -- outside_hours = ideal date + preferred time, adjustable by the artist.
+  start_time timestamptz not null,
+  end_time timestamptz not null,
+  -- Same meta blob as bookings.selected_addons (serviceId, addonIds, snapshot
+  -- names, totalDurationMins) so display + accept reuse the booking helpers.
+  selected_addons jsonb not null default '{}'::jsonb,
+  total_price_cents integer not null default 0,
+  -- Client's optional free-text note (PII — deleted on erasure).
+  message text,
   status text not null default 'pending'
-    check (status in (
-      'pending', 'accepted', 'declined', 'scheduled', 'cancelled', 'expired'
-    )),
+    check (status in ('pending','accepted','rejected')),
   booking_id uuid references public.bookings(id) on delete set null,
+  reject_reason text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  decided_at timestamptz
 );
 
-create index if not exists booking_requests_clerk_user_id_idx
-  on public.booking_requests (clerk_user_id);
-create index if not exists booking_requests_status_idx
-  on public.booking_requests (status);
+create index booking_requests_pending_idx
+  on public.booking_requests (created_at) where status = 'pending';
+create index booking_requests_client_idx
+  on public.booking_requests (client_id);
 
-drop trigger if exists set_booking_requests_updated_at on public.booking_requests;
-create trigger set_booking_requests_updated_at
-  before update on public.booking_requests
-  for each row execute function public.set_updated_at();
-
--- 3. RLS. Mirrors `bookings`: a signed-in user reads/creates only their own
---    rows (keyed off the Clerk `sub` claim); all admin state transitions run
---    through the service-role client (bypasses RLS). Owner-reads-all lands with
---    the admin shell (Phase 8), same as bookings.
 alter table public.booking_requests enable row level security;
+-- Owner reads all; a client reads their own. Writes go through service-role
+-- actions (the create flow is public-by-email, like createBooking).
+drop policy if exists "Owner reads all booking_requests" on public.booking_requests;
+create policy "Owner reads all booking_requests" on public.booking_requests
+  for select to authenticated
+  using ((select auth.jwt() -> 'app_metadata' ->> 'role') = 'owner');
+drop policy if exists "Clients read own booking_requests" on public.booking_requests;
+create policy "Clients read own booking_requests" on public.booking_requests
+  for select to authenticated using (client_id = public.current_client_id());
 
-drop policy if exists "Users read own booking requests" on public.booking_requests;
-create policy "Users read own booking requests"
-  on public.booking_requests for select
-  to authenticated
-  using ((select auth.jwt() ->> 'sub') = clerk_user_id);
-
-drop policy if exists "Users create own pending booking requests" on public.booking_requests;
-create policy "Users create own pending booking requests"
-  on public.booking_requests for insert
-  to authenticated
-  with check (
-    (select auth.jwt() ->> 'sub') = clerk_user_id
-    and status = 'pending'
-    and booking_id is null
-  );
-
--- 4. Realtime — let the admin request queue update live (mirrors `bookings`).
+-- Realtime so the admin request section updates live (mirrors bookings).
 do $$
 begin
   if not exists (
     select 1 from pg_publication_tables
-    where pubname = 'supabase_realtime'
-      and schemaname = 'public'
+    where pubname = 'supabase_realtime' and schemaname = 'public'
       and tablename = 'booking_requests'
   ) then
     alter publication supabase_realtime add table public.booking_requests;

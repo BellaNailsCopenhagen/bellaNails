@@ -31,6 +31,9 @@ function describe(n: OwnerNotification): string {
   if (n.kind === "shared_image_deleted") {
     return "deleted a photo they had shared"
   }
+  if (n.kind === "booking_request") {
+    return "sent a booking request"
+  }
   return "sent an update"
 }
 
@@ -40,6 +43,8 @@ function hrefFor(n: OwnerNotification): string {
   if (n.kind === "media_consent_withdrawn" && n.clientMediaId) {
     return routes.admin.assetHighlight(n.clientMediaId)
   }
+  // Booking requests live in the section on the admin home.
+  if (n.kind === "booking_request") return routes.admin.home
   return routes.admin.client(n.clientId)
 }
 

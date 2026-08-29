@@ -160,6 +160,28 @@ const STUDIO_WALL_FORMAT = new Intl.DateTimeFormat("en-US", {
   hour12: false,
 })
 
+/** ISO instant → a `datetime-local` input value ("YYYY-MM-DDTHH:mm") in STUDIO
+    time. Pure (fixed TZ) so it renders identically on server and client — no
+    hydration mismatch — and always reads as the studio wall-clock. */
+export function studioInputValue(iso: string): string {
+  const parts = STUDIO_WALL_FORMAT.formatToParts(new Date(iso))
+  const get = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? "00"
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`
+}
+
+/** Inverse of `studioInputValue` — a `datetime-local` value interpreted as a
+    STUDIO wall-clock → the ISO instant, DST-correct. `null` for a malformed /
+    cleared value (so callers guard instead of throwing on `new Date("")`). */
+export function studioInputToIso(value: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value)
+  if (!m) return null
+  const [, y, mo, d, hh, mm] = m
+  const dayNumber = studioDayNumberForDate(Number(y), Number(mo), Number(d))
+  const ms = studioWallTimeToInstant(dayNumber, `${hh}:${mm}`)
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null
+}
+
 /** UTC instant (ms) for a wall-clock "HH:MM" on a studio day-number —
     DST-correct: the zone offset is computed AT the target instant, so a slot
     generated across a DST boundary lands on the right absolute time. */

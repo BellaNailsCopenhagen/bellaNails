@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { deleteBookingRequestsForClient } from "@/db/booking-requests"
 import { clearClientNotes } from "@/db/bookings"
 import type { Db } from "@/db/client"
 import {
@@ -85,6 +86,10 @@ async function runAnonymize(
     // (kind/status/when), like the anonymized bookings it trails.
     const comms = await scrubCommunicationsForClient(admin, clientId)
     if (!comms.ok) return { ok: false, error: comms.message! }
+    // Booking requests carry client free-text (`message`) = PII, and are
+    // ephemeral (an accepted one's booking is retained anonymized) — delete them.
+    const requests = await deleteBookingRequestsForClient(admin, clientId)
+    if (!requests.ok) return { ok: false, error: requests.message! }
     const scrubbed = await anonymizeClientRow(admin, clientId)
     if (!scrubbed.ok) return { ok: false, error: scrubbed.message! }
     return { ok: true }

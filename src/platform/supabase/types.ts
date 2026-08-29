@@ -267,6 +267,54 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_requests: {
+        Row: {
+          booking_id: string | null
+          client_id: string
+          created_at: string
+          decided_at: string | null
+          end_time: string
+          id: string
+          kind: string
+          message: string | null
+          reject_reason: string | null
+          selected_addons: Json
+          start_time: string
+          status: string
+          total_price_cents: number
+        }
+        Insert: {
+          booking_id?: string | null
+          client_id: string
+          created_at?: string
+          decided_at?: string | null
+          end_time: string
+          id?: string
+          kind: string
+          message?: string | null
+          reject_reason?: string | null
+          selected_addons?: Json
+          start_time: string
+          status?: string
+          total_price_cents?: number
+        }
+        Update: {
+          booking_id?: string | null
+          client_id?: string
+          created_at?: string
+          decided_at?: string | null
+          end_time?: string
+          id?: string
+          kind?: string
+          message?: string | null
+          reject_reason?: string | null
+          selected_addons?: Json
+          start_time?: string
+          status?: string
+          total_price_cents?: number
+        }
+        Relationships: []
+      }
       asset_usages: {
         Row: {
           asset_id: string

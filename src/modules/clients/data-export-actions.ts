@@ -1,5 +1,6 @@
 "use server"
 
+import { listBookingRequestsForClient } from "@/db/booking-requests"
 import { listBookingsForClient } from "@/db/bookings"
 import { listDataConsents } from "@/db/client-consents"
 import { listMediaForClient } from "@/db/client-media"
@@ -29,16 +30,25 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
   try {
     const db = createSupabaseServiceRoleClient()
     const clientId = user.id
-    const [profile, bookings, communications, releases, media, dataConsents, terms] =
-      await Promise.all([
-        getClientProfile(db, clientId),
-        listBookingsForClient(db, clientId),
-        listCommunicationsForClient(db, clientId),
-        listReleasesForClient(db, clientId),
-        listMediaForClient(db, clientId),
-        listDataConsents(db, clientId),
-        getTermsAcceptances(db, clientId),
-      ])
+    const [
+      profile,
+      bookings,
+      requests,
+      communications,
+      releases,
+      media,
+      dataConsents,
+      terms,
+    ] = await Promise.all([
+      getClientProfile(db, clientId),
+      listBookingsForClient(db, clientId),
+      listBookingRequestsForClient(db, clientId),
+      listCommunicationsForClient(db, clientId),
+      listReleasesForClient(db, clientId),
+      listMediaForClient(db, clientId),
+      listDataConsents(db, clientId),
+      getTermsAcceptances(db, clientId),
+    ])
 
     const data = {
       exportedAt: new Date().toISOString(),
@@ -64,6 +74,17 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
         recipient: c.recipient,
         sentAt: c.created_at,
       })),
+      bookingRequests: requests.map((r) => {
+        const meta = metaOf(r)
+        return {
+          kind: r.kind,
+          requestedStart: r.start_time,
+          service: meta.serviceNameEn ?? meta.serviceNameDk ?? null,
+          message: r.message,
+          status: r.status,
+          requestedAt: r.created_at,
+        }
+      }),
       mediaReleases: releases.map((r) => ({
         bookingId: r.booking_id,
         purpose: r.purpose,

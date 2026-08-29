@@ -23,6 +23,8 @@ export type CommunicationKind =
   | "reminder"
   | "media_release_request"
   | "review_request"
+  | "booking_request_received"
+  | "booking_request_declined"
 export type CommunicationTrigger = "auto" | "manual"
 export type CommunicationChannel = "email" | "in_app" | "push"
 // `sent` = accepted by the mail server (NOT proof of inbox delivery — plain SMTP

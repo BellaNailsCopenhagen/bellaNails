@@ -14,7 +14,7 @@ create table if not exists public.communications (
   -- new client-facing sends (e.g. photo-consent / video-approval requests). Alerts
   -- TO THE STUDIO (a client withdrawing consent, a new booking) are a different
   -- audience and live in owner_notifications, NOT here.
-  kind text not null check (kind in ('confirmation','cancellation','reschedule','reminder','media_release_request','review_request')),
+  kind text not null check (kind in ('confirmation','cancellation','reschedule','reminder','media_release_request','review_request','booking_request_received','booking_request_declined')),
   trigger text not null check (trigger in ('auto','manual')),
   -- HOW it was delivered — one row per (message, channel) so each delivery keeps
   -- its own status. email today; in_app / push arrive with the client PWA.
@@ -43,7 +43,7 @@ create unique index if not exists communications_reminder_sent_idx
 -- kinds). Safe to re-run.
 alter table public.communications drop constraint if exists communications_kind_check;
 alter table public.communications add constraint communications_kind_check
-  check (kind in ('confirmation','cancellation','reschedule','reminder','media_release_request','review_request'));
+  check (kind in ('confirmation','cancellation','reschedule','reminder','media_release_request','review_request','booking_request_received','booking_request_declined'));
 
 alter table public.communications enable row level security;
 -- No policies on purpose — service-role bypasses RLS; everyone else is denied.
