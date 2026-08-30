@@ -17,7 +17,8 @@ import { routes } from "@/config/routes"
  * On success createBooking returns the row id and we replace-navigate to
  * /confirmation. When the flow can't grant a slot, it offers a REQUEST instead of
  * a dead end: hitting the 2-active cap surfaces an over-limit request for the
- * picked time; any client can also request an outside-hours time.
+ * picked time; and (when the studio enables it) a client can request a time
+ * outside the normal hours from a calendar of those slots.
  */
 export function BookingSlotStep({
   serviceId,
@@ -25,18 +26,48 @@ export function BookingSlotStep({
   slots,
   maxAdvanceDays,
   prefill,
+  outsideEnabled,
+  outsideSlots,
 }: {
   serviceId: string
   addonIds: string[]
   slots: Slot[]
   maxAdvanceDays: number
   prefill: BookingContact
+  outsideEnabled: boolean
+  outsideSlots: Slot[]
 }) {
   const t = useTranslations("booking")
   const locale = useLocale()
   const router = useRouter()
   const [capStart, setCapStart] = useState<string | null>(null)
   const [showOutside, setShowOutside] = useState(false)
+
+  // One label set — shared by the normal picker and the outside-hours request one.
+  const slotLabels = {
+    chooseDate: t("pickDateLabel"),
+    chooseTime: t("pickTimeLabel"),
+    empty: t("noTimes"),
+    confirm: t("confirmCta"),
+    confirming: t("securingBooking"),
+    genericError: t("bookingError"),
+    advanceNote: t("advanceNote", { days: maxAdvanceDays }),
+    availableLegend: t("availableLegend"),
+    prevMonth: t("prevMonth"),
+    nextMonth: t("nextMonth"),
+  }
+
+  // The outside-hours picker sends a REQUEST, not a booking — override the
+  // confirm/advance wording so it never reads as a confirmed reservation.
+  const outsideLabels = {
+    ...slotLabels,
+    confirm: locale === "en" ? "Send request" : "Send anmodning",
+    confirming: locale === "en" ? "Sending…" : "Sender…",
+    advanceNote:
+      locale === "en"
+        ? "These times are outside our normal hours — not guaranteed."
+        : "Disse tider er uden for normal åbningstid — ikke garanteret.",
+  }
 
   const onConfirm = async (start: string): Promise<SlotPickerOutcome> => {
     const result = await createBooking({
@@ -76,18 +107,7 @@ export function BookingSlotStep({
         slots={slots}
         locale={locale}
         onConfirm={onConfirm}
-        labels={{
-          chooseDate: t("pickDateLabel"),
-          chooseTime: t("pickTimeLabel"),
-          empty: t("noTimes"),
-          confirm: t("confirmCta"),
-          confirming: t("securingBooking"),
-          genericError: t("bookingError"),
-          advanceNote: t("advanceNote", { days: maxAdvanceDays }),
-          availableLegend: t("availableLegend"),
-          prevMonth: t("prevMonth"),
-          nextMonth: t("nextMonth"),
-        }}
+        labels={slotLabels}
       />
 
       {capStart ? (
@@ -99,20 +119,24 @@ export function BookingSlotStep({
           kind="over_limit"
           fixedStart={capStart}
         />
-      ) : showOutside ? (
-        <BookingRequestForm
-          serviceId={serviceId}
-          addonIds={addonIds}
-          prefill={prefill}
-          kind="outside_hours"
-        />
-      ) : (
-        <Button variant="ghost" size="sm" onClick={() => setShowOutside(true)}>
-          {locale === "en"
-            ? "Can't find a time? Request one"
-            : "Finder du ikke et tidspunkt? Anmod om et"}
-        </Button>
-      )}
+      ) : outsideEnabled ? (
+        showOutside ? (
+          <BookingRequestForm
+            serviceId={serviceId}
+            addonIds={addonIds}
+            prefill={prefill}
+            kind="outside_hours"
+            slots={outsideSlots}
+            slotLabels={outsideLabels}
+          />
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => setShowOutside(true)}>
+            {locale === "en"
+              ? "Can't find a time? Request one outside our hours"
+              : "Finder du ikke et tidspunkt? Anmod om en tid uden for åbningstiden"}
+          </Button>
+        )
+      ) : null}
     </div>
   )
 }

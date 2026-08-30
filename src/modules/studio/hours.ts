@@ -1,5 +1,9 @@
 import type { Db } from "@/db/client"
-import { getWeeklyHours } from "@/db/studio-hours"
+import {
+  getOutsideHoursConfig,
+  getWeeklyHours,
+  type OutsideHoursConfig,
+} from "@/db/studio-hours"
 import { listSpecialDays, type SpecialDayRow } from "@/db/studio-special-days"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import type { SpecialDay, StudioHours, TimeRange, WeeklyHours } from "@/shared/studio-hours"
@@ -31,4 +35,12 @@ export async function getStudioHours(
     weekly: (weekly as WeeklyHours) ?? {},
     special: special.map(toSpecialDay),
   }
+}
+
+/** The outside-hours request config (no-work + flag + window) for the admin
+    hours editor. Degrades to null pre-migration. */
+export async function getOutsideHoursSettings(
+  supabase: Client = createSupabaseServerClient(),
+): Promise<OutsideHoursConfig | null> {
+  return getOutsideHoursConfig(supabase).catch(() => null)
 }

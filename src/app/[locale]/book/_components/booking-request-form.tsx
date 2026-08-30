@@ -1,63 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition, type ComponentProps } from "react"
 import { useLocale } from "next-intl"
+import { toast } from "sonner"
 
+import { Link, useRouter } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
+import { SlotPicker } from "@/components/booking/slot-picker"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
-import { useActionRunner } from "@/hooks/use-action-runner"
 import { createBookingRequest } from "@/modules/booking/request-actions"
+import { routes } from "@/config/routes"
+import type { Slot } from "@/shared/booking-slots"
 import type { BookingContact } from "@/shared/contact-validation"
-import {
-  formatStudioDate,
-  formatStudioTime,
-  studioInputToIso,
-  studioInputValue,
-} from "@/shared/studio-time"
+import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
 const COPY = {
   da: {
-    overTitle: "Send som anmodning",
+    overTitle: "Booking ikke gennemført",
     overBody:
-      "Du har allerede 2 aktive bookinger. Send denne tid som en anmodning, så ser salonen på den.",
-    outsideTitle: "Finder du ikke et tidspunkt?",
+      "Du har allerede 2 aktive bookinger (det maksimale). Hvis du vil, kan du anmode om denne tid i stedet — den er ikke garanteret, og salonen gennemgår og godkender den manuelt.",
+    mySpaceLink: "Se dine aktive bookinger i Mit rum",
+    outsideTitle: "Anmod om en tid uden for åbningstiden",
     outsideBody:
-      "Foreslå en dato og tid, så vender vi tilbage. Tidspunktet er ikke garanteret.",
-    dateLabel: "Ønsket dato og tid",
+      "Vælg en tid uden for vores normale åbningstid. Den er ikke garanteret — salonen gennemgår og godkender den manuelt.",
     messageLabel: "Besked (valgfrit)",
     send: "Send anmodning",
     sending: "Sender…",
     notGuaranteed: "ikke garanteret",
-    successTitle: "Anmodning sendt",
-    successBody:
-      "Vi har sendt dig en bekræftelse på e-mail. Dette er ikke en booking endnu — vi vender tilbage for at bekræfte.",
-    pickFirst: "Vælg en dato og tid.",
+    genericError: "Noget gik galt — prøv igen.",
   },
   en: {
-    overTitle: "Send as a request",
+    overTitle: "Booking not completed",
     overBody:
-      "You already have 2 active bookings. Send this time as a request and the studio will take a look.",
-    outsideTitle: "Can't find a time?",
+      "You already have 2 active bookings (the maximum). If you'd like, you can request this time instead — it's not guaranteed, and the studio will review and approve it manually.",
+    mySpaceLink: "Check your active bookings in My Space",
+    outsideTitle: "Request a time outside our hours",
     outsideBody:
-      "Suggest a date and time and we'll get back to you. The time isn't guaranteed.",
-    dateLabel: "Preferred date & time",
+      "Pick a time outside our normal hours. It's not guaranteed — the studio will review and approve it manually.",
     messageLabel: "Message (optional)",
     send: "Send request",
     sending: "Sending…",
     notGuaranteed: "not guaranteed",
-    successTitle: "Request sent",
-    successBody:
-      "We've emailed you a confirmation. This isn't a booking yet — we'll get back to you to confirm.",
-    pickFirst: "Pick a date and time.",
+    genericError: "Something went wrong — please try again.",
   },
 }
 
 /**
- * The client's booking-REQUEST form, shown when the self-service flow won't grant
- * a slot: `over_limit` (past the 2-active cap — the time they picked is fixed) or
- * `outside_hours` (they choose an ideal date + time). Contact comes from the flow
- * (prefill). On success it's clear this is a request, not a confirmed booking.
+ * The client's booking-REQUEST form. `over_limit`: the time they picked is fixed
+ * (past the 2-active cap) — one Send button. `outside_hours`: a calendar of
+ * OUTSIDE-hours slots (SlotPicker) + a message; confirming a slot sends the
+ * request. Contact comes from the flow (prefill). On success it's clear this is
+ * a request, not a confirmed booking.
  */
 export function BookingRequestForm({
   serviceId,
@@ -65,52 +59,42 @@ export function BookingRequestForm({
   prefill,
   kind,
   fixedStart,
+  slots,
+  slotLabels,
 }: {
   serviceId: string
   addonIds: string[]
   prefill: BookingContact
   kind: "outside_hours" | "over_limit"
   fixedStart?: string
+  slots?: Slot[]
+  slotLabels?: ComponentProps<typeof SlotPicker>["labels"]
 }) {
   const locale = useLocale()
   const copy = locale === "en" ? COPY.en : COPY.da
-  const { pending, run } = useActionRunner()
-  const [when, setWhen] = useState(() =>
-    fixedStart ? studioInputValue(fixedStart) : "",
-  )
-  const [minWhen] = useState(() => studioInputValue(new Date().toISOString()))
+  const router = useRouter()
+  // A successful send navigates to /request-sent, so we own the transition here
+  // rather than useActionRunner (whose success path also refreshes the route).
+  const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState("")
-  const [sent, setSent] = useState(false)
 
-  if (sent) {
-    return (
-      <TintedCard className="space-y-2 p-5">
-        <Eyebrow as="h3">{copy.successTitle}</Eyebrow>
-        <BodySm className="text-muted-foreground">{copy.successBody}</BodySm>
-      </TintedCard>
-    )
-  }
-
-  const startIso = fixedStart ?? (when ? studioInputToIso(when) : null)
-
-  const submit = () =>
-    run(async () => {
-      if (!startIso) return { ok: false, error: copy.pickFirst }
-      const res = await createBookingRequest({
-        serviceId,
-        addonIds,
-        start: startIso,
-        kind,
-        name: prefill.name ?? "",
-        email: prefill.email ?? "",
-        phone: prefill.phone,
-        message: message.trim() || undefined,
-        locale,
-        honeypot: prefill.honeypot,
-      })
-      if (res.ok) setSent(true)
-      return res
+  const sendRequest = async (startIso: string) => {
+    const res = await createBookingRequest({
+      serviceId,
+      addonIds,
+      start: startIso,
+      kind,
+      name: prefill.name ?? "",
+      email: prefill.email ?? "",
+      phone: prefill.phone,
+      message: message.trim() || undefined,
+      locale,
+      honeypot: prefill.honeypot,
     })
+    // Leave the booking flow for a dedicated confirmation — not a lingering card.
+    if (res.ok) router.replace(routes.requestSent)
+    return res
+  }
 
   return (
     <TintedCard className="space-y-4 p-5">
@@ -121,28 +105,19 @@ export function BookingRequestForm({
         <BodySm className="text-muted-foreground">
           {kind === "over_limit" ? copy.overBody : copy.outsideBody}
         </BodySm>
+        {kind === "over_limit" ? (
+          <BodySm className="text-muted-foreground">
+            <Link
+              href={routes.appointments}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              {copy.mySpaceLink}
+            </Link>
+          </BodySm>
+        ) : null}
       </div>
-
-      {kind === "outside_hours" ? (
-        <label className="block space-y-1">
-          <span className="font-functional text-xs text-muted-foreground">
-            {copy.dateLabel}
-          </span>
-          <input
-            type="datetime-local"
-            value={when}
-            min={minWhen}
-            onChange={(e) => setWhen(e.target.value)}
-            disabled={pending}
-            className="w-full rounded-sm border border-border bg-background p-2 font-functional text-sm text-foreground"
-          />
-        </label>
-      ) : fixedStart ? (
-        <BodySm className="text-sm text-foreground">
-          {formatStudioDate(fixedStart, locale)} ·{" "}
-          {formatStudioTime(fixedStart, locale)} · {copy.notGuaranteed}
-        </BodySm>
-      ) : null}
 
       <label className="block space-y-1">
         <span className="font-functional text-xs text-muted-foreground">
@@ -157,12 +132,36 @@ export function BookingRequestForm({
         />
       </label>
 
-      <Button
-        disabled={pending || (kind === "outside_hours" && !startIso)}
-        onClick={submit}
-      >
-        {pending ? copy.sending : copy.send}
-      </Button>
+      {kind === "over_limit" && fixedStart ? (
+        <>
+          <BodySm className="text-sm text-foreground">
+            {formatStudioDate(fixedStart, locale)} ·{" "}
+            {formatStudioTime(fixedStart, locale)} · {copy.notGuaranteed}
+          </BodySm>
+          <Button
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () => {
+                const res = await sendRequest(fixedStart)
+                if (!res.ok) toast.error(res.error || copy.genericError)
+              })
+            }
+          >
+            {pending ? copy.sending : copy.send}
+          </Button>
+        </>
+      ) : kind === "outside_hours" && slots && slotLabels ? (
+        // A slot here books nothing — it sends the request for that time.
+        <SlotPicker
+          slots={slots}
+          locale={locale}
+          onConfirm={async (start) => {
+            const res = await sendRequest(start)
+            return res.ok ? { ok: true } : { ok: false, error: res.error }
+          }}
+          labels={slotLabels}
+        />
+      ) : null}
     </TintedCard>
   )
 }

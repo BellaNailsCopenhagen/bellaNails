@@ -1,3 +1,8 @@
 /** The studio's opening pattern: a weekly schedule plus dated overrides. */
-export { getStudioHours } from "./hours"
-export { addSpecialDay, deleteSpecialDay, saveWeeklyHours } from "./actions"
+export { getStudioHours, getOutsideHoursSettings } from "./hours"
+export {
+  addSpecialDay,
+  deleteSpecialDay,
+  saveOutsideHours,
+  saveWeeklyHours,
+} from "./actions"

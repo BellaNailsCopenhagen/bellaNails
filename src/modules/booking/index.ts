@@ -21,7 +21,11 @@ export {
 
 // In-house scheduler: available slots + booking creation.
 // Client components import ./create-booking-actions directly (it's "use server").
-export { getAvailableSlots, getMaxAdvanceDays } from "./availability"
+export {
+  getAvailableSlots,
+  getBookingSlots,
+  getMaxAdvanceDays,
+} from "./availability"
 export { createBooking } from "./create-booking-actions"
 // Guest self-service: the manage page verifies the signed email-link token.
 export { verifyBookingToken } from "./manage-token"

@@ -21,6 +21,7 @@ import {
 } from "@/modules/notifications/communications"
 import { notifyOwner } from "@/modules/notifications/notify"
 import {
+  sendBookingRequestArtistEmail,
   sendBookingRequestDeclinedEmail,
   sendBookingRequestReceivedEmail,
 } from "@/modules/notifications/request-email"
@@ -134,16 +135,31 @@ export async function createBookingRequest(
     metaOf({ selected_addons: draft.values.selected_addons }),
     locale,
   )
-  const res = await sendBookingRequestReceivedEmail({
-    to: email,
-    firstName: input.name.trim().split(/\s+/)[0] || null,
-    locale,
-    serviceName,
-    addonNames,
-    startIso: input.start,
-    priceCents: draft.totalPriceCents,
-    message: input.message?.trim() || null,
-  })
+  // Client ack + artist alert are independent — send both in parallel (the
+  // artist email needs a timely human decision; an in-app alert is easy to miss).
+  const [res] = await Promise.all([
+    sendBookingRequestReceivedEmail({
+      to: email,
+      firstName: input.name.trim().split(/\s+/)[0] || null,
+      locale,
+      kind: input.kind,
+      serviceName,
+      addonNames,
+      startIso: input.start,
+      priceCents: draft.totalPriceCents,
+      message: input.message?.trim() || null,
+    }),
+    sendBookingRequestArtistEmail({
+      requestId: saved.id,
+      clientName: input.name.trim() || email,
+      clientEmail: email,
+      clientPhone: input.phone?.trim() || null,
+      kind: input.kind,
+      serviceName,
+      startIso: input.start,
+      message: input.message?.trim() || null,
+    }),
+  ])
   await recordCommunication({
     clientId,
     bookingId: null,

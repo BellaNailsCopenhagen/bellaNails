@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { StudioHoursEditor } from "@/app/admin/hours/_components/studio-hours-editor"
-import { getStudioHours } from "@/modules/studio/hours"
+import { getOutsideHoursSettings, getStudioHours } from "@/modules/studio/hours"
 import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Hours" }
@@ -16,7 +16,10 @@ export const dynamic = "force-dynamic"
  * availability + occupancy. Owner-gated by the proxy.
  */
 export default async function AdminHoursPage() {
-  const hours = await getStudioHours()
+  const [hours, outside] = await Promise.all([
+    getStudioHours(),
+    getOutsideHoursSettings(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -37,7 +40,7 @@ export default async function AdminHoursPage() {
         </BodySm>
       </div>
 
-      <StudioHoursEditor initial={hours} />
+      <StudioHoursEditor initial={hours} outside={outside} />
     </div>
   )
 }

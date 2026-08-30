@@ -11,8 +11,11 @@ import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   addSpecialDay,
   deleteSpecialDay,
+  saveOutsideHours,
   saveWeeklyHours,
 } from "@/modules/studio/actions"
+import type { OutsideHoursConfig } from "@/db/studio-hours"
+import type { ScheduleConflict } from "@/modules/studio/conflicts"
 import {
   WEEKDAYS,
   type StudioHours,
@@ -20,108 +23,171 @@ import {
   type WeekdayKey,
   type WeeklyHours,
 } from "@/shared/studio-hours"
+import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
+import { ADMIN_LOCALE } from "@/config/admin"
+
+const CONFLICT_REASON: Record<ScheduleConflict["reason"], string> = {
+  no_work: "now in a no-work block",
+  outside_hours: "now outside working hours",
+  closed: "on a now-closed day",
+}
+
+/** Non-blocking heads-up: existing bookings a schedule change would strand. */
+function ConflictsWarning({ conflicts }: { conflicts: ScheduleConflict[] }) {
+  if (!conflicts.length) return null
+  return (
+    <div className="space-y-2 rounded-md border border-warning/50 bg-warning/10 p-4">
+      <p className="font-functional text-sm font-medium text-foreground">
+        Heads up — {conflicts.length} existing booking
+        {conflicts.length === 1 ? "" : "s"} no longer fit your hours
+      </p>
+      <ul className="space-y-1">
+        {conflicts.map((c) => (
+          <li key={c.bookingId} className="font-functional text-xs text-muted-foreground">
+            {c.clientName} ·{" "}
+            {formatStudioDayMonthYear(new Date(c.start).getTime(), ADMIN_LOCALE)} ·{" "}
+            {formatStudioTime(c.start, ADMIN_LOCALE)}–{formatStudioTime(c.end, ADMIN_LOCALE)}{" "}
+            · {CONFLICT_REASON[c.reason]}
+          </li>
+        ))}
+      </ul>
+      <p className="font-functional text-xs text-muted-foreground">
+        Nothing was cancelled — reschedule or contact them from the queue if needed.
+      </p>
+    </div>
+  )
+}
 
 const timeInput =
   "border-b border-border bg-transparent px-1 py-1 font-functional text-sm text-foreground outline-none focus-visible:border-foreground [color-scheme:light] dark:[color-scheme:dark]"
 
-export function StudioHoursEditor({ initial }: { initial: StudioHours }) {
-  const { pending, run } = useActionRunner()
+type WeekMap = Record<WeekdayKey, TimeRange[]>
 
-  const [weekly, setWeekly] = useState<Record<WeekdayKey, TimeRange[]>>(() => {
-    const w = {} as Record<WeekdayKey, TimeRange[]>
-    for (const { key } of WEEKDAYS) w[key] = initial.weekly[key] ?? []
-    return w
-  })
+const emptyWeek = (source: WeeklyHours): WeekMap => {
+  const week = {} as WeekMap
+  for (const { key } of WEEKDAYS) week[key] = source[key] ?? []
+  return week
+}
 
-  const setRange = (
-    key: WeekdayKey,
-    idx: number,
-    which: 0 | 1,
-    value: string,
-  ) =>
-    setWeekly((prev) => ({
-      ...prev,
-      [key]: prev[key].map((r, i) =>
-        i === idx ? ((which === 0 ? [value, r[1]] : [r[0], value]) as TimeRange) : r,
+const cleanWeek = (week: WeekMap): WeeklyHours => {
+  const clean: WeeklyHours = {}
+  for (const { key } of WEEKDAYS) if (week[key].length) clean[key] = week[key]
+  return clean
+}
+
+/** The per-weekday interval grid — shared by weekly hours and no-work blocks. */
+function WeeklyRangeGrid({
+  value,
+  onChange,
+  emptyLabel,
+  defaultRange,
+}: {
+  value: WeekMap
+  onChange: (next: WeekMap) => void
+  emptyLabel: string
+  defaultRange: TimeRange
+}) {
+  const setRange = (key: WeekdayKey, idx: number, which: 0 | 1, v: string) =>
+    onChange({
+      ...value,
+      [key]: value[key].map((r, i) =>
+        i === idx ? ((which === 0 ? [v, r[1]] : [r[0], v]) as TimeRange) : r,
       ),
-    }))
-
+    })
   const addRange = (key: WeekdayKey) =>
-    setWeekly((prev) => ({ ...prev, [key]: [...prev[key], ["10:00", "18:00"]] }))
-
+    onChange({ ...value, [key]: [...value[key], defaultRange] })
   const removeRange = (key: WeekdayKey, idx: number) =>
-    setWeekly((prev) => ({
-      ...prev,
-      [key]: prev[key].filter((_, i) => i !== idx),
-    }))
+    onChange({ ...value, [key]: value[key].filter((_, i) => i !== idx) })
 
-  const saveWeekly = () => {
-    const clean: WeeklyHours = {}
-    for (const { key } of WEEKDAYS) if (weekly[key].length) clean[key] = weekly[key]
+  return (
+    <ul className="space-y-3">
+      {WEEKDAYS.map(({ key, label }) => (
+        <li key={key} className="flex flex-wrap items-center gap-3">
+          <span className="w-24 shrink-0 font-functional text-sm text-foreground">
+            {label}
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            {value[key].length ? (
+              value[key].map((range, idx) => (
+                <span key={idx} className="flex items-center gap-1">
+                  <input
+                    type="time"
+                    value={range[0]}
+                    onChange={(e) => setRange(key, idx, 0, e.target.value)}
+                    className={timeInput}
+                  />
+                  <span className="text-muted-foreground">–</span>
+                  <input
+                    type="time"
+                    value={range[1]}
+                    onChange={(e) => setRange(key, idx, 1, e.target.value)}
+                    className={timeInput}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove"
+                    onClick={() => removeRange(key, idx)}
+                    className="text-muted-foreground transition-colors hover:text-destructive"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </span>
+              ))
+            ) : (
+              <span className="font-functional text-xs text-muted-foreground">
+                {emptyLabel}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => addRange(key)}
+              className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+            >
+              + Add
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export function StudioHoursEditor({
+  initial,
+  outside,
+}: {
+  initial: StudioHours
+  outside: OutsideHoursConfig | null
+}) {
+  const { pending, run } = useActionRunner()
+  const [weekly, setWeekly] = useState<WeekMap>(() => emptyWeek(initial.weekly))
+  const [conflicts, setConflicts] = useState<ScheduleConflict[]>([])
+
+  const saveWeekly = () =>
     run(async () => {
-      const result = await saveWeeklyHours(clean)
-      if (result.ok) toast.success("Hours saved")
+      const result = await saveWeeklyHours(cleanWeek(weekly))
+      if (result.ok) {
+        toast.success("Hours saved")
+        setConflicts(result.conflicts ?? [])
+      }
       return result
     })
-  }
 
   return (
     <div className="space-y-10">
+      <ConflictsWarning conflicts={conflicts} />
       <section className="space-y-3">
         <Eyebrow as="h3">Weekly hours</Eyebrow>
         <BodySm className="text-xs">
           A day with no rows is closed. Add two rows for a split day (e.g. a
           lunch break).
         </BodySm>
-        <ul className="space-y-3">
-          {WEEKDAYS.map(({ key, label }) => (
-            <li key={key} className="flex flex-wrap items-center gap-3">
-              <span className="w-24 shrink-0 font-functional text-sm text-foreground">
-                {label}
-              </span>
-              <div className="flex flex-wrap items-center gap-2">
-                {weekly[key].length ? (
-                  weekly[key].map((range, idx) => (
-                    <span key={idx} className="flex items-center gap-1">
-                      <input
-                        type="time"
-                        value={range[0]}
-                        onChange={(e) => setRange(key, idx, 0, e.target.value)}
-                        className={timeInput}
-                      />
-                      <span className="text-muted-foreground">–</span>
-                      <input
-                        type="time"
-                        value={range[1]}
-                        onChange={(e) => setRange(key, idx, 1, e.target.value)}
-                        className={timeInput}
-                      />
-                      <button
-                        type="button"
-                        aria-label="Remove"
-                        onClick={() => removeRange(key, idx)}
-                        className="text-muted-foreground transition-colors hover:text-destructive"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </span>
-                  ))
-                ) : (
-                  <span className="font-functional text-xs text-muted-foreground">
-                    Closed
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => addRange(key)}
-                  className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  + Add
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <WeeklyRangeGrid
+          value={weekly}
+          onChange={setWeekly}
+          emptyLabel="Closed"
+          defaultRange={["10:00", "18:00"]}
+        />
         <div className="flex justify-end">
           <Button size="sm" disabled={pending} onClick={saveWeekly}>
             {pending ? "Saving…" : "Save weekly hours"}
@@ -129,8 +195,113 @@ export function StudioHoursEditor({ initial }: { initial: StudioHours }) {
         </div>
       </section>
 
-      <SpecialDays special={initial.special} pending={pending} run={run} />
+      <OutsideHoursSection
+        outside={outside}
+        pending={pending}
+        run={run}
+        onConflicts={setConflicts}
+      />
+
+      <SpecialDays
+        special={initial.special}
+        pending={pending}
+        run={run}
+        onConflicts={setConflicts}
+      />
     </div>
+  )
+}
+
+function OutsideHoursSection({
+  outside,
+  pending,
+  run,
+  onConflicts,
+}: {
+  outside: OutsideHoursConfig | null
+  pending: boolean
+  run: ReturnType<typeof useActionRunner>["run"]
+  onConflicts: (conflicts: ScheduleConflict[]) => void
+}) {
+  const [enabled, setEnabled] = useState(outside?.enabled ?? false)
+  const [windowStart, setWindowStart] = useState(outside?.windowStart ?? "06:00")
+  const [windowEnd, setWindowEnd] = useState(outside?.windowEnd ?? "20:00")
+  const [noWork, setNoWork] = useState<WeekMap>(() =>
+    emptyWeek((outside?.noWork as WeeklyHours | null) ?? {}),
+  )
+
+  const save = () =>
+    run(async () => {
+      const result = await saveOutsideHours({
+        enabled,
+        windowStart,
+        windowEnd,
+        noWork: cleanWeek(noWork),
+      })
+      if (result.ok) {
+        toast.success("Outside-hours settings saved")
+        onConflicts(result.conflicts ?? [])
+      }
+      return result
+    })
+
+  return (
+    <section className="space-y-4">
+      <Eyebrow as="h3">Outside-hours requests</Eyebrow>
+      <BodySm className="text-xs">
+        Let clients REQUEST a time outside your normal hours (you approve each
+        one). No-work blocks are removed from both normal and outside-hours slots.
+      </BodySm>
+
+      <label className="flex items-center gap-2 font-functional text-sm text-foreground">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+        />
+        Allow clients to request outside-hours times
+      </label>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="w-24 shrink-0 font-functional text-sm text-foreground">
+          Window
+        </span>
+        <input
+          type="time"
+          value={windowStart}
+          onChange={(e) => setWindowStart(e.target.value)}
+          className={timeInput}
+        />
+        <span className="text-muted-foreground">–</span>
+        <input
+          type="time"
+          value={windowEnd}
+          onChange={(e) => setWindowEnd(e.target.value)}
+          className={timeInput}
+        />
+        <span className="font-functional text-xs text-muted-foreground">
+          the earliest/latest a request may fall
+        </span>
+      </div>
+
+      <div className="space-y-2">
+        <BodySm className="text-xs text-muted-foreground">
+          No-work blocks (never bookable) — e.g. a lunch break, or a full day off.
+        </BodySm>
+        <WeeklyRangeGrid
+          value={noWork}
+          onChange={setNoWork}
+          emptyLabel="None"
+          defaultRange={["12:00", "13:00"]}
+        />
+      </div>
+
+      <div className="flex justify-end">
+        <Button size="sm" disabled={pending} onClick={save}>
+          {pending ? "Saving…" : "Save outside-hours settings"}
+        </Button>
+      </div>
+    </section>
   )
 }
 
@@ -138,10 +309,12 @@ function SpecialDays({
   special,
   pending,
   run,
+  onConflicts,
 }: {
   special: StudioHours["special"]
   pending: boolean
   run: ReturnType<typeof useActionRunner>["run"]
+  onConflicts: (conflicts: ScheduleConflict[]) => void
 }) {
   const [startsOn, setStartsOn] = useState("")
   const [endsOn, setEndsOn] = useState("")
@@ -163,6 +336,7 @@ function SpecialDays({
         setStartsOn("")
         setEndsOn("")
         setLabel("")
+        onConflicts(result.conflicts ?? [])
       }
       return result
     })
@@ -199,7 +373,13 @@ function SpecialDays({
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => run(() => deleteSpecialDay(s.id))}
+                onClick={() =>
+                  run(async () => {
+                    const result = await deleteSpecialDay(s.id)
+                    if (result.ok) onConflicts(result.conflicts ?? [])
+                    return result
+                  })
+                }
                 className="shrink-0 font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/70 transition-colors hover:text-destructive"
               >
                 Remove

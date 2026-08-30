@@ -76,11 +76,32 @@ studio-entered, client uploads never auto-publish — so it's not urgent).
 - The no-show *layer* on top of the spam gate (F). See [CARD-HOLD.md](CARD-HOLD.md).
 - Connected: **Stripe** (new) + scheduler (D, for far-future holds).
 
-### H · Overflow + outside-hours booking requests  — **PLANNED (later)**
-- `booking_requests` mechanism: client requests a 3rd booking (past the 2-active
-  cap) or an outside-normal-hours slot → **artist approves** ("time not
-  guaranteed"). One shared approval flow for both.
-- Connected: **Zoho SMTP** + push (C).
+### H · Overflow + outside-hours booking requests  — **BUILT** (unmerged; SQL pending)
+- `booking_requests` mechanism: client requests a booking past the 2-active cap
+  (`over_limit`) or an outside-normal-hours slot (`outside_hours`) → **artist
+  approves** ("time not guaranteed"). One shared approval flow for both.
+- **Client:** over-limit → send-a-request form + "check My Space" link; "Can't find
+  a time?" → SlotPicker of OUTSIDE-hours slots (gated on the artist's flag). On
+  success → dedicated `/request-sent` page. Request-received email names the reason
+  and is explicit it is NOT a confirmation.
+- **Artist:** admin queue card — contact on every channel, **Adjust time** (same
+  SlotPicker in a dialog, with an **"Ignore all limits"** override picker),
+  **Accept & book** (creates the real booking), or **Reject** (with reason →
+  decline email). Artist also gets an email alert per request (in-app + email).
+- **Outside-hours config** (all on `studio_hours`): enable flag · outer window ·
+  weekly **no-work** blocks (hide normal AND outside slots). Admin editor on
+  `/admin/hours`.
+- **Admin-wide limits override:** "Ignore all limits" (New booking + Adjust)
+  swaps in a picker of free times across the override envelope (06:00–22:00, up to
+  a year out), hours/no-work/lead ignored but **taken slots still excluded**.
+- **Schedule-conflict check:** any recurring hours / no-work / special-day change
+  diffs before/after and flags future bookings the change would strand
+  (non-blocking; intentional out-of-hours bookings are never flagged).
+- Availability, overlap + hours are enforced server-side; the DB exclusion
+  constraint is the overlap backstop on every insert.
+- Connected: **Zoho SMTP**. Push (C) still deferred — in-app + email for now.
+- **SQL to apply on merge:** `supabase/booking-requests.sql`,
+  `supabase/outside-hours.sql`, `supabase/communications.sql`.
 
 ---
 
@@ -134,8 +155,8 @@ load. Pre-size/optimize + record an LCP/TTFB baseline before/after.
 - **Waitlist / cancellation backfill** — cheap once we own slots (client-PWA idea).
 - **Studio-proposal → client-accept** (`origin` + `client_accepted_at`) — if the owner
   wants studio bookings the client confirms, vs the confirmed-directly path we built.
-- **H starter SQL exists** — `supabase/booking-requests.sql` (update `clerk_user_id` →
-  `client_id`, then apply).
+- ~~**H starter SQL exists**~~ — **H is now built** (see above); SQL to apply on
+  merge: `booking-requests.sql`, `outside-hours.sql`, `communications.sql`.
 
 ## Connected services (summary)
 | Service | Status | Used by |
@@ -152,4 +173,5 @@ load. Pre-size/optimize + record an LCP/TTFB baseline before/after.
 2. **B** (request buttons) — small, reuses A's email + existing patterns.
 3. **F email-half** (require sign-in *or* card; ship the sign-in gate now) — cheap spam win.
 4. **C** (push + preferences) — largest; do after the email flows are proven.
-5. Then **G** (Stripe card-hold), **H** (booking requests), and un-defer **D/E** as needed.
+5. ~~**H** (booking requests)~~ — **built** (unmerged; SQL pending). Then **G**
+   (Stripe card-hold) and un-defer **D/E** as needed.

@@ -7,12 +7,14 @@ import { ChevronLeft } from "lucide-react"
 import { toast } from "sonner"
 
 import { H2, BodySm, Caption } from "@/components/ui/typography"
-import { Button } from "@/components/ui/button"
 import type { SlotPickerOutcome } from "@/components/booking/slot-picker"
 import type { Slot } from "@/shared/booking-slots"
 import { routes } from "@/shared/routes"
-import { studioInputToIso } from "@/shared/studio-time"
-import { createBookingAsOwner, getOwnerSlots } from "@/modules/booking/create-booking-actions"
+import {
+  createBookingAsOwner,
+  getOwnerOverrideSlots,
+  getOwnerSlots,
+} from "@/modules/booking/create-booking-actions"
 import { getServiceAddonsForOwner } from "@/modules/catalog/service-actions"
 
 import { ClientStep } from "./client-step"
@@ -82,9 +84,10 @@ export function AdminNewBooking({
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set())
   const [notes, setNotes] = useState("")
   const [slots, setSlots] = useState<Slot[]>([])
-  // "Ignore all limits" — swap the availability grid for a free date/time picker.
+  // "Ignore all limits" — swap in the override slots (any day, hours ignored,
+  // but taken slots still removed). Loaded lazily when the toggle turns on.
   const [ignoreLimits, setIgnoreLimits] = useState(false)
-  const [overrideStart, setOverrideStart] = useState("")
+  const [overrideSlots, setOverrideSlots] = useState<Slot[] | null>(null)
   // The rebook prefill resolves its add-ons async — hold the UI until it lands.
   const [bootstrapping, setBootstrapping] = useState(prefill !== null)
   const bootstrapped = useRef(false)
@@ -140,12 +143,31 @@ export function AdminNewBooking({
 
   const goToTime = () => {
     if (!service) return
+    // Re-entering the time step (e.g. after changing add-ons) resets the override
+    // toggle + its cached slots, so a stale duration can't linger.
+    setIgnoreLimits(false)
+    setOverrideSlots(null)
     startTransition(async () => {
       try {
         setSlots(await getOwnerSlots(service.id, [...selectedAddonIds]))
         setStep("time")
       } catch {
         toast.error("Couldn’t load available times — try again.")
+      }
+    })
+  }
+
+  // Toggle "ignore all limits" → lazy-load the override slots (any day, hours
+  // ignored, existing bookings still excluded).
+  const toggleIgnore = (next: boolean) => {
+    setIgnoreLimits(next)
+    if (!next || overrideSlots !== null || !service) return
+    startTransition(async () => {
+      try {
+        setOverrideSlots(await getOwnerOverrideSlots(service.id, [...selectedAddonIds]))
+      } catch {
+        setOverrideSlots([])
+        toast.error("Couldn’t load times — try again.")
       }
     })
   }
@@ -249,45 +271,24 @@ export function AdminNewBooking({
             <input
               type="checkbox"
               checked={ignoreLimits}
-              onChange={(e) => setIgnoreLimits(e.target.checked)}
+              onChange={(e) => toggleIgnore(e.target.checked)}
               className="size-4"
             />
             <span className="font-functional text-sm text-foreground">
-              Ignore all limits — book any day &amp; time
+              Ignore hours &amp; days off — pick any free slot
             </span>
           </label>
 
-          {ignoreLimits ? (
-            <div className="space-y-3">
-              <BodySm className="text-xs text-muted-foreground">
-                Picks any time (hours, day availability and lead time are skipped;
-                an overlap with another booking is still blocked).
-              </BodySm>
-              <input
-                type="datetime-local"
-                value={overrideStart}
-                onChange={(e) => setOverrideStart(e.target.value)}
-                className="w-full rounded-sm border border-border bg-background p-2 font-functional text-sm text-foreground"
-              />
-              <Button
-                disabled={pending || !studioInputToIso(overrideStart)}
-                onClick={() => {
-                  const iso = studioInputToIso(overrideStart)
-                  if (!iso) return
-                  startTransition(async () => {
-                    const res = await confirm(iso)
-                    if (!res.ok) toast.error(res.error)
-                  })
-                }}
-              >
-                Create booking
-              </Button>
-            </div>
+          {ignoreLimits && overrideSlots === null ? (
+            <BodySm>Loading times…</BodySm>
           ) : (
             <TimeStep
-              slots={slots}
+              // Remount on toggle so a stale day/time can't survive the switch.
+              key={ignoreLimits ? "override" : "normal"}
+              slots={ignoreLimits ? (overrideSlots ?? []) : slots}
               maxAdvanceDays={maxAdvanceDays}
               onConfirm={confirm}
+              override={ignoreLimits}
             />
           )}
         </div>

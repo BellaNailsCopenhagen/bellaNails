@@ -12,6 +12,8 @@ export type RequestView = {
   id: string
   clientId: string
   kind: string
+  serviceId: string | null
+  addonIds: string[]
   serviceName: string
   addonNames: string[]
   startIso: string
@@ -34,14 +36,14 @@ export async function getPendingRequests(): Promise<{
 
   const contacts = await fetchClientContacts(rows.map((r) => r.client_id))
   const requests = rows.map((r) => {
-    const { serviceName, addonNames } = localizedBookingNames(
-      metaOf(r),
-      ADMIN_LOCALE,
-    )
+    const meta = metaOf(r)
+    const { serviceName, addonNames } = localizedBookingNames(meta, ADMIN_LOCALE)
     return {
       id: r.id,
       clientId: r.client_id,
       kind: r.kind,
+      serviceId: meta.serviceId ?? null,
+      addonIds: meta.addonIds ?? [],
       serviceName,
       addonNames,
       startIso: r.start_time,

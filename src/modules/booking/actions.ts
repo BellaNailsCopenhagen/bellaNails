@@ -252,6 +252,27 @@ async function resolveNewSlotEnd(
     : slot.end
 }
 
+/**
+ * The new end for an OWNER OVERRIDE move — no slot check (hours/day/lead ignored),
+ * keeping the as-booked length (snapshot mins, else the booking's current span).
+ * The overlap exclusion constraint still blocks a clash on write.
+ */
+function overrideRescheduleEnd(
+  booking: BookingManageState,
+  newStart: string,
+): string | null {
+  const startMs = new Date(newStart).getTime()
+  if (!Number.isFinite(startMs)) return null
+  const bookedMins = metaOf(booking).totalDurationMins
+  const durationMs =
+    typeof bookedMins === "number" && bookedMins > 0
+      ? bookedMins * 60_000
+      : new Date(booking.end_time).getTime() -
+        new Date(booking.start_time).getTime()
+  if (!(durationMs > 0)) return null
+  return new Date(startMs + durationMs).toISOString()
+}
+
 // The applied move carries the new `end` so the reschedule email + .ics get the
 // correct window without re-deriving it.
 type ApplyResult =
@@ -259,15 +280,18 @@ type ApplyResult =
   | { ok: false; error: "unavailable" | "failed" }
 
 // `writeDb` is service-role in both paths (ownership is already proven by the
-// caller's read); `ignoreLeadTime` lets the owner path reach near-term slots.
+// caller's read); `ignoreLeadTime` lets the owner path reach near-term slots,
+// `ignoreLimits` (owner-only) skips the availability check entirely.
 async function applyReschedule(
   writeDb: Db,
   id: string,
   booking: BookingManageState,
   newStart: string,
-  ignoreLeadTime: boolean,
+  opts: { ignoreLeadTime: boolean; ignoreLimits?: boolean },
 ): Promise<ApplyResult> {
-  const end = await resolveNewSlotEnd(booking, newStart, ignoreLeadTime)
+  const end = opts.ignoreLimits
+    ? overrideRescheduleEnd(booking, newStart)
+    : await resolveNewSlotEnd(booking, newStart, opts.ignoreLeadTime)
   if (!end) return { ok: false, error: "unavailable" }
 
   const result = await rescheduleBookingById(writeDb, id, newStart, end)
@@ -303,7 +327,7 @@ export async function rescheduleBooking(
     id,
     booking,
     newStart,
-    false,
+    { ignoreLeadTime: false },
   )
   if (!applied.ok) return applied
 
@@ -325,6 +349,7 @@ export async function rescheduleBooking(
 export async function rescheduleBookingAsOwner(
   id: string,
   newStart: string,
+  opts?: { ignoreLimits?: boolean },
 ): Promise<RescheduleResult> {
   const service = await requireOwner()
   if (!service) return { ok: false, error: "unauthorized" }
@@ -335,8 +360,12 @@ export async function rescheduleBookingAsOwner(
     return { ok: false, error: "not_found" }
   }
 
-  // The studio isn't bound by the public 24 h lead time.
-  const applied = await applyReschedule(service, id, booking, newStart, true)
+  // The studio isn't bound by the public 24 h lead time; "ignore limits" also
+  // frees it from hours/day availability (overlap constraint still applies).
+  const applied = await applyReschedule(service, id, booking, newStart, {
+    ignoreLeadTime: true,
+    ignoreLimits: opts?.ignoreLimits,
+  })
   if (!applied.ok) return applied
 
   await emailManagedBooking(
@@ -398,7 +427,9 @@ export async function rescheduleBookingByToken(
     return { ok: false, error: "within_policy" }
   }
 
-  const applied = await applyReschedule(service, id, booking, newStart, false)
+  const applied = await applyReschedule(service, id, booking, newStart, {
+    ignoreLeadTime: false,
+  })
   if (!applied.ok) return applied
 
   await emailManagedBooking(

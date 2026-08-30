@@ -7,7 +7,7 @@ import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-
 import { Container, Section } from "@/components/layout/container"
 import { BodySm } from "@/components/ui/typography"
 import { localizeSelection } from "@/shared/localize-selection"
-import { getAvailableSlots, getMaxAdvanceDays } from "@/modules/booking"
+import { getBookingSlots, getMaxAdvanceDays } from "@/modules/booking"
 import type { ServiceWithAddons } from "@/modules/catalog"
 import type { BookingContact } from "@/shared/contact-validation"
 import { routes } from "@/config/routes"
@@ -28,12 +28,14 @@ export async function BookingConfirm({
   selectedAddonIds: string[]
   prefill: BookingContact
 }) {
-  const [t, locale, slots, maxAdvanceDays] = await Promise.all([
+  const [t, locale, calendars, maxAdvanceDays] = await Promise.all([
     getTranslations("booking"),
     getLocale(),
-    getAvailableSlots(service.id, selectedAddonIds),
+    // Both calendars in one pass — outside is [] when the studio hasn't enabled it.
+    getBookingSlots(service.id, selectedAddonIds),
     getMaxAdvanceDays(),
   ])
+  const { normal: slots, outside: outsideSlots, outsideEnabled } = calendars
 
   const { service: localizedService, addons: selectedAddons } =
     localizeSelection(service, addons, locale, selectedAddonIds)
@@ -74,6 +76,8 @@ export async function BookingConfirm({
               slots={slots}
               maxAdvanceDays={maxAdvanceDays}
               prefill={prefill}
+              outsideEnabled={outsideEnabled}
+              outsideSlots={outsideSlots}
             />
 
             <BodySm className="text-xs">

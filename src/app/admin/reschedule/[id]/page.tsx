@@ -63,6 +63,8 @@ export default async function AdminReschedulePage({
       </div>
       <AdminRescheduleSlotStep
         id={id}
+        serviceId={meta.serviceId ?? null}
+        addonIds={meta.addonIds ?? []}
         slots={slots}
         maxAdvanceDays={maxAdvanceDays}
       />

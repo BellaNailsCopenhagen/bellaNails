@@ -8,7 +8,10 @@ import {
 } from "@/db/bookings"
 import { updateClientCommunicationLocale } from "@/db/clients"
 import { resolveLocale, type Locale } from "@/i18n/routing"
-import { getAvailableSlots } from "@/modules/booking/availability"
+import {
+  getAvailableSlots,
+  getOverrideSlots,
+} from "@/modules/booking/availability"
 import {
   buildBookingDraft,
   type BookingDraft,
@@ -288,4 +291,18 @@ export async function getOwnerSlots(
   return getAvailableSlots(serviceId, addonIds, undefined, {
     ignoreLeadTime: true,
   })
+}
+
+/**
+ * Owner-gated OVERRIDE slots — free times on any day within the override envelope
+ * with hours/no-work/lead ignored, but existing bookings still excluded. Backs
+ * the admin "Ignore all limits" picker. Returns [] when not the owner.
+ */
+export async function getOwnerOverrideSlots(
+  serviceId: string,
+  addonIds: string[],
+): Promise<Slot[]> {
+  const db = await requireOwner()
+  if (!db) return []
+  return getOverrideSlots(serviceId, addonIds, db)
 }

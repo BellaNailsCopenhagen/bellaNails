@@ -795,16 +795,28 @@ export type Database = {
       studio_hours: {
         Row: {
           id: boolean
+          no_work: Json
+          outside_hours_enabled: boolean
+          outside_window_end: string
+          outside_window_start: string
           updated_at: string
           weekly: Json
         }
         Insert: {
           id?: boolean
+          no_work?: Json
+          outside_hours_enabled?: boolean
+          outside_window_end?: string
+          outside_window_start?: string
           updated_at?: string
           weekly?: Json
         }
         Update: {
           id?: boolean
+          no_work?: Json
+          outside_hours_enabled?: boolean
+          outside_window_end?: string
+          outside_window_start?: string
           updated_at?: string
           weekly?: Json
         }

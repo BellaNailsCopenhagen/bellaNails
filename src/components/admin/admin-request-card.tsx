@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { Mail, Phone } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -14,20 +16,22 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { SlotPicker } from "@/components/booking/slot-picker"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   acceptBookingRequest,
   rejectBookingRequest,
 } from "@/modules/booking/request-actions"
-import type { RequestView } from "@/modules/booking"
-import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import {
-  formatStudioDate,
-  formatStudioTime,
-  studioInputToIso,
-  studioInputValue,
-} from "@/shared/studio-time"
+  getOwnerOverrideSlots,
+  getOwnerSlots,
+} from "@/modules/booking/create-booking-actions"
+import type { RequestView } from "@/modules/booking"
+import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
+import { contactDisplayName, type ClientContact } from "@/shared/contact"
+import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
@@ -35,6 +39,26 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`
 const KIND_LABEL: Record<string, string> = {
   outside_hours: "Outside hours",
   over_limit: "Over the 2-booking limit",
+}
+
+// Same wording as the admin New-booking picker (this is the same availability).
+const SLOT_LABELS = {
+  chooseDate: "Choose a date",
+  chooseTime: "Choose a time",
+  empty: "No available times right now.",
+  confirm: "Book this time",
+  confirming: "Booking…",
+  genericError: "Couldn’t book — try another time.",
+  advanceNote: "The studio's normal available times.",
+  availableLegend: "Available",
+  prevMonth: "Previous month",
+  nextMonth: "Next month",
+}
+
+// Override picker: hours + days off ignored — only taken slots are removed.
+const OVERRIDE_LABELS = {
+  ...SLOT_LABELS,
+  advanceNote: `Working hours & days off ignored (${OVERRIDE_WINDOW_LABEL}) — only taken slots are hidden.`,
 }
 
 export function AdminRequestCard({
@@ -45,16 +69,62 @@ export function AdminRequestCard({
   contact?: ClientContact
 }) {
   const { pending, run } = useActionRunner()
-  const [when, setWhen] = useState(studioInputValue(request.startIso))
+  const router = useRouter()
   const [rejectOpen, setRejectOpen] = useState(false)
   const [reason, setReason] = useState("")
+  const [adjustOpen, setAdjustOpen] = useState(false)
+  const [slots, setSlots] = useState<Slot[] | null>(null)
+  const [overrideSlots, setOverrideSlots] = useState<Slot[] | null>(null)
+  const [ignoreLimits, setIgnoreLimits] = useState(false)
 
   const clientName = contactDisplayName(contact)
-  // Interpret the input as studio wall-clock; null if cleared/invalid (guards Accept).
-  const startIso = studioInputToIso(when)
+
+  // Both pickers accept the request at the chosen time; the overlap constraint
+  // still blocks a clash. Returning { ok: true } keeps the picker quiet — we
+  // close + refresh instead.
+  const confirmSlot = async (start: string) => {
+    const res = await acceptBookingRequest(request.id, { startIso: start })
+    if (res.ok) {
+      setAdjustOpen(false)
+      router.refresh()
+      return { ok: true as const }
+    }
+    return { ok: false as const, error: res.error }
+  }
+
+  // Lazy-load the studio's available slots the first time Adjust opens — same
+  // availability + limitations as the admin New-booking flow (getOwnerSlots).
+  const openAdjust = () => {
+    setAdjustOpen(true)
+    if (slots === null && request.serviceId) {
+      getOwnerSlots(request.serviceId, request.addonIds)
+        .then(setSlots)
+        .catch(() => {
+          setSlots([])
+          toast.error("Couldn’t load times — try again.")
+        })
+    }
+  }
+
+  // Toggle "ignore all limits" → lazy-load the override slots (any day, hours
+  // ignored, existing bookings still excluded).
+  const toggleIgnore = (next: boolean) => {
+    setIgnoreLimits(next)
+    if (next && overrideSlots === null && request.serviceId) {
+      getOwnerOverrideSlots(request.serviceId, request.addonIds)
+        .then(setOverrideSlots)
+        .catch(() => {
+          setOverrideSlots([])
+          toast.error("Couldn’t load times — try again.")
+        })
+    }
+  }
 
   return (
-    <TintedCard className="space-y-3 p-4">
+    <TintedCard
+      id={`request-${request.id}`}
+      className="scroll-mt-24 space-y-3 p-4"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-functional text-sm font-medium text-foreground">
@@ -69,7 +139,6 @@ export function AdminRequestCard({
         </Badge>
       </div>
 
-      {/* Contact on any known channel. */}
       {contact?.phone || contact?.email ? (
         <div className="flex flex-wrap items-center gap-4">
           {contact?.phone ? (
@@ -107,20 +176,6 @@ export function AdminRequestCard({
         </div>
       ) : null}
 
-      {/* Adjust the time before accepting (defaults to the requested time). */}
-      <label className="block space-y-1">
-        <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-          Time (adjust if needed)
-        </span>
-        <input
-          type="datetime-local"
-          value={when}
-          onChange={(e) => setWhen(e.target.value)}
-          disabled={pending}
-          className="w-full rounded-sm border border-border bg-background p-2 font-functional text-sm text-foreground"
-        />
-      </label>
-
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
         <Button
           variant="ghost"
@@ -130,17 +185,63 @@ export function AdminRequestCard({
         >
           Reject
         </Button>
-        <Button
-          size="sm"
-          disabled={pending || !startIso}
-          onClick={() =>
-            startIso &&
-            run(() => acceptBookingRequest(request.id, { startIso }))
-          }
-        >
-          Accept &amp; book
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {request.serviceId ? (
+            <Button variant="outline" size="sm" disabled={pending} onClick={openAdjust}>
+              Adjust time
+            </Button>
+          ) : null}
+          <Button
+            size="sm"
+            disabled={pending}
+            onClick={() => run(() => acceptBookingRequest(request.id))}
+          >
+            Accept &amp; book
+          </Button>
+        </div>
       </div>
+
+      {/* Adjust time — the same date/time picker + availability as any admin
+          booking, in a dialog. Picking a slot accepts the request at that time. */}
+      <Sheet open={adjustOpen} onOpenChange={setAdjustOpen}>
+        {/* Flex column: title + note stay pinned, the tall picker scrolls in the
+            remaining space so its "Book this time" button is always reachable. */}
+        <SheetContent className="flex max-h-[90vh] flex-col gap-4">
+          <SheetTitle>Adjust time — {clientName}</SheetTitle>
+          <BodySm className="text-xs text-muted-foreground">
+            Pick an available studio time — or ignore hours to pick any free slot.
+            Either way accepts the request and confirms the client.
+          </BodySm>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={ignoreLimits}
+              onChange={(e) => toggleIgnore(e.target.checked)}
+              className="size-4"
+            />
+            <span className="font-functional text-sm text-foreground">
+              Ignore hours &amp; days off — pick any free slot
+            </span>
+          </label>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {(ignoreLimits ? overrideSlots : slots) === null ? (
+              <BodySm className="text-sm text-muted-foreground">
+                Loading times…
+              </BodySm>
+            ) : (
+              <SlotPicker
+                // Remount on toggle so the picker's selection can't persist
+                // across modes (a stale override day surviving the switch).
+                key={ignoreLimits ? "override" : "normal"}
+                slots={(ignoreLimits ? overrideSlots : slots) ?? []}
+                locale={ADMIN_LOCALE}
+                onConfirm={confirmSlot}
+                labels={ignoreLimits ? OVERRIDE_LABELS : SLOT_LABELS}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog
         open={rejectOpen}

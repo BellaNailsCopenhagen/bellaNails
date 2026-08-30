@@ -8,27 +8,38 @@ time?" ghost button in `booking-slot-step.tsx`) uses a hand-rolled bilingual COP
 map / inline `locale === "en"` ternary instead of `t()` from the `booking`
 namespace like the rest of `/book`. Copy is correct da/en but lives outside the
 catalog. Add the keys to `messages/{da,en}.json` and switch to `useTranslations`.
-Minor: the `datetime-local` + `studioInputToIso` submit block is duplicated
-between the admin override (`admin-new-booking.tsx`) and the request form — a tiny
-`<StudioDateTimeInput>` would DRY it.
 
-### Blocked-booking states → a request flow, not a dead end
-When the client hits a hard block at the confirm step — today the **2-active-booking
-cap** ("You already have 2 active bookings…"), and later an **outside-normal-hours
-slot** — the confirm button should switch from "Confirm session" to **"Send email /
-Request"** and open a request to the studio for the **artist to approve**, instead of
-dead-ending with "contact the studio". The over-cap request and the outside-hours
-request are the **same mechanism** — build them together as **Feature H ·
-booking_requests** (see [ROADMAP](in-house/ROADMAP.md); starter SQL
-`supabase/booking-requests.sql` exists). Pairs with the admin "override all limits"
-toggle below (artist side of the same problem).
+### SlotPicker label sets are duplicated across four call sites
+The admin English label object is defined near-identically in
+`admin-request-card.tsx` (`SLOT_LABELS` + derived `OVERRIDE_LABELS`),
+`admin/new/_components/time-step.tsx`, and a third da/en set in
+`booking-slot-step.tsx`. Adding or renaming a `SlotPickerLabels` field means
+editing every copy, and they can drift. Extract a shared admin label builder
+(e.g. `adminSlotLabels({ override })`) and keep the client set in the i18n pass
+above.
 
-### Admin booking: override all availability limits
-When the ARTIST creates a booking (`/admin/new`), she should not be bound by the
-client-facing limits (studio hours, day availability, lead time, 2-active cap,
-slot grid). Add an **"ignore limits" toggle** on the admin booking flow that
-frees every slot on every day — the artist can book anything, anytime (e.g. an
-after-hours or same-slot appointment). Client flow stays limited as-is.
+### studio_hours single row is read twice per slot computation
+`loadSlotInputs` (availability.ts) calls `getStudioHours` (reads `weekly`) **and**
+`getOutsideHoursConfig` (reads `no_work`/flag/window) — two SELECTs against the
+same single-row `studio_hours`. `getScheduleSnapshot` (conflicts.ts) repeats it.
+Hot paths (every /book confirm, reschedule, admin picker). Read all needed columns
+in one SELECT. Tiny table (PK lookup) so the win is modest — hence deferred.
+
+### getOutsideHoursConfig returns a camelCase view model (layer leak)
+`db/studio-hours.ts` `getOutsideHoursConfig` maps `no_work→noWork`,
+`outside_hours_enabled→enabled`, etc. AGENTS.md says db/ returns schema-shaped
+snake_case rows and modules map to view models. Move the mapping to the module
+(`modules/studio/hours.ts`), return the snake_case row from db/. Ripples to
+availability.ts, conflicts.ts, and the admin hours editor — do it in one pass.
+
+### Outside-hours calendar is serialized to every /book visitor
+`booking-confirm.tsx` passes the full `outsideSlots` array into the client
+`BookingSlotStep` as a prop, so when outside-hours is enabled the whole outside
+calendar (closed weekdays yield the entire 06:00–20:00 window each day → ~1–2k
+slots over the horizon) ships in the RSC payload for every booking visitor, even
+though it's only revealed after clicking "Request one". Lazy-load it: return only
+`outsideEnabled` from `getBookingSlots`, and fetch the outside slots from a
+`"use server"` action when the client actually opens the request UI.
 
 ### In-house booking hardening (before launch)
 From the Phase 3a review of `createBooking`:
@@ -106,6 +117,18 @@ messages; a unique violation on `clients.email` can echo the email
 (`Key (email)=(…)`) into logs. Log error codes, not full messages.
 
 ## Done
+
+### Blocked-booking states → a request flow (Feature H) ✅
+The confirm-step dead ends are now request flows: the **2-active cap** →
+over-limit request form (+ "check My Space"), and **outside-normal-hours** →
+"Can't find a time?" → SlotPicker of outside slots. Both send `booking_requests`
+the artist approves in the admin queue. Built, unmerged (SQL pending).
+
+### Admin booking: override availability limits ✅
+`/admin/new` **and** the request Adjust dialog have an **"Ignore hours & days
+off"** toggle → a picker of free times across the override envelope (06:00–22:00,
+hours/no-work/lead ignored, taken slots still excluded). Client flow stays
+limited. Built, unmerged.
 
 ### Withdrawn-consent notification opens the image dialog ✅
 A `media_consent_withdrawn` notification now links to
