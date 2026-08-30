@@ -2,17 +2,12 @@ import "server-only"
 
 import { listActiveBookingsFrom } from "@/db/bookings"
 import type { Db } from "@/db/client"
-import { getOutsideHoursConfig } from "@/db/studio-hours"
 import { fetchClientContacts } from "@/modules/clients/contacts"
-import { getStudioHours } from "@/modules/studio/hours"
+import { getSchedule } from "@/modules/studio/hours"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
-import {
-  effectiveRangesForDayNumber,
-  type StudioHours,
-  type TimeRange,
-  type WeeklyHours,
-} from "@/shared/studio-hours"
+import { standardDay, type Schedule } from "@/shared/schedule"
+import type { TimeRange } from "@/shared/studio-hours"
 import { studioDayNumber, studioWallTimeToInstant } from "@/shared/studio-time"
 
 /**
@@ -27,9 +22,9 @@ export type ScheduleConflict = {
   reason: "no_work" | "outside_hours" | "closed"
 }
 
-/** The schedule inputs that decide whether a booking is bookable — captured
-    BEFORE a mutation so conflicts can be diffed against the AFTER state. */
-export type ScheduleSnapshot = { hours: StudioHours; noWork?: WeeklyHours }
+/** The schedule that decides whether a booking is bookable — captured BEFORE a
+    mutation so conflicts can be diffed against the AFTER state. */
+export type ScheduleSnapshot = { schedule: Schedule }
 
 const toInstants = (day: number, ranges: TimeRange[]) =>
   ranges.map(
@@ -46,31 +41,19 @@ const containedIn = (
   ranges: readonly (readonly [number, number])[],
 ) => ranges.some(([open, close]) => startMs >= open && endMs <= close)
 
-const fitsSchedule = (
-  snapshot: ScheduleSnapshot,
+const fits = (
+  ranges: TimeRange[],
   startMs: number,
   endMs: number,
   day: number,
-) => {
-  const bookable = effectiveRangesForDayNumber(snapshot.hours, day, {
-    noWork: snapshot.noWork,
-  })
-  return containedIn(startMs, endMs, toInstants(day, bookable.ranges))
-}
+) => containedIn(startMs, endMs, toInstants(day, ranges))
 
-/** The current schedule (weekly + special + no-work). Call BEFORE a mutation to
-    capture the "before", then pass it to getScheduleConflicts after saving. */
+/** The current schedule. Call BEFORE a mutation to capture the "before", then
+    pass it to getScheduleConflicts after saving. */
 export async function getScheduleSnapshot(
   db: Db = createSupabaseServiceRoleClient(),
 ): Promise<ScheduleSnapshot> {
-  const [hours, outsideConfig] = await Promise.all([
-    getStudioHours(db),
-    getOutsideHoursConfig(db).catch(() => null),
-  ])
-  return {
-    hours,
-    noWork: (outsideConfig?.noWork as WeeklyHours | null) ?? undefined,
-  }
+  return { schedule: await getSchedule(db) }
 }
 
 /**
@@ -98,6 +81,22 @@ export async function getScheduleConflicts(
     reason: ScheduleConflict["reason"]
   }[] = []
 
+  // Bookings cluster on a handful of days — resolve each day's standard ranges once.
+  const afterCache = new Map<number, ReturnType<typeof standardDay>>()
+  const beforeCache = new Map<number, ReturnType<typeof standardDay>>()
+  const dayStd = (
+    cache: Map<number, ReturnType<typeof standardDay>>,
+    schedule: Schedule,
+    day: number,
+  ) => {
+    let v = cache.get(day)
+    if (!v) {
+      v = standardDay(schedule, day)
+      cache.set(day, v)
+    }
+    return v
+  }
+
   for (const booking of bookings) {
     const startMs = new Date(booking.start_time).getTime()
     const endMs = new Date(booking.end_time).getTime()
@@ -106,16 +105,20 @@ export async function getScheduleConflicts(
     // Still fits → fine. Didn't fit before either → not stranded by THIS change
     // (it was already an intentional out-of-hours booking). Only the ones this
     // edit newly pushed out of bounds are conflicts.
-    if (fitsSchedule(after, startMs, endMs, day)) continue
-    if (!fitsSchedule(before, startMs, endMs, day)) continue
+    const afterStd = dayStd(afterCache, after.schedule, day)
+    if (fits(afterStd.effective, startMs, endMs, day)) continue
+    if (!fits(dayStd(beforeCache, before.schedule, day).effective, startMs, endMs, day)) {
+      continue
+    }
 
-    // Classify why it no longer fits, against the AFTER standard hours.
-    const standard = effectiveRangesForDayNumber(after.hours, day, {})
-    const reason: ScheduleConflict["reason"] = standard.closed
-      ? "closed"
-      : containedIn(startMs, endMs, toInstants(day, standard.ranges))
-        ? "no_work"
-        : "outside_hours"
+    // Classify why it no longer fits, against the AFTER standard hours: closed
+    // (no standard that day) / no_work (in raw standard but carved) / outside.
+    const reason: ScheduleConflict["reason"] =
+      afterStd.raw.length === 0
+        ? "closed"
+        : fits(afterStd.raw, startMs, endMs, day)
+          ? "no_work"
+          : "outside_hours"
 
     flagged.push({
       bookingId: booking.id,

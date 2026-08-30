@@ -156,6 +156,40 @@ export async function listActiveBookingsFrom(
   return data ?? []
 }
 
+/** The single booking in progress right now (start ≤ now < end), if any — for the
+    command centre. Latest start wins if overrides created an overlap. */
+export async function getCurrentBooking(
+  db: Db,
+  nowIso: string,
+): Promise<BookingRow | null> {
+  const { data } = await db
+    .from("bookings")
+    .select(BOOKING_COLUMNS)
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .lte("start_time", nowIso)
+    .gt("end_time", nowIso)
+    .order("start_time", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data ?? null
+}
+
+/** The soonest upcoming booking (start > now), if any — for the command centre. */
+export async function getNextBooking(
+  db: Db,
+  nowIso: string,
+): Promise<BookingRow | null> {
+  const { data } = await db
+    .from("bookings")
+    .select(BOOKING_COLUMNS)
+    .in("status", [...ACTIVE_BOOKING_STATUSES])
+    .gt("start_time", nowIso)
+    .order("start_time", { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  return data ?? null
+}
+
 /** How many active (upcoming, non-cancelled) bookings a client currently holds —
     backs the public booking cap ("hands + feet" = 2 at a time). */
 export async function countActiveUpcomingBookingsForClient(

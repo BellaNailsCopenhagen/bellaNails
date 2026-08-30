@@ -17,10 +17,13 @@ import { RELEASE_PURPOSES } from "@/shared/media-release"
 export function BookingRequestActions({
   bookingId,
   canMedia,
+  mediaAlreadyRequested = false,
   canReview,
 }: {
   bookingId: string
   canMedia: boolean
+  /** Something's already been sent → the button re-requests ("… again"). */
+  mediaAlreadyRequested?: boolean
   canReview: boolean
 }) {
   const { pending, run } = useActionRunner()
@@ -34,7 +37,7 @@ export function BookingRequestActions({
           onClick={() => run(() => requestMediaRelease(bookingId, [...RELEASE_PURPOSES]))}
         >
           <Camera className="size-3.5" />
-          Request media use
+          {mediaAlreadyRequested ? "Request media use again" : "Request media use"}
         </Button>
       ) : null}
       {canReview ? (

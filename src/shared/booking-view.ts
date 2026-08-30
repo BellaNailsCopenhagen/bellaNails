@@ -3,6 +3,7 @@ import type { BookingRow } from "@/db/bookings"
 import { metaOf } from "@/shared/booking-policy"
 import { pickLocalized } from "@/shared/localized"
 import type { ReleasePurposeState } from "@/shared/media-release"
+import type { NoteView } from "@/shared/notes"
 
 /**
  * The booking view model and its pure mapper. Lives in `shared/` because
@@ -35,10 +36,14 @@ export type DisplayBooking = {
   /** Media-release state per purpose (admin view only) — attached by
       resolveAdminBookings; undefined on client-facing surfaces. */
   releases?: ReleasePurposeState[]
+  /** Artist notes (admin only) — this booking's notes + the client's client-level
+      notes. Attached by resolveAdminBookings; undefined on client-facing surfaces. */
+  notes?: { booking: NoteView[]; client: NoteView[] }
 }
 
 /** One attached image, already resolved to a viewable URL. */
 export type BookingThumb = { id: string; url: string; kind: string }
+
 
 export function toDisplayBooking(
   row: BookingRow,

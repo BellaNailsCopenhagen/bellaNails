@@ -1,9 +1,5 @@
-import {
-  effectiveRangesForDayNumber,
-  type StudioHours,
-  type TimeRange,
-  type WeeklyHours,
-} from "@/shared/studio-hours"
+import { dayRanges, type Schedule } from "@/shared/schedule"
+import type { TimeRange } from "@/shared/studio-hours"
 import { studioDayNumber, studioWallTimeToInstant } from "@/shared/studio-time"
 
 /**
@@ -31,22 +27,18 @@ export type SlotRules = {
 const MIN = 60_000
 
 export function generateSlots(params: {
-  hours: StudioHours
+  schedule: Schedule
+  /** Which calendar: standard bookable hours, or the outside-hours request set. */
+  mode: "standard" | "outside"
   durationMins: number
   busy: BusySpan[]
   rules: SlotRules
   now: number
-  /** Weekly no-work blocks carved out of every day (both modes). */
-  noWork?: WeeklyHours
-  /** Set → OUTSIDE-hours mode: slots in the complement of standard hours within
-      this window (the request calendar), instead of the standard hours. */
-  outerWindow?: TimeRange
-  /** Set → ADMIN OVERRIDE: every day is this whole window (hours / no-work /
-      special ignored), still minus `busy` — free times only, any day. */
+  /** Set → ADMIN OVERRIDE: every day is this whole window (schedule ignored),
+      still minus `busy` — free times only, any day. */
   fullDayWindow?: TimeRange
 }): Slot[] {
-  const { hours, durationMins, busy, rules, now, noWork, outerWindow, fullDayWindow } =
-    params
+  const { schedule, mode, durationMins, busy, rules, now, fullDayWindow } = params
   const earliest = now + rules.minLeadMins * MIN
   const buffer = rules.bufferMins * MIN
   const step = rules.slotIntervalMins * MIN
@@ -57,11 +49,11 @@ export function generateSlots(params: {
   const slots: Slot[] = []
 
   for (let day = firstDay; day <= lastDay; day++) {
-    // Override: the whole window every day, hours/no-work/special ignored — only
-    // `busy` (below) still carves out taken time. Else the normal effective ranges.
+    // Override: the whole window every day, schedule ignored — only `busy` (below)
+    // still carves out taken time. Else the effective ranges for this mode.
     const dayHours = fullDayWindow
       ? { closed: false as const, ranges: [fullDayWindow] }
-      : effectiveRangesForDayNumber(hours, day, { outerWindow, noWork })
+      : dayRanges(schedule, day, mode)
     if (dayHours.closed) continue
 
     for (const [openStr, closeStr] of dayHours.ranges) {

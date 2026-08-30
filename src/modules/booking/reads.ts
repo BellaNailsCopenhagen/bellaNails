@@ -2,12 +2,15 @@ import "server-only"
 
 import {
   getBookingForManage,
+  getCurrentBooking,
+  getNextBooking,
   listActiveBookingsFrom,
   listBookingsBefore,
   listBookingsForClient,
   listBookingsFrom,
   type BookingRow,
 } from "@/db/bookings"
+import type { Db } from "@/db/client"
 import type { ClientContact } from "@/shared/contact"
 import {
   createAuthedSupabaseServerClient,
@@ -46,12 +49,13 @@ const EMPTY: AdminBookingView = {
   loadError: true,
 }
 
-/** Resolve rows to everything an admin booking surface renders. */
+/** Resolve rows to everything an admin booking surface renders. Takes the caller's
+    authed client so a surface doesn't build a second one. */
 async function resolveForAdmin(
   rows: BookingRow[],
   context: string,
+  supabase: Db,
 ): Promise<AdminBookingView> {
-  const supabase = await createAuthedSupabaseServerClient()
   const [resolved, photosByBooking] = await Promise.all([
     resolveAdminBookings(supabase, rows, context),
     getBookingMediaThumbs(
@@ -76,11 +80,55 @@ export async function getAdminQueue(
       supabase,
       new Date(now).toISOString(),
     )
-    const view = await resolveForAdmin(rows, "admin-queue")
+    const view = await resolveForAdmin(rows, "admin-queue", supabase)
     return { ...view, weeks: groupIntoAgenda(view.bookings, now) }
   } catch (error) {
     console.error("[admin-queue] read failed", messageOf(error))
     return { ...EMPTY, weeks: groupIntoAgenda([], now) }
+  }
+}
+
+/** The command-centre "now": the booking in progress + the next one, plus the
+    contacts / no-show counts / photos those two cards render. Degrades to nulls. */
+export type AdminFocus = {
+  current: DisplayBooking | null
+  next: DisplayBooking | null
+  contacts: Record<string, ClientContact>
+  noShowCounts: Record<string, number>
+  photosByBooking: Record<string, BookingThumb[]>
+  loadError: boolean
+}
+
+export async function getAdminFocus(now: number): Promise<AdminFocus> {
+  try {
+    const supabase = await createAuthedSupabaseServerClient()
+    const nowIso = new Date(now).toISOString()
+    // Two targeted reads — the in-progress booking + the soonest upcoming one —
+    // so overlaps (override / accepted requests) can never hide the real "next".
+    const [currentRow, nextRow] = await Promise.all([
+      getCurrentBooking(supabase, nowIso),
+      getNextBooking(supabase, nowIso),
+    ])
+    const rows = [currentRow, nextRow].filter((r) => r !== null)
+    const view = await resolveForAdmin(rows, "admin-focus", supabase)
+    return {
+      current: view.bookings.find((b) => b.row.id === currentRow?.id) ?? null,
+      next: view.bookings.find((b) => b.row.id === nextRow?.id) ?? null,
+      contacts: view.contacts,
+      noShowCounts: view.noShowCounts,
+      photosByBooking: view.photosByBooking,
+      loadError: false,
+    }
+  } catch (error) {
+    console.error("[admin-focus] read failed", messageOf(error))
+    return {
+      current: null,
+      next: null,
+      contacts: {},
+      noShowCounts: {},
+      photosByBooking: {},
+      loadError: true,
+    }
   }
 }
 
@@ -99,7 +147,7 @@ export async function getAdminAppointments(
       listBookingsFrom(supabase, nowIso),
       listBookingsBefore(supabase, nowIso, pastLimit),
     ])
-    return await resolveForAdmin([...upcoming, ...past], "admin-appointments")
+    return await resolveForAdmin([...upcoming, ...past], "admin-appointments", supabase)
   } catch (error) {
     console.error("[admin-appointments] read failed", messageOf(error))
     return EMPTY
@@ -113,7 +161,7 @@ export async function getClientBookingHistory(
   try {
     const supabase = await createAuthedSupabaseServerClient()
     const rows = await listBookingsForClient(supabase, clientId)
-    return await resolveForAdmin(rows, "admin-client")
+    return await resolveForAdmin(rows, "admin-client", supabase)
   } catch (error) {
     console.error("[admin-client] read failed", messageOf(error))
     return EMPTY

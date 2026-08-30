@@ -1,8 +1,8 @@
-/** The studio's opening pattern: a weekly schedule plus dated overrides. */
-export { getStudioHours, getOutsideHoursSettings } from "./hours"
+/** The studio's schedule (standard / outside / no-work rules) + app feature flags. */
+export { getSchedule, getFeatureFlags, isFeatureEnabled } from "./hours"
 export {
-  addSpecialDay,
-  deleteSpecialDay,
-  saveOutsideHours,
-  saveWeeklyHours,
+  saveScheduleRule,
+  deleteScheduleRule,
+  setFeatureFlag,
+  type ScheduleRuleInput,
 } from "./actions"

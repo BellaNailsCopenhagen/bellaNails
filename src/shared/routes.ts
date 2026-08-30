@@ -31,8 +31,10 @@ const adminNewQuery = (q?: {
 export const routes = {
   admin: {
     home: "/admin",
+    agenda: "/admin/agenda",
     appointments: "/admin/appointments",
     hours: "/admin/hours",
+    settings: "/admin/settings",
     more: "/admin/more",
     terms: "/admin/terms",
     notifications: "/admin/notifications",

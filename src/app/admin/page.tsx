@@ -1,39 +1,44 @@
 import type { Metadata } from "next"
 
-import { AdminQueue } from "@/app/admin/_components/admin-queue"
-import { SendRemindersButton } from "@/app/admin/_components/send-reminders-button"
+import { CommandActions } from "@/app/admin/_components/command-actions"
+import { CommandCenter } from "@/app/admin/_components/command-center"
+import { CommandTick } from "@/app/admin/_components/command-tick"
+import { QueueRealtime } from "@/app/admin/_components/queue-realtime"
 import { AdminRequestCard } from "@/components/admin/admin-request-card"
 import { Badge } from "@/components/ui/badge"
 import { Eyebrow } from "@/components/ui/typography"
-import { getAdminQueue, getPendingRequests } from "@/modules/booking"
+import { getAdminFocus, getPendingRequests } from "@/modules/booking"
+import { getUnreadNotificationCount } from "@/modules/notifications"
 
-export const metadata: Metadata = { title: "Queue" }
+export const metadata: Metadata = { title: "Today" }
 
 // Per-owner reads (session cookies) — declare dynamic so the build doesn't
 // attempt a static prerender and log a spurious DYNAMIC_SERVER_USAGE notice.
 export const dynamic = "force-dynamic"
 
 /**
- * Admin queue (home) — booking requests to action first, then the forward agenda
- * across ALL clients (owner-reads-all RLS), grouped by week → day.
+ * Admin home — the command centre: what's in progress now, what's next, the
+ * reminder batch + shortcuts, and booking requests to action. The full week/day
+ * agenda lives at /admin/agenda.
  */
-export default async function AdminQueuePage() {
+export default async function AdminHomePage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const [
-    { weeks, contacts, noShowCounts, photosByBooking, loadError },
-    { requests, contacts: requestContacts },
-  ] = await Promise.all([getAdminQueue(now), getPendingRequests()])
+  const [focus, { requests, contacts: requestContacts }, unread] =
+    await Promise.all([
+      getAdminFocus(now),
+      getPendingRequests(),
+      getUnreadNotificationCount(),
+    ])
 
   return (
-    <>
-      <div className="flex justify-end pb-4">
-        <SendRemindersButton />
-      </div>
+    <div className="space-y-8">
+      <CommandCenter focus={focus} now={now} />
+      <CommandActions unreadCount={unread} />
 
       {/* Booking requests — outside-hours / over-limit asks awaiting the artist. */}
       {requests.length ? (
-        <section className="space-y-3 pb-10">
+        <section className="space-y-3">
           <div className="flex items-center gap-2">
             <Eyebrow as="h2">Requests</Eyebrow>
             <Badge variant="warning" size="xs">
@@ -52,14 +57,8 @@ export default async function AdminQueuePage() {
         </section>
       ) : null}
 
-      <AdminQueue
-        weeks={weeks}
-        contacts={contacts}
-        noShowCounts={noShowCounts}
-        now={now}
-        photosByBooking={photosByBooking}
-        loadError={loadError}
-      />
-    </>
+      <QueueRealtime />
+      <CommandTick />
+    </div>
   )
 }

@@ -1,11 +1,15 @@
-/** The studio's own inbox. There is no per-item read — only "mark all read". */
+/** The studio's own inbox — mark all read, or mark/dismiss items individually. */
 export {
   getNotifications,
   getUnreadNotificationCount,
   type OwnerNotification,
 } from "./reads"
 export { notifyOwner, type OwnerNotificationKind } from "./notify"
-export { markAllNotificationsRead } from "./actions"
+export {
+  markAllNotificationsRead,
+  setNotificationRead,
+  dismissNotification,
+} from "./actions"
 export {
   sendBookingConfirmationEmail,
   sendBookingCancellationEmail,

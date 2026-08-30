@@ -347,6 +347,33 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          body: string
+          booking_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          booking_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          booking_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       owner_notifications: {
         Row: {
           client_media_id: string | null
@@ -792,63 +819,54 @@ export type Database = {
         }
         Relationships: []
       }
-      studio_hours: {
+      feature_flags: {
         Row: {
-          id: boolean
-          no_work: Json
-          outside_hours_enabled: boolean
-          outside_window_end: string
-          outside_window_start: string
+          enabled: boolean
+          key: string
           updated_at: string
-          weekly: Json
         }
         Insert: {
-          id?: boolean
-          no_work?: Json
-          outside_hours_enabled?: boolean
-          outside_window_end?: string
-          outside_window_start?: string
+          enabled?: boolean
+          key: string
           updated_at?: string
-          weekly?: Json
         }
         Update: {
-          id?: boolean
-          no_work?: Json
-          outside_hours_enabled?: boolean
-          outside_window_end?: string
-          outside_window_start?: string
+          enabled?: boolean
+          key?: string
           updated_at?: string
-          weekly?: Json
         }
         Relationships: []
       }
-      studio_special_days: {
+      schedule_rules: {
         Row: {
-          closed: boolean
           created_at: string
-          ends_on: string | null
-          hours: Json | null
+          end_time: string
           id: string
+          kind: string
           label: string | null
-          starts_on: string
+          on_date: string | null
+          start_time: string
+          weekday: number | null
         }
         Insert: {
-          closed?: boolean
           created_at?: string
-          ends_on?: string | null
-          hours?: Json | null
+          end_time: string
           id?: string
+          kind: string
           label?: string | null
-          starts_on: string
+          on_date?: string | null
+          start_time: string
+          weekday?: number | null
         }
         Update: {
-          closed?: boolean
           created_at?: string
-          ends_on?: string | null
-          hours?: Json | null
+          end_time?: string
           id?: string
+          kind?: string
           label?: string | null
-          starts_on?: string
+          on_date?: string | null
+          start_time?: string
+          weekday?: number | null
         }
         Relationships: []
       }

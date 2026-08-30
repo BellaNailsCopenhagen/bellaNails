@@ -2,151 +2,149 @@
 
 import { revalidatePath } from "next/cache"
 
+import { upsertFeatureFlag } from "@/db/feature-flags"
 import {
-  saveOutsideHoursConfig as saveOutsideHoursConfigRow,
-  saveWeeklyHours as saveWeeklyHoursRow,
-} from "@/db/studio-hours"
-import {
-  deleteSpecialDay as deleteSpecialDayRow,
-  insertSpecialDay,
-} from "@/db/studio-special-days"
+  deleteScheduleRule as deleteScheduleRuleRow,
+  insertScheduleRules,
+  updateScheduleRule,
+} from "@/db/schedule-rules"
 import { requireOwner } from "@/modules/identity/require-owner"
 import {
   getScheduleConflicts,
   getScheduleSnapshot,
   type ScheduleConflict,
 } from "@/modules/studio/conflicts"
-import type { Json } from "@/platform/supabase/types"
+import { SCHEDULE_KINDS, type ScheduleKind } from "@/shared/schedule"
+import { dayNumberForIso, isoForDayNumber } from "@/shared/studio-hours"
 import { routes } from "@/shared/routes"
-import type { TimeRange, WeeklyHours } from "@/shared/studio-hours"
+
+// A dated span can't exceed this many days — guards against a runaway From/To.
+const MAX_SPAN_DAYS = 366
 
 export type HoursResult =
   | { ok: true; conflicts?: ScheduleConflict[] }
   | { ok: false; error: string }
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
+const DATE = /^\d{4}-\d{2}-\d{2}$/
 
-// Valid = array of [open, close] "HH:MM" pairs with open before close.
-function validRanges(ranges: unknown): ranges is TimeRange[] {
-  return (
-    Array.isArray(ranges) &&
-    ranges.every(
-      (r) =>
-        Array.isArray(r) &&
-        r.length === 2 &&
-        typeof r[0] === "string" &&
-        typeof r[1] === "string" &&
-        TIME.test(r[0]) &&
-        TIME.test(r[1]) &&
-        r[0] < r[1],
-    )
-  )
+export type ScheduleRuleInput = {
+  id?: string
+  kind: ScheduleKind
+  weekday: number | null // 0=Mon..6=Sun (recurring)
+  onDate: string | null // YYYY-MM-DD (one-time; the range start when onDateEnd is set)
+  /** Inclusive end date — a one-off span, stored as one single-date rule per day
+      (add-mode only). */
+  onDateEnd?: string | null
+  start: string // "HH:MM"
+  end: string
+  label?: string | null
 }
 
-export async function saveWeeklyHours(
-  weekly: WeeklyHours,
+// Returns an error message, or null when valid. Exactly one recurrence, a valid
+// weekday/date, and a start before the end.
+function validateRule(input: ScheduleRuleInput): string | null {
+  if (!SCHEDULE_KINDS.includes(input.kind)) return "Pick a type."
+  const hasWeekday = input.weekday !== null && input.weekday !== undefined
+  const hasDate = !!input.onDate
+  if (hasWeekday === hasDate) return "Pick either a weekday or a single date."
+  if (
+    hasWeekday &&
+    !(Number.isInteger(input.weekday) && input.weekday! >= 0 && input.weekday! <= 6)
+  ) {
+    return "Invalid weekday."
+  }
+  if (hasDate && !DATE.test(input.onDate!)) return "Invalid date."
+  if (input.onDateEnd) {
+    if (!DATE.test(input.onDateEnd)) return "Invalid end date."
+    if (!input.onDate || input.onDateEnd < input.onDate) {
+      return "The end date is before the start."
+    }
+    if (dayNumberForIso(input.onDateEnd) - dayNumberForIso(input.onDate) >= MAX_SPAN_DAYS) {
+      return "That date range is too long — pick a shorter span."
+    }
+  }
+  if (!TIME.test(input.start) || !TIME.test(input.end) || input.start >= input.end) {
+    return "Start must be before end."
+  }
+  return null
+}
+
+/** Add or edit one schedule rule (standard / outside / no-work). A dated span
+    (`onDateEnd` set, add-mode) inserts one single-date rule per day. Owner-gated;
+    runs the non-blocking conflict check after saving. */
+export async function saveScheduleRule(
+  input: ScheduleRuleInput,
 ): Promise<HoursResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
-  for (const [day, ranges] of Object.entries(weekly)) {
-    if (!validRanges(ranges)) {
-      return { ok: false, error: `Invalid hours for ${day}.` }
-    }
-  }
+  const error = validateRule(input)
+  if (error) return { ok: false, error }
 
-  const before = await getScheduleSnapshot(supabase)
-  const saved = await saveWeeklyHoursRow(supabase, weekly as Json)
-  if (!saved.ok) return { ok: false, error: "Couldn’t save hours." }
-
-  revalidatePath(routes.admin.hours)
-  const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
-  return { ok: true, conflicts }
-}
-
-/** Outside-hours request config: the enable flag, the outer window, and the
-    weekly no-work blocks (all on studio_hours). */
-export async function saveOutsideHours(input: {
-  enabled: boolean
-  windowStart: string
-  windowEnd: string
-  noWork: WeeklyHours
-}): Promise<HoursResult> {
-  const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-
-  if (
-    !TIME.test(input.windowStart) ||
-    !TIME.test(input.windowEnd) ||
-    input.windowStart >= input.windowEnd
-  ) {
-    return { ok: false, error: "The outer window's start must be before its end." }
-  }
-  for (const [day, ranges] of Object.entries(input.noWork)) {
-    if (!validRanges(ranges)) {
-      return { ok: false, error: `Invalid no-work times for ${day}.` }
-    }
-  }
-
-  const before = await getScheduleSnapshot(supabase)
-  const saved = await saveOutsideHoursConfigRow(supabase, {
-    no_work: input.noWork as Json,
-    outside_hours_enabled: input.enabled,
-    outside_window_start: input.windowStart,
-    outside_window_end: input.windowEnd,
-  })
-  if (!saved.ok) {
-    return { ok: false, error: "Couldn’t save outside-hours settings." }
-  }
-
-  revalidatePath(routes.admin.hours)
-  const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
-  return { ok: true, conflicts }
-}
-
-export async function addSpecialDay(input: {
-  startsOn: string
-  endsOn?: string | null
-  closed: boolean
-  hours?: TimeRange[] | null
-  label?: string | null
-}): Promise<HoursResult> {
-  const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!input.startsOn) return { ok: false, error: "Pick a date." }
-  if (input.endsOn && input.endsOn < input.startsOn) {
-    return { ok: false, error: "End date is before the start." }
-  }
-  if (!input.closed && input.hours && !validRanges(input.hours)) {
-    return { ok: false, error: "Invalid special hours." }
-  }
-
-  const before = await getScheduleSnapshot(supabase)
-  const saved = await insertSpecialDay(supabase, {
-    starts_on: input.startsOn,
-    ends_on: input.endsOn || null,
-    closed: input.closed,
-    hours: input.closed ? null : ((input.hours ?? null) as Json),
+  const base = {
+    kind: input.kind,
+    weekday: input.onDate ? null : input.weekday,
+    start_time: input.start,
+    end_time: input.end,
     label: input.label?.trim() || null,
-  })
-  if (!saved.ok) return { ok: false, error: "Couldn’t add the special day." }
+  }
+
+  const before = await getScheduleSnapshot(supabase)
+
+  let saved: { ok: boolean }
+  if (input.id) {
+    saved = await updateScheduleRule(supabase, input.id, {
+      ...base,
+      on_date: input.onDate ?? null,
+    })
+  } else if (input.onDate && input.onDateEnd) {
+    // A dated span → one single-date row per day, inserted in ONE atomic write
+    // (no partial-then-duplicate-on-retry).
+    const first = dayNumberForIso(input.onDate)
+    const last = dayNumberForIso(input.onDateEnd)
+    const rows = Array.from({ length: last - first + 1 }, (_, i) => ({
+      ...base,
+      on_date: isoForDayNumber(first + i),
+    }))
+    saved = await insertScheduleRules(supabase, rows)
+  } else {
+    saved = await insertScheduleRules(supabase, [
+      { ...base, on_date: input.onDate ?? null },
+    ])
+  }
+  if (!saved.ok) return { ok: false, error: "Couldn’t save the rule." }
 
   revalidatePath(routes.admin.hours)
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
   return { ok: true, conflicts }
 }
 
-export async function deleteSpecialDay(id: string): Promise<HoursResult> {
+/** Remove one schedule rule — can strand a booking, so runs the conflict check. */
+export async function deleteScheduleRule(id: string): Promise<HoursResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
   const before = await getScheduleSnapshot(supabase)
-  const removed = await deleteSpecialDayRow(supabase, id)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove the special day." }
+  const removed = await deleteScheduleRuleRow(supabase, id)
+  if (!removed.ok) return { ok: false, error: "Couldn’t remove the rule." }
 
   revalidatePath(routes.admin.hours)
-  // Removing a special OPEN day reverts to the (closed/shorter) weekly hours,
-  // which can strand a booking made into it — same conflict check as the others.
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
   return { ok: true, conflicts }
+}
+
+/** Toggle an app feature flag (App settings → Features). Owner-gated. */
+export async function setFeatureFlag(
+  key: string,
+  enabled: boolean,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await requireOwner()
+  if (!supabase) return { ok: false, error: "unauthorized" }
+
+  const saved = await upsertFeatureFlag(supabase, key, enabled)
+  if (!saved.ok) return { ok: false, error: "Couldn’t update the setting." }
+
+  revalidatePath(routes.admin.settings)
+  return { ok: true }
 }

@@ -144,7 +144,7 @@ export function AdminQueue({
             {formatStudioWeekday(now, ADMIN_LOCALE)} ·{" "}
             {formatStudioDayMonth(now, ADMIN_LOCALE)}
           </Eyebrow>
-          <H2>Queue</H2>
+          <H2>Agenda</H2>
         </div>
 
         <div className="flex items-center gap-3">

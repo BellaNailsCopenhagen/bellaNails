@@ -3,10 +3,6 @@ import { getBookingSettings } from "@/db/booking-settings"
 import { listActiveBookingSpansBetween } from "@/db/bookings"
 import { getBookableService } from "@/db/services"
 import {
-  getOutsideHoursConfig,
-  type OutsideHoursConfig,
-} from "@/db/studio-hours"
-import {
   createSupabaseServerClient,
   createSupabaseServiceRoleClient,
 } from "@/platform/supabase/server"
@@ -16,9 +12,10 @@ import {
   type BusySpan,
   type Slot,
 } from "@/shared/booking-slots"
-import type { StudioHours, TimeRange, WeeklyHours } from "@/shared/studio-hours"
+import { FEATURE_FLAGS } from "@/shared/feature-flags"
+import type { Schedule } from "@/shared/schedule"
 import { studioDayNumber } from "@/shared/studio-time"
-import { getStudioHours } from "@/modules/studio"
+import { getSchedule, isFeatureEnabled } from "@/modules/studio"
 
 const DAY_MS = 86_400_000
 const MIN = 60_000
@@ -73,7 +70,7 @@ export async function getBookingSlots(
     const inputs = await loadSlotInputs(serviceId, addonIds, db)
     if (!inputs) return { normal: [], outside: [], outsideEnabled: false }
     // The flag drives the UI affordance (independent of whether slots exist now).
-    const outsideEnabled = inputs.outsideConfig?.enabled ?? false
+    const outsideEnabled = inputs.outsideEnabled
     return {
       normal: generateFor(inputs, {}),
       outside: outsideEnabled ? generateFor(inputs, { outsideHours: true }) : [],
@@ -114,7 +111,7 @@ async function computeSlots(
     const inputs = await loadSlotInputs(serviceId, addonIds, db)
     if (!inputs) return []
     // Outside-hours requests only exist when the artist has enabled them.
-    if (opts.outsideHours && !inputs.outsideConfig?.enabled) return []
+    if (opts.outsideHours && !inputs.outsideEnabled) return []
     return generateFor(inputs, opts)
   } catch (error) {
     logSlotError(error)
@@ -124,8 +121,8 @@ async function computeSlots(
 
 type SlotInputs = {
   settings: NonNullable<Awaited<ReturnType<typeof getBookingSettings>>>
-  hours: StudioHours
-  outsideConfig: OutsideHoursConfig | null
+  schedule: Schedule
+  outsideEnabled: boolean
   durationMins: number
   now: number
   maxAdvance: number
@@ -138,13 +135,13 @@ async function loadSlotInputs(
   addonIds: string[],
   db: Db,
 ): Promise<SlotInputs | null> {
-  const [settings, service, hours, outsideConfig] = await Promise.all([
+  const [settings, service, schedule, outsideEnabled] = await Promise.all([
     getBookingSettings(db),
     getBookableService(db, serviceId),
-    getStudioHours(db),
-    // Degrade independently — a missing/erroring outside-hours column must never
-    // take down NORMAL availability (it only adds no-work + the request mode).
-    getOutsideHoursConfig(db).catch(() => null),
+    // Both self-degrade (empty schedule / flag off), so a missing migration shows
+    // "no times" rather than crashing the booking flow.
+    getSchedule(db),
+    isFeatureEnabled(FEATURE_FLAGS.outsideHoursRequests, db),
   ])
   if (!settings || !service) return null
 
@@ -177,8 +174,8 @@ async function loadSlotInputs(
 
   return {
     settings,
-    hours,
-    outsideConfig,
+    schedule,
+    outsideEnabled,
     durationMins,
     now,
     maxAdvance,
@@ -191,16 +188,11 @@ async function loadSlotInputs(
 
 // Run the pure generator for one mode against already-loaded inputs.
 function generateFor(inputs: SlotInputs, opts: SlotOpts): Slot[] {
-  const { settings, hours, outsideConfig, durationMins, now, maxAdvance, busy } =
-    inputs
-  const noWork = (outsideConfig?.noWork as WeeklyHours | null) ?? undefined
-  const outerWindow: TimeRange | undefined =
-    opts.outsideHours && outsideConfig
-      ? [outsideConfig.windowStart, outsideConfig.windowEnd]
-      : undefined
+  const { settings, schedule, durationMins, now, maxAdvance, busy } = inputs
 
   return generateSlots({
-    hours,
+    schedule,
+    mode: opts.outsideHours ? "outside" : "standard",
     durationMins,
     busy,
     rules: {
@@ -213,9 +205,7 @@ function generateFor(inputs: SlotInputs, opts: SlotOpts): Slot[] {
       maxAdvanceDays: maxAdvance,
     },
     now,
-    noWork,
-    outerWindow,
-    // Override ignores hours/no-work entirely — the whole envelope, every day.
+    // Override ignores the schedule entirely — the whole envelope, every day.
     fullDayWindow: opts.override ? OVERRIDE_WINDOW : undefined,
   })
 }

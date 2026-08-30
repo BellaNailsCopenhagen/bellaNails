@@ -4,11 +4,13 @@ import {
   ArrowUpRight,
   BarChart3,
   Bell,
+  CalendarDays,
   CalendarRange,
   ChevronRight,
   Clock,
   Images,
   ScrollText,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react"
 
@@ -40,6 +42,12 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.notifications,
   },
   {
+    label: "Agenda",
+    description: "The full week-by-week upcoming schedule",
+    icon: CalendarDays,
+    href: routes.admin.agenda,
+  },
+  {
     label: "Appointments",
     description: "Full history, filters, and past bookings",
     icon: CalendarRange,
@@ -59,9 +67,15 @@ const ITEMS: MoreItem[] = [
   },
   {
     label: "Working hours",
-    description: "Weekly opening hours + special/closed days",
+    description: "Standard, outside & no-work times — the schedule",
     icon: Clock,
     href: routes.admin.hours,
+  },
+  {
+    label: "App settings",
+    description: "Turn optional features on or off",
+    icon: SlidersHorizontal,
+    href: routes.admin.settings,
   },
   {
     label: "Gallery & testimonials",

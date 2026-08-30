@@ -1,10 +1,12 @@
 # Unified schedule — one calendar for working / outside / no-work hours
 
-**Status:** planned, awaiting Raul's review. The conflict-check half (below) is
-BUILT — and now diffs the schedule **before vs after** a change, so it flags only
-bookings a change actually strands (intentional out-of-hours bookings, from
-accepted requests or the admin override, are never flagged). The calendar
-redesign is deliberately NOT built blind — see "Why planned".
+**Status: BUILT** (unmerged; SQL pending — `supabase/schedule-rules.sql`). The
+`schedule_rules` table + rules engine (`shared/schedule.ts` `dayRanges`/`standardDay`)
++ the visual week editor (`app/admin/hours/_components/schedule-*.tsx`) are done, with
+the availability engine and conflict check rewired onto them. Editor decisions (Raul):
+**visual week + tap-to-add** (mobile = day-tabs), **explicit outside blocks** (no global
+window). Deferred polish + the model's additive-only limitation are in
+[FOLLOWUPS.md](../FOLLOWUPS.md). The original plan is kept below for reference.
 
 ## The goal (Raul)
 

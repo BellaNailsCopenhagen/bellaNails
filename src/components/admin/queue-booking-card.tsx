@@ -10,6 +10,7 @@ import { AddBookingMediaButton } from "@/components/admin/add-booking-media-butt
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
 import { AdminNoShowButton } from "@/components/admin/admin-no-show-button"
 import { BookingRequestActions } from "@/components/admin/booking-request-actions"
+import { NoteFeed } from "@/components/admin/note-feed"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import {
   canRequestMediaConsent,
@@ -19,6 +20,7 @@ import {
 } from "@/shared/booking-policy"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import type { DisplayBooking } from "@/shared/booking-view"
+import { RELEASE_PURPOSES } from "@/shared/media-release"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { routes } from "@/shared/routes"
 import { formatStudioTime } from "@/shared/studio-time"
@@ -101,7 +103,6 @@ export function QueueBookingCard({
   // Media release opens 30 min before the START (shots begin during the visit);
   // review opens 30 min before the END (only worth asking once it's basically done).
   const hasClient = now != null && Boolean(row.client_id)
-  const canRequestMedia = hasClient && canRequestMediaConsent(row, now!)
   const canRequestReviewNow = hasClient && canRequestReview(row, now!)
   // Media-release state (admin only) — hidden for cancelled bookings.
   const releases =
@@ -109,6 +110,17 @@ export function QueueBookingCard({
   const shownReleases = releases.filter(
     (r) => r.status === "granted" || r.status === "requested",
   )
+  // The request button hides once EVERY purpose is granted; a decline keeps it
+  // available (clients say no by mistake), and the label flips to "again" once
+  // anything's been sent. Partial pre-approval leaves un-ticked purposes with no
+  // row, so require a granted row for EVERY purpose — not just "all rows granted".
+  const grantedPurposes = new Set(
+    releases.filter((r) => r.status === "granted").map((r) => r.purpose),
+  )
+  const allMediaGranted = RELEASE_PURPOSES.every((p) => grantedPurposes.has(p))
+  const mediaAlreadyRequested = releases.length > 0
+  const canRequestMedia =
+    hasClient && canRequestMediaConsent(row, now!) && !allMediaGranted
 
   return (
     <TintedCard as={as} className="space-y-3 p-4 sm:p-5">
@@ -323,7 +335,30 @@ export function QueueBookingCard({
           <BookingRequestActions
             bookingId={row.id}
             canMedia={canRequestMedia}
+            mediaAlreadyRequested={mediaAlreadyRequested}
             canReview={canRequestReviewNow}
+          />
+        </div>
+      ) : null}
+
+      {/* Artist notes (admin only): the client's notes (read-only here — edited on
+          the client page) + this booking's notes (added/edited inline). */}
+      {booking.notes && row.client_id ? (
+        <div className="space-y-4 border-t border-border pt-3">
+          {booking.notes.client.length ? (
+            <NoteFeed
+              title="Client notes"
+              notes={booking.notes.client}
+              clientId={row.client_id}
+            />
+          ) : null}
+          <NoteFeed
+            title="Booking notes"
+            notes={booking.notes.booking}
+            clientId={row.client_id}
+            bookingId={row.id}
+            editable
+            emptyLabel="No notes on this booking yet."
           />
         </div>
       ) : null}

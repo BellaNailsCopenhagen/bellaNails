@@ -18,6 +18,27 @@ editing every copy, and they can drift. Extract a shared admin label builder
 (e.g. `adminSlotLabels({ override })`) and keep the client set in the i18n pass
 above.
 
+### Schedule editor — deferred polish (after the unified schedule lands)
+- **Faint bookings underneath the week grid**: the visual editor shows rules only;
+  the design wanted the visible week's real bookings rendered faint behind them so
+  hours are edited against actual appointments. Deferred — the non-blocking conflict
+  check already covers the safety case. Add via a booking-spans read for the week.
+- **Dated "replace a day's hours" isn't expressible**: the `schedule_rules` model is
+  additive (a dated `standard` rule UNIONS with the recurring one — it can only ADD
+  time; to close/shorten a day you add a `no_work` block). The editor copy now says
+  so, but a true "these are the hours on this date instead" would need a model tweak
+  (e.g. a dated rule that suppresses the weekday's recurring rules).
+- **Migration drops special-OPEN days**: `schedule-rules.sql`'s seed converts weekly →
+  standard, no-work → no-work, special-CLOSED → dated full-day no-work, but skips
+  special-OPEN days (the additive model can't reproduce their old replace semantics).
+  Re-add any as dated rules in the new editor. (No prod data today, so moot for launch.)
+- **Conflict label**: a booking stranded by a full-day dated no-work is labelled "now in
+  a no-work block" rather than "on a now-closed day" (the `closed` reason only fires when
+  a day has no standard rule at all). Cosmetic — both read as blocked.
+- ~~**Drop the now-dead schema**~~ — DONE: `supabase/drop-legacy-schedule.sql` drops `studio_hours`
+  + `studio_special_days` + their JSONB guard functions; their types are removed from types.ts. Run it
+  LAST (after schedule-rules.sql + feature-flags.sql are applied + the new schedule is verified).
+
 ### studio_hours single row is read twice per slot computation
 `loadSlotInputs` (availability.ts) calls `getStudioHours` (reads `weekly`) **and**
 `getOutsideHoursConfig` (reads `no_work`/flag/window) — two SELECTs against the

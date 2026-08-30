@@ -1,6 +1,6 @@
 import {
   AlignLeft,
-  List,
+  Home,
   MoreHorizontal,
   Plus,
   User,
@@ -29,7 +29,7 @@ export type AdminTab = {
 }
 
 export const adminTabs: AdminTab[] = [
-  { href: routes.admin.home, label: "Queue", icon: List },
+  { href: routes.admin.home, label: "Today", icon: Home },
   { href: routes.admin.clients, label: "Clients", icon: User },
   { href: routes.admin.newBooking(), label: "New", icon: Plus, primary: true },
   { href: routes.admin.services, label: "Services", icon: AlignLeft },

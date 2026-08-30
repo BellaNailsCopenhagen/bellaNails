@@ -17,8 +17,9 @@ import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-s
 import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
+import { NoteFeed } from "@/components/admin/note-feed"
 import { getClientBookingHistory } from "@/modules/booking"
-import { getClientPrivacyRecord } from "@/modules/clients"
+import { getClientNotes, getClientPrivacyRecord } from "@/modules/clients"
 import { getClientCommunications } from "@/modules/notifications"
 import { routing } from "@/i18n/routing"
 import { isActiveBookingStatus } from "@/shared/booking-status"
@@ -64,10 +65,11 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, privacy, comms] = await Promise.all([
+  const [hubAssets, privacy, comms, clientNotes] = await Promise.all([
     getHubAssets(id).catch(() => []),
     getClientPrivacyRecord(id),
     getClientCommunications(id),
+    getClientNotes(id),
   ])
   const { dataConsents, terms: termsAcceptances } = privacy
 
@@ -153,6 +155,16 @@ export default async function AdminClientPage({
           ) : null}
         </div>
       </div>
+
+      {/* Private artist notes on this client — shown (read-only) on every one of
+          their bookings too. */}
+      <NoteFeed
+        title="Notes"
+        notes={clientNotes}
+        clientId={id}
+        editable
+        emptyLabel="No notes on this client yet."
+      />
 
       {/* Appointment history + the image gallery are tabbed; data-use consent
           stays on the page body below. */}

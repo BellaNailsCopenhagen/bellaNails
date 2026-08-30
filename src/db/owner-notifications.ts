@@ -49,3 +49,25 @@ export async function markAllRead(db: Db): Promise<{ ok: boolean }> {
     .is("read_at", null)
   return { ok: !error }
 }
+
+/** Set one notification read/unread (per-item control on the notifications page). */
+export async function setNotificationRead(
+  db: Db,
+  id: string,
+  read: boolean,
+): Promise<{ ok: boolean }> {
+  const { error } = await db
+    .from("owner_notifications")
+    .update({ read_at: read ? new Date().toISOString() : null })
+    .eq("id", id)
+  return { ok: !error }
+}
+
+/** Remove one notification entirely (dismiss). */
+export async function deleteNotification(
+  db: Db,
+  id: string,
+): Promise<{ ok: boolean }> {
+  const { error } = await db.from("owner_notifications").delete().eq("id", id)
+  return { ok: !error }
+}

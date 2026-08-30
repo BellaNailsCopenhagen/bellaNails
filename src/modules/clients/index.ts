@@ -13,6 +13,7 @@ export {
   type MySpace,
 } from "./my-space"
 export { getClientDirectory, type DirectoryEntry } from "./directory"
+export { getClientNotes } from "./notes"
 export {
   updateMyProfile,
   setClientCommunicationLocale,

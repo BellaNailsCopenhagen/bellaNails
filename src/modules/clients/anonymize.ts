@@ -10,6 +10,7 @@ import {
 } from "@/db/client-media"
 import { anonymizeClientRow, getClientErasureState } from "@/db/clients"
 import { scrubCommunicationsForClient } from "@/db/communications"
+import { deleteNotesForClient } from "@/db/notes"
 import { hasPublishedAssetForMedia } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
@@ -90,6 +91,9 @@ async function runAnonymize(
     // ephemeral (an accepted one's booking is retained anonymized) — delete them.
     const requests = await deleteBookingRequestsForClient(admin, clientId)
     if (!requests.ok) return { ok: false, error: requests.message! }
+    // Artist notes are about this client (may hold PII) — delete them on erasure.
+    const notesGone = await deleteNotesForClient(admin, clientId)
+    if (!notesGone.ok) return { ok: false, error: "notes delete failed — retry" }
     const scrubbed = await anonymizeClientRow(admin, clientId)
     if (!scrubbed.ok) return { ok: false, error: scrubbed.message! }
     return { ok: true }

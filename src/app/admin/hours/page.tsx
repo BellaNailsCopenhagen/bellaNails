@@ -3,23 +3,22 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { StudioHoursEditor } from "@/app/admin/hours/_components/studio-hours-editor"
-import { getOutsideHoursSettings, getStudioHours } from "@/modules/studio/hours"
+import { ScheduleEditor } from "@/app/admin/hours/_components/schedule-editor"
+import { getSchedule } from "@/modules/studio"
 import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Hours" }
 export const dynamic = "force-dynamic"
 
 /**
- * Studio working hours — the weekly schedule + special days. The source of truth
- * for opening times (public "hours") and, ahead, the in-house scheduler's
- * availability + occupancy. Owner-gated by the proxy.
+ * Studio schedule — one calendar of standard / outside / no-work times (recurring
+ * or one-off). The source of truth for the public opening hours and the in-house
+ * booking availability. Owner-gated by the proxy.
  */
 export default async function AdminHoursPage() {
-  const [hours, outside] = await Promise.all([
-    getStudioHours(),
-    getOutsideHoursSettings(),
-  ])
+  // eslint-disable-next-line react-hooks/purity -- request-time clock for the calendar's "today"
+  const now = Date.now()
+  const schedule = await getSchedule()
 
   return (
     <div className="space-y-6">
@@ -35,12 +34,12 @@ export default async function AdminHoursPage() {
         <Eyebrow>Studio</Eyebrow>
         <H2>Working hours</H2>
         <BodySm className="text-xs">
-          When the studio is open. Used for the public opening hours today, and
-          the in-house booking availability + occupancy as they land.
+          Standard hours clients can book, outside-hours they can request, and
+          no-work blocks — recurring weekly or on a single date.
         </BodySm>
       </div>
 
-      <StudioHoursEditor initial={hours} outside={outside} />
+      <ScheduleEditor schedule={schedule} now={now} />
     </div>
   )
 }
