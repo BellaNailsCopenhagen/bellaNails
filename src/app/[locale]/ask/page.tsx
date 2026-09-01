@@ -33,7 +33,7 @@ export async function generateMetadata({
 /**
  * "Ask Bella" — the async way in. A client describes what they want (with up to
  * three reference photos) and the artist answers with a one-time offer. Sign-in
- * is required: she has to be able to reply, and they have to be able to come
+ * is required: the studio has to be able to reply, and they have to be able to come
  * back for the offer.
  *
  * `?topic=` + `?booking=` prefill the repair path from a past appointment.

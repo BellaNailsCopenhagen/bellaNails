@@ -86,7 +86,7 @@ export async function createOffer(
 
   // The one-live-offer index keys off `closed_at`, which only the (throttled)
   // sweep sets — so an offer that has merely run out of TIME still occupies the
-  // slot. Close it here, or she'd be told to "withdraw it first" while the card
+  // slot. Close it here, or the studio is told to "withdraw it first" while the card
   // shows nothing to withdraw.
   const existing = await getLiveOfferForRequest(db, request.id)
   if (existing && offerState(existing, Date.now()) !== "live") {
@@ -164,7 +164,7 @@ export async function createOffer(
   return { ok: true, id: saved.id }
 }
 
-/** Pull an offer back. The request returns to the queue so she can re-offer. */
+/** Pull an offer back. The request returns to the queue so it can be re-offered. */
 export async function withdrawOffer(offerId: string): Promise<OfferActionResult> {
   const db = await requireOwner()
   if (!db) return { ok: false, error: "Not authorized." }
@@ -176,7 +176,7 @@ export async function withdrawOffer(offerId: string): Promise<OfferActionResult>
   const now = new Date().toISOString()
   const done = await updateOffer(db, offerId, {
     withdrawn_at: now,
-    // Frees the one-live-offer index so she can send a replacement.
+    // Frees the one-live-offer index so the studio can send a replacement.
     closed_at: now,
   })
   if (!done.ok) return { ok: false, error: "Couldn’t withdraw it — please try again." }
@@ -337,14 +337,11 @@ async function bookOffer(
 }
 
 /**
- * Housekeeping, run from the admin home: close out offers whose hold has run
- * out, and delete reference photos past their retention.
- *
- * THROTTLED, because the admin home re-renders on every realtime change and
- * this does a Storage listing plus a row of writes — running it per render
- * would put all of that in the artist's TTFB. Once an hour per process is
- * plenty for work measured in days. A scheduled job is the proper home for it
- * (see docs/tasks/in-house/SCHEDULER-OPTIONS.md).
+ * Housekeeping, run from the admin home: expire held-out offers, purge reference
+ * photos past retention. THROTTLED to once an hour per process — the admin home
+ * re-renders on every realtime change, and a Storage listing per render would
+ * land in the artist's TTFB. A scheduled job is its proper home
+ * (docs/tasks/in-house/SCHEDULER-OPTIONS.md).
  */
 const housekeeping: RateLimitState = new Map()
 const HOUSEKEEPING_RULE = { limit: 1, windowMs: 60 * 60 * 1000 }
@@ -364,7 +361,7 @@ export async function runDesignHousekeeping(limit = 50): Promise<{
   for (const offer of stale) {
     // Close the OFFER as well as the request: the one-live-offer index keys off
     // `closed_at`, so leaving it open would block every future offer on this
-    // request — while the request itself has left her queue.
+    // request — while the request itself has left the queue.
     await updateOffer(db, offer.id, { closed_at: now })
     await updateDesignRequest(db, offer.request_id, {
       status: "expired",

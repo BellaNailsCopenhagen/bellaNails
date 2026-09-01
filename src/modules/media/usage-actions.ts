@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache"
 import { placeAsset, removeUsage } from "@/db/asset-usages"
 import { getAssetPurpose } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
+import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import {
   isAssetSurface,
   isPublicSurface,

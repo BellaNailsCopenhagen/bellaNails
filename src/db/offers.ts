@@ -1,7 +1,7 @@
 import type { Db, Insert, Row, Update } from "./client"
 
-/** `offers` — the artist's one-time answer to a design request: her duration,
-    her price, reached by a signed token and booked like a catalog service.
+/** `offers` — the studio's one-time answer to a design request: a duration and
+    price set for that job, reached by a signed token and booked like a service.
     A partial unique index guarantees at most ONE live offer per request. */
 
 export type OfferRow = Row<"offers">

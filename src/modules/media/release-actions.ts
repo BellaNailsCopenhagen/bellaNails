@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { listMediaForBookings } from "@/db/client-media"
 import {
   deleteAsset,
+  clearAssetsTakedown,
   flagAssetsTakedown,
   getAssetStorageKey,
   listAssetsForMediaByPurpose,
@@ -20,12 +21,12 @@ import {
 } from "@/db/media-releases"
 import { verifyBookingToken } from "@/modules/booking/manage-token"
 import { getCurrentUser } from "@/modules/identity/server"
-import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
+import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import { notifyOwner } from "@/modules/notifications/notify"
 import { deleteObject } from "@/platform/storage/supabase"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { MEDIA_RELEASE_CONSENT_VERSION } from "@/shared/media-release"
-import { routes } from "@/shared/routes"
+import { routes, revalidatePatterns } from "@/shared/routes"
 
 /**
  * The CLIENT's booking-level media RELEASE decisions — the documented consent to
@@ -168,6 +169,59 @@ export async function decideMediaRelease(
       })
     }
   }
+  return { ok: true }
+}
+
+/**
+ * Put a withdrawn (or declined) permission back. Re-granting has to be as easy
+ * as withdrawing, or the withdraw control becomes a one-way door people avoid
+ * using — and the pending-request path deliberately refuses to flip a withdrawn
+ * row back, because a replayed /approve link must never re-grant silently.
+ *
+ * Signed-in and own-release only, so this is reachable from My Space and nowhere
+ * else. It restores the CEILING, not the publication: withdrawal deleted the
+ * public copy, so the studio re-publishes if it still wants to.
+ */
+export async function restoreMediaRelease(
+  bookingId: string,
+  purpose: ReleasePurpose,
+): Promise<ReleaseActionResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "unauthorized" }
+  const supabase = createSupabaseServiceRoleClient()
+
+  const release = await findRelease(supabase, bookingId, purpose)
+  if (!release || release.client_id !== user.id) {
+    return { ok: false, error: "not_found" }
+  }
+  if (release.status !== "withdrawn" && release.status !== "declined") {
+    return { ok: false, error: "not_found" }
+  }
+
+  const saved = await updateRelease(supabase, release.id, {
+    status: "granted",
+    granted_at: new Date().toISOString(),
+    // `withdrawn_at` is NOT cleared: it records that consent was once
+    // withdrawn, and the accountability story depends on it surviving.
+    declined_at: null,
+    consent_version: MEDIA_RELEASE_CONSENT_VERSION,
+  })
+  if (!saved.ok) return { ok: false, error: "update_failed" }
+
+  // A `social` withdrawal keeps the asset and only flags it, so without this the
+  // hub still reads "taken down?" and its one control deletes media the client
+  // has just re-permitted.
+  const media = await listMediaForBookings(supabase, [bookingId])
+  await clearAssetsTakedown(supabase, media.map((m) => m.id))
+
+  await notifyOwner(supabase, {
+    kind: "media_consent_restored",
+    clientId: user.id,
+    purpose,
+  })
+  // No public surface changed — withdrawal deleted the copy, and re-placing it
+  // is a separate, explicit step.
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true }
 }
 

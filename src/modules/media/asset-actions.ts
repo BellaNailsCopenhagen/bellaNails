@@ -22,7 +22,7 @@ import {
   listGrantedReleaseBookings,
 } from "@/db/media-releases"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
+import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
 import { routes } from "@/shared/routes"
 

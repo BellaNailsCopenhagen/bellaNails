@@ -168,7 +168,7 @@ async function composeRequests(
 }
 
 /**
- * The artist's queue — every request still needing her, oldest first, with the
+ * The artist's queue — every request still needing the studio, oldest first, with the
  * contacts to reach each client. Mirrors `getPendingRequests` so the admin home
  * renders both queues the same way. Returns empty for a non-owner and degrades
  * to empty on a read failure rather than taking the home screen down.

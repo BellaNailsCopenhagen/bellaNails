@@ -2,7 +2,7 @@
 -- one-time OFFERS. See docs/tasks/design-requests/PLAN.md.
 --
 -- The shape in one line: a client asks (a request + a message + photos), the
--- artist answers with an offer (her duration + her price), and the offer is
+-- studio answers with an offer (a duration + a price for that job), and it is
 -- reached through a signed token and booked exactly like a catalog service.
 --
 -- Deliberately NOT a `services` row: `services` has a live unique index on
@@ -146,19 +146,8 @@ create policy "Clients read own offers" on public.offers
   for select to authenticated using (client_id = public.current_client_id());
 
 -- ─────────────────────────────────────────────── communications
--- The design emails log through `recordCommunication`, whose insert is
--- best-effort — so a kind missing from this CHECK fails SILENTLY and the
--- client-page history simply never shows those sends. Widen it here, with the
--- feature that introduces them. Safe to re-run.
-alter table public.communications drop constraint if exists communications_kind_check;
-alter table public.communications add constraint communications_kind_check
-  check (kind in (
-    'confirmation','cancellation','reschedule','reminder',
-    'media_release_request','review_request',
-    'booking_request_received','booking_request_declined',
-    'design_request_received','design_reply','design_offer_sent',
-    'design_request_declined'
-  ));
+-- `communications.kind` is widened in supabase/communications-kinds.sql — the
+-- single authority, so re-running this file can't narrow the set again.
 
 -- ─────────────────────────────────────────────── Realtime
 -- The admin queue updates live, mirroring bookings + booking_requests.

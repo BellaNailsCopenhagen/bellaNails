@@ -82,7 +82,7 @@ export async function createDesignRequest(
 
   if (!isDesignTopic(input.topic)) return { ok: false, error: "Pick what this is about." }
   const message = input.message.trim()
-  if (!message) return { ok: false, error: "Tell Bella what you have in mind." }
+  if (!message) return { ok: false, error: "Tell us what you have in mind." }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return { ok: false, error: "That message is too long." }
   }
@@ -101,7 +101,7 @@ export async function createDesignRequest(
     if (open >= MAX_OPEN_REQUESTS_PER_CLIENT) {
       return {
         ok: false,
-        error: "You already have a few open messages — Bella will reply to those first.",
+        error: "You already have a few open messages — we'll reply to those first.",
       }
     }
   } catch {
@@ -164,7 +164,7 @@ export async function createDesignRequest(
       })),
     )
     // The message is the request; a lost photo must not lose it. Report what
-    // actually attached, so the artist's alert never promises a photo she can't see.
+    // actually attached, so the artist's alert never promises a photo the studio can't see.
     if (refs.ok) attachedRefs = refKeys.length
     else console.error("[design] refs not attached to", saved.id, refs.message)
   }
@@ -220,7 +220,7 @@ export async function addDesignMessage(
   // The open-request cap bounds REQUESTS; nothing bounded messages, and each one
   // also inserts an owner notification and grows an unpaginated admin card.
   if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
-    return { ok: false, error: "That's a lot of messages at once — give her a moment." }
+    return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
   }
   const message = body.trim()
   if (!message) return { ok: false, error: "Write a message first." }
@@ -234,7 +234,7 @@ export async function addDesignMessage(
     return { ok: false, error: "Not found." }
   }
   // A closed thread takes no more input. The UI hides the form, but the action
-  // is the boundary — otherwise a replay posts into a request her queue no
+  // is the boundary — otherwise a replay posts into a request the queue no
   // longer lists, and each one fires an owner notification.
   if (!isActionableDesignStatus(request.status)) {
     return { ok: false, error: "That conversation is closed — start a new one." }
@@ -260,7 +260,7 @@ export async function addDesignRef(
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "Please sign in first." }
   if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
-    return { ok: false, error: "That's a lot of messages at once — give her a moment." }
+    return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
   }
   if (!storageKey.startsWith(REF_PREFIX)) return { ok: false, error: "Couldn’t attach that." }
 
@@ -326,7 +326,7 @@ export async function replyToDesignRequest(
   return { ok: true }
 }
 
-/** The artist closes a request she isn't taking on. */
+/** The artist closes a request the studio isn't taking on. */
 export async function declineDesignRequest(
   requestId: string,
   reason?: string,

@@ -1,14 +1,12 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 
+import { BackToMore } from "@/components/admin/back-to-more"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { AssetHubTabs, type HubFilter } from "@/app/admin/assets/_components/asset-hub-tabs"
 import { getHubAssets } from "@/modules/media/asset-hub"
 import { SIMPLE_ORDER, toSimpleState } from "@/components/admin/asset-state"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import { contactDisplayName } from "@/shared/contact"
-import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Assets" }
 export const dynamic = "force-dynamic"
@@ -48,13 +46,7 @@ export default async function AdminAssetsPage({
 
   return (
     <div className="space-y-6">
-      <Link
-        href={routes.admin.more}
-        className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronLeft className="size-3.5" />
-        More
-      </Link>
+      <BackToMore />
 
       <div className="space-y-1">
         <Eyebrow>Studio</Eyebrow>

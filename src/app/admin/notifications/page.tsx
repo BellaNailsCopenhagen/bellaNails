@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 
+import { BackToMore } from "@/components/admin/back-to-more"
 import { Eyebrow, H2 } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { MarkAllReadButton } from "@/app/admin/notifications/_components/mark-all-read-button"
@@ -9,7 +8,6 @@ import { NotificationRow } from "@/app/admin/notifications/_components/notificat
 import { getNotifications } from "@/modules/notifications/reads"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import { contactDisplayName } from "@/shared/contact"
-import { routes } from "@/shared/routes"
 
 export const metadata: Metadata = { title: "Notifications" }
 export const dynamic = "force-dynamic"
@@ -27,13 +25,7 @@ export default async function AdminNotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href={routes.admin.more}
-        className="inline-flex items-center gap-1 font-functional text-xs uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronLeft className="size-3.5" />
-        More
-      </Link>
+      <BackToMore />
 
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-1">

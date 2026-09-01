@@ -82,7 +82,7 @@ export function DesignRequestCard({
 
   const clientName = contactDisplayName(contact)
   // Only a LIVE offer is actionable. The expiry sweep is throttled, so a lapsed
-  // offer can still be attached here — treat it as none, and let her re-offer.
+  // offer can still be attached here — treat it as none, and allow a re-offer.
   const offer = request.offer?.state === "live" ? request.offer : null
   const lapsed = request.offer && request.offer.state !== "live"
 
@@ -157,7 +157,7 @@ export function DesignRequestCard({
           </BodySm>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => setBookOpen(true)}>
-              Book it for her
+              Book it for them
             </Button>
             <button
               type="button"
@@ -226,7 +226,7 @@ export function DesignRequestCard({
               rows={5}
               value={reply}
               onChange={(e) => setReply(e.target.value)}
-              placeholder="Ask her anything you need to know…"
+              placeholder="Ask anything you need to know…"
             />
             <Button
               size="sm"
@@ -341,7 +341,7 @@ function OfferForm({
 
       <div className="space-y-2">
         <label className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground">
-          A note for her (optional)
+          A note for them (optional)
         </label>
         <Textarea
           rows={3}

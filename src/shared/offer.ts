@@ -1,6 +1,6 @@
 /**
  * The one-time offer, as a pure rule. An offer is the artist's answer to a
- * design request: her duration, her price, reachable through a signed link and
+ * design request: a duration and price set for that job, reachable through a signed link and
  * bookable exactly once.
  *
  * Client-safe, so the same predicate decides what the client's page renders,

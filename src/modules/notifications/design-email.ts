@@ -6,6 +6,8 @@ import {
   buttonHtml,
   esc,
   greetOf,
+  para,
+  quote,
   shell,
 } from "@/modules/notifications/email-layout"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
@@ -29,15 +31,6 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_SITE_URL
   ? `${process.env.NEXT_PUBLIC_SITE_URL}/admin`
   : null
 
-const para = (text: string, muted = true) =>
-  `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${
-    muted ? BRAND.textSecondary : BRAND.textPrimary
-  };">${esc(text)}</p>`
-
-/** The client's own words, quoted back so they know what we received. */
-const quote = (text: string) =>
-  `<blockquote style="margin:0 0 16px;padding:12px 16px;border-left:2px solid ${BRAND.divider};font-size:15px;line-height:1.6;color:${BRAND.textPrimary};">${esc(text)}</blockquote>`
-
 type Base = { to: string; firstName: string | null; locale: string }
 
 // ─────────────────────────────────────────────── received
@@ -47,14 +40,14 @@ export async function sendDesignRequestReceivedEmail(
   const isEn = d.locale === "en"
   const eyebrow = isEn ? "Message received" : "Besked modtaget"
   const heading = isEn
-    ? "Thank you — Bella has your message"
-    : "Tak — Bella har din besked"
+    ? "Thank you — we have your message"
+    : "Tak — vi har din besked"
   const intro = isEn
-    ? "She'll come back to you with a price and how long it takes, usually within a day."
-    : "Hun vender tilbage med en pris og hvor lang tid det tager, typisk inden for en dag."
+    ? "We'll come back to you with a price and how long it takes, usually within a day."
+    : "Vi vender tilbage med en pris og hvor lang tid det tager, typisk inden for en dag."
   const notYet = isEn
-    ? "This is not a booking yet — nothing is reserved until you choose a time from the offer she sends."
-    : "Det er ikke en booking endnu — der er ikke reserveret noget, før du vælger et tidspunkt i det tilbud, hun sender."
+    ? "This is not a booking yet — nothing is reserved until you choose a time from the offer we send."
+    : "Det er ikke en booking endnu — der er ikke reserveret noget, før du vælger et tidspunkt i det tilbud, vi sender."
 
   return send({
     to: d.to,
@@ -135,10 +128,10 @@ export async function sendDesignReplyEmail(
   d: Base & { message: string },
 ): Promise<EmailResult> {
   const isEn = d.locale === "en"
-  const heading = isEn ? "Bella has replied" : "Bella har svaret"
+  const heading = isEn ? "We've replied" : "Vi har svaret"
   const intro = isEn
-    ? "Reply to this email and she'll pick it up."
-    : "Svar på denne e-mail, så tager hun den derfra."
+    ? "Reply to this email and we'll pick it up."
+    : "Svar på denne e-mail, så tager vi den derfra."
 
   return send({
     to: d.to,
@@ -177,8 +170,8 @@ export async function sendOfferEmail(
 ): Promise<EmailResult> {
   const isEn = d.locale === "en"
   const heading = isEn
-    ? "Bella has a time and a price for you"
-    : "Bella har en tid og en pris til dig"
+    ? "A time and a price for you"
+    : "En tid og en pris til dig"
   const summary = `${d.durationMins} ${isEn ? "minutes" : "minutter"} · ${formatPrice(
     d.priceCents,
     d.locale,
@@ -238,8 +231,8 @@ export async function sendDesignRequestDeclinedEmail(
     ? "About your message"
     : "Om din besked"
   const intro = isEn
-    ? "Bella isn't able to take this one on."
-    : "Bella kan desværre ikke tage denne opgave."
+    ? "We aren't able to take this one on."
+    : "Vi kan desværre ikke tage denne opgave."
   const invite = isEn
     ? "You're always welcome to write again with something else in mind."
     : "Du er altid velkommen til at skrive igen med noget andet i tankerne."

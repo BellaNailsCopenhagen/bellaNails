@@ -267,6 +267,60 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          author_name: string | null
+          body: string | null
+          booking_id: string | null
+          client_id: string
+          consent_version: string | null
+          content_erased_at: string | null
+          decided_at: string | null
+          id: string
+          occupation: string | null
+          requested_at: string
+          sort_order: number | null
+          status: string
+          submitted_at: string | null
+          visible: boolean
+          withdrawn_at: string | null
+        }
+        Insert: {
+          author_name?: string | null
+          body?: string | null
+          booking_id?: string | null
+          client_id: string
+          consent_version?: string | null
+          content_erased_at?: string | null
+          decided_at?: string | null
+          id?: string
+          occupation?: string | null
+          requested_at?: string
+          sort_order?: number | null
+          status?: string
+          submitted_at?: string | null
+          visible?: boolean
+          withdrawn_at?: string | null
+        }
+        Update: {
+          author_name?: string | null
+          body?: string | null
+          booking_id?: string | null
+          client_id?: string
+          consent_version?: string | null
+          content_erased_at?: string | null
+          decided_at?: string | null
+          id?: string
+          occupation?: string | null
+          requested_at?: string
+          sort_order?: number | null
+          status?: string
+          submitted_at?: string | null
+          visible?: boolean
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
       design_requests: {
         Row: {
           answered_at: string | null

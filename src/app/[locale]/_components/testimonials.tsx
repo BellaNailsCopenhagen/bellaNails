@@ -2,21 +2,38 @@ import { getTranslations } from "next-intl/server"
 
 import { Container, Section } from "@/components/layout/container"
 import { SectionHeading } from "@/components/ui/section-heading"
+import { TestimonialQuote } from "@/components/testimonials/testimonial-quote"
+import { getPublishedTestimonials } from "@/modules/testimonials"
+import {
+  shouldScrollTestimonials,
+  shouldShowTestimonials,
+} from "@/shared/testimonial"
 
 /**
- * Testimonials — "Client Words". Three editorial pull-quotes with attributions,
- * divided by vertical hairlines on desktop (stacked on mobile).
+ * Testimonials — client-written, and published only because the studio switched
+ * them on (`/admin/testimonials`). Below two the section doesn't appear at all
+ * (one quote reads as thin); above three it becomes a horizontal scroller —
+ * never vertical, on any width.
  */
 export async function Testimonials() {
-  const t = await getTranslations("testimonials")
+  const [t, items] = await Promise.all([
+    getTranslations("testimonials"),
+    getPublishedTestimonials(),
+  ])
 
-  const items = [
-    { quote: t("one.quote"), name: t("one.name"), role: t("one.role") },
-    { quote: t("two.quote"), name: t("two.name"), role: t("two.role") },
-    { quote: t("three.quote"), name: t("three.name"), role: t("three.role") },
-  ].filter((item) => item.quote.trim() && item.name.trim() && item.role.trim())
+  if (!shouldShowTestimonials(items.length)) return null
 
-  if (!items.length) return null
+  const shape = shouldScrollTestimonials(items.length)
+    ? {
+        list: "-mx-6 flex snap-x snap-mandatory gap-8 overflow-x-auto overscroll-x-contain px-6 pb-2 [scrollbar-width:none] sm:gap-10 [&::-webkit-scrollbar]:hidden",
+        item: "w-[78vw] max-w-xs shrink-0 snap-start sm:w-64",
+      }
+    : {
+        list: `grid gap-10 md:gap-0 md:divide-x md:divide-border ${
+          items.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"
+        }`,
+        item: "md:px-8 md:first:pl-0 md:last:pr-0",
+      }
 
   return (
     <Section className="border-t border-border">
@@ -27,26 +44,17 @@ export async function Testimonials() {
           accent={t("headingAccent")}
           accentTone="secondary"
         />
-        <div className="grid gap-10 md:grid-cols-3 md:gap-0 md:divide-x md:divide-border">
+
+        {/* `overscroll-x-contain` stops a swipe past the end from scrolling the
+            page; the column count follows the item count so two quotes never
+            sit beside an empty third column. */}
+        <ul className={shape.list} aria-label={t("eyebrow")}>
           {items.map((item) => (
-            <figure
-              key={item.name}
-              className="flex flex-col justify-between gap-8 md:px-8 md:first:pl-0 md:last:pr-0"
-            >
-              <blockquote className="font-editorial text-2xl leading-snug text-foreground text-pretty">
-                {item.quote}
-              </blockquote>
-              <figcaption className="space-y-1">
-                <div className="font-functional text-xs text-foreground">
-                  {item.name}
-                </div>
-                <div className="font-functional text-[11px] uppercase tracking-widest-lux text-muted-foreground">
-                  {item.role}
-                </div>
-              </figcaption>
-            </figure>
+            <li key={item.id} className={shape.item}>
+              <TestimonialQuote item={item} />
+            </li>
           ))}
-        </div>
+        </ul>
       </Container>
     </Section>
   )

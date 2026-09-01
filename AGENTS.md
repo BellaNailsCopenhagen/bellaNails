@@ -19,7 +19,7 @@ Never skip a layer, never reverse. Full reference: [`docs/architecture.md`](docs
 | `src/shared/**` | Pure, isomorphic rules + view models. | No vendor, no service, no UI. **Anything a client component needs lives here.** |
 | `src/components/<area>/` | UI used by 2+ routes. | Single-use UI lives in the route's `_components/` instead. |
 
-Domains: `booking` `catalog` `clients` `identity` `media` `notifications` `studio` `terms`
+Domains: `booking` `catalog` `clients` `design` `identity` `media` `notifications` `studio` `terms` `testimonials`
 
 ## Rules lint will enforce (all are errors)
 

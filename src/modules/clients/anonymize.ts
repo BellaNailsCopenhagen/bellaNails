@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { deleteBookingRequestsForClient } from "@/db/booking-requests"
 import { deleteDesignRequestsForClient } from "@/db/design-requests"
+import { deleteTestimonialsForClient } from "@/db/testimonials"
 import { listDesignRefsForClient } from "@/db/design-refs"
 import { clearClientNotes } from "@/db/bookings"
 import type { Db } from "@/db/client"
@@ -17,6 +18,7 @@ import { hasPublishedAssetForMedia } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
 import { purgeMediaArtifacts } from "@/modules/media/erasure"
+import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import { purgeDesignRefsForClient } from "@/modules/design/refs"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { routes } from "@/shared/routes"
@@ -107,6 +109,10 @@ async function runAnonymize(
     }
     const design = await deleteDesignRequestsForClient(admin, clientId)
     if (!design.ok) return { ok: false, error: design.message! }
+    // A testimonial is their name, their occupation and their words — and it may
+    // be on the public home page, so it goes with them.
+    const testimonials = await deleteTestimonialsForClient(admin, clientId)
+    if (!testimonials.ok) return { ok: false, error: testimonials.message! }
     // Artist notes are about this client (may hold PII) — delete them on erasure.
     const notesGone = await deleteNotesForClient(admin, clientId)
     if (!notesGone.ok) return { ok: false, error: "notes delete failed — retry" }
@@ -128,6 +134,9 @@ export async function anonymizeClient(
   if (result.ok) {
     revalidatePath(routes.admin.client(clientId))
     revalidatePath(routes.admin.clients)
+    // The home page and /gallery are prerendered, so erased words and photos
+    // would keep being SERVED from cached HTML after a "successful" erasure.
+    revalidatePublicSurfaces()
   }
   return result
 }
@@ -136,5 +145,8 @@ export async function anonymizeClient(
 export async function deleteMyAccount(): Promise<AnonymizeResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "not signed in" }
-  return runAnonymize(createSupabaseServiceRoleClient(), user.id)
+  const result = await runAnonymize(createSupabaseServiceRoleClient(), user.id)
+  // Same reason as above — this path revalidated nothing at all.
+  if (result.ok) revalidatePublicSurfaces()
+  return result
 }

@@ -29,6 +29,7 @@ export type CommunicationKind =
   | "design_reply"
   | "design_offer_sent"
   | "design_request_declined"
+  | "testimonial_request"
 export type CommunicationTrigger = "auto" | "manual"
 export type CommunicationChannel = "email" | "in_app" | "push"
 // `sent` = accepted by the mail server (NOT proof of inbox delivery — plain SMTP

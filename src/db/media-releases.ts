@@ -37,12 +37,26 @@ export async function listReleasesForBookings(
 export async function listReleasesForClient(
   db: Db,
   clientId: string,
-): Promise<Pick<Row<"media_releases">, "id" | "booking_id" | "purpose" | "status">[]> {
+): Promise<
+  Pick<
+    Row<"media_releases">,
+    | "id"
+    | "booking_id"
+    | "purpose"
+    | "status"
+    | "consent_version"
+    | "granted_at"
+    | "withdrawn_at"
+  >[]
+> {
   const { data } = await db
     .from("media_releases")
-    .select("id, booking_id, purpose, status")
+    .select(
+      "id, booking_id, purpose, status, consent_version, granted_at, withdrawn_at",
+    )
     .eq("client_id", clientId)
     .order("requested_at", { ascending: false })
+    .limit(200)
   return data ?? []
 }
 

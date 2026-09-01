@@ -8,6 +8,8 @@ import { ConsentCentre } from "@/app/[locale]/appointments/_components/consent-c
 import { MediaReleaseCards } from "@/app/[locale]/appointments/_components/media-release-cards"
 import { ClientGallery } from "@/app/[locale]/appointments/_components/client-gallery"
 import { DesignRequestList } from "@/app/[locale]/appointments/_components/design-request-list"
+import { MyTestimonials } from "@/app/[locale]/appointments/_components/my-testimonials"
+import { TestimonialInviteCard } from "@/app/[locale]/appointments/_components/testimonial-invite-card"
 import {
   BookingsTabs,
   type BookingsTabKey,
@@ -24,6 +26,11 @@ import type { ReleaseRequestCard } from "@/shared/media-release"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getMySpace } from "@/modules/clients"
 import { getMyDesignRequests, type DesignRequestView } from "@/modules/design"
+import {
+  getMyTestimonialSpace,
+  type MyTestimonial,
+  type MyTestimonialInvite,
+} from "@/modules/testimonials"
 import { singleParam } from "@/shared/search-params"
 
 export async function generateMetadata({
@@ -68,13 +75,18 @@ export default async function BookingsPage({
   } | null = null
   let designRequests: DesignRequestView[] = []
   let offerTokens: Record<string, string> = {}
+  let testimonialInvite: MyTestimonialInvite | null = null
+  let myTestimonials: MyTestimonial[] = []
   if (user) {
-    const [space, design] = await Promise.all([
+    const [space, design, testimonials] = await Promise.all([
       getMySpace(user.id),
       getMyDesignRequests(),
+      getMyTestimonialSpace(),
     ])
     designRequests = design.requests
     offerTokens = design.offerTokens
+    testimonialInvite = testimonials.invite
+    myTestimonials = testimonials.items
     media = space.media
     dataConsents = space.dataConsents
     releaseRequests = space.releaseRequests
@@ -105,7 +117,8 @@ export default async function BookingsPage({
             galleryCount={media.length}
             requestCount={
               requestCount +
-              designRequests.filter((r) => r.offer?.state === "live").length
+              designRequests.filter((r) => r.offer?.state === "live").length +
+              (testimonialInvite ? 1 : 0)
             }
             bookings={
               <MyBookings
@@ -116,6 +129,10 @@ export default async function BookingsPage({
             gallery={<ClientGallery media={media} />}
             requests={
               <div className="space-y-10">
+                {testimonialInvite ? (
+                  <TestimonialInviteCard token={testimonialInvite.token} />
+                ) : null}
+                <MyTestimonials items={myTestimonials} />
                 <DesignRequestList
                   requests={designRequests}
                   offerTokens={offerTokens}

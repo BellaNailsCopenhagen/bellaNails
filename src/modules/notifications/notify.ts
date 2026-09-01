@@ -5,9 +5,11 @@ import { insertNotification } from "@/db/owner-notifications"
 
 export type OwnerNotificationKind =
   | "media_consent_withdrawn"
+  | "media_consent_restored"
   | "shared_image_deleted"
   | "booking_request"
   | "design_request"
+  | "testimonial_submitted"
 
 /**
  * Record a studio notification. Best-effort: a missing table (pre-migration)

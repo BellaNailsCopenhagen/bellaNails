@@ -50,6 +50,9 @@ type ReleaseCopy = {
     decline: string
     shared: string
     stopSharing: string
+    /** Terminal state + the way back — re-granting must be as easy as leaving. */
+    notShared: string
+    allowAgain: string
     retract: {
       title: string
       body: string
@@ -101,6 +104,8 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
       decline: "Nej tak",
       shared: "Delt",
       stopSharing: "Stop deling",
+      notShared: "Deles ikke",
+      allowAgain: "Tillad igen",
       retract: {
         title: "Trække tilladelse tilbage?",
         body: "Vi holder op med at bruge medier fra denne tid til dette formål. Alt der allerede er offentligt, fjernes.",
@@ -149,6 +154,8 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
       decline: "No thanks",
       shared: "Shared",
       stopSharing: "Stop sharing",
+      notShared: "Not shared",
+      allowAgain: "Allow again",
       retract: {
         title: "Withdraw permission?",
         body: "We'll stop using media from this appointment for this purpose. Anything already public is removed.",

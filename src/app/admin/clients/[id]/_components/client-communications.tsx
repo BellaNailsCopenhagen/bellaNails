@@ -16,6 +16,7 @@ const KIND_LABEL: Record<CommunicationView["kind"], string> = {
   design_reply: "Reply about a design",
   design_offer_sent: "Offer sent",
   design_request_declined: "Design request declined",
+  testimonial_request: "Testimonial request",
 }
 
 const STATUS_LABEL: Record<CommunicationView["status"], string> = {

@@ -10,6 +10,7 @@ import { listReleasesForClient } from "@/db/media-releases"
 import { listDesignRequestsForClient } from "@/db/design-requests"
 import { listDesignMessagesForRequests } from "@/db/design-messages"
 import { listOffersForClient } from "@/db/offers"
+import { listTestimonialsForClient } from "@/db/testimonials"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getTermsAcceptances } from "@/modules/terms"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
@@ -44,6 +45,7 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
       terms,
       designRequests,
       offers,
+      testimonials,
     ] = await Promise.all([
       getClientProfile(db, clientId),
       listBookingsForClient(db, clientId),
@@ -55,6 +57,7 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
       getTermsAcceptances(db, clientId),
       listDesignRequestsForClient(db, clientId),
       listOffersForClient(db, clientId),
+      listTestimonialsForClient(db, clientId),
     ])
 
     // Thread bodies, keyed by request — loaded after the requests are known.
@@ -105,7 +108,7 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
           requestedAt: r.created_at,
         }
       }),
-      // The client's own words to the artist, and what she offered back. The
+      // The client's own words to the studio, and what was offered back. The
       // message bodies are the client's personal data, so the whole thread
       // ships — both sides, since a reply only reads in context.
       designRequests: designRequests.map((r) => ({
@@ -129,10 +132,28 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
         bookedAs: o.booking_id,
         offeredAt: o.created_at,
       })),
+      // Includes what we KEEP after an erasure — the consent record is the
+      // point of the retained shell, so an Art. 15 export has to show it.
+      testimonials: testimonials.map((t) => ({
+        status: t.status,
+        showingOnSite: t.visible,
+        name: t.author_name,
+        occupation: t.occupation,
+        words: t.body,
+        bookingId: t.booking_id,
+        consentVersion: t.consent_version,
+        askedAt: t.requested_at,
+        writtenAt: t.submitted_at,
+        takenDownAt: t.withdrawn_at,
+        wordsErasedAt: t.content_erased_at,
+      })),
       mediaReleases: releases.map((r) => ({
         bookingId: r.booking_id,
         purpose: r.purpose,
         status: r.status,
+        consentVersion: r.consent_version,
+        grantedAt: r.granted_at,
+        withdrawnAt: r.withdrawn_at,
       })),
       media: media.map((m) => ({
         kind: m.kind,

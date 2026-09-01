@@ -13,6 +13,7 @@ import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   decideMediaRelease,
   withdrawMediaRelease,
+  restoreMediaRelease,
 } from "@/modules/media/release-actions"
 import {
   pickReleaseCopy,
@@ -131,9 +132,26 @@ export function MediaReleaseCards({ cards }: { cards: ReleaseRequestCard[] }) {
                       />
                     </div>
                   ) : (
-                    <span className="shrink-0 font-functional text-xs text-muted-foreground">
-                      {copy.declined}
-                    </span>
+                    /* Said no, or later withdrew. The way back sits right here —
+                       a control that is easy to leave and hard to return to
+                       makes people avoid leaving in the first place. Restoring
+                       permission does NOT republish: withdrawal deleted the
+                       public copy, so the studio places it again if it wants. */
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="font-functional text-xs text-muted-foreground">
+                        {copy.ui.notShared}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() =>
+                          run(() => restoreMediaRelease(card.bookingId, purpose))
+                        }
+                        className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground disabled:opacity-50"
+                      >
+                        {copy.ui.allowAgain}
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}

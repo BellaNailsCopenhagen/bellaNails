@@ -29,8 +29,8 @@ Two supporting directories sit outside that stack:
 
 ## The domains
 
-`booking` · `catalog` · `clients` · `identity` · `media` · `notifications` ·
-`studio` · `terms`
+`booking` · `catalog` · `clients` · `design` · `identity` · `media` ·
+`notifications` · `studio` · `terms` · `testimonials`
 
 Each is one folder under `src/modules/` with an `index.ts` that states its
 public surface. If a page needs something not exported there, **add a function

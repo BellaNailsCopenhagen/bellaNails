@@ -3,14 +3,9 @@
 import { createSupabaseSessionBrowserClient } from "@/platform/supabase/ssr-browser"
 
 /**
- * Browser upload, shared by every uploader (the artist's gallery/booking media,
- * a client's design references). Our route mints a one-shot signed upload URL —
- * so the browser never holds a storage credential and the server still decides
- * which bucket the caller may write to — then storage-js PUTs the bytes
- * straight there. Returns the object key to persist, or a typed reason so the
- * caller shows the right message.
- *
- * The caller does any pre-processing (`downscaleImage`) and the DB insert.
+ * Browser upload, shared by every uploader. Our route mints a one-shot signed
+ * URL, so the browser never holds a storage credential and the server still
+ * picks the bucket. The caller does the pre-processing and the DB insert.
  */
 export type UploadResult =
   | { ok: true; key: string }

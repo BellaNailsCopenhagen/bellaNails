@@ -62,6 +62,16 @@ export function shell(opts: {
 </div>`
 }
 
+/** A body paragraph. `muted` is the default; pass false for emphasis. */
+export const para = (text: string, muted = true) =>
+  `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:${
+    muted ? BRAND.textSecondary : BRAND.textPrimary
+  };">${esc(text)}</p>`
+
+/** The client's own words, quoted back. */
+export const quote = (text: string) =>
+  `<blockquote style="margin:0 0 16px;padding:12px 16px;border-left:2px solid ${BRAND.divider};font-size:15px;line-height:1.6;color:${BRAND.textPrimary};">${esc(text)}</blockquote>`
+
 /** A primary action link, styled as a button. */
 export function buttonHtml(href: string, label: string): string {
   return `<p style="margin:0 0 20px;">

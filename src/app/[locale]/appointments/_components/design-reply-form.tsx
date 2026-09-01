@@ -66,7 +66,7 @@ export function DesignReplyForm({
         return
       }
       // The message is in. A photo that fails now is worth a warning, not a
-      // rollback — she can still read what they wrote.
+      // rollback — the studio can still read what they wrote.
       // The message is in. If the photo won't attach, KEEP it staged — clearing
       // it would abandon an uploaded object the UI promised to send, with no way
       // to retry.

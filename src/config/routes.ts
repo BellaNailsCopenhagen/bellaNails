@@ -48,6 +48,12 @@ export function offerPath(token: string): string {
   return `/offer/${token}`
 }
 
+/** One client's testimonial invitation, by its signed token (segment must match
+    app/[locale]/testimonial/[token]). */
+export function testimonialPath(token: string): string {
+  return `/testimonial/${token}`
+}
+
 /** Outbound social links (open in a new tab). */
 export const externalLinks = {
   instagram: "https://instagram.com",

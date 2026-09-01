@@ -37,6 +37,7 @@ export const routes = {
     settings: "/admin/settings",
     more: "/admin/more",
     terms: "/admin/terms",
+    testimonials: "/admin/testimonials",
     notifications: "/admin/notifications",
     assets: "/admin/assets",
     assetHighlight: (id: string) => `/admin/assets?highlight=${id}`,

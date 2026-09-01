@@ -115,7 +115,7 @@ export async function DesignRequestList({
                 </ul>
               ) : null}
 
-              {/* Still on her plate → they can add to it. A closed thread stays
+              {/* Still on the studio's plate → they can add to it. A closed thread stays
                   readable but takes no more input; a new ask starts fresh. */}
               {isActionableDesignStatus(shown) ? (
                 <DesignReplyForm

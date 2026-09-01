@@ -10,7 +10,7 @@ Small fixes/enhancements captured mid-work. Not blocking; pick up when convenien
   durable limiter (a Postgres counter, or an external store) is the real answer —
   and `createBooking` wants the same thing (see the public-abuse guard below).
 - **Housekeeping has no scheduler.** `runDesignHousekeeping` is throttled to once
-  an hour and triggered by the artist opening `/admin`. If she doesn't open it,
+  an hour and triggered by someone opening `/admin`. If nobody does,
   offers don't expire and reference photos aren't purged. One cron trigger fixes
   it — see [SCHEDULER-OPTIONS.md](in-house/SCHEDULER-OPTIONS.md).
 - **The orphan sweep scans at most 1000 objects** per run (10 pages of 100). Fine
@@ -22,7 +22,7 @@ Small fixes/enhancements captured mid-work. Not blocking; pick up when convenien
   reads the snapshot, the way `getOwnerOfferSlots` reads the offer.
 - **`design_requests` has no admin list page.** The queue on `/admin` only shows
   `open` + `offered`; closed and booked ones are reachable only through the
-  client's page. Fine for now — add a filtered list if she asks for history.
+  client's page. Fine for now — add a filtered list if the studio wants history.
 
 ### Booking-request copy → move into the next-intl catalog
 The client booking-request UI (`booking-request-form.tsx` + the "Can't find a
@@ -128,14 +128,35 @@ is da-default with next-intl catalogs, so a Danish user sees English there. Add
 message keys to `messages/da.json` + `en.json` and route these through
 `useTranslations`/`getTranslations` — do both auth surfaces in one i18n pass.
 
-### Consent re-grant (GDPR: re-granting must be as easy as withdrawing)
-Withdrawn/declined consents can't be re-granted from the UI. The server actions
-already support it (`decideMediaConsent`/`decideDataConsent` have no status
-guard), but nothing surfaces a withdrawn/declined item: media inbox lists only
-`requested` ([consent-centre.tsx](../../src/components/.../consent-centre.tsx)),
-the gallery manage dialog only `granted`. Add an "Allow again" control wired to
-`decide*Consent(..., "granted")`.
-- **Paired bug**: `grantMediaConsentRow` ([consent-actions.ts](../../src/modules/media/consent-actions.ts)) on re-grant of a *used-&-withdrawn* photo sets a NEW `published_asset_id` without clearing `needs_takedown_at` or reusing/cleaning the old asset → orphans the old `assets`/`asset_usages` + storage object and leaves a stale "used & withdrawn" flag. Fix alongside: clear `needs_takedown_at` + reconcile the existing asset.
+### ~~Consent re-grant~~ — DONE (1 Sep 2026)
+
+Fixed for BOTH flows. The old note was also wrong on the detail: it said "the
+server actions already support it (no status guard)", but the current
+`media_releases` model has one — `decideMediaRelease` refuses anything that
+isn't `requested`, and it returns `{ ok: true }` while doing nothing, so a UI
+attempt would have looked like it worked.
+
+That guard is CORRECT and stayed: `/approve/[token]` is a public link, and a
+replayed token must never silently re-grant something the client withdrew. The
+fix was a separate, signed-in-only path:
+
+- `restoreMediaRelease(bookingId, purpose)` — own release, only from
+  `withdrawn`/`declined`, clears the earlier stamps and re-stamps
+  `consent_version`. Notifies the studio under a new `media_consent_restored` kind
+  (`owner_notifications.kind` has no CHECK, so no migration).
+- `my-space.ts` no longer drops a booking once every purpose is answered — that
+  was the second lock, and the worse one: the card disappeared, so there was
+  nothing to click even if the action had allowed it.
+- The card renders the terminal state with "Allow again" beside it.
+- Restoring permission does NOT republish. Withdrawal deletes the public copy, so
+  the studio places it again — the notification says so.
+
+The paired `grantMediaConsentRow` orphan bug in the old note is moot: that
+function belonged to the retired per-image `media_consents` ledger. The
+booking-level model has no orphan path, because a re-grant restores the ceiling
+and publishing stays a separate, explicit step.
+
+Testimonials got the same treatment when they were built (`restoreTestimonial`).
 
 ### withdrawDataConsent doesn't notify owner / revalidate
 [consent-actions.ts](../../src/modules/media/consent-actions.ts) `withdrawDataConsent`

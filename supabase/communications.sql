@@ -39,11 +39,8 @@ create unique index if not exists communications_reminder_sent_idx
   on public.communications (booking_id, reminder_for)
   where kind = 'reminder' and status = 'sent';
 
--- Widen the kind check on an already-created table (adds the Feature B request
--- kinds). Safe to re-run.
-alter table public.communications drop constraint if exists communications_kind_check;
-alter table public.communications add constraint communications_kind_check
-  check (kind in ('confirmation','cancellation','reschedule','reminder','media_release_request','review_request','booking_request_received','booking_request_declined'));
+-- `communications.kind` is widened in supabase/communications-kinds.sql — the
+-- single authority, so re-running this file can't narrow the set again.
 
 alter table public.communications enable row level security;
 -- No policies on purpose — service-role bypasses RLS; everyone else is denied.

@@ -15,6 +15,7 @@ import { ClientEmailLanguage } from "@/app/admin/clients/[id]/_components/client
 import { ClientCommunications } from "@/app/admin/clients/[id]/_components/client-communications"
 import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-status-badge"
 import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
+import { AskTestimonialButton } from "@/app/admin/clients/[id]/_components/ask-testimonial-button"
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { NoteFeed } from "@/components/admin/note-feed"
@@ -147,6 +148,7 @@ export default async function AdminClientPage({
               Email
             </a>
           ) : null}
+          <AskTestimonialButton clientId={id} />
           {noShowCount >= NO_SHOW_ALERT_THRESHOLD ? (
             <Badge variant="destructive" size="xs" className="gap-1">
               <TriangleAlert className="size-3" />

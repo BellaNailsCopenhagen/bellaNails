@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache"
 
-import { routing } from "@/i18n/routing"
+import { revalidateLocaleHomes } from "@/modules/revalidate"
 import { routes, revalidatePatterns } from "@/shared/routes"
 
 /**
@@ -11,5 +11,5 @@ import { routes, revalidatePatterns } from "@/shared/routes"
 export function revalidateCatalogSurfaces() {
   revalidatePath(routes.admin.services)
   revalidatePath(revalidatePatterns.publicServices, "page")
-  for (const locale of routing.locales) revalidatePath(routes.public.localeHome(locale))
+  revalidateLocaleHomes()
 }

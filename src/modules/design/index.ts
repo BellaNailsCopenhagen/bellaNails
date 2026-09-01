@@ -1,6 +1,6 @@
 /**
  * Design requests: a client's async ask, the conversation on it, the reference
- * photos, and the artist's one-time OFFER — her duration and her price, reached
+ * photos, and the artist's one-time OFFER — a duration and a price set for that job, reached
  * by a signed link and booked through the ordinary booking flow.
  *
  * **Client components must not import this** — it is transitively

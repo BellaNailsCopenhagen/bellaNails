@@ -178,6 +178,19 @@ export async function flagAssetsTakedown(
   return { ok: !error }
 }
 
+/** Clear the takedown flag — a re-granted release means nothing is owed. */
+export async function clearAssetsTakedown(
+  db: Db,
+  mediaIds: string[],
+): Promise<{ ok: boolean }> {
+  if (mediaIds.length === 0) return { ok: true }
+  const { error } = await db
+    .from("assets")
+    .update({ needs_takedown_at: null })
+    .in("client_media_id", mediaIds)
+  return { ok: !error }
+}
+
 /** Delete the asset row. Its `asset_usages` cascade; `gallery_items` do not —
     clear those first. */
 export async function deleteAsset(

@@ -10,6 +10,7 @@ import {
   Clock,
   Images,
   MessageSquare,
+  Quote,
   ScrollText,
   SlidersHorizontal,
   type LucideIcon,
@@ -86,10 +87,10 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.settings,
   },
   {
-    label: "Gallery & testimonials",
-    description: "Curate the public gallery and reviews",
-    icon: Images,
-    soon: true,
+    label: "Testimonials",
+    description: "Choose which client words show on the home page",
+    icon: Quote,
+    href: routes.admin.testimonials,
   },
   {
     label: "Insights",

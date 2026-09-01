@@ -28,6 +28,11 @@ export type ConfirmLabels = {
 export const withdrawPill =
   "self-start rounded-full border border-destructive/40 px-2.5 py-1 font-functional text-[0.625rem] uppercase tracking-widest-lux text-destructive/80 transition-colors hover:border-destructive hover:text-destructive"
 
+// The reversible counterpart to withdrawPill — a quiet underline, not a pill,
+// so undoing never looks heavier than the destructive action it undoes.
+export const restoreLink =
+  "self-start font-functional text-xs uppercase tracking-widest-lux text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground disabled:opacity-50"
+
 /**
  * Confirm-then-run for a destructive client action (delete, withdraw sharing).
  * The caller supplies the styled trigger, the labels (for localization), and

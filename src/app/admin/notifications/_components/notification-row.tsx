@@ -25,8 +25,13 @@ function describe(n: OwnerNotification): string {
     return `withdrew ${where} permission for a photo`
   }
   if (n.kind === "shared_image_deleted") return "deleted a photo they had shared"
+  if (n.kind === "media_consent_restored") {
+    const where = PURPOSE_LABEL[n.purpose ?? ""] ?? "publishing"
+    return `allowed ${where} again`
+  }
   if (n.kind === "booking_request") return "sent a booking request"
   if (n.kind === "design_request") return "wrote in about a design"
+  if (n.kind === "testimonial_submitted") return "wrote you a few words"
   return "sent an update"
 }
 
@@ -53,6 +58,14 @@ function helper(n: OwnerNotification): { text: string; warn?: boolean } | null {
   if (n.kind === "design_request") {
     return { text: "Waiting on you — read it and make an offer." }
   }
+  if (n.kind === "testimonial_submitted") {
+    return { text: "Read it, and switch it on if you'd like it on the home page." }
+  }
+  if (n.kind === "media_consent_restored") {
+    // Withdrawal deleted the public copy, so permission alone changes nothing
+    // on the site until it is placed again.
+    return { text: "You can publish from this appointment again — re-place it in the hub." }
+  }
   return null
 }
 
@@ -62,9 +75,11 @@ function hrefFor(n: OwnerNotification): string {
   if (n.kind === "media_consent_withdrawn" && n.clientMediaId) {
     return routes.admin.assetHighlight(n.clientMediaId)
   }
+  if (n.kind === "media_consent_restored") return routes.admin.assets
   if (n.kind === "booking_request" || n.kind === "design_request") {
     return routes.admin.home
   }
+  if (n.kind === "testimonial_submitted") return routes.admin.testimonials
   return routes.admin.client(n.clientId)
 }
 

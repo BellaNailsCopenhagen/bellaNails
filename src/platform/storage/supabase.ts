@@ -5,21 +5,16 @@ import { randomUUID } from "node:crypto"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**
- * Supabase Storage — the media backend. Three buckets, because each one carries
- * a DIFFERENT server-enforced size/type limit and Supabase enforces those per
- * bucket (a signed upload URL can't carry a policy the way an S3 presigned POST
- * could):
+ * Supabase Storage — the media backend. THREE buckets, because Supabase enforces
+ * size and MIME limits per bucket and a signed upload URL can't carry a policy
+ * of its own:
  *
  *   private  — the artist's originals + client-work photos.   Images + video, large.
  *   refs     — a client's design reference photos.            Images only, small.
  *   public   — published copies, world-readable.              Written by us only.
  *
- * Object keys keep their area as a prefix (`private/…`, `refs/…`, `public/…`) so
- * a stored key stays self-describing and the bucket is derivable from it — no
- * schema change, and keys written by the previous S3 adapter still resolve.
- *
- * Every call is env-guarded and returns `not_configured` when Supabase env is
- * absent, so the app boots and media flows degrade instead of crashing.
+ * The area is a key prefix, so a stored key alone says which bucket it is in.
+ * Every call is env-guarded and returns `not_configured` rather than throwing.
  */
 
 export type StorageResult<T> =
@@ -195,14 +190,8 @@ export async function deleteObject(key: string): Promise<StorageResult<null>> {
   }
 }
 
-/**
- * Delete many objects in ONE request. The orphan sweep collects its keys before
- * deleting anything, so it has no reason to pay a round trip per key. Callers
- * that need per-key outcomes (erasure decides which rows to drop) use
- * `deleteObject` instead.
- *
- * Keys must share an area — the bucket is derived from the first one.
- */
+/** Delete many objects in ONE request; keys must share an area, since the bucket
+    comes from the first. Callers needing per-key outcomes use `deleteObject`. */
 export async function deleteObjects(keys: string[]): Promise<StorageResult<null>> {
   if (!keys.length) return { ok: true, data: null }
   if (!storageConfigured()) return { ok: false, error: "not_configured" }

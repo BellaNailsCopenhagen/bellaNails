@@ -41,27 +41,25 @@ export const EMPTY_MY_SPACE: MySpace = {
   profile: null,
 }
 
-/** Booking-level media releases the client can act on — cards for any booking
-    with a pending (requested) or live (granted) purpose. Declined/withdrawn-only
-    bookings carry no action, so they're left off. */
+/** Booking-level media releases the client can act on. Every booking that was
+    ever asked about is kept, including ones where they said no or later
+    withdrew: re-granting has to be as easy as withdrawing, and they cannot
+    re-grant what the page refuses to show them. */
 async function getReleaseRequests(
   db: Awaited<ReturnType<typeof createAuthedSupabaseServerClient>>,
   clientId: string,
 ): Promise<ReleaseRequestCard[]> {
   const rows = await listReleasesForClient(db, clientId)
-  const actionable = [...groupReleasesByBooking(rows).entries()].filter(
-    ([, purposes]) =>
-      purposes.some((p) => p.status === "requested" || p.status === "granted"),
-  )
-  if (!actionable.length) return []
+  const byBooking = [...groupReleasesByBooking(rows).entries()]
+  if (!byBooking.length) return []
 
   const labels = await listBookingLabelsByIds(
     db,
-    actionable.map(([bookingId]) => bookingId),
+    byBooking.map(([bookingId]) => bookingId),
   )
   const labelById = new Map(labels.map((b) => [b.id, b]))
 
-  return actionable
+  return byBooking
     // A cancelled booking's release is void — drop it from the UI.
     .filter(([bookingId]) => {
       const booking = labelById.get(bookingId)

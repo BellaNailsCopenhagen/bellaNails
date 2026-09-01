@@ -1,7 +1,7 @@
 # `modules/` — the service layer
 
-One folder per domain: `booking`, `catalog`, `clients`, `identity`, `media`,
-`notifications`, `studio`, `terms`.
+One folder per domain: `booking`, `catalog`, `clients`, `design`, `identity`,
+`media`, `notifications`, `studio`, `terms`, `testimonials`.
 
 A module is where a question gets answered. It picks the Supabase client (which
 *is* the authorization decision), composes several `db/` calls, talks to Cal or
@@ -14,6 +14,7 @@ modules/<domain>/
   index.ts          the public surface — the only thing app/ imports
   reads.ts          composed reads, one per page surface
   <x>-actions.ts    "use server" mutations
+  revalidate.ts     the surfaces this domain's writes invalidate
   <internal>.ts     everything else — not exported from index.ts
 ```
 
