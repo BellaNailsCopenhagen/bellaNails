@@ -19,6 +19,7 @@ export const routes = {
   book: "/book",
   confirmation: "/confirmation",
   requestSent: "/request-sent",
+  ask: "/ask",
   terms: "/terms",
   privacy: "/privacy",
   signIn: "/login",
@@ -39,6 +40,12 @@ export function isCheckoutPath(pathname: string): boolean {
   return checkoutRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   )
+}
+
+/** One client's offer, reached by its signed token (segment must match
+    app/[locale]/offer/[token]). */
+export function offerPath(token: string): string {
+  return `/offer/${token}`
 }
 
 /** Outbound social links (open in a new tab). */
@@ -94,6 +101,7 @@ export const footerNav: FooterColumn[] = [
     links: [
       { href: routes.services, labelKey: "services" },
       { href: routes.gallery, labelKey: "gallery" },
+      { href: routes.ask, labelKey: "ask" },
     ],
   },
   {

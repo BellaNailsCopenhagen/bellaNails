@@ -22,7 +22,7 @@ import { verifyBookingToken } from "@/modules/booking/manage-token"
 import { getCurrentUser } from "@/modules/identity/server"
 import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
 import { notifyOwner } from "@/modules/notifications/notify"
-import { deleteObject } from "@/platform/storage/scaleway"
+import { deleteObject } from "@/platform/storage/supabase"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { MEDIA_RELEASE_CONSENT_VERSION } from "@/shared/media-release"
 import { routes } from "@/shared/routes"
@@ -41,7 +41,9 @@ export type ReleaseActionResult = { ok: true } | { ok: false; error: string }
 type ServiceClient = ReturnType<typeof createSupabaseServiceRoleClient>
 
 /** Un-publish everything a (booking, purpose) release authorized. website copies
-    are deleted outright; social copies are kept but flagged for manual takedown
+    are deleted outright — unless the file delete fails, in which case the copy is
+    kept and flagged rather than silently stranded; social copies are always kept
+    and flagged for manual takedown
     (we can't remove an external post); education has no on-site copy. Returns
     true when a social copy was flagged, so the caller can alert the owner. */
 async function unpublishBookingMedia(
@@ -71,19 +73,39 @@ async function unpublishBookingMedia(
 
   // website — fully unpublish (asset delete cascades its placements; the private
   // original in client_media is untouched).
+  //
+  // The PUBLIC FILE GOES FIRST, and the row only follows if that succeeded. The
+  // row is the only thing that still points at the object: drop it while the
+  // file survives and a photo whose consent was withdrawn stays world-readable
+  // with nothing left to retry the delete. On failure we keep the row and flag
+  // it, so the hub shows "taken down?" — the same escape hatch social uses — and
+  // the artist can finish the job.
+  let stranded = false
   for (const asset of assets) {
     const storageKey = asset.storage_key ?? (await getAssetStorageKey(supabase, asset.id))
+    if (storageKey) {
+      const removed = await deleteObject(storageKey)
+      if (!removed.ok) {
+        console.error(
+          `[release] public object for asset ${asset.id} not deleted — kept + flagged:`,
+          removed.error,
+        )
+        await flagAssetsTakedown(supabase, [asset.id], new Date().toISOString())
+        stranded = true
+        continue
+      }
+    }
     await deleteGalleryItemsForAsset(supabase, asset.id)
     await deleteAsset(supabase, asset.id)
-    if (storageKey) await deleteObject(storageKey)
   }
-  return false
+  return stranded
 }
 
 /** Apply a grant/decline to a release row (shared by the registered + guest
     paths). A DECLINE un-publishes anything already live (the recorded "no" and
     what's public must never disagree). Resets sibling timestamps so the audit
-    row can't contradict itself. Returns true if a social takedown was flagged. */
+    row can't contradict itself. Returns true if anything was left needing the
+    artist's hand — a social copy, or a website file that refused to delete. */
 async function applyDecision(
   supabase: ServiceClient,
   releaseId: string,

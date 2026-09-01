@@ -22,31 +22,17 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
     )
   }
 
-  const yours = media.filter((m) => m.source === "client")
-  const studio = media.filter((m) => m.source === "owner")
-
-  const grid = (items: ClientMediaItem[]) => (
-    <ul className="columns-2 gap-4 sm:columns-3">
-      {items.map((item) => (
-        <ClientGalleryTile key={item.id} item={item} />
-      ))}
-    </ul>
-  )
-
+  // One list: every photo here is the artist's, taken at the studio. Clients
+  // don't upload, so the old "yours / from the studio" split had an always-empty
+  // half.
   return (
-    <div className="space-y-8">
-      {yours.length ? (
-        <section className="space-y-3">
-          <Eyebrow as="h3">{t("galleryYours")}</Eyebrow>
-          {grid(yours)}
-        </section>
-      ) : null}
-      {studio.length ? (
-        <section className="space-y-3">
-          <Eyebrow as="h3">{t("galleryFromStudio")}</Eyebrow>
-          {grid(studio)}
-        </section>
-      ) : null}
-    </div>
+    <section className="space-y-3">
+      <Eyebrow as="h3">{t("galleryFromStudio")}</Eyebrow>
+      <ul className="columns-2 gap-4 sm:columns-3">
+        {media.map((item) => (
+          <ClientGalleryTile key={item.id} item={item} />
+        ))}
+      </ul>
+    </section>
   )
 }

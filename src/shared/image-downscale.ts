@@ -1,4 +1,4 @@
-import { IMAGE_MAX_DIM } from "@/shared/media-policy"
+import { IMAGE_MAX_DIM, IMAGE_QUALITY } from "@/shared/media-policy"
 
 /**
  * Client-side prep for a client upload: downscale (longest side ≤ maxDim) and
@@ -32,7 +32,7 @@ export async function downscaleImage(
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Encode failed"))),
       "image/webp",
-      0.85,
+      IMAGE_QUALITY,
     ),
   )
 }

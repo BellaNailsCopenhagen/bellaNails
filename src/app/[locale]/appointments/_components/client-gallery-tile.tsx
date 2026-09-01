@@ -4,16 +4,15 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
-import { DeleteOwnMediaButton } from "@/app/[locale]/appointments/_components/delete-own-media-button"
-import { withdrawPill } from "@/components/ui/confirm-action-button"
 import type { ClientMediaItem } from "@/modules/media/client-gallery"
 
 /**
- * One photo/video in the client's Gallery: a clean masonry thumbnail (real aspect
- * ratio) that opens a full-size view. Whether the studio may PUBLISH this
- * appointment's media is a booking-level release, managed from the per-booking
- * release cards — not per photo — so the tile stays a gallery. A client can still
- * delete their own uploads here.
+ * One photo/video in the client's Gallery: a clean masonry thumbnail (real
+ * aspect ratio) that opens a full-size view. Every item is the ARTIST's — shot
+ * at the studio and linked to the client through a booking; clients don't
+ * upload. Whether the studio may PUBLISH an appointment's media is a
+ * booking-level release, managed from the per-booking release cards, so the
+ * tile stays purely a gallery.
  */
 export function ClientGalleryTile({ item }: { item: ClientMediaItem }) {
   const t = useTranslations("bookings")
@@ -54,26 +53,6 @@ export function ClientGalleryTile({ item }: { item: ClientMediaItem }) {
             />
           )}
 
-          {item.source === "client" ? (
-            <div className="border-t border-border pt-4">
-              <DeleteOwnMediaButton
-                mediaId={item.id}
-                labels={{
-                  title: t("deleteTitle"),
-                  body: t("deleteBody"),
-                  confirm: t("deleteConfirm"),
-                  confirming: t("deleteConfirming"),
-                  cancel: t("deleteCancel"),
-                  failed: t("loadError"),
-                }}
-                trigger={
-                  <button type="button" className={withdrawPill}>
-                    {t("deletePhotoCta")}
-                  </button>
-                }
-              />
-            </div>
-          ) : null}
         </SheetContent>
       </Sheet>
     </li>

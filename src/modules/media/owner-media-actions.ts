@@ -19,7 +19,7 @@ import {
   statusFromEmailResult,
 } from "@/modules/notifications/communications"
 import { sendMediaReleaseRequestEmail } from "@/modules/notifications/release-email"
-import { objectUrl } from "@/platform/storage/scaleway"
+import { objectUrl } from "@/platform/storage/supabase"
 import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
 import { bookingRef } from "@/shared/media-release"
 import { routes } from "@/shared/routes"
@@ -36,7 +36,6 @@ export type MediaActionResult = { ok: true } | { ok: false; error: string }
 
 export async function addClientMedia(input: {
   clientId: string
-  source: "owner" | "client"
   storageKey: string
   kind: "image" | "video"
   serviceId?: string | null
@@ -65,7 +64,8 @@ export async function addClientMedia(input: {
 
   const saved = await insertMedia(supabase, {
     client_id: input.clientId,
-    source: input.source,
+    // Every photo here is shot by the studio — clients no longer upload.
+    source: "owner",
     kind: input.kind,
     storage_key: input.storageKey,
     url: objectUrl(input.storageKey) ?? "",

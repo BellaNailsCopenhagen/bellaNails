@@ -23,7 +23,7 @@ import {
 } from "@/db/media-releases"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { revalidatePublicSurfaces } from "@/modules/media/revalidate-surfaces"
-import { deleteObject, publishToPublic } from "@/platform/storage/scaleway"
+import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
 import { routes } from "@/shared/routes"
 
 export type AssetHubResult = { ok: true; note?: string } | { ok: false; error: string }

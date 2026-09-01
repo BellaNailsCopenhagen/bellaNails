@@ -4,7 +4,7 @@ import { listUsagesForAssets } from "@/db/asset-usages"
 import { listAssetsForMedia } from "@/db/assets"
 import { listHubMedia } from "@/db/client-media"
 import { listReleasesForBookings } from "@/db/media-releases"
-import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
+import { signedViewUrl, storageConfigured } from "@/platform/storage/supabase"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { RELEASE_PURPOSES } from "@/shared/media-release"
 
@@ -44,7 +44,6 @@ export type HubAsset = {
   kind: string
   caption: string | null
   createdAt: string
-  source: string
   dismissed: boolean
   favorited: boolean
   state: HubState
@@ -129,7 +128,7 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
     media.map(async (m): Promise<[string, string]> => {
       let url = m.url
       if (configured && m.storage_key) {
-        const signed = await presignedGet(m.storage_key)
+        const signed = await signedViewUrl(m.storage_key)
         if (signed.ok) url = signed.data.url
       }
       return [m.id, url]
@@ -148,7 +147,6 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
       kind: m.kind,
       caption: m.caption,
       createdAt: m.created_at,
-      source: m.source,
       dismissed: Boolean(m.dismissed_at),
       favorited: Boolean(m.favorited_at),
       state: deriveState(releases, published, Boolean(m.dismissed_at)),

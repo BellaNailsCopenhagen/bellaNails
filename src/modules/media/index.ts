@@ -40,7 +40,6 @@ export {
   respondToReleaseToken,
   withdrawMediaRelease,
 } from "./release-actions"
-export { addOwnBookingMedia, deleteOwnMedia } from "./client-media-actions"
 export {
   addClientMedia,
   requestDataConsent,

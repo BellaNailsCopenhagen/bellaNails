@@ -5,7 +5,7 @@ import { ImagePlus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { uploadMedia } from "@/shared/upload-media"
+import { uploadMedia } from "@/platform/storage/browser"
 import type { PublishedImage } from "@/modules/catalog/image-actions"
 import type { PickableAsset } from "@/modules/catalog"
 

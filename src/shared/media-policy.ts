@@ -10,9 +10,19 @@ export const VIDEO_TYPES = ["video/mp4", "video/webm"]
 export const CLIENT_MAX_BYTES = 5 * 1024 * 1024 // post-optimisation an image is tiny
 export const OWNER_MAX_BYTES = 200 * 1024 * 1024 // room for a short demo clip
 
-/** Longest-side cap for client image downscale (aspect ratio preserved — we
-    never crop a client's photo). */
-export const IMAGE_MAX_DIM = 2000
+/**
+ * The image policy, in one place (decision 31 Aug 2026): every upload is
+ * downscaled to `IMAGE_MAX_DIM` on its longest side and re-encoded to WebP at
+ * `IMAGE_QUALITY`. Measured output at these settings is ~46 KB for a wide photo
+ * and ~87 KB for a close-up, so ~62 KB blended — roughly 17,000 images in the
+ * 1 GB free tier. Storage is not the constraint; egress is.
+ *
+ * Aspect ratio is always preserved: we never crop an upload. A client's
+ * reference photo is often a screenshot, where a centre crop can cut the design
+ * out of frame. Fixed ratios belong to OUR display surfaces, in CSS.
+ */
+export const IMAGE_MAX_DIM = 1200
+export const IMAGE_QUALITY = 0.82
 
 export function uploadPolicy(owner: boolean): {
   allowedTypes: string[]

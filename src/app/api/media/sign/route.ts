@@ -1,34 +1,51 @@
 import { getCurrentUser } from "@/modules/identity/server"
+import { takeToken, type RateLimitState } from "@/shared/rate-limit"
 import { extForType, uploadPolicy } from "@/shared/media-policy"
-import { presignedUpload } from "@/platform/storage/scaleway"
+import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/supabase"
 
 /**
- * Presigned-POST params for a browser upload into `private/`. Requires a signed-in
- * caller; the role (owner vs client) picks the policy — allowed types + max size
- * (decision 9). A client asking for a video is rejected. Returns 503 when storage
- * isn't configured, so the uploader degrades to "not yet available".
+ * Mints a one-shot signed upload target. Requires a signed-in caller; the role
+ * picks BOTH the allowed types (checked here) and the bucket — the artist's
+ * originals vs a client's design references — and each bucket carries its own
+ * server-enforced size limit. A client asking for a video is rejected.
+ * Returns 503 when storage isn't configured, so the uploader degrades to
+ * "not yet available".
+ *
+ * Clients are rate-limited: the per-request and per-client caps elsewhere bound
+ * ROWS, and an upload happens before any row exists, so nothing else stops one
+ * account minting objects in a loop. Best-effort (per instance) — see
+ * shared/rate-limit.ts — and deliberately generous enough that a real person
+ * attaching three photos never notices.
  */
+
+const uploads: RateLimitState = new Map()
+const CLIENT_UPLOAD_RULE = { limit: 20, windowMs: 60 * 60 * 1000 }
 export async function POST(req: Request) {
   const user = await getCurrentUser()
   if (!user) return new Response("Unauthorized", { status: 401 })
+
+  // The artist is trusted; a client is not.
+  if (!user.isOwner && !takeToken(uploads, user.id, Date.now(), CLIENT_UPLOAD_RULE)) {
+    return Response.json({ error: "rate_limited" }, { status: 429 })
+  }
 
   const body = (await req.json().catch(() => null)) as {
     contentType?: string
   } | null
   const contentType = body?.contentType
-  const { allowedTypes, maxBytes } = uploadPolicy(user.isOwner)
+  const { allowedTypes } = uploadPolicy(user.isOwner)
   if (!contentType || !allowedTypes.includes(contentType)) {
     return Response.json({ error: "unsupported_type" }, { status: 400 })
   }
 
-  const result = await presignedUpload({
-    contentType,
-    maxBytes,
+  const result = await signedUploadUrl({
+    area: user.isOwner ? "private" : "refs",
     ext: extForType(contentType),
   })
   if (!result.ok) {
     const status = result.error === "not_configured" ? 503 : 500
     return Response.json({ error: result.error }, { status })
   }
-  return Response.json(result.data)
+  const target: SignedUploadTarget = result.data
+  return Response.json(target)
 }

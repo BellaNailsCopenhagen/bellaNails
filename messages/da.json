@@ -12,7 +12,8 @@
     "account": "Min konto",
     "space": "Mit rum",
     "terms": "Betingelser",
-    "privacy": "Privatliv"
+    "privacy": "Privatliv",
+    "ask": "Spørg om et design"
   },
   "hero": {
     "kicker": "Neglesalon i Ørestad · København",
@@ -230,7 +231,9 @@
     "rescheduleConfirm": "Bekræft nyt tidspunkt",
     "rescheduling": "Flytter din aftale…",
     "rescheduleFailed": "Vi kunne ikke flytte den — prøv et andet tidspunkt eller kontakt studiet.",
-    "rescheduleDone": "Du har flyttet din tid."
+    "rescheduleDone": "Du har flyttet din tid.",
+    "somethingWrong": "Er noget ikke som det skal være? Sig til",
+    "somethingWrongBody": "Hvis en negl har løsnet sig eller er skallet, send hende et billede — så vender hun tilbage med en tid og en pris for at rette det."
   },
   "gallery": {
     "metaTitle": "Galleri",
@@ -406,5 +409,90 @@
     "minutes": "min",
     "galleryAlt": "Neglearbejde af Bella Nails",
     "eyebrow": "Behandlingen"
+  },
+  "ask": {
+    "metaTitle": "Spørg Bella – Bella Nails, Ørestad, København",
+    "metaDescription": "Fortæl Bella hvad du har i tankerne, så vender hun tilbage med en pris og hvor lang tid det tager.",
+    "eyebrow": "Spørg",
+    "headingLead": "Fortæl Bella",
+    "headingAccent": "hvad du har i tankerne",
+    "intro": "Hun vender tilbage med en pris og hvor lang tid det tager. Det er ikke en booking endnu.",
+    "signInPrompt": "Log ind først, så Bella kan svare dig, og du kan se hendes tilbud.",
+    "signInCta": "Log ind",
+    "topicLabel": "Hvad handler det om?",
+    "topic": {
+      "new_design": "Et design jeg har set",
+      "repair": "En reparation",
+      "other": "Noget andet"
+    },
+    "photosLabel": "Billeder",
+    "photosOptional": "op til {max}, valgfrit",
+    "photosHint": "Skærmbilleder er helt fine.",
+    "addPhoto": "Tilføj et billede",
+    "uploading": "Uploader…",
+    "removePhoto": "Fjern dette billede",
+    "photoAlt": "Referencebillede",
+    "photoFailed": "Billedet blev ikke uploadet — prøv et andet.",
+    "photoNotConfigured": "Billeder kan ikke uploades lige nu — send din besked, så kontakter Bella dig.",
+    "photoTooMany": "Det er det maksimale antal billeder.",
+    "photoNote": "Referencebilleder ses kun af Bella. Vi offentliggør dem aldrig, og de slettes efter din tid.",
+    "messageLabel": "Er der noget hun skal vide?",
+    "messagePlaceholder": "Jeg vil gerne have det i en støvet rosa — mine negle er ret korte.",
+    "windowLabel": "Hvornår passer det dig?",
+    "windowOptional": "valgfrit",
+    "windowPlaceholder": "Gerne inden den 20.",
+    "submit": "Send til Bella",
+    "submitting": "Sender…",
+    "replyTime": "Hun svarer typisk inden for en dag.",
+    "sentTitle": "Sendt — tak",
+    "sentBody": "Bella har din besked og svarer på e-mail. Du finder den også i Mit rum.",
+    "sentCta": "Gå til Mit rum",
+    "askAnother": "Spørg om noget andet",
+    "failed": "Kunne ikke sende — prøv igen."
+  },
+  "offer": {
+    "metaTitle": "Dit tilbud – Bella Nails",
+    "metaDescription": "Bellas tilbud på dit design: prisen, hvor lang tid det tager, og dit valg af tider.",
+    "eyebrow": "Dit tilbud fra Bella",
+    "notFoundTitle": "Dette link virker ikke",
+    "notFoundBody": "Det kan være skrevet forkert, eller tilbuddet er fjernet. Skriv til Bella, så finder hun ud af det.",
+    "blocked": {
+      "withdrawn": "Dette tilbud er trukket tilbage. Skriv til Bella, så ser hun på det igen.",
+      "used": "Dette tilbud er allerede booket. Du finder tiden i Mit rum.",
+      "expired": "Dette tilbud er udløbet. Skriv til Bella, så laver hun et nyt."
+    },
+    "blockedCta": "Skriv til Bella",
+    "yourPhotos": "Dine billeder",
+    "photoAlt": "Dit referencebillede",
+    "holdsUntil": "Gælder til {date}",
+    "chooseTime": "Vælg en tid",
+    "duration": "{mins} min",
+    "noTimes": "Der er ingen ledige tider lige nu — skriv til Bella, så finder hun en.",
+    "confirm": "Book denne tid",
+    "confirming": "Booker…",
+    "failed": "Kunne ikke booke tiden — vælg en anden."
+  },
+  "designRequests": {
+    "sectionTitle": "Dine beskeder",
+    "sectionIntro": "Det du har spurgt Bella om, og hendes svar.",
+    "empty": "Du har ikke spurgt Bella om noget endnu.",
+    "askCta": "Spørg Bella",
+    "status": {
+      "open": "Venter på Bella",
+      "offered": "Tilbud klar",
+      "booked": "Booket",
+      "declined": "Lukket",
+      "expired": "Tilbud udløbet"
+    },
+    "authorClient": "Dig",
+    "authorArtist": "Bella",
+    "viewOffer": "Se tilbuddet",
+    "offerSummary": "{mins} min · {price}",
+    "replyLabel": "Skriv tilbage",
+    "replyPlaceholder": "Tilføj hvad hun ellers skal vide…",
+    "replySend": "Send",
+    "replySending": "Sender…",
+    "replyFailed": "Kunne ikke sende — prøv igen.",
+    "photoAlt": "Referencebillede"
   }
 }

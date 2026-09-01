@@ -1,6 +1,6 @@
 import "server-only"
 
-import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
+import { signedViewUrl, storageConfigured } from "@/platform/storage/supabase"
 import type { Db } from "@/db/client"
 import { listMediaForBookings } from "@/db/client-media"
 import type { BookingThumb } from "@/shared/booking-view"
@@ -22,7 +22,7 @@ export async function getBookingMediaThumbs(
     data.map(async (m) => {
       let url = m.url
       if (configured && m.storage_key) {
-        const signed = await presignedGet(m.storage_key)
+        const signed = await signedViewUrl(m.storage_key)
         if (signed.ok) url = signed.data.url
       }
       return { bookingId: m.booking_id, id: m.id, url, kind: m.kind }

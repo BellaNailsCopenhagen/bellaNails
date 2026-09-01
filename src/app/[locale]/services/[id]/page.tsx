@@ -110,16 +110,16 @@ export default async function ServiceDetailPage({
         </Section>
       ) : null}
 
-      {gallery.studio.length ? (
+      {gallery.length ? (
         <Section className="border-t border-border">
           <Container className="max-w-4xl space-y-6">
             <Eyebrow as="h2">{t("byStudio")}</Eyebrow>
-            <ClientWorkGrid assets={gallery.studio} alt={t("galleryAlt")} />
+            <ClientWorkGrid assets={gallery} alt={t("galleryAlt")} />
           </Container>
         </Section>
       ) : null}
 
-      {reviews.length || gallery.clients.length ? (
+      {reviews.length ? (
         <Section className="border-t border-border">
           <Container className="max-w-4xl space-y-6">
             <Eyebrow as="h2">{t("fromClients")}</Eyebrow>
@@ -140,9 +140,6 @@ export default async function ServiceDetailPage({
                   </li>
                 ))}
               </ul>
-            ) : null}
-            {gallery.clients.length ? (
-              <ClientWorkGrid assets={gallery.clients} alt={t("galleryAlt")} />
             ) : null}
           </Container>
         </Section>

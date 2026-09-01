@@ -1,7 +1,7 @@
 import type { Db } from "@/db/client"
 import { listDataConsents } from "@/db/client-consents"
 import { listMediaForClient } from "@/db/client-media"
-import { presignedGet, storageConfigured } from "@/platform/storage/scaleway"
+import { signedViewUrl, storageConfigured } from "@/platform/storage/supabase"
 
 /**
  * Client media + release reads, shared by admin (service-role) and the client's
@@ -22,7 +22,6 @@ export type ConsentStatus =
 
 export type ClientMediaItem = {
   id: string
-  source: string
   kind: string
   url: string
   caption: string | null
@@ -46,12 +45,11 @@ export async function getClientMedia(
     media.map(async (m) => {
       let url = m.url
       if (configured && m.storage_key) {
-        const signed = await presignedGet(m.storage_key)
+        const signed = await signedViewUrl(m.storage_key)
         if (signed.ok) url = signed.data.url
       }
       return {
         id: m.id,
-        source: m.source,
         kind: m.kind,
         url,
         caption: m.caption,

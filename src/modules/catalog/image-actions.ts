@@ -2,7 +2,7 @@
 
 import { insertAsset } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { publishToPublic } from "@/platform/storage/scaleway"
+import { publishToPublic } from "@/platform/storage/supabase"
 
 /**
  * Publishing a freshly-uploaded studio image (a private storage key from

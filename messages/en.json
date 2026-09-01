@@ -12,7 +12,8 @@
     "account": "My account",
     "space": "My Space",
     "terms": "Terms",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "ask": "Ask about a design"
   },
   "hero": {
     "kicker": "Nail Salon in Ørestad · Copenhagen",
@@ -230,7 +231,9 @@
     "rescheduleConfirm": "Confirm new time",
     "rescheduling": "Moving your appointment…",
     "rescheduleFailed": "We couldn't move it — try another time or contact the studio.",
-    "rescheduleDone": "You've rescheduled your appointment."
+    "rescheduleDone": "You've rescheduled your appointment.",
+    "somethingWrong": "Something not right? Tell Bella",
+    "somethingWrongBody": "If a nail has lifted or chipped, send her a photo and she'll come back with a time and a price to put it right."
   },
   "gallery": {
     "metaTitle": "Gallery",
@@ -406,5 +409,90 @@
     "minutes": "min",
     "galleryAlt": "Nail work by Bella Nails",
     "eyebrow": "The Service"
+  },
+  "ask": {
+    "metaTitle": "Ask Bella – Bella Nails, Ørestad, Copenhagen",
+    "metaDescription": "Tell Bella what you have in mind and she'll come back with a price and how long it takes.",
+    "eyebrow": "Ask",
+    "headingLead": "Tell Bella",
+    "headingAccent": "what you have in mind",
+    "intro": "She'll come back with a price and how long it takes. This isn't a booking yet.",
+    "signInPrompt": "Sign in first so Bella can reply to you and you can see her offer.",
+    "signInCta": "Sign in",
+    "topicLabel": "What's this about?",
+    "topic": {
+      "new_design": "A design I've seen",
+      "repair": "A repair or a fix",
+      "other": "Something else"
+    },
+    "photosLabel": "Photos",
+    "photosOptional": "up to {max}, optional",
+    "photosHint": "Screenshots are fine.",
+    "addPhoto": "Add a photo",
+    "uploading": "Uploading…",
+    "removePhoto": "Remove this photo",
+    "photoAlt": "Reference photo",
+    "photoFailed": "That photo didn't upload — try another.",
+    "photoNotConfigured": "Photo uploads aren't available just yet — send your message and Bella will be in touch.",
+    "photoTooMany": "That's the maximum number of photos.",
+    "photoNote": "Reference photos are only ever seen by Bella. We never publish them, and they're deleted after your appointment.",
+    "messageLabel": "Anything she should know?",
+    "messagePlaceholder": "I'd love this in a dusty rose — my nails are quite short.",
+    "windowLabel": "When would suit you?",
+    "windowOptional": "optional",
+    "windowPlaceholder": "Ideally before the 20th",
+    "submit": "Send to Bella",
+    "submitting": "Sending…",
+    "replyTime": "She usually replies within a day.",
+    "sentTitle": "Sent — thank you",
+    "sentBody": "Bella has your message and will reply by email. You'll find it in My Space too.",
+    "sentCta": "Go to My Space",
+    "askAnother": "Ask about something else",
+    "failed": "Couldn't send that — please try again."
+  },
+  "offer": {
+    "metaTitle": "Your offer – Bella Nails",
+    "metaDescription": "Bella's offer for your design: the price, how long it takes, and your pick of times.",
+    "eyebrow": "Your offer from Bella",
+    "notFoundTitle": "This link doesn't work",
+    "notFoundBody": "It may have been mistyped, or the offer has been removed. Send Bella a message and she'll sort it out.",
+    "blocked": {
+      "withdrawn": "This offer was withdrawn. Send Bella a message and she'll take another look.",
+      "used": "This offer has already been booked. You'll find the appointment in My Space.",
+      "expired": "This offer has expired. Send Bella a message and she'll make you a new one."
+    },
+    "blockedCta": "Message Bella",
+    "yourPhotos": "Your photos",
+    "photoAlt": "Your reference photo",
+    "holdsUntil": "Holds until {date}",
+    "chooseTime": "Choose a time",
+    "duration": "{mins} min",
+    "noTimes": "No times are free right now — send Bella a message and she'll find one.",
+    "confirm": "Book this time",
+    "confirming": "Booking…",
+    "failed": "Couldn't book that time — please pick another."
+  },
+  "designRequests": {
+    "sectionTitle": "Your messages",
+    "sectionIntro": "What you've asked Bella about, and her answers.",
+    "empty": "You haven't asked Bella anything yet.",
+    "askCta": "Ask Bella",
+    "status": {
+      "open": "Waiting for Bella",
+      "offered": "Offer ready",
+      "booked": "Booked",
+      "declined": "Closed",
+      "expired": "Offer expired"
+    },
+    "authorClient": "You",
+    "authorArtist": "Bella",
+    "viewOffer": "See the offer",
+    "offerSummary": "{mins} min · {price}",
+    "replyLabel": "Write back",
+    "replyPlaceholder": "Add anything else she should know…",
+    "replySend": "Send",
+    "replySending": "Sending…",
+    "replyFailed": "Couldn't send that — please try again.",
+    "photoAlt": "Reference photo"
   }
 }

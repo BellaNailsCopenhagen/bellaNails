@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { addClientMedia } from "@/modules/media/owner-media-actions"
-import { uploadMedia } from "@/shared/upload-media"
+import { uploadMedia } from "@/platform/storage/browser"
 import { kindForType } from "@/shared/media-policy"
 
 /**
@@ -44,7 +44,6 @@ export function AddBookingMediaButton({
       }
       const result = await addClientMedia({
         clientId,
-        source: "owner",
         storageKey: up.key,
         kind: kindForType(file.type),
         bookingId,

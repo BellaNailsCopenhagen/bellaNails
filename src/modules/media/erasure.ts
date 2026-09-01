@@ -3,7 +3,7 @@ import "server-only"
 import { deleteAsset, listAssetsForMedia } from "@/db/assets"
 import { getMediaStorageKey } from "@/db/client-media"
 import { deleteGalleryItemsForAsset } from "@/db/gallery-items"
-import { deleteObject } from "@/platform/storage/scaleway"
+import { deleteObject } from "@/platform/storage/supabase"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 
 /**

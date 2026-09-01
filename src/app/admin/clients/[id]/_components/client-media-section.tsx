@@ -13,7 +13,7 @@ import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
 import { kindForType } from "@/shared/media-policy"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import { uploadMedia } from "@/shared/upload-media"
+import { uploadMedia } from "@/platform/storage/browser"
 import type { HubAsset } from "@/modules/media/asset-hub"
 import type { ConsentStatus, DataConsentItem } from "@/modules/media/client-gallery"
 import { addClientMedia, requestDataConsent } from "@/modules/media/owner-media-actions"
@@ -78,7 +78,6 @@ export function ClientMediaGallery({
 
       const result = await addClientMedia({
         clientId,
-        source: "owner",
         storageKey: up.key,
         kind: kindForType(file.type),
         bookingId: bookingId || null,

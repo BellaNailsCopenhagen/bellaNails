@@ -134,7 +134,7 @@ export function HubAssetCard({
           )}
           <BodySm className="text-xs">
             {showClient ? `${clientName} · ` : ""}
-            {asset.source === "client" ? "client upload" : "studio"}
+            studio
           </BodySm>
 
           {!bookingId ? (
