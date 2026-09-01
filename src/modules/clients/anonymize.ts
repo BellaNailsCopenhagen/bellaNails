@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 import { deleteBookingRequestsForClient } from "@/db/booking-requests"
+import { deleteDesignRequestsForClient } from "@/db/design-requests"
+import { listDesignRefsForClient } from "@/db/design-refs"
 import { clearClientNotes } from "@/db/bookings"
 import type { Db } from "@/db/client"
 import {
@@ -15,6 +17,7 @@ import { hasPublishedAssetForMedia } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { getCurrentUser } from "@/modules/identity/server"
 import { purgeMediaArtifacts } from "@/modules/media/erasure"
+import { purgeDesignRefsForClient } from "@/modules/design/refs"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { routes } from "@/shared/routes"
 
@@ -91,6 +94,19 @@ async function runAnonymize(
     // ephemeral (an accepted one's booking is retained anonymized) — delete them.
     const requests = await deleteBookingRequestsForClient(admin, clientId)
     if (!requests.ok) return { ok: false, error: requests.message! }
+    // Design requests hold the client's own words and their reference photos.
+    // Destroy the stored objects first, then the rows (messages + refs + offers
+    // cascade from the request) — the reverse would orphan files in the bucket.
+    const refs = await listDesignRefsForClient(admin, clientId)
+    const purged = await purgeDesignRefsForClient(admin, clientId)
+    // Deleting the requests cascades the ref ROWS away, so a file that survived
+    // would be orphaned with nothing left to retry it. Stop instead of
+    // reporting an erasure that didn't happen.
+    if (purged < refs.length) {
+      return { ok: false, error: "reference photo delete failed — retry" }
+    }
+    const design = await deleteDesignRequestsForClient(admin, clientId)
+    if (!design.ok) return { ok: false, error: design.message! }
     // Artist notes are about this client (may hold PII) — delete them on erasure.
     const notesGone = await deleteNotesForClient(admin, clientId)
     if (!notesGone.ok) return { ok: false, error: "notes delete failed — retry" }

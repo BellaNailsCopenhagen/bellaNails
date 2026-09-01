@@ -1,0 +1,368 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+
+import { cancelBookingById, insertBooking } from "@/db/bookings"
+import type { Db } from "@/db/client"
+import { getDesignRequest, updateDesignRequest } from "@/db/design-requests"
+import {
+  claimOfferForBooking,
+  getOffer,
+  insertOffer,
+  listExpiredLiveOffers,
+  updateOffer,
+  type OfferRow,
+} from "@/db/offers"
+import { resolveLocale } from "@/i18n/routing"
+import { buildBookingDraft } from "@/modules/booking/booking-draft"
+import { manageUrlFor } from "@/modules/booking/manage-token"
+import { offerUrlFor } from "@/modules/design/offer-token"
+import { verifyOfferToken } from "@/modules/design/offer-token"
+import { fetchClientContacts } from "@/modules/clients"
+import { getCurrentUser } from "@/modules/identity/server"
+import { requireOwner } from "@/modules/identity/require-owner"
+import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
+import {
+  recordCommunication,
+  statusFromEmailResult,
+} from "@/modules/notifications/communications"
+import { sendOfferEmail } from "@/modules/notifications/design-email"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
+import {
+  purgeExpiredDesignRefs,
+  purgeOrphanedRefObjects,
+} from "@/modules/design/refs"
+import { offerRef } from "@/shared/booking-subject"
+import { MAX_MESSAGE_LENGTH } from "@/shared/design"
+import { takeToken, type RateLimitState } from "@/shared/rate-limit"
+import { offerExpiryFrom, offerState, OFFER_DEFAULT_DAYS } from "@/shared/offer"
+import { routes, revalidatePatterns } from "@/shared/routes"
+
+/**
+ * The artist's one-time offer: create it, withdraw it, and turn it into a real
+ * booking — either by the client following their signed link, or by the artist
+ * placing it herself when someone needs a time urgently.
+ *
+ * The offer is never a `services` row, so the signed token is the only way a
+ * client reaches it and there is no catalog entry to over-permission.
+ */
+
+export type OfferActionResult = { ok: true } | { ok: false; error: string }
+
+const MAX_HOLD_DAYS = 90
+
+export type CreateOfferInput = {
+  requestId: string
+  nameEn: string
+  nameDk?: string
+  durationMins: number
+  priceCents: number
+  artistNote?: string
+  /** How long the client has to book it. Defaults to the standard hold. */
+  holdDays?: number
+}
+
+export async function createOffer(
+  input: CreateOfferInput,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const db = await requireOwner()
+  if (!db) return { ok: false, error: "Not authorized." }
+
+  const nameEn = input.nameEn.trim()
+  if (!nameEn) return { ok: false, error: "Give the offer a name." }
+  if (!Number.isFinite(input.durationMins) || input.durationMins <= 0) {
+    return { ok: false, error: "Set how long it takes." }
+  }
+  if (!Number.isFinite(input.priceCents) || input.priceCents < 0) {
+    return { ok: false, error: "Set a price." }
+  }
+  const note = input.artistNote?.trim().slice(0, MAX_MESSAGE_LENGTH) || null
+  const holdDays = clampHold(input.holdDays)
+
+  const request = await getDesignRequest(db, input.requestId)
+  if (!request) return { ok: false, error: "Request not found." }
+
+  const saved = await insertOffer(db, {
+    client_id: request.client_id,
+    request_id: request.id,
+    name_en: nameEn,
+    name_dk: input.nameDk?.trim() || null,
+    duration_mins: Math.round(input.durationMins),
+    price_cents: Math.round(input.priceCents),
+    artist_note: note,
+    expires_at: offerExpiryFrom(Date.now(), holdDays),
+  })
+  if (!saved.ok) {
+    // The partial unique index is the guard: one live offer per request. Any
+    // other failure is a real error and must not be reported as that.
+    const duplicate = /duplicate key|unique constraint/i.test(saved.message)
+    if (!duplicate) console.error("[design] offer insert failed:", saved.message)
+    return {
+      ok: false,
+      error: duplicate
+        ? "There's already a live offer on this request — withdraw it first."
+        : "Couldn’t save the offer — please try again.",
+    }
+  }
+
+  const marked = await updateDesignRequest(db, request.id, {
+    status: "offered",
+    answered_at: new Date().toISOString(),
+  })
+  // The offer row is the source of truth; status only drives the queue. Log a
+  // failed flip rather than failing the send — but log it, because a request
+  // stuck on `open` with a live offer refuses the next "Make an offer".
+  if (!marked.ok) {
+    console.error(`[design] offer ${saved.id} sent but request ${request.id} not marked offered:`, marked.message)
+  }
+
+  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  if (contact?.email) {
+    const locale = contact.communicationLocale
+    const res = await sendOfferEmail({
+      to: contact.email,
+      firstName: contact.firstName,
+      locale,
+      offerName: pickName(locale, nameEn, input.nameDk?.trim() || null),
+      durationMins: Math.round(input.durationMins),
+      priceCents: Math.round(input.priceCents),
+      artistNote: note,
+      expiresAt: offerExpiryFrom(Date.now(), holdDays),
+      offerUrl: offerUrlFor(locale, saved.id),
+    })
+    await recordCommunication({
+      clientId: request.client_id,
+      bookingId: null,
+      kind: "design_offer_sent",
+      trigger: "manual",
+      recipient: contact.email,
+      status: statusFromEmailResult(res),
+      error: res.error,
+    })
+  }
+
+  revalidatePath(routes.admin.home)
+  return { ok: true, id: saved.id }
+}
+
+/** Pull an offer back. The request returns to the queue so she can re-offer. */
+export async function withdrawOffer(offerId: string): Promise<OfferActionResult> {
+  const db = await requireOwner()
+  if (!db) return { ok: false, error: "Not authorized." }
+
+  const offer = await getOffer(db, offerId)
+  if (!offer) return { ok: false, error: "Offer not found." }
+  if (offer.booking_id) return { ok: false, error: "That offer is already booked." }
+
+  const now = new Date().toISOString()
+  const done = await updateOffer(db, offerId, {
+    withdrawn_at: now,
+    // Frees the one-live-offer index so she can send a replacement.
+    closed_at: now,
+  })
+  if (!done.ok) return { ok: false, error: "Couldn’t withdraw it — please try again." }
+
+  const reopened = await updateDesignRequest(db, offer.request_id, {
+    status: "open",
+  })
+  if (!reopened.ok) {
+    console.error(`[design] offer ${offerId} withdrawn but request not reopened:`, reopened.message)
+  }
+  revalidatePath(routes.admin.home)
+  return { ok: true }
+}
+
+/**
+ * The client books their offer from the signed link. The token is the
+ * authorization; the booking belongs to the offer's own client, whoever is
+ * holding the link. A signed-in visitor who is someone ELSE is refused outright.
+ */
+export async function bookOfferByToken(input: {
+  token: string
+  start: string
+  locale?: string
+}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const offerId = verifyOfferToken(input.token)
+  if (!offerId) return { ok: false, error: "This link isn’t valid." }
+
+  const user = await getCurrentUser()
+  const db = createSupabaseServiceRoleClient()
+  const offer = await getOffer(db, offerId)
+  if (!offer) return { ok: false, error: "This offer no longer exists." }
+  if (user && !user.isOwner && user.id !== offer.client_id) {
+    return { ok: false, error: "This offer belongs to someone else." }
+  }
+
+  return bookOffer(db, offer, input.start, {
+    locale: resolveLocale(input.locale),
+    actor: "client",
+    checkSlot: true,
+  })
+}
+
+/**
+ * The artist places the offer herself — the urgent path. Limits can be ignored
+ * so an outside-hours repair can be slotted in; the overlap constraint still
+ * holds.
+ */
+export async function bookOfferAsOwner(input: {
+  offerId: string
+  start: string
+  ignoreLimits?: boolean
+}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const db = await requireOwner()
+  if (!db) return { ok: false, error: "Not authorized." }
+
+  const offer = await getOffer(db, input.offerId)
+  if (!offer) return { ok: false, error: "Offer not found." }
+
+  const contact = (await fetchClientContacts([offer.client_id]))[offer.client_id]
+  return bookOffer(db, offer, input.start, {
+    locale: contact?.communicationLocale ?? "da",
+    actor: "studio",
+    checkSlot: !input.ignoreLimits,
+  })
+}
+
+/** The one path from a live offer to a real booking. */
+async function bookOffer(
+  db: Db,
+  offer: OfferRow,
+  start: string,
+  opts: { locale: string; actor: "client" | "studio"; checkSlot: boolean },
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const state = offerState(offer, Date.now())
+  if (state !== "live") return { ok: false, error: `This offer is ${state}.` }
+
+  const prepared = await buildBookingDraft(
+    db,
+    { ref: offerRef(offer.id), start, locale: opts.locale },
+    { checkSlot: opts.checkSlot, ignoreLeadTime: opts.actor === "studio" },
+  )
+  if (!prepared.ok) return prepared
+  const { draft } = prepared
+
+  const result = await insertBooking(db, {
+    client_id: offer.client_id,
+    ...draft.values,
+  })
+  if (!result.ok) {
+    return {
+      ok: false,
+      error:
+        result.reason === "overlap"
+          ? "That time was just taken — please pick another."
+          : "Couldn’t create the booking.",
+    }
+  }
+
+  // Single use, enforced atomically: two people holding the same link and
+  // picking DIFFERENT times both pass the liveness check above and both insert
+  // (the overlap constraint only catches identical times). The compare-and-set
+  // decides one winner; the loser's booking is cancelled rather than left behind.
+  const claimed = await claimOfferForBooking(db, offer.id, result.id)
+  if (!claimed) {
+    await cancelBookingById(db, result.id)
+    return { ok: false, error: "That offer was just booked — check My Space." }
+  }
+  const closed = await updateDesignRequest(db, offer.request_id, {
+    status: "booked",
+    closed_at: new Date().toISOString(),
+  })
+  if (!closed.ok) {
+    console.error(`[design] booking ${result.id} made but request ${offer.request_id} not closed:`, closed.message)
+  }
+
+  const contact = (await fetchClientContacts([offer.client_id]))[offer.client_id]
+  if (contact?.email) {
+    const locale = contact.communicationLocale
+    const { serviceName } = localizedBookingNames(
+      metaOf({ selected_addons: draft.values.selected_addons }),
+      locale,
+    )
+    const res = await sendBookingConfirmationEmail({
+      to: contact.email,
+      firstName: contact.firstName,
+      serviceName,
+      addonNames: [],
+      startIso: start,
+      endIso: draft.endIso,
+      priceCents: offer.price_cents,
+      manageUrl: manageUrlFor(locale, result.id),
+      bookingId: result.id,
+      actor: opts.actor,
+      locale,
+    })
+    await recordCommunication({
+      clientId: offer.client_id,
+      bookingId: result.id,
+      kind: "confirmation",
+      trigger: opts.actor === "studio" ? "manual" : "auto",
+      recipient: contact.email,
+      status: statusFromEmailResult(res),
+      error: res.error,
+    })
+  }
+
+  revalidatePath(routes.admin.home)
+  revalidatePath(routes.admin.appointments)
+  revalidatePath(revalidatePatterns.publicAppointments, "page")
+  return { ok: true, id: result.id }
+}
+
+/**
+ * Housekeeping, run from the admin home: close out offers whose hold has run
+ * out, and delete reference photos past their retention.
+ *
+ * THROTTLED, because the admin home re-renders on every realtime change and
+ * this does a Storage listing plus a row of writes — running it per render
+ * would put all of that in the artist's TTFB. Once an hour per process is
+ * plenty for work measured in days. A scheduled job is the proper home for it
+ * (see docs/tasks/in-house/SCHEDULER-OPTIONS.md).
+ */
+const housekeeping: RateLimitState = new Map()
+const HOUSEKEEPING_RULE = { limit: 1, windowMs: 60 * 60 * 1000 }
+
+export async function runDesignHousekeeping(limit = 50): Promise<{
+  offersExpired: number
+  refsPurged: number
+}> {
+  const idle = { offersExpired: 0, refsPurged: 0 }
+  if (!takeToken(housekeeping, "design", Date.now(), HOUSEKEEPING_RULE)) return idle
+
+  const db = await requireOwner()
+  if (!db) return idle
+
+  const now = new Date().toISOString()
+  const stale = await listExpiredLiveOffers(db, now, limit)
+  for (const offer of stale) {
+    // Close the OFFER as well as the request: the one-live-offer index keys off
+    // `closed_at`, so leaving it open would block every future offer on this
+    // request — while the request itself has left her queue.
+    await updateOffer(db, offer.id, { closed_at: now })
+    await updateDesignRequest(db, offer.request_id, {
+      status: "expired",
+      closed_at: now,
+    })
+  }
+  const [refsPurged, orphansPurged] = await Promise.all([
+    purgeExpiredDesignRefs(db, limit).catch((error) => {
+      console.error("[design] ref purge failed", error)
+      return 0
+    }),
+    purgeOrphanedRefObjects(db, { limit }).catch((error) => {
+      console.error("[design] orphan sweep failed", error)
+      return 0
+    }),
+  ])
+  return { offersExpired: stale.length, refsPurged: refsPurged + orphansPurged }
+}
+
+const clampHold = (days: number | undefined) =>
+  Number.isFinite(days)
+    ? Math.min(MAX_HOLD_DAYS, Math.max(1, Math.round(days as number)))
+    : OFFER_DEFAULT_DAYS
+
+const pickName = (locale: string, en: string, dk: string | null) =>
+  locale === "en" ? en : dk ?? en

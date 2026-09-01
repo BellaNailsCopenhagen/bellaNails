@@ -3,6 +3,7 @@ import "server-only"
 import { BRAND } from "@/config/brand"
 import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
+import { esc, greetOf, shell } from "@/modules/notifications/email-layout"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
@@ -13,12 +14,6 @@ import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
  * the not-yet-confirmed status unmistakable; `declined` closes it kindly. An
  * ACCEPTED request sends the normal confirmation instead (a real booking exists).
  */
-
-const FONT = "Georgia, 'Times New Roman', serif"
-
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-}
 
 export type RequestKind = "outside_hours" | "over_limit"
 
@@ -41,38 +36,6 @@ type DeclinedDetail = {
   serviceName: string
   reason?: string | null
 }
-
-function shell(opts: {
-  eyebrow: string
-  heading: string
-  greeting: string
-  bodyHtml: string
-}): string {
-  return `<div style="background:${BRAND.background};margin:0;padding:32px 16px;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
-    <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;font-family:${FONT};color:${BRAND.textPrimary};">
-      <tr><td style="padding:8px 8px 20px;text-align:center;">
-        <span style="font-size:22px;letter-spacing:0.14em;color:${BRAND.cta};">${esc(STUDIO_NAME)}</span>
-      </td></tr>
-      <tr><td style="padding:0 8px;">
-        <p style="margin:0 0 4px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.textSecondary};">${esc(opts.eyebrow)}</p>
-        <p style="margin:0 0 16px;font-size:20px;color:${BRAND.textPrimary};">${esc(opts.heading)}</p>
-        <p style="margin:0 0 12px;font-size:15px;">${esc(opts.greeting)}</p>
-        ${opts.bodyHtml}
-      </td></tr>
-    </table>
-  </td></tr></table>
-</div>`
-}
-
-const greetOf = (firstName: string | null, isEn: boolean) =>
-  firstName
-    ? isEn
-      ? `Hi ${firstName},`
-      : `Hej ${firstName},`
-    : isEn
-      ? "Hi,"
-      : "Hej,"
 
 export async function sendBookingRequestReceivedEmail(
   d: ReceivedDetail,

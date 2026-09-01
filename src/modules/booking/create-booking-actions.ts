@@ -18,6 +18,7 @@ import {
 } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
 import type { Slot } from "@/shared/booking-slots"
+import { serviceRef, type SubjectRef } from "@/shared/booking-subject"
 import { fetchClientContacts } from "@/modules/clients"
 import { ensureUser } from "@/modules/identity/ensure-user"
 import { requireOwner } from "@/modules/identity/require-owner"
@@ -62,18 +63,17 @@ async function sendConfirmation(
   locale: Locale,
 ): Promise<void> {
   const isEn = locale === "en"
+  const { subject } = draft
   const res = await sendBookingConfirmationEmail({
     to,
     firstName,
-    serviceName: isEn
-      ? draft.service.name_en
-      : draft.service.name_dk ?? draft.service.name_en,
-    addonNames: draft.addons.map((a) =>
+    serviceName: isEn ? subject.nameEn : subject.nameDk ?? subject.nameEn,
+    addonNames: subject.addons.map((a) =>
       isEn ? a.name_en : a.name_dk ?? a.name_en,
     ),
     startIso,
     endIso: draft.endIso,
-    priceCents: draft.totalPriceCents,
+    priceCents: subject.priceCents,
     manageUrl: manageUrlFor(locale, bookingId),
     bookingId,
     actor: "client",
@@ -89,6 +89,21 @@ async function sendConfirmation(
     error: res.error,
   })
 }
+
+/** Both create paths book a CATALOG service — the one-time-offer path is its own
+    action (modules/design), because its authorization is a signed token. */
+const draftInputFor = (input: {
+  serviceId: string
+  addonIds: string[]
+  start: string
+  notes?: string
+  locale?: string
+}) => ({
+  ref: serviceRef(input.serviceId, input.addonIds),
+  start: input.start,
+  notes: input.notes,
+  locale: input.locale,
+})
 
 const overlapMessage = (reason: "overlap" | "error") =>
   reason === "overlap"
@@ -116,7 +131,9 @@ export async function createBooking(
   }
 
   const db = createSupabaseServiceRoleClient()
-  const prepared = await buildBookingDraft(db, input, { checkSlot: true })
+  const prepared = await buildBookingDraft(db, draftInputFor(input), {
+    checkSlot: true,
+  })
   if (!prepared.ok) return prepared
   const { draft } = prepared
 
@@ -215,7 +232,7 @@ export async function createBookingAsOwner(
   const db = await requireOwner()
   if (!db) return { ok: false, error: "Not authorized." }
 
-  const prepared = await buildBookingDraft(db, input, {
+  const prepared = await buildBookingDraft(db, draftInputFor(input), {
     checkSlot: !input.ignoreLimits,
     ignoreLeadTime: true,
   })
@@ -282,15 +299,10 @@ export async function createBookingAsOwner(
  * availability as the public picker but without the 24 h lead time, so the
  * studio can place near-term appointments. Returns [] when not the owner.
  */
-export async function getOwnerSlots(
-  serviceId: string,
-  addonIds: string[],
-): Promise<Slot[]> {
+export async function getOwnerSlots(ref: SubjectRef): Promise<Slot[]> {
   const db = await requireOwner()
   if (!db) return []
-  return getAvailableSlots(serviceId, addonIds, undefined, {
-    ignoreLeadTime: true,
-  })
+  return getAvailableSlots(ref, undefined, { ignoreLeadTime: true })
 }
 
 /**
@@ -298,11 +310,8 @@ export async function getOwnerSlots(
  * with hours/no-work/lead ignored, but existing bookings still excluded. Backs
  * the admin "Ignore all limits" picker. Returns [] when not the owner.
  */
-export async function getOwnerOverrideSlots(
-  serviceId: string,
-  addonIds: string[],
-): Promise<Slot[]> {
+export async function getOwnerOverrideSlots(ref: SubjectRef): Promise<Slot[]> {
   const db = await requireOwner()
   if (!db) return []
-  return getOverrideSlots(serviceId, addonIds, db)
+  return getOverrideSlots(ref, db)
 }

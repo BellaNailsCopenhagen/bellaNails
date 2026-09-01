@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { H2, BodySm, Caption } from "@/components/ui/typography"
 import type { SlotPickerOutcome } from "@/components/booking/slot-picker"
 import type { Slot } from "@/shared/booking-slots"
+import { serviceRef } from "@/shared/booking-subject"
 import { routes } from "@/shared/routes"
 import {
   createBookingAsOwner,
@@ -149,7 +150,7 @@ export function AdminNewBooking({
     setOverrideSlots(null)
     startTransition(async () => {
       try {
-        setSlots(await getOwnerSlots(service.id, [...selectedAddonIds]))
+        setSlots(await getOwnerSlots(serviceRef(service.id, [...selectedAddonIds])))
         setStep("time")
       } catch {
         toast.error("Couldn’t load available times — try again.")
@@ -164,7 +165,7 @@ export function AdminNewBooking({
     if (!next || overrideSlots !== null || !service) return
     startTransition(async () => {
       try {
-        setOverrideSlots(await getOwnerOverrideSlots(service.id, [...selectedAddonIds]))
+        setOverrideSlots(await getOwnerOverrideSlots(serviceRef(service.id, [...selectedAddonIds])))
       } catch {
         setOverrideSlots([])
         toast.error("Couldn’t load times — try again.")

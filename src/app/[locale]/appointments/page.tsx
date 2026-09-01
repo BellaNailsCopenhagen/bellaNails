@@ -7,13 +7,13 @@ import { MyBookings } from "@/app/[locale]/appointments/_components/my-bookings"
 import { ConsentCentre } from "@/app/[locale]/appointments/_components/consent-centre"
 import { MediaReleaseCards } from "@/app/[locale]/appointments/_components/media-release-cards"
 import { ClientGallery } from "@/app/[locale]/appointments/_components/client-gallery"
+import { DesignRequestList } from "@/app/[locale]/appointments/_components/design-request-list"
 import {
   BookingsTabs,
   type BookingsTabKey,
 } from "@/app/[locale]/appointments/_components/bookings-tabs"
 import { AccountSettings } from "@/app/[locale]/appointments/_components/account-settings"
 import { Container, Section } from "@/components/layout/container"
-import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
 import { routing } from "@/i18n/routing"
 import type {
@@ -23,6 +23,7 @@ import type {
 import type { ReleaseRequestCard } from "@/shared/media-release"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getMySpace } from "@/modules/clients"
+import { getMyDesignRequests, type DesignRequestView } from "@/modules/design"
 import { singleParam } from "@/shared/search-params"
 
 export async function generateMetadata({
@@ -65,8 +66,15 @@ export default async function BookingsPage({
     phone: string | null
     email: string | null
   } | null = null
+  let designRequests: DesignRequestView[] = []
+  let offerTokens: Record<string, string> = {}
   if (user) {
-    const space = await getMySpace(user.id)
+    const [space, design] = await Promise.all([
+      getMySpace(user.id),
+      getMyDesignRequests(),
+    ])
+    designRequests = design.requests
+    offerTokens = design.offerTokens
     media = space.media
     dataConsents = space.dataConsents
     releaseRequests = space.releaseRequests
@@ -95,7 +103,10 @@ export default async function BookingsPage({
           <BookingsTabs
             defaultTab={defaultTab}
             galleryCount={media.length}
-            requestCount={requestCount}
+            requestCount={
+              requestCount +
+              designRequests.filter((r) => r.offer?.state === "live").length
+            }
             bookings={
               <MyBookings
                 notice={singleParam(query.notice) ?? null}
@@ -104,20 +115,21 @@ export default async function BookingsPage({
             }
             gallery={<ClientGallery media={media} />}
             requests={
-              releaseRequests.length ||
-              dataConsents.some(
-                (c) => c.status === "requested" || c.status === "granted",
-              ) ? (
-                <div className="space-y-8">
-                  <MediaReleaseCards cards={releaseRequests} />
-                  <ConsentCentre dataConsents={dataConsents} />
-                </div>
-              ) : (
-                <EmptyState
-                  title={t("requestsEmptyTitle")}
-                  body={t("requestsEmptyBody")}
+              <div className="space-y-10">
+                <DesignRequestList
+                  requests={designRequests}
+                  offerTokens={offerTokens}
                 />
-              )
+                {releaseRequests.length ||
+                dataConsents.some(
+                  (c) => c.status === "requested" || c.status === "granted",
+                ) ? (
+                  <div className="space-y-8">
+                    <MediaReleaseCards cards={releaseRequests} />
+                    <ConsentCentre dataConsents={dataConsents} />
+                  </div>
+                ) : null}
+              </div>
             }
             settings={
               <AccountSettings

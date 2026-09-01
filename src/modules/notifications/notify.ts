@@ -7,6 +7,7 @@ export type OwnerNotificationKind =
   | "media_consent_withdrawn"
   | "shared_image_deleted"
   | "booking_request"
+  | "design_request"
 
 /**
  * Record a studio notification. Best-effort: a missing table (pre-migration)

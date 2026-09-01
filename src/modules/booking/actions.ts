@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
+import type { Slot } from "@/shared/booking-slots"
+
 import {
   cancelBookingById,
   getBookingForManage,
@@ -10,7 +12,10 @@ import {
   type BookingManageState,
 } from "@/db/bookings"
 import type { Db } from "@/db/client"
-import { getAvailableSlots } from "@/modules/booking/availability"
+import {
+  getOverrideSlotsForDuration,
+  getSlotsForDuration,
+} from "@/modules/booking/availability"
 import { manageUrlFor, verifyBookingToken } from "@/modules/booking/manage-token"
 import { fetchClientContacts } from "@/modules/clients"
 import { requireOwner } from "@/modules/identity/require-owner"
@@ -33,6 +38,7 @@ import {
   canMarkNoShow,
   localizedBookingNames,
   metaOf,
+  bookedDurationMins,
 } from "@/shared/booking-policy"
 import {
   BOOKING_STATUS,
@@ -224,6 +230,24 @@ type RescheduleResult =
     }
 
 /**
+ * OVERRIDE free times for moving an EXISTING booking — hours/days-off/lead
+ * ignored, taken slots still excluded, sized by the booking's own as-booked
+ * duration. Takes a booking id rather than a duration on purpose: the length of
+ * an appointment is never the browser's to choose. Returns [] when not the owner.
+ */
+export async function getOwnerOverrideSlotsForBooking(
+  bookingId: string,
+): Promise<Slot[]> {
+  const db = await requireOwner()
+  if (!db) return []
+  const booking = await getBookingForManage(db, bookingId)
+  if (!booking) return []
+  const mins = bookedDurationMins(booking)
+  if (!(mins > 0)) return []
+  return getOverrideSlotsForDuration(mins, db)
+}
+
+/**
  * The new slot's end for a booking, re-validated against live availability
  * (studio hours, lead time, other bookings). Null when the service is unknown
  * or the chosen start isn't actually offered — never trust the client's time.
@@ -233,23 +257,20 @@ async function resolveNewSlotEnd(
   newStart: string,
   ignoreLeadTime: boolean,
 ): Promise<string | null> {
-  const meta = metaOf(booking)
-  if (!meta.serviceId) return null
   const startMs = new Date(newStart).getTime()
   if (!Number.isFinite(startMs)) return null
 
-  const slots = await getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
+  // Validate AND size the move from the as-booked footprint, so a since-changed
+  // catalog duration can't stretch an existing booking — and a booking with no
+  // catalog service (a one-time offer) can still be moved.
+  const bookedMins = bookedDurationMins(booking)
+  if (!(bookedMins > 0)) return null
+
+  const slots = await getSlotsForDuration(bookedMins, undefined, {
     ignoreLeadTime,
   })
-  const slot = slots.find((s) => new Date(s.start).getTime() === startMs)
-  if (!slot) return null
-  // Keep the AS-BOOKED length: the price stays as-booked, so a since-changed
-  // service/add-on duration must not stretch or shrink an existing booking.
-  // Bookings without the snapshot (pre-Cal-removal) fall back to the live end.
-  const bookedMins = meta.totalDurationMins
-  return typeof bookedMins === "number" && bookedMins > 0
-    ? new Date(startMs + bookedMins * 60_000).toISOString()
-    : slot.end
+  if (!slots.some((s) => new Date(s.start).getTime() === startMs)) return null
+  return new Date(startMs + bookedMins * 60_000).toISOString()
 }
 
 /**
@@ -263,14 +284,9 @@ function overrideRescheduleEnd(
 ): string | null {
   const startMs = new Date(newStart).getTime()
   if (!Number.isFinite(startMs)) return null
-  const bookedMins = metaOf(booking).totalDurationMins
-  const durationMs =
-    typeof bookedMins === "number" && bookedMins > 0
-      ? bookedMins * 60_000
-      : new Date(booking.end_time).getTime() -
-        new Date(booking.start_time).getTime()
-  if (!(durationMs > 0)) return null
-  return new Date(startMs + durationMs).toISOString()
+  const bookedMins = bookedDurationMins(booking)
+  if (!(bookedMins > 0)) return null
+  return new Date(startMs + bookedMins * 60_000).toISOString()
 }
 
 // The applied move carries the new `end` so the reschedule email + .ics get the

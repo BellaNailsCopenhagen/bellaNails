@@ -3,6 +3,7 @@ import "server-only"
 import { BRAND } from "@/config/brand"
 import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
+import { esc, FONT } from "@/modules/notifications/email-layout"
 import {
   pickReleaseCopy,
   type ReleasePurpose,
@@ -25,14 +26,7 @@ export type ReleaseEmailDetail = {
   approveUrl: string
 }
 
-const FONT = "Georgia, 'Times New Roman', serif"
 
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-}
 
 export async function sendMediaReleaseRequestEmail(
   d: ReleaseEmailDetail,

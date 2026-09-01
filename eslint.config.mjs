@@ -48,8 +48,11 @@ const eslintConfig = defineConfig([
       "no-restricted-syntax": [
         "error",
         {
+          // `.from("table")` on a Supabase client. The built-ins that also take
+          // a string `from` (Buffer.from, Array.from, …) are excluded by name —
+          // without that, `Buffer.from("x")` reads as a table query.
           selector:
-            "CallExpression[callee.property.name='from'][arguments.0.type='Literal']",
+            "CallExpression[callee.property.name='from'][arguments.0.type='Literal']:not([callee.object.name=/^(Array|Buffer|Int8Array|Uint8Array|Uint8ClampedArray|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array|Float64Array|BigInt64Array|BigUint64Array|Object|Set|Map|WeakSet|WeakMap|String|Number|Date|Promise)$/])",
           message: TABLE_ACCESS,
         },
       ],

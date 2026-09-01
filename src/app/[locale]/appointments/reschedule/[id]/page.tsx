@@ -6,7 +6,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { redirect } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { RescheduleBooking } from "@/app/[locale]/appointments/reschedule/[id]/_components/reschedule-booking"
-import { canManageBooking, metaOf } from "@/shared/booking-policy"
+import {
+  bookedDurationMins,
+  canManageBooking,
+} from "@/shared/booking-policy"
 import { routes } from "@/config/routes"
 import { getMyBookingForManage } from "@/modules/booking"
 
@@ -48,14 +51,12 @@ export default async function ReschedulePage({
     })
   }
 
-  const meta = metaOf(booking)
   return (
     <main className="flex flex-1 flex-col">
       <RescheduleBooking
         id={id}
         startTime={booking.start_time}
-        serviceId={meta.serviceId ?? null}
-        addonIds={meta.addonIds ?? []}
+        durationMins={bookedDurationMins(booking)}
       />
     </main>
   )

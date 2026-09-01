@@ -7,6 +7,9 @@ import { listMediaForClient } from "@/db/client-media"
 import { getClientProfile } from "@/db/clients"
 import { listCommunicationsForClient } from "@/db/communications"
 import { listReleasesForClient } from "@/db/media-releases"
+import { listDesignRequestsForClient } from "@/db/design-requests"
+import { listDesignMessagesForRequests } from "@/db/design-messages"
+import { listOffersForClient } from "@/db/offers"
 import { getCurrentUser } from "@/modules/identity/server"
 import { getTermsAcceptances } from "@/modules/terms"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
@@ -39,6 +42,8 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
       media,
       dataConsents,
       terms,
+      designRequests,
+      offers,
     ] = await Promise.all([
       getClientProfile(db, clientId),
       listBookingsForClient(db, clientId),
@@ -48,7 +53,22 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
       listMediaForClient(db, clientId),
       listDataConsents(db, clientId),
       getTermsAcceptances(db, clientId),
+      listDesignRequestsForClient(db, clientId),
+      listOffersForClient(db, clientId),
     ])
+
+    // Thread bodies, keyed by request — loaded after the requests are known.
+    const messages = await listDesignMessagesForRequests(
+      db,
+      designRequests.map((r) => r.id),
+    )
+    const messagesByRequest = new Map<string, typeof messages>()
+    for (const message of messages) {
+      messagesByRequest.set(message.request_id, [
+        ...(messagesByRequest.get(message.request_id) ?? []),
+        message,
+      ])
+    }
 
     const data = {
       exportedAt: new Date().toISOString(),
@@ -85,6 +105,30 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
           requestedAt: r.created_at,
         }
       }),
+      // The client's own words to the artist, and what she offered back. The
+      // message bodies are the client's personal data, so the whole thread
+      // ships — both sides, since a reply only reads in context.
+      designRequests: designRequests.map((r) => ({
+        topic: r.topic,
+        preferredWindow: r.preferred_window,
+        status: r.status,
+        askedAt: r.created_at,
+        answeredAt: r.answered_at,
+        messages: (messagesByRequest.get(r.id) ?? []).map((m) => ({
+          from: m.author,
+          body: m.body,
+          sentAt: m.created_at,
+        })),
+      })),
+      offers: offers.map((o) => ({
+        name: o.name_en,
+        durationMins: o.duration_mins,
+        priceCents: o.price_cents,
+        note: o.artist_note,
+        expiresAt: o.expires_at,
+        bookedAs: o.booking_id,
+        offeredAt: o.created_at,
+      })),
       mediaReleases: releases.map((r) => ({
         bookingId: r.booking_id,
         purpose: r.purpose,

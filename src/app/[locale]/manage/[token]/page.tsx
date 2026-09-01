@@ -9,12 +9,15 @@ import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
 import { ManageBooking } from "@/app/[locale]/manage/[token]/_components/manage-booking"
 import {
-  getAvailableSlots,
+  getSlotsForDuration,
   getBookingForManageAsOwner,
   getMaxAdvanceDays,
   verifyBookingToken,
 } from "@/modules/booking"
-import { canManageBooking, metaOf } from "@/shared/booking-policy"
+import {
+  bookedDurationMins,
+  canManageBooking,
+} from "@/shared/booking-policy"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
 export async function generateMetadata({
@@ -57,14 +60,14 @@ export default async function ManagePage({
     getMaxAdvanceDays(),
   ])
 
-  const meta = metaOf(booking)
   // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const manageable = canManageBooking(booking, now)
-  const slots =
-    manageable && meta.serviceId
-      ? await getAvailableSlots(meta.serviceId, meta.addonIds ?? [])
-      : []
+  // Sized from the as-booked footprint, so an offer booking (no catalog
+  // service) is reschedulable too.
+  const slots = manageable
+    ? await getSlotsForDuration(bookedDurationMins(booking))
+    : []
 
   return (
     <Section>

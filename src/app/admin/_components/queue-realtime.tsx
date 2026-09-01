@@ -9,7 +9,8 @@ import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 const REFRESH_DEBOUNCE_MS = 400
 
 /**
- * Live queue: subscribes to `bookings` changes and re-runs the admin RSC so new
+ * Live queue: subscribes to every table the home screen renders (`bookings`,
+ * and the two request queues) and re-runs the admin RSC so new
  * or changed appointments appear without a manual reload. Owner-reads-all RLS
  * scopes the events to the whole studio. The @supabase/ssr browser client
  * carries (and refreshes) the session token on the realtime socket itself, so
@@ -22,15 +23,21 @@ export function QueueRealtime() {
   useEffect(() => {
     let debounce: ReturnType<typeof setTimeout> | undefined
 
-    const channel = supabase
-      .channel("admin-bookings")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bookings" },
-        () => {
-          if (debounce) clearTimeout(debounce)
-          debounce = setTimeout(() => router.refresh(), REFRESH_DEBOUNCE_MS)
-        },
+    const refresh = () => {
+      if (debounce) clearTimeout(debounce)
+      debounce = setTimeout(() => router.refresh(), REFRESH_DEBOUNCE_MS)
+    }
+
+    // One debounced refresh across all three — the page reads them together.
+    const channel = ["bookings", "booking_requests", "design_requests"]
+      .reduce(
+        (ch, table) =>
+          ch.on(
+            "postgres_changes",
+            { event: "*", schema: "public", table },
+            refresh,
+          ),
+        supabase.channel("admin-queue"),
       )
       .subscribe()
 

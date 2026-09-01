@@ -12,6 +12,10 @@ const KIND_LABEL: Record<CommunicationView["kind"], string> = {
   review_request: "Review request",
   booking_request_received: "Booking request received",
   booking_request_declined: "Booking request declined",
+  design_request_received: "Design request received",
+  design_reply: "Reply about a design",
+  design_offer_sent: "Offer sent",
+  design_request_declined: "Design request declined",
 }
 
 const STATUS_LABEL: Record<CommunicationView["status"], string> = {

@@ -267,6 +267,153 @@ export type Database = {
         }
         Relationships: []
       }
+      design_requests: {
+        Row: {
+          answered_at: string | null
+          booking_id: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          decline_reason: string | null
+          id: string
+          preferred_window: string | null
+          service_id: string | null
+          status: string
+          topic: string
+        }
+        Insert: {
+          answered_at?: string | null
+          booking_id?: string | null
+          client_id: string
+          closed_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          preferred_window?: string | null
+          service_id?: string | null
+          status?: string
+          topic: string
+        }
+        Update: {
+          answered_at?: string | null
+          booking_id?: string | null
+          client_id?: string
+          closed_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          id?: string
+          preferred_window?: string | null
+          service_id?: string | null
+          status?: string
+          topic?: string
+        }
+        Relationships: []
+      }
+      design_messages: {
+        Row: {
+          author: string
+          body: string
+          created_at: string
+          id: string
+          request_id: string
+        }
+        Insert: {
+          author: string
+          body: string
+          created_at?: string
+          id?: string
+          request_id: string
+        }
+        Update: {
+          author?: string
+          body?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+        }
+        Relationships: []
+      }
+      design_refs: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          message_id: string | null
+          purge_after: string
+          request_id: string
+          storage_key: string
+          storage_provider: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          purge_after?: string
+          request_id: string
+          storage_key: string
+          storage_provider?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          purge_after?: string
+          request_id?: string
+          storage_key?: string
+          storage_provider?: string
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          artist_note: string | null
+          booking_id: string | null
+          client_id: string
+          closed_at: string | null
+          created_at: string
+          duration_mins: number
+          expires_at: string
+          id: string
+          name_dk: string | null
+          name_en: string
+          price_cents: number
+          request_id: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          artist_note?: string | null
+          booking_id?: string | null
+          client_id: string
+          closed_at?: string | null
+          created_at?: string
+          duration_mins: number
+          expires_at: string
+          id?: string
+          name_dk?: string | null
+          name_en: string
+          price_cents: number
+          request_id: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          artist_note?: string | null
+          booking_id?: string | null
+          client_id?: string
+          closed_at?: string | null
+          created_at?: string
+          duration_mins?: number
+          expires_at?: string
+          id?: string
+          name_dk?: string | null
+          name_en?: string
+          price_cents?: number
+          request_id?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
       booking_requests: {
         Row: {
           booking_id: string | null

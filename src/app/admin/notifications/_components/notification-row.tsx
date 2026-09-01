@@ -26,6 +26,7 @@ function describe(n: OwnerNotification): string {
   }
   if (n.kind === "shared_image_deleted") return "deleted a photo they had shared"
   if (n.kind === "booking_request") return "sent a booking request"
+  if (n.kind === "design_request") return "wrote in about a design"
   return "sent an update"
 }
 
@@ -49,6 +50,9 @@ function helper(n: OwnerNotification): { text: string; warn?: boolean } | null {
   if (n.kind === "booking_request") {
     return { text: "Awaiting your review — approve or decline it." }
   }
+  if (n.kind === "design_request") {
+    return { text: "Waiting on you — read it and make an offer." }
+  }
   return null
 }
 
@@ -58,7 +62,9 @@ function hrefFor(n: OwnerNotification): string {
   if (n.kind === "media_consent_withdrawn" && n.clientMediaId) {
     return routes.admin.assetHighlight(n.clientMediaId)
   }
-  if (n.kind === "booking_request") return routes.admin.home
+  if (n.kind === "booking_request" || n.kind === "design_request") {
+    return routes.admin.home
+  }
   return routes.admin.client(n.clientId)
 }
 

@@ -6,6 +6,7 @@ import { BookingSlotStep } from "@/app/[locale]/book/_components/booking-slot-st
 import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-header"
 import { Container, Section } from "@/components/layout/container"
 import { BodySm } from "@/components/ui/typography"
+import { serviceRef } from "@/shared/booking-subject"
 import { localizeSelection } from "@/shared/localize-selection"
 import { getBookingSlots, getMaxAdvanceDays } from "@/modules/booking"
 import type { ServiceWithAddons } from "@/modules/catalog"
@@ -32,7 +33,7 @@ export async function BookingConfirm({
     getTranslations("booking"),
     getLocale(),
     // Both calendars in one pass — outside is [] when the studio hasn't enabled it.
-    getBookingSlots(service.id, selectedAddonIds),
+    getBookingSlots(serviceRef(service.id, selectedAddonIds)),
     getMaxAdvanceDays(),
   ])
   const { normal: slots, outside: outsideSlots, outsideEnabled } = calendars

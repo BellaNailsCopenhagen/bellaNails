@@ -27,6 +27,7 @@ import {
 } from "@/modules/notifications/request-email"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
+import { serviceRef } from "@/shared/booking-subject"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes } from "@/shared/routes"
@@ -95,8 +96,7 @@ export async function createBookingRequest(
   const prepared = await buildBookingDraft(
     db,
     {
-      serviceId: input.serviceId,
-      addonIds: input.addonIds,
+      ref: serviceRef(input.serviceId, input.addonIds),
       start: input.start,
       locale: input.locale,
     },
@@ -122,7 +122,7 @@ export async function createBookingRequest(
     start_time: input.start,
     end_time: draft.endIso,
     selected_addons: draft.values.selected_addons,
-    total_price_cents: draft.totalPriceCents,
+    total_price_cents: draft.subject.priceCents,
     message: input.message?.trim() || null,
   })
   if (!saved.ok) return { ok: false, error: "Couldn't save the request — please try again." }
@@ -146,7 +146,7 @@ export async function createBookingRequest(
       serviceName,
       addonNames,
       startIso: input.start,
-      priceCents: draft.totalPriceCents,
+      priceCents: draft.subject.priceCents,
       message: input.message?.trim() || null,
     }),
     sendBookingRequestArtistEmail({

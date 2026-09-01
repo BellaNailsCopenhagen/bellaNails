@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
 import { BodySm } from "@/components/ui/typography"
 import { rescheduleBookingAsOwner } from "@/modules/booking/actions"
-import { getOwnerOverrideSlots } from "@/modules/booking/create-booking-actions"
+import { getOwnerOverrideSlotsForBooking } from "@/modules/booking/actions"
 import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
 import { routes } from "@/shared/routes"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -31,14 +31,10 @@ const BASE_LABELS = {
  */
 export function AdminRescheduleSlotStep({
   id,
-  serviceId,
-  addonIds,
   slots,
   maxAdvanceDays,
 }: {
   id: string
-  serviceId: string | null
-  addonIds: string[]
   slots: Slot[]
   maxAdvanceDays: number
 }) {
@@ -61,8 +57,8 @@ export function AdminRescheduleSlotStep({
   // ignored, existing bookings still excluded).
   const toggleIgnore = (next: boolean) => {
     setIgnoreLimits(next)
-    if (next && overrideSlots === null && serviceId) {
-      getOwnerOverrideSlots(serviceId, addonIds)
+    if (next && overrideSlots === null) {
+      getOwnerOverrideSlotsForBooking(id)
         .then(setOverrideSlots)
         // A load failure must read as an error, not as "no times available".
         .catch(() => {
@@ -74,20 +70,17 @@ export function AdminRescheduleSlotStep({
 
   return (
     <div className="space-y-5">
-      {/* No serviceId (a legacy booking) → no override; the normal picker stands. */}
-      {serviceId ? (
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={ignoreLimits}
-            onChange={(e) => toggleIgnore(e.target.checked)}
-            className="size-4"
-          />
-          <span className="font-functional text-sm text-foreground">
-            Ignore hours &amp; days off — pick any free slot
-          </span>
-        </label>
-      ) : null}
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={ignoreLimits}
+          onChange={(e) => toggleIgnore(e.target.checked)}
+          className="size-4"
+        />
+        <span className="font-functional text-sm text-foreground">
+          Ignore hours &amp; days off — pick any free slot
+        </span>
+      </label>
 
       {ignoreLimits && overrideSlots === null ? (
         <BodySm>Loading times…</BodySm>

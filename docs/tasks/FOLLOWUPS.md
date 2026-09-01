@@ -2,6 +2,28 @@
 
 Small fixes/enhancements captured mid-work. Not blocking; pick up when convenient.
 
+### Design requests — deferred after the first build
+
+- **Rate limiting is per-process.** `shared/rate-limit.ts` holds state in one
+  serverless instance, so the 20-uploads/hour cap on `/api/media/sign` is
+  best-effort. Enough to stop one client looping; not a distributed defence. A
+  durable limiter (a Postgres counter, or an external store) is the real answer —
+  and `createBooking` wants the same thing (see the public-abuse guard below).
+- **Housekeeping has no scheduler.** `runDesignHousekeeping` is throttled to once
+  an hour and triggered by the artist opening `/admin`. If she doesn't open it,
+  offers don't expire and reference photos aren't purged. One cron trigger fixes
+  it — see [SCHEDULER-OPTIONS.md](in-house/SCHEDULER-OPTIONS.md).
+- **The orphan sweep scans at most 1000 objects** per run (10 pages of 100). Fine
+  at the studio's volume; revisit if `media-refs` ever grows past that.
+- **The booking-request picker still sizes slots from the LIVE service**, while
+  `acceptBookingRequest` uses the request's snapshot duration. Pre-existing, and
+  now inconsistent with the reschedule paths, which were moved onto
+  `bookedDurationMins`. Give the request card a `getOwnerSlotsForRequest` that
+  reads the snapshot, the way `getOwnerOfferSlots` reads the offer.
+- **`design_requests` has no admin list page.** The queue on `/admin` only shows
+  `open` + `offered`; closed and booked ones are reachable only through the
+  client's page. Fine for now — add a filtered list if she asks for history.
+
 ### Booking-request copy → move into the next-intl catalog
 The client booking-request UI (`booking-request-form.tsx` + the "Can't find a
 time?" ghost button in `booking-slot-step.tsx`) uses a hand-rolled bilingual COPY

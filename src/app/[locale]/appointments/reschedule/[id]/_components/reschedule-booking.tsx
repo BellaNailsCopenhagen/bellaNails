@@ -5,28 +5,28 @@ import { RescheduleSlotStep } from "@/app/[locale]/appointments/reschedule/[id]/
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { PageHeader } from "@/components/ui/page-header"
 import { BodySm } from "@/components/ui/typography"
-import { getAvailableSlots, getMaxAdvanceDays } from "@/modules/booking"
+import { getMaxAdvanceDays } from "@/modules/booking"
+import { getSlotsForDuration } from "@/modules/booking"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { routes } from "@/config/routes"
 
 /** RescheduleBooking — back link, editorial header, the current slot, and the
-    in-house time picker. Eligibility is the page's job; availability is fetched
-    here from the booking's own service + add-ons. */
+    in-house time picker. Eligibility is the page's job; availability is sized by
+    the booking's as-booked footprint, passed in. */
 export async function RescheduleBooking({
   id,
   startTime,
-  serviceId,
-  addonIds,
+  durationMins,
 }: {
   id: string
   startTime: string
-  serviceId: string | null
-  addonIds: string[]
+  /** The as-booked footprint — resolved by the page, never derived here. */
+  durationMins: number
 }) {
   const [t, locale, slots, maxAdvanceDays] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
-    serviceId ? getAvailableSlots(serviceId, addonIds) : Promise.resolve([]),
+    durationMins > 0 ? getSlotsForDuration(durationMins) : Promise.resolve([]),
     getMaxAdvanceDays(),
   ])
 

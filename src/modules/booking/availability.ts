@@ -1,7 +1,6 @@
 import type { Db } from "@/db/client"
 import { getBookingSettings } from "@/db/booking-settings"
 import { listActiveBookingSpansBetween } from "@/db/bookings"
-import { getBookableService } from "@/db/services"
 import {
   createSupabaseServerClient,
   createSupabaseServiceRoleClient,
@@ -16,6 +15,8 @@ import { FEATURE_FLAGS } from "@/shared/feature-flags"
 import type { Schedule } from "@/shared/schedule"
 import { studioDayNumber } from "@/shared/studio-time"
 import { getSchedule, isFeatureEnabled } from "@/modules/studio"
+import { resolveBookingSubject } from "@/modules/booking/subject"
+import type { SubjectRef } from "@/shared/booking-subject"
 
 const DAY_MS = 86_400_000
 const MIN = 60_000
@@ -38,37 +39,54 @@ export async function getMaxAdvanceDays(
 }
 
 /**
- * Free start times for a service (+ selected add-ons) — the client booking
- * flow's source of truth. Public-read (anon client); composes the global rules,
- * the service's total duration, the studio schedule, and existing bookings, then
- * runs the pure slot generator. Degrades to [] (missing config, or a transient
- * read error) so the UI shows "no times" rather than crashing.
+ * Free start times for a booking SUBJECT — a catalog service (+ add-ons) or a
+ * one-time offer. Public-read (anon client); composes the global rules, the
+ * subject's length, the studio schedule and existing bookings, then runs the
+ * pure slot generator. Degrades to [] (missing config, or a transient read
+ * error) so the UI shows "no times" rather than crashing.
  */
 export async function getAvailableSlots(
-  serviceId: string,
-  addonIds: string[],
+  ref: SubjectRef,
   db: Db = createSupabaseServerClient(),
   // Owner reschedule places bookings free of the public 24 h lead time.
   opts?: { ignoreLeadTime?: boolean },
 ): Promise<Slot[]> {
-  return computeSlots(serviceId, addonIds, db, {
+  const durationMins = await durationFor(ref, db)
+  if (durationMins === null) return []
+  return getSlotsForDuration(durationMins, db, {
     ignoreLeadTime: opts?.ignoreLeadTime,
   })
 }
 
 /**
+ * Free start times for an appointment of a KNOWN length. This is the primitive —
+ * `getAvailableSlots` is it plus a subject lookup. Reschedule uses it directly
+ * with the AS-BOOKED duration, so a moved appointment is validated against the
+ * footprint it actually occupies, not whatever the catalog says today.
+ */
+export async function getSlotsForDuration(
+  durationMins: number,
+  db: Db = createSupabaseServerClient(),
+  opts?: { ignoreLeadTime?: boolean },
+): Promise<Slot[]> {
+  return computeSlots(durationMins, db, { ignoreLeadTime: opts?.ignoreLeadTime })
+}
+
+/**
  * Both booking calendars for the /book confirm step in ONE pass — the shared
- * inputs (settings, service, schedule, busy scan) are fetched once and fed to
- * two generators, instead of running the whole pipeline twice.
+ * inputs (settings, schedule, busy scan) are fetched once and fed to two
+ * generators, instead of running the whole pipeline twice.
  */
 export async function getBookingSlots(
-  serviceId: string,
-  addonIds: string[],
+  ref: SubjectRef,
   db: Db = createSupabaseServerClient(),
 ): Promise<{ normal: Slot[]; outside: Slot[]; outsideEnabled: boolean }> {
+  const empty = { normal: [], outside: [], outsideEnabled: false }
   try {
-    const inputs = await loadSlotInputs(serviceId, addonIds, db)
-    if (!inputs) return { normal: [], outside: [], outsideEnabled: false }
+    const durationMins = await durationFor(ref, db)
+    if (durationMins === null) return empty
+    const inputs = await loadSlotInputs(durationMins, db)
+    if (!inputs) return empty
     // The flag drives the UI affordance (independent of whether slots exist now).
     const outsideEnabled = inputs.outsideEnabled
     return {
@@ -78,7 +96,7 @@ export async function getBookingSlots(
     }
   } catch (error) {
     logSlotError(error)
-    return { normal: [], outside: [], outsideEnabled: false }
+    return empty
   }
 }
 
@@ -88,11 +106,28 @@ export async function getBookingSlots(
  * so the artist can only pick a genuinely free slot. Owner-gate at the caller.
  */
 export async function getOverrideSlots(
-  serviceId: string,
-  addonIds: string[],
+  ref: SubjectRef,
   db: Db,
 ): Promise<Slot[]> {
-  return computeSlots(serviceId, addonIds, db, { override: true })
+  const durationMins = await durationFor(ref, db)
+  if (durationMins === null) return []
+  return getOverrideSlotsForDuration(durationMins, db)
+}
+
+/** The override primitive, for callers that already know the length — moving an
+    existing booking uses its as-booked duration, not the live catalog. */
+export async function getOverrideSlotsForDuration(
+  durationMins: number,
+  db: Db,
+): Promise<Slot[]> {
+  return computeSlots(durationMins, db, { override: true })
+}
+
+/** The subject's length, or null when it can't be resolved (unknown service,
+    withdrawn/expired offer) — callers degrade to "no times". */
+async function durationFor(ref: SubjectRef, db: Db): Promise<number | null> {
+  const resolved = await resolveBookingSubject(db, ref).catch(() => null)
+  return resolved?.ok ? resolved.subject.durationMins : null
 }
 
 type SlotOpts = {
@@ -102,13 +137,12 @@ type SlotOpts = {
 }
 
 async function computeSlots(
-  serviceId: string,
-  addonIds: string[],
+  durationMins: number,
   db: Db,
   opts: SlotOpts,
 ): Promise<Slot[]> {
   try {
-    const inputs = await loadSlotInputs(serviceId, addonIds, db)
+    const inputs = await loadSlotInputs(durationMins, db)
     if (!inputs) return []
     // Outside-hours requests only exist when the artist has enabled them.
     if (opts.outsideHours && !inputs.outsideEnabled) return []
@@ -131,28 +165,17 @@ type SlotInputs = {
 
 // Fetch everything the pure generator needs, once — shared by all slot modes.
 async function loadSlotInputs(
-  serviceId: string,
-  addonIds: string[],
+  durationMins: number,
   db: Db,
 ): Promise<SlotInputs | null> {
-  const [settings, service, schedule, outsideEnabled] = await Promise.all([
+  const [settings, schedule, outsideEnabled] = await Promise.all([
     getBookingSettings(db),
-    getBookableService(db, serviceId),
     // Both self-degrade (empty schedule / flag off), so a missing migration shows
     // "no times" rather than crashing the booking flow.
     getSchedule(db),
     isFeatureEnabled(FEATURE_FLAGS.outsideHoursRequests, db),
   ])
-  if (!settings || !service) return null
-
-  // Total duration = base + the selected add-ons that actually belong to this
-  // service and aren't archived (ignore stale/foreign ids from the client).
-  const selected = new Set(addonIds)
-  const addonDuration = service.service_addons.reduce((sum, { addons }) => {
-    if (!addons || addons.archived_at || !selected.has(addons.id)) return sum
-    return sum + addons.extra_duration_mins
-  }, 0)
-  const durationMins = service.base_duration_mins + addonDuration
+  if (!settings) return null
 
   const now = Date.now()
   const maxAdvance = settings.max_advance_days

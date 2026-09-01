@@ -27,7 +27,9 @@ export {
   getAvailableSlots,
   getBookingSlots,
   getMaxAdvanceDays,
+  getSlotsForDuration,
 } from "./availability"
+export { resolveBookingSubject, type BookingSubject } from "./subject"
 export { createBooking } from "./create-booking-actions"
 // Guest self-service: the manage page verifies the signed email-link token.
 export { verifyBookingToken } from "./manage-token"

@@ -9,6 +9,7 @@ import {
   STUDIO_NAME,
 } from "@/config/studio"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
+import { esc, FONT } from "@/modules/notifications/email-layout"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
@@ -41,14 +42,6 @@ export type BookingEmailDetail = {
   locale: string
 }
 
-// Escape values that come from the catalog (names) before inlining into HTML.
-function esc(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
 
 // The one place the label/value pairs are decided — HTML + text share it.
 function detailRows(
@@ -86,8 +79,6 @@ function detailRows(
   return rows
 }
 
-// Shared chrome — one wordmark/footer wrapper so all three stay on-brand (DRY).
-const FONT = "Georgia, 'Times New Roman', serif"
 
 type RenderParts = {
   greeting: string

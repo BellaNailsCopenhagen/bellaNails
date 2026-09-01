@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Images,
+  MessageSquare,
   ScrollText,
   SlidersHorizontal,
   type LucideIcon,
@@ -16,6 +17,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { H2 } from "@/components/ui/typography"
+import { getOpenDesignRequestCount } from "@/modules/design"
 import { getUnreadNotificationCount } from "@/modules/notifications/reads"
 import { routes } from "@/shared/routes"
 
@@ -40,6 +42,12 @@ const ITEMS: MoreItem[] = [
     description: "Consent withdrawals and studio alerts",
     icon: Bell,
     href: routes.admin.notifications,
+  },
+  {
+    label: "Messages",
+    description: "Design requests waiting on an answer",
+    icon: MessageSquare,
+    href: routes.admin.home,
   },
   {
     label: "Agenda",
@@ -129,9 +137,15 @@ function ItemBody({ item, count = 0 }: { item: MoreItem; count?: number }) {
 }
 
 export default async function AdminMorePage() {
-  const unread = await getUnreadNotificationCount()
-  const countFor = (item: MoreItem) =>
-    item.href === routes.admin.notifications ? unread : 0
+  const [unread, openDesign] = await Promise.all([
+    getUnreadNotificationCount(),
+    getOpenDesignRequestCount(),
+  ])
+  const countFor = (item: MoreItem) => {
+    if (item.href === routes.admin.notifications) return unread
+    if (item.href === routes.admin.home) return openDesign
+    return 0
+  }
 
   return (
     <div className="space-y-8">

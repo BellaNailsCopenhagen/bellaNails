@@ -6,10 +6,10 @@ import { ChevronLeft } from "lucide-react"
 import { H2 } from "@/components/ui/typography"
 import { AdminRescheduleSlotStep } from "@/app/admin/reschedule/[id]/_components/admin-reschedule-slot-step"
 import { isActiveBookingStatus } from "@/shared/booking-status"
-import { metaOf } from "@/shared/booking-policy"
+import { bookedDurationMins } from "@/shared/booking-policy"
 import { routes } from "@/shared/routes"
 import {
-  getAvailableSlots,
+  getSlotsForDuration,
   getBookingForManageAsOwner,
   getMaxAdvanceDays,
 } from "@/modules/booking"
@@ -38,14 +38,11 @@ export default async function AdminReschedulePage({
   const booking = await getBookingForManageAsOwner(id)
   if (!booking || !isActiveBookingStatus(booking.status)) notFound()
 
-  const meta = metaOf(booking)
   // Owner picker mirrors rescheduleBookingAsOwner: no public 24 h lead time.
   const [slots, maxAdvanceDays] = await Promise.all([
-    meta.serviceId
-      ? getAvailableSlots(meta.serviceId, meta.addonIds ?? [], undefined, {
-          ignoreLeadTime: true,
-        })
-      : Promise.resolve([]),
+    getSlotsForDuration(bookedDurationMins(booking), undefined, {
+      ignoreLeadTime: true,
+    }),
     getMaxAdvanceDays(),
   ])
 
@@ -63,8 +60,6 @@ export default async function AdminReschedulePage({
       </div>
       <AdminRescheduleSlotStep
         id={id}
-        serviceId={meta.serviceId ?? null}
-        addonIds={meta.addonIds ?? []}
         slots={slots}
         maxAdvanceDays={maxAdvanceDays}
       />

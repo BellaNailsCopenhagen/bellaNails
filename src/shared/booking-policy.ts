@@ -12,6 +12,10 @@ import { BOOKING_STATUS, isActiveBookingStatus } from "@/shared/booking-status"
     the live catalog. */
 export type BookingMeta = {
   serviceId?: string | null
+  /** Set instead of `serviceId` when the booking came from a one-time offer.
+      Both null-able: an offer booking has no catalog service, which is what
+      makes it correctly non-rebookable. */
+  offerId?: string | null
   addonIds?: string[] | null
   totalDurationMins?: number | null
   // Locale the booking was made in — drives the language of follow-up emails.
@@ -42,6 +46,25 @@ export function localizedBookingNames(
       isEn ? a.nameEn : a.nameDk ?? a.nameEn,
     ),
   }
+}
+
+/**
+ * The length a booking actually occupies, from the AS-BOOKED snapshot, falling
+ * back to its own start→end span for rows persisted before snapshots existed.
+ * Reschedule validates against THIS rather than the live catalog, so a service
+ * whose duration changed later can't stretch or shrink an existing appointment —
+ * and a booking with no catalog service at all (a one-time offer) still moves.
+ */
+export function bookedDurationMins(booking: {
+  start_time: string
+  end_time: string
+  selected_addons: unknown
+}): number {
+  const mins = metaOf(booking).totalDurationMins
+  if (typeof mins === "number" && mins > 0) return mins
+  const span =
+    new Date(booking.end_time).getTime() - new Date(booking.start_time).getTime()
+  return span > 0 ? Math.round(span / 60_000) : 0
 }
 
 /** 24-hour cancellation policy: inside this window the manage actions are

@@ -30,6 +30,7 @@ import {
 } from "@/modules/booking/create-booking-actions"
 import type { RequestView } from "@/modules/booking"
 import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
+import { serviceRef } from "@/shared/booking-subject"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -97,7 +98,7 @@ export function AdminRequestCard({
   const openAdjust = () => {
     setAdjustOpen(true)
     if (slots === null && request.serviceId) {
-      getOwnerSlots(request.serviceId, request.addonIds)
+      getOwnerSlots(serviceRef(request.serviceId, request.addonIds))
         .then(setSlots)
         .catch(() => {
           setSlots([])
@@ -111,7 +112,7 @@ export function AdminRequestCard({
   const toggleIgnore = (next: boolean) => {
     setIgnoreLimits(next)
     if (next && overrideSlots === null && request.serviceId) {
-      getOwnerOverrideSlots(request.serviceId, request.addonIds)
+      getOwnerOverrideSlots(serviceRef(request.serviceId, request.addonIds))
         .then(setOverrideSlots)
         .catch(() => {
           setOverrideSlots([])
