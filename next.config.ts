@@ -1,15 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
-/**
- * Hosts `next/image` may load from. Derived from the Supabase URL so the project
- * ref is configured in ONE place.
- *
- * ⚠️ next/image THROWS on an unconfigured hostname — it does not degrade. So a
- * build without NEXT_PUBLIC_SUPABASE_URL will render, but every page showing a
- * published image errors at request time. Same trap applies to removing the
- * legacy Scaleway var below while rows still reference that bucket.
- */
 type Patterns = NonNullable<NextConfig["images"]>["remotePatterns"]
 
 /**

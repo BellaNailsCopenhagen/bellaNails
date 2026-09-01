@@ -2,7 +2,7 @@
 
 Next.js nail-studio site: public booking (Cal.com), an owner-only `/admin` CRM,
 and GDPR-compliant client media. Stack: Clerk · Supabase · Cal.com EU · Stripe
-(via Cal.com) · Scaleway · Zoho · Vercel.
+· Supabase Storage · Zoho · Vercel.
 
 ## Getting started
 

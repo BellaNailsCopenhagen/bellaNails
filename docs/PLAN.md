@@ -4,6 +4,11 @@
 > `src/components/sections/` no longer exist; the layers are now `app/`, `modules/`,
 > `db/`, `platform/`, `shared/`. This document is kept as a record of the work as it
 > was done — for current locations see [architecture.md](architecture.md).
+>
+> **The vendors it names are also historical:** Clerk (→ Supabase Auth), Cal.com
+> (→ in-house booking) and Scaleway (→ Supabase Storage) are all retired. Nothing
+> below should be read as current infrastructure — see
+> [INFRASTRUCTURE.md](INFRASTRUCTURE.md).
 
 > Phased, dependency-ordered plan to take Bella Nails from scaffold to MVP.
 > Honors the locked build order: **design system → i18n/routes → schema → integrations → features**.

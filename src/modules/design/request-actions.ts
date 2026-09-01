@@ -6,6 +6,7 @@ import { insertDesignMessage } from "@/db/design-messages"
 import { countDesignRefs, insertDesignRefs } from "@/db/design-refs"
 import {
   countActionableDesignRequestsForClient,
+  deleteDesignRequest,
   getDesignRequest,
   insertDesignRequest,
   updateDesignRequest,
@@ -31,12 +32,14 @@ import { notifyOwner } from "@/modules/notifications/notify"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { contactDisplayName } from "@/shared/contact"
 import {
+  isActionableDesignStatus,
   isDesignTopic,
   MAX_MESSAGE_LENGTH,
   MAX_OPEN_REQUESTS_PER_CLIENT,
   MAX_PREFERRED_WINDOW_LENGTH,
   MAX_REFS_PER_REQUEST,
 } from "@/shared/design"
+import { takeToken, type RateLimitState } from "@/shared/rate-limit"
 import { routes } from "@/shared/routes"
 
 /**
@@ -47,6 +50,12 @@ import { routes } from "@/shared/routes"
  */
 
 export type DesignActionResult = { ok: true } | { ok: false; error: string }
+
+// Appending to a thread is cheap for the client and not for us (a row, an owner
+// notification, and one more entry on an unpaginated card). Best-effort per
+// instance — see shared/rate-limit.ts.
+const messages: RateLimitState = new Map()
+const MESSAGE_RULE = { limit: 20, windowMs: 60 * 60 * 1000 }
 
 /** Reference uploads land in the `refs/` area. The prefix check confines an
     attachment to that bucket — it is not an ownership proof (keys are random
@@ -126,8 +135,22 @@ export async function createDesignRequest(
     author: "client",
     body: message,
   })
+  // The message IS the request. Without it the artist gets a blank card and the
+  // client gets an ack quoting words we never stored — so undo and say so.
   if (!wrote.ok) {
     console.error("[design] request saved without its message:", wrote.message)
+    const undone = await deleteDesignRequest(db, saved.id)
+    if (!undone.ok) {
+      // The blank row survives and still counts toward the open-request cap, so
+      // three of these would lock the client out. Loud, and don't tell them to
+      // just retry — that is exactly what fills the cap.
+      console.error(`[design] BLANK request ${saved.id} could not be rolled back:`, undone.message)
+      return {
+        ok: false,
+        error: "Something went wrong saving your message — please email us instead.",
+      }
+    }
+    return { ok: false, error: "Couldn’t send that — please try again." }
   }
 
   let attachedRefs = 0
@@ -194,6 +217,11 @@ export async function addDesignMessage(
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "Please sign in first." }
+  // The open-request cap bounds REQUESTS; nothing bounded messages, and each one
+  // also inserts an owner notification and grows an unpaginated admin card.
+  if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
+    return { ok: false, error: "That's a lot of messages at once — give her a moment." }
+  }
   const message = body.trim()
   if (!message) return { ok: false, error: "Write a message first." }
   if (message.length > MAX_MESSAGE_LENGTH) {
@@ -204,6 +232,12 @@ export async function addDesignMessage(
   const request = await getDesignRequest(db, requestId)
   if (!request || request.client_id !== user.id) {
     return { ok: false, error: "Not found." }
+  }
+  // A closed thread takes no more input. The UI hides the form, but the action
+  // is the boundary — otherwise a replay posts into a request her queue no
+  // longer lists, and each one fires an owner notification.
+  if (!isActionableDesignStatus(request.status)) {
+    return { ok: false, error: "That conversation is closed — start a new one." }
   }
 
   const wrote = await insertDesignMessage(db, {
@@ -225,12 +259,18 @@ export async function addDesignRef(
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "Please sign in first." }
+  if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
+    return { ok: false, error: "That's a lot of messages at once — give her a moment." }
+  }
   if (!storageKey.startsWith(REF_PREFIX)) return { ok: false, error: "Couldn’t attach that." }
 
   const db = createSupabaseServiceRoleClient()
   const request = await getDesignRequest(db, requestId)
   if (!request || request.client_id !== user.id) {
     return { ok: false, error: "Not found." }
+  }
+  if (!isActionableDesignStatus(request.status)) {
+    return { ok: false, error: "That conversation is closed — start a new one." }
   }
   const existing = await countDesignRefs(db, requestId)
   if (existing >= MAX_REFS_PER_REQUEST) {

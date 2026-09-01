@@ -20,7 +20,13 @@ import { STUDIO_ADDRESS } from "@/config/studio"
  * direct hit without an id renders a calm generic confirmed state — never an
  * error.
  */
-export async function Confirmation({ id }: { id: string | null }) {
+export async function Confirmation({
+  id,
+  email,
+}: {
+  id: string | null
+  email?: string | null
+}) {
   const t = await getTranslations("confirmation")
   // Sign a token so the (possibly guest) client can pre-approve the media release
   // for this booking. Guarded — a missing token secret just hides the opt-in.
@@ -66,7 +72,15 @@ export async function Confirmation({ id }: { id: string | null }) {
                 </div>
                 <Button
                   nativeButton={false}
-                  render={<Link href={routes.signIn} />}
+                  render={
+                    <Link
+                      href={
+                        email
+                          ? { pathname: routes.signIn, query: { email } }
+                          : routes.signIn
+                      }
+                    />
+                  }
                 >
                   {t("accountTitle")}
                 </Button>

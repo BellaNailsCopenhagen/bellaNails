@@ -7,7 +7,11 @@ import {
   listDesignRefsForClient,
   listDesignRefsToPurge,
 } from "@/db/design-refs"
-import { deleteObject, listObjects } from "@/platform/storage/supabase"
+import {
+  deleteObject,
+  deleteObjects,
+  listObjects,
+} from "@/platform/storage/supabase"
 
 /**
  * Reference photos are borrowed, not ours — usually a screenshot of someone
@@ -75,30 +79,39 @@ export async function purgeOrphanedRefObjects(
   // submit, so anything younger than this may still belong to an open form.
   const { minAgeMs = 7 * 24 * 60 * 60 * 1000, limit = 100 } = opts
   const cutoff = Date.now() - minAgeMs
-  let deleted = 0
 
-  // Page through the bucket. Most objects ARE attached, so a single page would
-  // fill with legitimate refs and hide the orphans sitting behind them.
-  for (let offset = 0; offset < MAX_SWEEP_SCAN && deleted < limit; offset += PAGE) {
+  // COLLECT first, delete after. Deleting mid-scan shifts every later object
+  // down a slot, so advancing the offset by a page would skip whatever moved
+  // into the space the deletions freed.
+  //
+  // Paging at all is necessary because most objects ARE attached: a single page
+  // would fill with legitimate refs and hide the orphans sitting behind them.
+  const orphans: string[] = []
+  for (let offset = 0; offset < MAX_SWEEP_SCAN && orphans.length < limit; offset += PAGE) {
     const listed = await listObjects("refs", PAGE, offset)
     if (!listed.ok || !listed.data.length) break
 
     const candidates = listed.data.filter(
       (object) => Date.parse(object.createdAt) < cutoff,
     )
+    if (candidates.length) {
+      const attached = await listDesignRefKeys(db, candidates.map((c) => c.key))
+      for (const candidate of candidates) {
+        if (!attached.has(candidate.key)) orphans.push(candidate.key)
+      }
+    }
     // Listing is oldest-first, so once a page is entirely too new, so is the rest.
-    if (!candidates.length) break
-
-    const attached = await listDesignRefKeys(db, candidates.map((c) => c.key))
-    const orphans = candidates.filter((c) => !attached.has(c.key))
-    const removed = await Promise.all(
-      orphans.map(async (orphan) => (await deleteObject(orphan.key)).ok),
-    )
-    deleted += removed.filter(Boolean).length
-
-    if (listed.data.length < PAGE) break
+    if (candidates.length < listed.data.length || listed.data.length < PAGE) break
   }
-  return deleted
+  if (!orphans.length) return 0
+
+  const batch = orphans.slice(0, limit)
+  const removed = await deleteObjects(batch)
+  if (!removed.ok) {
+    console.error("[design] orphan batch delete failed:", removed.error)
+    return 0
+  }
+  return batch.length
 }
 
 /** GDPR erasure — every reference this client ever attached. */

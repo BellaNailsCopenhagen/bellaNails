@@ -67,7 +67,11 @@ export type DesignRequestView = {
   bookingId: string | null
   createdAt: string
   messages: DesignMessageView[]
+  /** Signed for display — PRUNED: empty without storage, and a ref whose URL
+      won't sign is dropped rather than rendered broken. */
   refs: DesignRefView[]
+  /** How many refs actually exist. Never derive the cap from `refs.length`. */
+  refCount: number
   offer: DesignOfferView | null
 }
 
@@ -138,6 +142,10 @@ async function composeRequests(
     listLiveOffersForRequests(db, ids),
   ])
   const messagesBy = groupMessages(messages)
+  const refCounts = new Map<string, number>()
+  for (const ref of refs) {
+    refCounts.set(ref.request_id, (refCounts.get(ref.request_id) ?? 0) + 1)
+  }
   const refsBy = await signRefs(refs)
   const offerBy = new Map(offers.map((o) => [o.request_id, o]))
 
@@ -153,6 +161,7 @@ async function composeRequests(
       createdAt: row.created_at,
       messages: messagesBy.get(row.id) ?? [],
       refs: refsBy.get(row.id) ?? [],
+      refCount: refCounts.get(row.id) ?? 0,
       offer: offer ? toOfferView(offer, now) : null,
     }
   })

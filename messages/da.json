@@ -448,7 +448,9 @@
     "sentBody": "Bella har din besked og svarer på e-mail. Du finder den også i Mit rum.",
     "sentCta": "Gå til Mit rum",
     "askAnother": "Spørg om noget andet",
-    "failed": "Kunne ikke sende — prøv igen."
+    "failed": "Kunne ikke sende — prøv igen.",
+    "photoSlowDown": "Det er mange billeder på kort tid — vent et øjeblik og prøv igen.",
+    "photoUnsupported": "Filtypen understøttes ikke — brug JPG, PNG eller WebP."
   },
   "offer": {
     "metaTitle": "Dit tilbud – Bella Nails",
@@ -493,6 +495,16 @@
     "replySend": "Send",
     "replySending": "Sender…",
     "replyFailed": "Kunne ikke sende — prøv igen.",
-    "photoAlt": "Referencebillede"
+    "photoAlt": "Referencebillede",
+    "replyPhotoAdd": "Tilføj et billede",
+    "replyPhotoUploading": "Uploader…",
+    "replyPhotoAttached": "Billede vedhæftet — det sendes med din besked.",
+    "replyPhotoNotConfigured": "Billeder er ikke tilgængelige lige nu — send din besked, så kontakter Bella dig.",
+    "replyPhotoTooMany": "Det er det maksimale antal billeder på denne forespørgsel.",
+    "replyPhotoRemove": "Fjern",
+    "replyPhotoFailed": "Billedet blev ikke uploadet — prøv et andet.",
+    "replyPhotoSlowDown": "Det er mange billeder på kort tid — vent et øjeblik og prøv igen.",
+    "replyPhotoUnsupported": "Filtypen understøttes ikke — brug JPG, PNG eller WebP.",
+    "replyNeedsNote": "Skriv en kort besked, så sendes billedet med."
   }
 }

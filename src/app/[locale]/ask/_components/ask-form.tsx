@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
-import { downscaleImage } from "@/shared/image-downscale"
-import { uploadMedia } from "@/platform/storage/browser"
+import { usePhotoUpload } from "@/hooks/use-photo-upload"
 import { createDesignRequest } from "@/modules/design/request-actions"
 import {
   DESIGN_TOPICS,
@@ -44,15 +43,20 @@ export function AskForm({
 }) {
   const t = useTranslations("ask")
   const router = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const [topic, setTopic] = useState<DesignTopic>(defaultTopic)
   const [message, setMessage] = useState("")
   const [when, setWhen] = useState("")
   const [photos, setPhotos] = useState<Attachment[]>([])
-  const [uploading, setUploading] = useState(false)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
+  const { inputRef, uploading, pick, take } = usePhotoUpload({
+    processFailed: t("photoFailed"),
+    notConfigured: t("photoNotConfigured"),
+    rateLimited: t("photoSlowDown"),
+    unsupported: t("photoUnsupported"),
+    failed: t("photoFailed"),
+  })
 
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
@@ -61,30 +65,14 @@ export function AskForm({
       toast.error(t("photoTooMany"))
       return
     }
-    setUploading(true)
-    try {
-      let blob: Blob
-      try {
-        blob = await downscaleImage(file)
-      } catch {
-        toast.error(t("photoFailed"))
-        return
-      }
-      const up = await uploadMedia(blob, "image/webp")
-      if (!up.ok) {
-        if (up.reason === "not_configured") toast.info(t("photoNotConfigured"))
-        else if (up.reason === "rate_limited") toast.error(t("photoTooMany"))
-        else toast.error(t("photoFailed"))
-        return
-      }
-      setPhotos((prev) => [
-        ...prev,
-        { key: up.key, previewUrl: URL.createObjectURL(blob) },
-      ])
-    } finally {
-      setUploading(false)
-      if (inputRef.current) inputRef.current.value = ""
+    // Hold the File now: `take` resets the input, so `files` is empty after it.
+    const previewUrl = URL.createObjectURL(file)
+    const key = await take(files)
+    if (!key) {
+      URL.revokeObjectURL(previewUrl)
+      return
     }
+    setPhotos((prev) => [...prev, { key, previewUrl }])
   }
 
   // Drops it from this submit only — the object is already in the bucket, and
@@ -215,7 +203,7 @@ export function AskForm({
           variant="outline"
           size="sm"
           disabled={uploading || photos.length >= MAX_REFS_PER_REQUEST}
-          onClick={() => inputRef.current?.click()}
+          onClick={pick}
         >
           {uploading ? t("uploading") : t("addPhoto")}
         </Button>

@@ -32,10 +32,14 @@ export default async function ConfirmationPage({
   setRequestLocale(locale)
 
   const id = singleParam(query.id) ?? null
+  // Carried from the booking form so the sign-in step is prefilled. Absent on
+  // the offer path on purpose: a signed link may be held by someone who is not
+  // the client, and their address is not ours to reveal.
+  const email = singleParam(query.email) ?? null
 
   return (
     <main className="flex flex-1 flex-col">
-      <Confirmation id={id} />
+      <Confirmation id={id} email={email} />
     </main>
   )
 }

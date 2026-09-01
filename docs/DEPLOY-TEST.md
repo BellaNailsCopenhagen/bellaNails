@@ -49,7 +49,7 @@ add to the **Production** environment:
 Auth needs no extra env vars: it's Supabase Auth, and Google OAuth + email OTP +
 SMTP are configured in the Supabase Dashboard, not through Vercel env.
 
-Scaleway keys (the 6 `SCALEWAY_*` vars): required for media upload/publish/erasure.
+Media storage: no keys — Supabase Storage reuses the Supabase vars. Requires the three buckets from `supabase/storage-buckets.sql`.
 Absent, the media flow degrades to "not configured" and the rest of the app still
 works — so optional for a first smoke test, required to exercise photos.
 

@@ -10,6 +10,8 @@ export type ReviewResult = { ok: true } | { ok: false; error: string }
 
 /** Testimonials are studio-entered, so there is no author authorization —
     only the owner check. */
+// Text + stars only, by decision — photo reviews live on Google Maps instead
+// (docs/product-review.md §04).
 export async function addReview(
   serviceId: string,
   input: { authorName: string; body: string; rating: number | null },

@@ -6,7 +6,7 @@ vendor accounts — **no prior context required.** Follow it top to bottom.
 Bella Nails is a Next.js nail-studio site: public booking (via Cal.com), an
 owner-only `/admin` CRM, and GDPR-compliant client media. Stack: **Next.js
 (App Router) · Supabase (Auth + Postgres/RLS/Realtime) · Cal.com EU
-(scheduling) · Stripe via Cal.com (no-show holds) · Scaleway (media) · Zoho
+(scheduling) · Stripe via Cal.com (no-show holds) · Supabase Storage (media) · Zoho
 (email) · Vercel (hosting)**.
 
 > Deeper reference for any piece: [INFRASTRUCTURE.md](./INFRASTRUCTURE.md).
@@ -24,7 +24,7 @@ owner-only `/admin` CRM, and GDPR-compliant client media. Stack: **Next.js
 | A password manager | — | You'll collect ~15 secrets. Never commit them. |
 
 Accounts you'll create in **step 3** (all have a free tier): Supabase,
-Cal.com, Stripe, Scaleway, Zoho Mail, Vercel. (Auth is Supabase Auth — no
+Cal.com, Stripe, Zoho Mail, Vercel. (Auth is Supabase Auth — no
 separate auth vendor; Google OAuth + email OTP are configured in the Supabase
 Dashboard.)
 
@@ -59,12 +59,6 @@ by vendor, with where each comes from:
 | `NEXT_PUBLIC_CALCOM_LINK` | public | Cal.com username (e.g. `bellanails`) |
 | `CALCOM_WEBHOOK_SECRET` | **secret** | You invent it; set the same value on the Cal webhook |
 | `CALCOM_API_KEY` | **secret** | Cal.com → Settings → Developer → API keys |
-| `SCALEWAY_ACCESS_KEY` | **secret** | Scaleway → IAM → API keys |
-| `SCALEWAY_SECRET_KEY` | **secret** | Scaleway → IAM → API keys (shown once) |
-| `SCALEWAY_REGION` | secret-ish | `fr-par` |
-| `SCALEWAY_ENDPOINT` | secret-ish | `https://s3.fr-par.scw.cloud` |
-| `SCALEWAY_BUCKET` | secret-ish | `bellanails-media` |
-| `NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL` | public | `https://bellanails-media.s3.fr-par.scw.cloud` |
 
 **Rule:** anything **not** prefixed `NEXT_PUBLIC_` is server-only and must never
 reach the browser. Mirror the same keys into Vercel (step 7).
@@ -115,13 +109,12 @@ sign-in methods in the **Supabase Dashboard → Authentication**:
   the card hold / SetupIntent on the event type. **No Stripe keys go in `.env`** —
   the app stores no card data.
 
-### 3e. Scaleway (media storage)
-Follow the dedicated runbook: [../infra/scaleway/README.md](../infra/scaleway/README.md).
-Summary: create a **Private** bucket `bellanails-media` in **fr-par**, generate an
-Object-Storage API key, **enable bucket encryption (SSE)**, set **CORS** (via the
-`aws` CLI — no console UI), and rely on **per-object `public-read` ACL** for public
-delivery. ⚠️ **Never set a bucket policy** — on Scaleway it locks your own key out.
-Fill the six `SCALEWAY_*` vars.
+### 3e. Media storage (Supabase Storage)
+**No account, no keys, no env vars** — it lives in the Supabase project you already
+created and reuses `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
+Run `supabase/storage-buckets.sql`; it creates the three buckets with their
+size and MIME limits (`media-private`, `media-refs`, `media-public`). No CORS to
+configure and no policies to write — every path is a signed grant or service-role.
 
 ### 3f. Zoho Mail (domain email — operational, no env vars)
 - Domain email for `bellanails.dk` runs on **Zoho Mail, EU DC** — admin at
@@ -193,8 +186,8 @@ pnpm dev            # http://localhost:3000
 Other scripts: `pnpm build` (production build), `pnpm start` (serve the build),
 `pnpm lint`, `pnpm format`.
 
-**Graceful degradation:** the app boots even with missing keys. Absent Scaleway
-→ media features report “not configured”; absent `CALCOM_API_KEY` → in-app
+**Graceful degradation:** the app boots even with missing keys. Absent storage
+buckets → media features report “not configured”; absent `CALCOM_API_KEY` → in-app
 cancel/sync is disabled. So you can bring vendors online one at a time.
 
 ---
@@ -207,8 +200,8 @@ cancel/sync is disabled. So you can bring vendors online one at a time.
    at runtime, server-side — they are **not** baked into the build, so each
    environment needs its own copy.)
 3. Point production URLs at the deploy: Cal.com webhook → `https://<domain>/api/webhooks/cal`;
-   `NEXT_PUBLIC_SITE_URL` → the real domain; add the domain to Scaleway **CORS**
-   (`infra/scaleway/cors.json` → re-run `put-bucket-cors`).
+   `NEXT_PUBLIC_SITE_URL` → the real domain (the offer + manage email links are
+   built from it, so a wrong value ships emails with no working button).
 4. Point the **production** Supabase Auth config at the prod domain: add the prod
    callback URL to the Google OAuth client's redirect URIs, and confirm the Zoho
    SMTP is set. (Owner role from step 5 is stored in the DB, so it carries over.)
@@ -224,7 +217,7 @@ cancel/sync is disabled. So you can bring vendors online one at a time.
 - [ ] Supabase project (EU), schema + patches + policies applied, Realtime publication on.
 - [ ] Supabase Auth: Google + email OTP enabled, Zoho SMTP (`smtp.zoho.eu`) set, owner role (SQL) + owner-reads-all RLS applied.
 - [ ] Cal.com event types, webhook → prod URL + secret, API key, Stripe connected.
-- [ ] Scaleway bucket + key + CORS + encryption, **no bucket policy**; live round-trip (private→403, public→200).
+- [ ] `supabase/storage-buckets.sql` run; live round-trip (upload → signed view → publish → public URL 200).
 - [ ] Zoho mail delivering.
 - [ ] Vercel: all env vars on Preview + Production; domain wired.
 - [ ] Smoke test: booking → webhook → DB → `/admin` live update; upload a photo on `/bookings`.

@@ -9,9 +9,9 @@ export const metadata: Metadata = { title: "Log in" }
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; redirect_url?: string }>
+  searchParams: Promise<{ next?: string; redirect_url?: string; email?: string }>
 }) {
-  const { next, redirect_url } = await searchParams
+  const { next, redirect_url, email } = await searchParams
   const requested = next ?? redirect_url ?? "/"
   // Only ever redirect to a local path (guard against open-redirect).
   const safeNext =
@@ -19,7 +19,7 @@ export default async function LoginPage({
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-20">
       <div className="w-full max-w-sm">
-        <SupabaseLoginForm next={safeNext} />
+        <SupabaseLoginForm next={safeNext} defaultEmail={email ?? ""} />
       </div>
     </main>
   )

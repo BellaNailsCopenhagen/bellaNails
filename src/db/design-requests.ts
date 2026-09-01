@@ -89,6 +89,16 @@ export async function countActionableDesignRequestsForClient(
   return count ?? 0
 }
 
+/** Roll back a request whose opening message failed to save — a request with an
+    empty thread is a dead card in the queue. */
+export async function deleteDesignRequest(
+  db: Db,
+  id: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db.from("design_requests").delete().eq("id", id)
+  return error ? { ok: false, message: error.message } : { ok: true }
+}
+
 /** GDPR erasure — the message thread is client free-text (PII) and a request is
     ephemeral, so delete outright. Messages, refs and offers cascade. */
 export async function deleteDesignRequestsForClient(

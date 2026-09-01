@@ -195,6 +195,28 @@ export async function deleteObject(key: string): Promise<StorageResult<null>> {
   }
 }
 
+/**
+ * Delete many objects in ONE request. The orphan sweep collects its keys before
+ * deleting anything, so it has no reason to pay a round trip per key. Callers
+ * that need per-key outcomes (erasure decides which rows to drop) use
+ * `deleteObject` instead.
+ *
+ * Keys must share an area — the bucket is derived from the first one.
+ */
+export async function deleteObjects(keys: string[]): Promise<StorageResult<null>> {
+  if (!keys.length) return { ok: true, data: null }
+  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  try {
+    const { error } = await createSupabaseServiceRoleClient()
+      .storage.from(bucketOf(keys[0]))
+      .remove(keys)
+    if (error) return { ok: false, error: message(error) }
+    return { ok: true, data: null }
+  } catch (error) {
+    return { ok: false, error: message(error) }
+  }
+}
+
 function message(error: unknown): string {
   if (error && typeof error === "object" && "message" in error) {
     return String((error as { message: unknown }).message)

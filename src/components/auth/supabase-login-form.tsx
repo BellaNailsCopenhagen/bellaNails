@@ -61,9 +61,16 @@ async function attempt(
  * Supabase Auth login: Google OAuth + passwordless email OTP. `next` is where to
  * land after auth (already validated to a local path by the page).
  */
-export function SupabaseLoginForm({ next = "/" }: { next?: string }) {
+export function SupabaseLoginForm({
+  next = "/",
+  defaultEmail = "",
+}: {
+  next?: string
+  /** Prefilled when the visitor just gave us this address (post-booking). */
+  defaultEmail?: string
+}) {
   const [step, setStep] = useState<"email" | "otp">("email")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(defaultEmail)
   const [otp, setOtp] = useState("")
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -448,7 +448,9 @@
     "sentBody": "Bella has your message and will reply by email. You'll find it in My Space too.",
     "sentCta": "Go to My Space",
     "askAnother": "Ask about something else",
-    "failed": "Couldn't send that — please try again."
+    "failed": "Couldn't send that — please try again.",
+    "photoSlowDown": "That's a lot of photos in a short time — wait a moment and try again.",
+    "photoUnsupported": "That file type isn't supported — use a JPG, PNG or WebP."
   },
   "offer": {
     "metaTitle": "Your offer – Bella Nails",
@@ -493,6 +495,16 @@
     "replySend": "Send",
     "replySending": "Sending…",
     "replyFailed": "Couldn't send that — please try again.",
-    "photoAlt": "Reference photo"
+    "photoAlt": "Reference photo",
+    "replyPhotoAdd": "Add a photo",
+    "replyPhotoUploading": "Uploading…",
+    "replyPhotoAttached": "Photo attached — it'll go with your message.",
+    "replyPhotoNotConfigured": "Photos aren't available just yet — send your message and Bella will be in touch.",
+    "replyPhotoTooMany": "That's the maximum number of photos on this request.",
+    "replyPhotoRemove": "Remove",
+    "replyPhotoFailed": "That photo didn't upload — try another.",
+    "replyPhotoSlowDown": "That's a lot of photos in a short time — wait a moment and try again.",
+    "replyPhotoUnsupported": "That file type isn't supported — use a JPG, PNG or WebP.",
+    "replyNeedsNote": "Add a short note and your photo goes with it."
   }
 }

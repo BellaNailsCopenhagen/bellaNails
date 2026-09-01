@@ -33,9 +33,11 @@ export function OfferBooking({
   const confirm = async (start: string) => {
     const result = await bookOfferByToken({ token, start, locale })
     if (!result.ok) return { ok: false as const, error: result.error }
+    // `id` is what /confirmation reads (same as the booking flow) — anything
+    // else renders the page with no recap and no release opt-in.
     router.push({
       pathname: routes.confirmation,
-      query: { booking: result.id },
+      query: { id: result.id },
     })
     return { ok: true as const }
   }

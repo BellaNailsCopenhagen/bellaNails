@@ -12,7 +12,7 @@ Never skip a layer, never reverse. Full reference: `docs/architecture.md`.
 | `src/app/**` | Routes. Params, metadata, rendering. | A page asks a module **one question per concern**. It never builds a Supabase client. |
 | `src/modules/<domain>/` | Service layer: authorization, composition, side effects, `"use server"` actions. | `index.ts` is the public surface. Never imports a component. |
 | `src/db/<table>.ts` | Data layer. One file per table. | Takes `db: Db` first. One table. No auth, no revalidation. |
-| `src/platform/**` | Vendor adapters (Supabase, Scaleway, Cal). | The only files that name a vendor. |
+| `src/platform/**` | Vendor adapters (Supabase incl. Storage, Zoho SMTP). | The only files that name a vendor. |
 | `src/shared/**` | Pure, isomorphic rules + view models. | No vendor, no service, no UI. **Anything a client component needs lives here.** |
 | `src/components/<area>/` | UI used by 2+ routes. | Single-use UI lives in the route's `_components/` instead. |
 

@@ -16,7 +16,7 @@ one sentence, and all eight are enforced in `eslint.config.mjs`.
 | **routes** | `src/app/**` | Params, metadata, rendering. Asks a module one question per concern. | Builds a client. Imports `db/` or `platform/`. |
 | **services** | `src/modules/<domain>/**` | Authorization, composition across tables, external calls, revalidation, `"use server"` actions. | Imports a component. |
 | **data** | `src/db/<table>.ts` | Queries for one table. Column lists, soft-delete filters, embed shapes. | Authorization. Revalidation. A second table. |
-| **platform** | `src/platform/**` | Vendor adapters: Supabase clients + generated types, Scaleway storage, Cal.com API. | Knows a table name or a domain concept. |
+| **platform** | `src/platform/**` | Vendor adapters: Supabase clients + generated types, Supabase Storage, Zoho SMTP. | Knows a table name or a domain concept. |
 
 Two supporting directories sit outside that stack:
 

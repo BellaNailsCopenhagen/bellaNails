@@ -4,7 +4,12 @@
 > data model, and the brand. Companion docs live in [`/docs`](./docs):
 > [Build Plan](./docs/PLAN.md) · [Infrastructure & Setup](./docs/INFRASTRUCTURE.md).
 >
-> **Status:** scaffolding phase. Design system partially wired; integrations not yet installed.
+> ⚠️ **This document is a June-2026 snapshot and is stale beyond the storage row**
+> (Clerk and Cal.com are both retired; auth is Supabase Auth and booking is
+> in-house). Treat [AGENTS.md](./AGENTS.md) + [docs/architecture.md](./docs/architecture.md)
+> as current.
+>
+> **Status (as written):** scaffolding phase. Design system partially wired; integrations not yet installed.
 > Last updated 2026-06-28.
 
 ---
@@ -35,7 +40,7 @@
 | Scheduling | **Cal.com** Cloud Free via `@calcom/embed-react` | `calLink: "bellanails/session"`. Invisible/native-themed embed. |
 | Payments | **Stripe**, wired *through* Cal.com | No-show card holds via SetupIntents. App stores no card data. |
 | Database | **Supabase Postgres** | Soft-delete via `archived_at` (never hard `DELETE`). Prices in **cents**. |
-| Media | **Scaleway Object Storage** (EU, fr-par; S3-compatible) | Presigned-POST upload, private-by-default, publish-on-consent via `public-read` ACL. No CDN transforms — browser strips EXIF + downscales (no crop). |
+| Media | **Supabase Storage** (same project, `eu-west-1`) | Three buckets (private / refs / public) — the bucket carries the size + MIME limit. Signed upload URL, private-by-default, copy-to-public on consent. Browser strips EXIF + downscales to 1200px q82 (no crop). |
 | Client data/cache | **TanStack Query v5** | Hydrated from RSC via `HydrationBoundary`. No double-fetch. |
 | Live updates | **Supabase Realtime** → `invalidateQueries` | Per-table publication; respects RLS. |
 
@@ -52,7 +57,7 @@ TanStack Table is deferred — when admin needs sort/filter/paginate, use shadcn
 3. **Build order:** design system **FIRST** → i18n + route structure → Supabase schema → integrations.
 4. **Client data layer = TanStack Query.** TanStack Table deferred (use shadcn data-table recipe). No TanStack Router/Start/Form.
 5. **Folder is `bellaNails`** (capital N) — scaffolded via a temp subdir to dodge create-next-app's npm-name check, then moved up. *(Already done.)*
-6. **Full stack is in scope** for MVP: Clerk auth, Stripe no-show holds, Scaleway media — not just the core four.
+6. **Full stack is in scope** for MVP: auth, Stripe no-show holds, media storage — not just the core four.
 
 ---
 
@@ -110,7 +115,7 @@ columns paired `_en` / `_da`; bookings are the source of sync truth from the Cal
    Clerk (auth) ──native 3rd-party auth──▶ Supabase RLS          │
                                                                   ▼
    RSC initial fetch ──hydrate──▶ TanStack Query ◀──invalidateQueries── realtime hook
-   Scaleway ◀── presigned-POST upload (private-by-default) ── client /bookings + admin
+   Supabase Storage ◀── signed upload URL (private-by-default) ── client + admin
 ```
 
 - **Sync:** `/api/webhooks/cal` validates the signature on `BOOKING_CREATED`, then upserts into `bookings`.
@@ -136,7 +141,7 @@ This is **not** the Next.js in your training data. Confirmed breaking changes th
 - ✅ Repo cloned; scaffold in place (Next 16.2.9, React 19.2.4, Tailwind v4, shadcn `base-luma`, TanStack Query installed).
 - ✅ **Design system partially done:** brand tokens + fonts wired in `globals.css` / `layout.tsx`.
 - ⬜ `page.tsx` still default boilerplate; `layout.tsx` metadata + `lang` still default.
-- ⬜ Not yet installed: `next-intl`, `@clerk/nextjs`, `@calcom/embed-react`, `@supabase/supabase-js`, Scaleway SDK (`@aws-sdk/client-s3`), Stripe.
+- ⬜ Not yet installed: `next-intl`, `@calcom/embed-react`, `@supabase/supabase-js`, Stripe.
 - ⬜ No i18n routing, no `messages/*.json`, no Supabase client, no API routes, no admin.
 
 **Next step:** finish the design system primitives, then i18n + route structure (`app/[locale]`), then apply the Supabase schema. See [Build Plan](./docs/PLAN.md).

@@ -162,6 +162,13 @@ export function DesignRequestCard({
             <button
               type="button"
               className={cardActionNeutral()}
+              onClick={() => setReplyOpen(true)}
+            >
+              Reply
+            </button>
+            <button
+              type="button"
+              className={cardActionNeutral()}
               disabled={pending}
               onClick={() => run(() => withdrawOffer(offer.id))}
             >

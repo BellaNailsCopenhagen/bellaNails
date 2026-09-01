@@ -143,7 +143,7 @@ Value = 1–5. Effort: XS <½ day · S 1–2 days · M 3–5 days · L 1–2 wee
 | 3 | **Rebook nudge** ("time for your infill") — per-service cadence + email | 4 | 5 | S–M | **Do.** Retention, uses the email stack we own. |
 | 4 | **Local SEO + Google Business** | 2 | 5 | M | **Do.** Biggest growth lever; nothing else brings new clients. |
 | 5 | **Waitlist / cancellation backfill** | 5 | 4 | M | Do after 1–4. Real revenue, moderate build. |
-| 6 | **Real testimonials system** (client-submitted, artist-approved) | 3 | 4 | M | Do — and it removes the §5 risk. |
+| 6 | **Real testimonials system** (client-submitted, artist-approved) | 3 | 4 | M | Do — and it removes the §5 risk. **Text + stars only** (decided 1 Sep): no image upload, ever. Photo reviews belong on Google Maps, which also feeds #4. |
 | 7 | **Insights** (income + occupancy) | 1 | 5 | M | Do. `income_override_cents` already exists; it's a read + a page. |
 | 8 | **Artist ICS feed** (signed, read-only) | 1 | 4 | S | Cheap. Bella lost her phone calendar when Cal went. |
 | 9 | **Per-client artist notes** (colours, cadence, preferences) | 2 | 4 | S | Cheap CRM win for a relationship business. |
@@ -188,3 +188,15 @@ Found while reading the code. All cheap, all currently wrong:
    get found by the ones we don't.
 
 Everything else waits for numbers.
+
+---
+
+## Decisions taken since this review
+
+**1 Sep 2026 — reviews are text + stars only.** No image upload, no media of any
+kind: leaving a review has to be fast, and a photo picker is the step people
+abandon. Anyone who wants to post pictures is pointed at the **Google Maps
+listing**, which already does that job and feeds the local-search work (§04) at
+the same time. `reviews` therefore has no media column and `addReview` takes
+none — if richer reviews come up again it is this decision to re-open, not a
+field to add.

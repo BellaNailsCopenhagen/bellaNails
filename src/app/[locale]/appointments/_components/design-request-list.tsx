@@ -1,12 +1,13 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
+import { DesignReplyForm } from "@/app/[locale]/appointments/_components/design-reply-form"
 import { ArrowLink } from "@/components/ui/arrow-link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
 import type { DesignRequestView } from "@/modules/design"
-import type { DesignStatus } from "@/shared/design"
+import { isActionableDesignStatus, type DesignStatus } from "@/shared/design"
 import { offerPath, routes } from "@/config/routes"
 import { formatPrice } from "@/shared/money"
 import { pickLocalized } from "@/shared/localized"
@@ -67,6 +68,9 @@ export async function DesignRequestList({
         {requests.map((request) => {
           const offer = request.offer
           const token = offer ? offerTokens[offer.id] : undefined
+          // One status drives the whole card. Reading the raw column here let a
+          // card say "Offer expired" while still showing an open reply box.
+          const shown = displayStatus(request)
           const offerName = offer
             ? (pickLocalized(locale, offer.nameEn, offer.nameDk) ?? offer.nameEn)
             : null
@@ -77,7 +81,7 @@ export async function DesignRequestList({
               className="space-y-3 border-b border-border pb-6 last:border-b-0"
             >
               <Badge variant="outline" size="xs">
-                {t(`status.${displayStatus(request)}`)}
+                {t(`status.${shown}`)}
               </Badge>
 
               <ul className="space-y-2">
@@ -109,6 +113,15 @@ export async function DesignRequestList({
                     </li>
                   ))}
                 </ul>
+              ) : null}
+
+              {/* Still on her plate → they can add to it. A closed thread stays
+                  readable but takes no more input; a new ask starts fresh. */}
+              {isActionableDesignStatus(shown) ? (
+                <DesignReplyForm
+                  requestId={request.id}
+                  refCount={request.refCount}
+                />
               ) : null}
 
               {offer && offerName && offer.state === "live" && token ? (

@@ -7,6 +7,7 @@ import type { Db } from "@/db/client"
 import { getDesignRequest, updateDesignRequest } from "@/db/design-requests"
 import {
   claimOfferForBooking,
+  getLiveOfferForRequest,
   getOffer,
   insertOffer,
   listExpiredLiveOffers,
@@ -82,6 +83,23 @@ export async function createOffer(
 
   const request = await getDesignRequest(db, input.requestId)
   if (!request) return { ok: false, error: "Request not found." }
+
+  // The one-live-offer index keys off `closed_at`, which only the (throttled)
+  // sweep sets — so an offer that has merely run out of TIME still occupies the
+  // slot. Close it here, or she'd be told to "withdraw it first" while the card
+  // shows nothing to withdraw.
+  const existing = await getLiveOfferForRequest(db, request.id)
+  if (existing && offerState(existing, Date.now()) !== "live") {
+    const closed = await updateOffer(db, existing.id, {
+      closed_at: new Date().toISOString(),
+    })
+    // Falling through would trip the unique index and report "withdraw it
+    // first" — the exact dead end this block exists to avoid.
+    if (!closed.ok) {
+      console.error(`[design] could not close lapsed offer ${existing.id}:`, closed.message)
+      return { ok: false, error: "Couldn’t clear the previous offer — please try again." }
+    }
+  }
 
   const saved = await insertOffer(db, {
     client_id: request.client_id,
@@ -263,7 +281,14 @@ async function bookOffer(
   // decides one winner; the loser's booking is cancelled rather than left behind.
   const claimed = await claimOfferForBooking(db, offer.id, result.id)
   if (!claimed) {
-    await cancelBookingById(db, result.id)
+    const undone = await cancelBookingById(db, result.id)
+    if (!undone.ok) {
+      // Both bookings now stand. Loud, because only a human can reconcile it.
+      console.error(
+        `[design] LOST offer claim for ${offer.id} AND failed to cancel booking ${result.id}:`,
+        undone.message,
+      )
+    }
     return { ok: false, error: "That offer was just booked — check My Space." }
   }
   const closed = await updateDesignRequest(db, offer.request_id, {
@@ -329,10 +354,10 @@ export async function runDesignHousekeeping(limit = 50): Promise<{
   refsPurged: number
 }> {
   const idle = { offersExpired: 0, refsPurged: 0 }
-  if (!takeToken(housekeeping, "design", Date.now(), HOUSEKEEPING_RULE)) return idle
-
   const db = await requireOwner()
   if (!db) return idle
+  // Token AFTER the owner check, so a non-owner render can't spend the hour.
+  if (!takeToken(housekeeping, "design", Date.now(), HOUSEKEEPING_RULE)) return idle
 
   const now = new Date().toISOString()
   const stale = await listExpiredLiveOffers(db, now, limit)

@@ -104,7 +104,7 @@ create table if not exists public.assets (
   url                  text not null,
   media_type           text not null,
   storage_key          text,
-  storage_provider     text not null default 'scaleway',
+  storage_provider     text not null default 'supabase',
   cloudinary_public_id text,                       -- legacy; retained nullable
   created_at           timestamptz default now()
 );
@@ -133,7 +133,7 @@ create table if not exists public.client_media (
   source               text not null check (source in ('owner', 'client')),
   kind                 text not null default 'image',   -- image | video
   storage_key          text,
-  storage_provider     text not null default 'scaleway',
+  storage_provider     text not null default 'supabase',
   cloudinary_public_id text,                             -- legacy; nullable
   url                  text not null,
   service_id           uuid references public.services(id),

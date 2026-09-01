@@ -13,10 +13,9 @@
 | Service | Plan | Role | Provides | App-side install |
 |---|---|---|---|---|
 | **Vercel** | Hobby (free) | Hosting / CI / preview deploys | Edge + serverless runtime, env mgmt | — |
-| **Supabase** | Free | Auth + Postgres + Realtime + Storage(unused, Scaleway instead) | Sign-in/up (Google OAuth + email OTP), `app_metadata.role`, DB, RLS, Realtime | `@supabase/supabase-js` + `@supabase/ssr` |
+| **Supabase** | Free | Auth + Postgres + Realtime + **Storage** | Sign-in/up (Google OAuth + email OTP), `app_metadata.role`, DB, RLS, Realtime | `@supabase/supabase-js` + `@supabase/ssr` |
 | **Cal.com** | Cloud Free | Scheduling | Availability, booking, reschedule/cancel URLs, webhooks | `@calcom/embed-react` |
 | **Stripe** | Pay-as-you-go (no fixed fee) | No-show card holds | SetupIntents via Cal.com | (none in app — via Cal.com) |
-| **Scaleway Object Storage** | Free tier (75 GB) | EU-sovereign media storage (fr-par) | S3-compatible image/video hosting; private-by-default, publish-on-consent | `@aws-sdk/client-s3` + presigners |
 | **next-intl** | OSS | i18n | Routing + message loading | `next-intl` |
 
 ---
@@ -37,13 +36,9 @@ SUPABASE_SERVICE_ROLE_KEY=          # server-only; never expose to client
 NEXT_PUBLIC_CALCOM_LINK=bellanails/session
 CALCOM_WEBHOOK_SECRET=              # validates /api/webhooks/cal signature
 
-# ── Scaleway Object Storage (media) ─────────────────────
-SCALEWAY_ACCESS_KEY=                    # server-only
-SCALEWAY_SECRET_KEY=                    # server-only
-SCALEWAY_REGION=fr-par
-SCALEWAY_ENDPOINT=https://s3.fr-par.scw.cloud
-SCALEWAY_BUCKET=bellanails-media
-NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL=https://bellanails-media.s3.fr-par.scw.cloud
+# ── Media storage ───────────────────────────────────────
+# Supabase Storage — no extra vars. Reuses NEXT_PUBLIC_SUPABASE_URL +
+# SUPABASE_SERVICE_ROLE_KEY above. Buckets come from supabase/storage-buckets.sql.
 
 # ── App ─────────────────────────────────────────────────
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -214,18 +209,26 @@ CREATE INDEX idx_gallery_render ON gallery_items(sort_order, display_mode);
 
 ---
 
-## Scaleway Object Storage (media)
+## Media storage (Supabase Storage)
 
-EU-sovereign (France, fr-par), S3-compatible. Full design + runbook:
-[docs/tasks/storage-scaleway-migration.md](tasks/storage-scaleway-migration.md) ·
-[infra/scaleway/](../infra/scaleway/).
+Same project as the database, so there is no second vendor and no extra key.
+Design notes: [docs/tasks/design-requests/PLAN.md](tasks/design-requests/PLAN.md).
+The Scaleway era is recorded in
+[docs/tasks/storage-scaleway-migration.md](tasks/storage-scaleway-migration.md).
 
-- **Private-by-default**: uploads land in `private/`; the bucket is Private and stays that way.
-- **Browser upload** = server issues a short-lived **presigned POST** (role-scoped size/type limits); bytes go straight to the bucket, never through our function.
-- **Publish-on-consent** = `CopyObject` `private/`→`public/` with **`ACL: public-read`** (⚠️ never a bucket policy — it locks the owner's key out). Withdraw/erase = `DeleteObject`.
+- **Three buckets**, because Supabase enforces size/MIME **per bucket**:
+  `media-private` (her originals, images+video, 200 MB) · `media-refs` (a client's
+  design references, images only, 5 MB) · `media-public` (published copies, world-readable).
+- The area is a **prefix inside the object key**, so the bucket is derivable from
+  any stored key, and an unrecognised key resolves to private — never public.
+
+- **Private-by-default**: uploads land in a private bucket and stay there.
+- **Browser upload** = the server mints a one-shot **signed upload URL** (the caller's role picks the bucket); bytes go straight to storage, never through our function.
+- **Publish-on-consent** = a server-side **copy** into the public bucket. Withdraw/erase deletes the file FIRST, then its row — the row is the only thing that could retry a failed delete.
+- **No RLS on `storage.objects`**, deliberately: every path is a signed grant or service-role, so the private buckets are unreachable any other way.
 - **Private reads** = short-lived **presigned GET** (rendered with plain `<img>`, not `next/image`). Consented `public/` objects use the stable public URL and are allowed in `next/image`.
 - **No transforms** (unlike Cloudinary): clients strip EXIF + downscale in the browser before upload (aspect ratio preserved — no crop); owner uploads (incl. demo video) are stored as-is.
-- All access is via `src/platform/storage/scaleway.ts`, env-guarded — absent keys → `not_configured`, app still boots.
+- All access is via `src/platform/storage/supabase.ts` (server) and `browser.ts` (upload), env-guarded — absent config → `not_configured`, app still boots.
 
 ---
 
@@ -255,6 +258,6 @@ EU-sovereign (France, fr-par), S3-compatible. Full design + runbook:
 - [ ] Supabase project (URL, anon key, service-role key) + schema applied + Realtime publication.
 - [ ] Supabase Auth: Google OAuth + email OTP enabled, custom SMTP (`smtp.zoho.eu`) set, owner set up per **Admin owner setup** above (role in `app_metadata` + owner-reads-all RLS).
 - [ ] Cal.com account, event type(s) matching `cal_event_id`, webhook → prod URL, signing secret, Stripe connected.
-- [ ] Scaleway Object Storage: bucket `bellanails-media` (fr-par, Private), API key (Object Storage), CORS applied, **no bucket policy** (public via per-object ACL). See [infra/scaleway/](../infra/scaleway/).
+- [ ] Supabase Storage: run `supabase/storage-buckets.sql` (creates the three buckets with their size/MIME limits). No keys, no CORS, no policies.
 - [ ] Vercel project linked to the GitHub repo, all env vars set for Preview + Production.
 - [ ] `.env.local` filled locally; `.env.example` committed (no secrets).
