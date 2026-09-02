@@ -68,6 +68,25 @@ export async function listDesignRefKeys(
   return new Set((data ?? []).map((row) => row.storage_key))
 }
 
+/**
+ * The row for one storage key, if any — and whether the question could be
+ * answered at all. Distinguishing "no row" from "the query failed" is the whole
+ * point: a discard that reads a failure as "unattached" deletes an object the
+ * thread is still rendering.
+ */
+export async function findDesignRefByKey(
+  db: Db,
+  storageKey: string,
+): Promise<{ ok: true; row: DesignRefRow | null } | { ok: false }> {
+  const { data, error } = await db
+    .from("design_refs")
+    .select("*")
+    .eq("storage_key", storageKey)
+    .maybeSingle()
+  if (error) return { ok: false }
+  return { ok: true, row: data ?? null }
+}
+
 /** Everything a client owns — erasure needs the storage keys before deleting. */
 export async function listDesignRefsForClient(
   db: Db,

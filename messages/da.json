@@ -236,7 +236,8 @@
     "somethingWrongBody": "Hvis en negl har løsnet sig eller er skallet, send os et billede — så vender vi tilbage med en tid og en pris for at rette det.",
     "testimonialInviteTitle": "Vi vil gerne have et par ord",
     "testimonialInviteBody": "En sætning eller to om din tid i salonen. Vi læser alt, før noget vises på siden.",
-    "testimonialInviteCta": "Skriv et par ord"
+    "testimonialInviteCta": "Skriv et par ord",
+    "replyBanner": "{count, plural, =1 {Bella Nails har svaret på din besked} other {Bella Nails har svaret på # af dine beskeder}}"
   },
   "gallery": {
     "metaTitle": "Galleri",
@@ -400,11 +401,11 @@
   },
   "ask": {
     "metaTitle": "Spørg os – Bella Nails, Ørestad, København",
-    "metaDescription": "Fortæl os hvad du har i tankerne, så vender vi tilbage med en pris og hvor lang tid det tager.",
+    "metaDescription": "Fortæl os hvad du har i tankerne — et helt sæt, en enkelt reparation eller en idé du ikke ved om kan lade sig gøre — så vender vi tilbage med en pris og hvor lang tid det tager.",
     "eyebrow": "Spørg",
     "headingLead": "Fortæl os",
-    "headingAccent": "hvad du har i tankerne",
-    "intro": "Vi vender tilbage med en pris og hvor lang tid det tager. Det er ikke en booking endnu.",
+    "headingAccent": "hvad vi kan hjælpe med",
+    "intro": "Fest, bryllup eller ferie, og du vil have noget ekstravagant? Et design du har gemt og gerne vil vide om kan lade sig gøre? En negl der er knækket eller sluppet og skal ordnes inden de andre? Eller en form, længde eller farve du gerne vil prøve? Spørg her, så vender vi tilbage med en pris og hvor lang tid det tager, så hurtigt vi kan. Der bookes ikke noget fra denne side.",
     "signInPrompt": "Log ind først, så vi kan svare dig, og du kan se tilbuddet.",
     "signInCta": "Log ind",
     "topicLabel": "Hvad handler det om?",
@@ -424,14 +425,14 @@
     "photoNotConfigured": "Billeder kan ikke uploades lige nu — send din besked, så kontakter vi dig.",
     "photoTooMany": "Det er det maksimale antal billeder.",
     "photoNote": "Referencebilleder ses kun af salonen. Vi offentliggør dem aldrig, og de slettes efter din tid.",
-    "messageLabel": "Er der noget vi skal vide?",
-    "messagePlaceholder": "Jeg vil gerne have det i en støvet rosa — mine negle er ret korte.",
+    "messageLabel": "Hvad har du i tankerne?",
+    "messagePlaceholder": "f.eks. Mandelform, chrome-finish og noget håndmalet på to negle — det er til et bryllup den 12.",
     "windowLabel": "Hvornår passer det dig?",
     "windowOptional": "valgfrit",
-    "windowPlaceholder": "Gerne inden den 20.",
-    "submit": "Send",
+    "windowPlaceholder": "f.eks. Gerne inden den 20.",
+    "submit": "Send forespørgsel",
     "submitting": "Sender…",
-    "replyTime": "Vi svarer typisk inden for en dag.",
+    "replyTime": "Vi vender tilbage så hurtigt vi kan.",
     "sentTitle": "Sendt — tak",
     "sentBody": "Vi har din besked og svarer på e-mail. Du finder den også i Mit rum.",
     "sentCta": "Gå til Mit rum",
@@ -464,7 +465,7 @@
   },
   "designRequests": {
     "sectionTitle": "Dine beskeder",
-    "sectionIntro": "Det du har spurgt os om, og vores svar.",
+    "sectionIntro": "Ét kort pr. samtale. Er der et tilbud, står det øverst på kortet.",
     "empty": "Du har ikke spurgt os om noget endnu.",
     "askCta": "Spørg os",
     "status": {
@@ -493,7 +494,22 @@
     "replyPhotoFailed": "Billedet blev ikke uploadet — prøv et andet.",
     "replyPhotoSlowDown": "Det er mange billeder på kort tid — vent et øjeblik og prøv igen.",
     "replyPhotoUnsupported": "Filtypen understøttes ikke — brug JPG, PNG eller WebP.",
-    "replyNeedsNote": "Skriv en kort besked, så sendes billedet med."
+    "replyNeedsNote": "Skriv en kort besked, så sendes billedet med.",
+    "topic": {
+      "new_design": "Et design",
+      "repair": "En reparation",
+      "other": "Noget andet"
+    },
+    "asked": "Spurgt {date}",
+    "newReply": "Nyt svar",
+    "bannerTitle": "Salonen har svaret",
+    "bannerBody": "Der venter en ny besked på {count, plural, one {en af dine forespørgsler} other {# af dine forespørgsler}}.",
+    "bannerCta": "Læs den",
+    "offerHeading": "Dit tilbud",
+    "offerHolds": "Gælder til {date}",
+    "threadHeading": "Samtale",
+    "closedNote": "Denne samtale er lukket. Start gerne en ny, når du vil.",
+    "photosHeading": "Dine billeder"
   },
   "testimonialForm": {
     "metaTitle": "Sig et par ord – Bella Nails",

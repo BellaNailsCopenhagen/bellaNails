@@ -236,7 +236,8 @@
     "somethingWrongBody": "If a nail has lifted or chipped, send us a photo and we'll come back with a time and a price to put it right.",
     "testimonialInviteTitle": "We'd love a few words",
     "testimonialInviteBody": "A sentence or two about your time at the studio. We read everything before anything appears on the site.",
-    "testimonialInviteCta": "Write a few words"
+    "testimonialInviteCta": "Write a few words",
+    "replyBanner": "{count, plural, =1 {Bella Nails has replied to your message} other {Bella Nails has replied to # of your messages}}"
   },
   "gallery": {
     "metaTitle": "Gallery",
@@ -400,11 +401,11 @@
   },
   "ask": {
     "metaTitle": "Ask us – Bella Nails, Ørestad, Copenhagen",
-    "metaDescription": "Tell us what you have in mind and we'll come back with a price and how long it takes.",
+    "metaDescription": "Tell us what you have in mind — a whole set, a single fix, or an idea you're not sure is possible — and we'll come back with a price and how long it takes.",
     "eyebrow": "Ask",
     "headingLead": "Tell us",
-    "headingAccent": "what you have in mind",
-    "intro": "We'll come back with a price and how long it takes. This isn't a booking yet.",
+    "headingAccent": "how we can help",
+    "intro": "A party, a wedding or a holiday and you want something extravagant? A design you've saved and want to know if it's possible? One nail lifted or broke and needs fixing before the rest? Or a shape, length or colour you'd like to try? Ask here and we'll come back with a price and how long it takes, as soon as we can. Nothing is booked from this page.",
     "signInPrompt": "Sign in first so we can reply to you and you can see the offer.",
     "signInCta": "Sign in",
     "topicLabel": "What's this about?",
@@ -424,14 +425,14 @@
     "photoNotConfigured": "Photo uploads aren't available just yet — send your message and we'll be in touch.",
     "photoTooMany": "That's the maximum number of photos.",
     "photoNote": "Reference photos are only ever seen by the studio. We never publish them, and they're deleted after your appointment.",
-    "messageLabel": "Anything we should know?",
-    "messagePlaceholder": "I'd love this in a dusty rose — my nails are quite short.",
+    "messageLabel": "What do you have in mind?",
+    "messagePlaceholder": "e.g. Almond shape, chrome finish, and something hand-painted on two nails — it's for a wedding on the 12th.",
     "windowLabel": "When would suit you?",
     "windowOptional": "optional",
-    "windowPlaceholder": "Ideally before the 20th",
-    "submit": "Send",
+    "windowPlaceholder": "e.g. Ideally before the 20th",
+    "submit": "Send request",
     "submitting": "Sending…",
-    "replyTime": "We usually reply within a day.",
+    "replyTime": "We'll get back to you as soon as we can.",
     "sentTitle": "Sent — thank you",
     "sentBody": "We have your message and will reply by email. You'll find it in My Space too.",
     "sentCta": "Go to My Space",
@@ -464,7 +465,7 @@
   },
   "designRequests": {
     "sectionTitle": "Your messages",
-    "sectionIntro": "What you've asked us about, and our answers.",
+    "sectionIntro": "One card per conversation. When there's an offer, it's the first thing on the card.",
     "empty": "You haven't asked us anything yet.",
     "askCta": "Ask us",
     "status": {
@@ -493,7 +494,22 @@
     "replyPhotoFailed": "That photo didn't upload — try another.",
     "replyPhotoSlowDown": "That's a lot of photos in a short time — wait a moment and try again.",
     "replyPhotoUnsupported": "That file type isn't supported — use a JPG, PNG or WebP.",
-    "replyNeedsNote": "Add a short note and your photo goes with it."
+    "replyNeedsNote": "Add a short note and your photo goes with it.",
+    "topic": {
+      "new_design": "A design",
+      "repair": "A repair",
+      "other": "Something else"
+    },
+    "asked": "Asked {date}",
+    "newReply": "New reply",
+    "bannerTitle": "The studio has replied",
+    "bannerBody": "There's a new message waiting on {count, plural, one {one of your requests} other {# of your requests}}.",
+    "bannerCta": "Read it",
+    "offerHeading": "Your offer",
+    "offerHolds": "Holds until {date}",
+    "threadHeading": "Conversation",
+    "closedNote": "This conversation is closed. Start a new one whenever you like.",
+    "photosHeading": "Your photos"
   },
   "testimonialForm": {
     "metaTitle": "Say a few words – Bella Nails",

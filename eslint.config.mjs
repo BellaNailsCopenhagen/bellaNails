@@ -14,11 +14,13 @@ const MODULE_BARRELS = [
   "@/modules/booking",
   "@/modules/catalog",
   "@/modules/clients",
+  "@/modules/design",
   "@/modules/identity",
   "@/modules/media",
   "@/modules/notifications",
   "@/modules/studio",
   "@/modules/terms",
+  "@/modules/testimonials",
 ];
 
 const TABLE_ACCESS =

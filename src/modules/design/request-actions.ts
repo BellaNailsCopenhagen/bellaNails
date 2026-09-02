@@ -9,6 +9,7 @@ import {
   deleteDesignRequest,
   getDesignRequest,
   insertDesignRequest,
+  markDesignRequestsSeenForClient,
   updateDesignRequest,
 } from "@/db/design-requests"
 import { getBookingOwner } from "@/db/bookings"
@@ -19,6 +20,7 @@ import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
 import type { EmailResult } from "@/platform/email/client"
 import {
+  sendDesignClientReplyArtistEmail,
   sendDesignReplyEmail,
   sendDesignRequestArtistEmail,
   sendDesignRequestDeclinedEmail,
@@ -28,6 +30,7 @@ import {
   recordCommunication,
   statusFromEmailResult,
 } from "@/modules/notifications/communications"
+import { stampArtistReply } from "@/modules/design/reply-stamp"
 import { notifyOwner } from "@/modules/notifications/notify"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { contactDisplayName } from "@/shared/contact"
@@ -169,7 +172,11 @@ export async function createDesignRequest(
     else console.error("[design] refs not attached to", saved.id, refs.message)
   }
 
-  await notifyOwner(db, { kind: "design_request", clientId: user.id })
+  await notifyOwner(db, {
+    kind: "design_request",
+    clientId: user.id,
+    targetId: saved.id,
+  })
 
   const contact = (await fetchClientContacts([user.id]))[user.id]
   const locale = contact?.communicationLocale ?? "da"
@@ -247,7 +254,23 @@ export async function addDesignMessage(
   })
   if (!wrote.ok) return { ok: false, error: "Couldn’t send that — please try again." }
 
-  await notifyOwner(db, { kind: "design_request", clientId: user.id })
+  await notifyOwner(db, {
+    kind: "design_reply",
+    clientId: user.id,
+    targetId: requestId,
+  })
+
+  // The artist gets an email for a NEW request; a reply on an open thread used
+  // to raise only an in-app dot, so an answered question sat unread until she
+  // happened to open the admin.
+  const contact = (await fetchClientContacts([user.id]))[user.id]
+  await sendDesignClientReplyArtistEmail({
+    requestId,
+    clientName: contactDisplayName(contact),
+    clientEmail: contact?.email ?? null,
+    message,
+  })
+
   revalidatePath(routes.admin.home)
   return { ok: true }
 }
@@ -303,6 +326,8 @@ export async function replyToDesignRequest(
   })
   if (!wrote.ok) return { ok: false, error: "Couldn’t send the reply." }
 
+  await stampArtistReply(db, requestId)
+
   const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
   if (contact?.email) {
     const res = await sendDesignReplyEmail({
@@ -326,13 +351,21 @@ export async function replyToDesignRequest(
   return { ok: true }
 }
 
-/** The artist closes a request the studio isn't taking on. */
+/**
+ * The artist closes a thread the studio isn't taking on. The reason is
+ * REQUIRED and posted into the thread as an ordinary artist message: a closed
+ * conversation the client can't reply to has to say why, in the same place they
+ * read everything else — the email alone leaves My Space silently dead.
+ */
 export async function declineDesignRequest(
   requestId: string,
-  reason?: string,
+  reason: string,
 ): Promise<DesignActionResult> {
   const db = await requireOwner()
   if (!db) return { ok: false, error: "Not authorized." }
+
+  const trimmed = reason.trim().slice(0, MAX_MESSAGE_LENGTH)
+  if (!trimmed) return { ok: false, error: "Say why you're closing it." }
 
   const request = await getDesignRequest(db, requestId)
   if (!request) return { ok: false, error: "Request not found." }
@@ -351,13 +384,22 @@ export async function declineDesignRequest(
     }
   }
 
-  const trimmed = reason?.trim() || null
   const closed = await updateDesignRequest(db, requestId, {
     status: "declined",
     decline_reason: trimmed,
     closed_at: new Date().toISOString(),
   })
   if (!closed.ok) return { ok: false, error: "Couldn’t close it — please try again." }
+
+  // Same reason, in the thread — closing is the one message the client can't
+  // ask a follow-up about, so it must be readable where the rest of it is.
+  const posted = await insertDesignMessage(db, {
+    request_id: requestId,
+    author: "artist",
+    body: trimmed,
+  })
+  if (!posted.ok) console.error("[design] close reason not posted:", posted.message)
+  await stampArtistReply(db, requestId)
 
   const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
   if (contact?.email) {
@@ -380,4 +422,24 @@ export async function declineDesignRequest(
 
   revalidatePath(routes.admin.home)
   return { ok: true }
+}
+
+/**
+ * The client has read their threads. One write for the whole page — a
+ * thread-by-thread marker would mean N updates for a single glance.
+ *
+ * `seenAt` is the newest answer the page actually RENDERED, not "now": an
+ * answer that arrives between the render and this call has not been read, and
+ * stamping the clock would bury it unseen.
+ */
+export async function markDesignThreadsSeen(
+  seenAt: string,
+): Promise<DesignActionResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "Please sign in first." }
+  if (Number.isNaN(Date.parse(seenAt))) return { ok: false, error: "Bad timestamp." }
+
+  const db = createSupabaseServiceRoleClient()
+  const saved = await markDesignRequestsSeenForClient(db, user.id, seenAt)
+  return saved.ok ? { ok: true } : { ok: false, error: "Couldn’t update that." }
 }

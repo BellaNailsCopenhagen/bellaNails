@@ -158,7 +158,11 @@ export async function submitTestimonial(input: {
   })
   if (!saved.ok) return { ok: false, error: "This invitation has already been used." }
 
-  await notifyOwner(db, { kind: "testimonial_submitted", clientId: row.client_id })
+  await notifyOwner(db, {
+    kind: "testimonial_submitted",
+    clientId: row.client_id,
+    targetId: id,
+  })
   revalidatePath(routes.admin.testimonials)
   revalidatePath(routes.admin.home)
   return { ok: true }

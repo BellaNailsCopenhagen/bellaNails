@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import {
   deleteNotification,
+  deleteReadNotifications,
   markAllRead,
   setNotificationRead as setNotificationReadRow,
 } from "@/db/owner-notifications"
@@ -39,6 +40,19 @@ export async function setNotificationRead(
 
   const saved = await setNotificationReadRow(supabase, id, read)
   if (!saved.ok) return { ok: false, error: "Couldn’t update the notification." }
+
+  revalidateNotifications()
+  return { ok: true }
+}
+
+/** Clear the read pile. Tapping a notification marks it read, so this is how
+    the feed empties itself once everything has been looked at. */
+export async function clearReadNotifications(): Promise<NotificationActionResult> {
+  const supabase = await requireOwner()
+  if (!supabase) return { ok: false, error: "unauthorized" }
+
+  const cleared = await deleteReadNotifications(supabase)
+  if (!cleared.ok) return { ok: false, error: "Couldn’t clear those." }
 
   revalidateNotifications()
   return { ok: true }

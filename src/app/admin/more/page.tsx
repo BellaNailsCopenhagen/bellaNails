@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import {
+  AlignLeft,
   ArrowUpRight,
   BarChart3,
   Bell,
-  CalendarDays,
   CalendarRange,
   ChevronRight,
   Clock,
@@ -35,8 +35,9 @@ type MoreItem = {
   soon?: boolean
 }
 
-// The hub for everything that isn't a primary tab. Gallery + insights are
-// planned (Tasks 04, 10).
+// The hub for everything that isn't a primary tab. Agenda graduated to the tab
+// bar and Services took its place here — Services is edited every few weeks,
+// the schedule several times a day.
 const ITEMS: MoreItem[] = [
   {
     label: "Notifications",
@@ -51,16 +52,16 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.home,
   },
   {
-    label: "Agenda",
-    description: "The full week-by-week upcoming schedule",
-    icon: CalendarDays,
-    href: routes.admin.agenda,
-  },
-  {
     label: "Appointments",
     description: "Full history, filters, and past bookings",
     icon: CalendarRange,
     href: routes.admin.appointments,
+  },
+  {
+    label: "Services",
+    description: "The menu, its prices, and what each one includes",
+    icon: AlignLeft,
+    href: routes.admin.services,
   },
   {
     label: "Shared assets",

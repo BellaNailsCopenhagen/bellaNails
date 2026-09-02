@@ -94,6 +94,13 @@ export default async function BookingsPage({
     profile = space.profile
   }
 
+  // A live offer or an unread answer both want the client in here; a thread
+  // with both is still one thing to look at, so count threads, not signals.
+  const unreadReplies = designRequests.filter((r) => r.hasUnreadReply).length
+  const designNeedingAttention = designRequests.filter(
+    (r) => r.offer?.state === "live" || r.hasUnreadReply,
+  ).length
+
   const tabParam = singleParam(query.tab)
   const defaultTab: BookingsTabKey =
     tabParam === "gallery" ||
@@ -116,10 +123,9 @@ export default async function BookingsPage({
             defaultTab={defaultTab}
             galleryCount={media.length}
             requestCount={
-              requestCount +
-              designRequests.filter((r) => r.offer?.state === "live").length +
-              (testimonialInvite ? 1 : 0)
+              requestCount + designNeedingAttention + (testimonialInvite ? 1 : 0)
             }
+            unreadReplies={unreadReplies}
             bookings={
               <MyBookings
                 notice={singleParam(query.notice) ?? null}

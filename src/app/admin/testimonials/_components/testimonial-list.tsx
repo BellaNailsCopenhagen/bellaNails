@@ -114,7 +114,7 @@ function WrittenCard({
   const closedNote = CLOSED_NOTE[item.state]
 
   return (
-    <TintedCard className="space-y-3">
+    <TintedCard id={`testimonial-${item.id}`} className="scroll-mt-24 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-0.5">
           <BodySm className="text-base text-foreground">

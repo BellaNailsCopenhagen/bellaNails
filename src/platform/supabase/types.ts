@@ -326,10 +326,12 @@ export type Database = {
           answered_at: string | null
           booking_id: string | null
           client_id: string
+          client_seen_at: string | null
           closed_at: string | null
           created_at: string
           decline_reason: string | null
           id: string
+          last_artist_reply_at: string | null
           preferred_window: string | null
           service_id: string | null
           status: string
@@ -339,10 +341,12 @@ export type Database = {
           answered_at?: string | null
           booking_id?: string | null
           client_id: string
+          client_seen_at?: string | null
           closed_at?: string | null
           created_at?: string
           decline_reason?: string | null
           id?: string
+          last_artist_reply_at?: string | null
           preferred_window?: string | null
           service_id?: string | null
           status?: string
@@ -352,10 +356,12 @@ export type Database = {
           answered_at?: string | null
           booking_id?: string | null
           client_id?: string
+          client_seen_at?: string | null
           closed_at?: string | null
           created_at?: string
           decline_reason?: string | null
           id?: string
+          last_artist_reply_at?: string | null
           preferred_window?: string | null
           service_id?: string | null
           status?: string
@@ -584,6 +590,7 @@ export type Database = {
           kind: string
           purpose: string | null
           read_at: string | null
+          target_id: string | null
         }
         Insert: {
           client_media_id?: string | null
@@ -593,6 +600,7 @@ export type Database = {
           kind: string
           purpose?: string | null
           read_at?: string | null
+          target_id?: string | null
         }
         Update: {
           client_media_id?: string | null
@@ -602,6 +610,7 @@ export type Database = {
           kind?: string
           purpose?: string | null
           read_at?: string | null
+          target_id?: string | null
         }
         Relationships: []
       }

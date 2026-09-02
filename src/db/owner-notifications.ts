@@ -1,11 +1,18 @@
 import type { Db, Row } from "./client"
 
 /** `owner_notifications` — the studio's own inbox. `read_at` null means unread;
-    there is no per-item read, only "mark all read". */
+    `target_id` is the row the alert is ABOUT, so tapping it lands on the item. */
 
 export type NotificationRow = Pick<
   Row<"owner_notifications">,
-  "id" | "kind" | "client_id" | "client_media_id" | "purpose" | "created_at" | "read_at"
+  | "id"
+  | "kind"
+  | "client_id"
+  | "client_media_id"
+  | "target_id"
+  | "purpose"
+  | "created_at"
+  | "read_at"
 >
 
 export async function countUnread(db: Db): Promise<number> {
@@ -23,7 +30,7 @@ export async function listNotifications(
 ): Promise<NotificationRow[]> {
   const { data, error } = await db
     .from("owner_notifications")
-    .select("id, kind, client_id, client_media_id, purpose, created_at, read_at")
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(limit)
   if (error) return []
@@ -36,10 +43,12 @@ export async function insertNotification(
     kind: string
     client_id: string
     client_media_id: string | null
+    target_id: string | null
     purpose: string | null
   },
-): Promise<void> {
-  await db.from("owner_notifications").insert(values)
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db.from("owner_notifications").insert(values)
+  return error ? { ok: false, message: error.message } : { ok: true }
 }
 
 export async function markAllRead(db: Db): Promise<{ ok: boolean }> {
@@ -60,6 +69,17 @@ export async function setNotificationRead(
     .from("owner_notifications")
     .update({ read_at: read ? new Date().toISOString() : null })
     .eq("id", id)
+  return { ok: !error }
+}
+
+/** Delete EVERY read notification, not just the page's first 50 — the caller
+    must say so and confirm. The feed is a to-do list, not history (that lives
+    in `communications`). */
+export async function deleteReadNotifications(db: Db): Promise<{ ok: boolean }> {
+  const { error } = await db
+    .from("owner_notifications")
+    .delete()
+    .not("read_at", "is", null)
   return { ok: !error }
 }
 

@@ -129,7 +129,11 @@ export async function createBookingRequest(
 
   const locale = resolveLocale(input.locale)
   // In-app alert for the artist (best-effort). Push lands with Feature C.
-  await notifyOwner(db, { kind: "booking_request", clientId })
+  await notifyOwner(db, {
+    kind: "booking_request",
+    clientId,
+    targetId: saved.id,
+  })
 
   const { serviceName, addonNames } = localizedBookingNames(
     metaOf({ selected_addons: draft.values.selected_addons }),

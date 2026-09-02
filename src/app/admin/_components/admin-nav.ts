@@ -1,5 +1,5 @@
 import {
-  AlignLeft,
+  CalendarDays,
   Home,
   MoreHorizontal,
   Plus,
@@ -10,15 +10,15 @@ import {
 import { routes } from "@/shared/routes"
 
 /**
- * Admin tab bar. Per the design's rendered bottom bar, **New is the centered
- * action** (slot 3 of 5), so the visual order is Queue · Clients · New ·
- * Services · More (the brief lists New 2nd by *priority*, but it renders
- * centered). Only Queue (the dashboard at /admin) is live in Task 01; the rest
- * route to in-shell "coming soon" placeholders that later tasks fill in.
+ * Admin tab bar. **New is the centered action** (slot 3 of 5), so the visual
+ * order is Today · Clients · New · Agenda · More.
  *
- * Icons match the design mock (Queue = list, Clients = single person, New =
- * plus, Services = lines, More = dots). The admin is English-only and not
- * locale-prefixed, so these are plain absolute paths used with `next/link`.
+ * Slot 4 is the schedule, not the catalog: the artist looks at what is coming
+ * up several times a day and edits a service every few weeks — Services moved
+ * to More, where the rest of the infrequent settings live.
+ *
+ * The admin is English-only and not locale-prefixed, so these are plain
+ * absolute paths used with `next/link`.
  */
 export type AdminTab = {
   href: string
@@ -32,7 +32,7 @@ export const adminTabs: AdminTab[] = [
   { href: routes.admin.home, label: "Today", icon: Home },
   { href: routes.admin.clients, label: "Clients", icon: User },
   { href: routes.admin.newBooking(), label: "New", icon: Plus, primary: true },
-  { href: routes.admin.services, label: "Services", icon: AlignLeft },
+  { href: routes.admin.agenda, label: "Agenda", icon: CalendarDays },
   { href: routes.admin.more, label: "More", icon: MoreHorizontal },
 ]
 

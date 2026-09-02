@@ -242,6 +242,29 @@ export function QueueBookingCard({
         </div>
       </div>
 
+      {/* Artist notes (admin only) sit WITH the booking data — they inform the
+          appointment, and the card's footer is already full of actions. The
+          client's notes are read-only here; they are edited on the client page. */}
+      {booking.notes && row.client_id ? (
+        <div className="space-y-4 border-t border-border pt-5">
+          {booking.notes.client.length ? (
+            <NoteFeed
+              title="Client notes"
+              notes={booking.notes.client}
+              clientId={row.client_id}
+            />
+          ) : null}
+          <NoteFeed
+            title="Booking notes"
+            notes={booking.notes.booking}
+            clientId={row.client_id}
+            bookingId={row.id}
+            editable
+            emptyLabel="No notes on this booking yet."
+          />
+        </div>
+      ) : null}
+
       {/* Media-release state — visible even before the appointment (e.g. a
           confirmation pre-approval); granted vs still-pending per purpose. */}
       {shownReleases.length ? (
@@ -337,28 +360,6 @@ export function QueueBookingCard({
             canMedia={canRequestMedia}
             mediaAlreadyRequested={mediaAlreadyRequested}
             canReview={canRequestReviewNow}
-          />
-        </div>
-      ) : null}
-
-      {/* Artist notes (admin only): the client's notes (read-only here — edited on
-          the client page) + this booking's notes (added/edited inline). */}
-      {booking.notes && row.client_id ? (
-        <div className="space-y-4 border-t border-border pt-3">
-          {booking.notes.client.length ? (
-            <NoteFeed
-              title="Client notes"
-              notes={booking.notes.client}
-              clientId={row.client_id}
-            />
-          ) : null}
-          <NoteFeed
-            title="Booking notes"
-            notes={booking.notes.booking}
-            clientId={row.client_id}
-            bookingId={row.id}
-            editable
-            emptyLabel="No notes on this booking yet."
           />
         </div>
       ) : null}

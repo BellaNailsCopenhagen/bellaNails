@@ -89,6 +89,60 @@ export async function countActionableDesignRequestsForClient(
   return count ?? 0
 }
 
+/** Rows a client might have an unread studio answer on — the two timestamps
+    only, so the caller can compare them (PostgREST can't compare two columns).
+    Client-safe: the browser banner runs this under RLS. */
+export async function listDesignReplyMarkersForClient(
+  db: Db,
+  clientId: string,
+): Promise<{ client_seen_at: string | null; last_artist_reply_at: string }[]> {
+  const { data } = await db
+    .from("design_requests")
+    .select("client_seen_at, last_artist_reply_at")
+    .eq("client_id", clientId)
+    .not("last_artist_reply_at", "is", null)
+  // The `not is null` filter is what makes the non-null assertion sound.
+  return (data ?? []).map((row) => ({
+    client_seen_at: row.client_seen_at,
+    last_artist_reply_at: row.last_artist_reply_at as string,
+  }))
+}
+
+/** Stamp "the studio answered" on a thread — a reply, a close, or an offer.
+    Denormalised so the unread check is one read of one table. */
+export async function touchArtistReply(
+  db: Db,
+  id: string,
+  at: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db
+    .from("design_requests")
+    .update({ last_artist_reply_at: at })
+    .eq("id", id)
+  return error ? { ok: false, message: error.message } : { ok: true }
+}
+
+/**
+ * The client has read everything the studio had written as of `seenAt`.
+ *
+ * Bounded by `seenAt` on BOTH sides: only threads whose latest answer is at or
+ * before it are marked, so a reply that landed while the page was open is not
+ * silently marked read along with the ones actually rendered.
+ * Scoped to their own rows; the artist's unread lives in owner_notifications.
+ */
+export async function markDesignRequestsSeenForClient(
+  db: Db,
+  clientId: string,
+  seenAt: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db
+    .from("design_requests")
+    .update({ client_seen_at: seenAt })
+    .eq("client_id", clientId)
+    .lte("last_artist_reply_at", seenAt)
+  return error ? { ok: false, message: error.message } : { ok: true }
+}
+
 /** Roll back a request whose opening message failed to save — a request with an
     empty thread is a dead card in the queue. */
 export async function deleteDesignRequest(

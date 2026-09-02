@@ -14,11 +14,9 @@ import { BodySm, Eyebrow } from "@/components/ui/typography"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { SlotPicker } from "@/components/booking/slot-picker"
 import { cardActionNeutral } from "@/components/admin/card-action"
+import { CloseRequestButton } from "@/components/admin/close-request-button"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import {
-  declineDesignRequest,
-  replyToDesignRequest,
-} from "@/modules/design/request-actions"
+import { replyToDesignRequest } from "@/modules/design/request-actions"
 import {
   bookOfferAsOwner,
   createOffer,
@@ -87,7 +85,7 @@ export function DesignRequestCard({
   const lapsed = request.offer && request.offer.state !== "live"
 
   return (
-    <TintedCard id={`design-${request.id}`} className="space-y-4">
+    <TintedCard id={`design-${request.id}`} className="scroll-mt-24 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -95,12 +93,26 @@ export function DesignRequestCard({
             <Badge variant={request.topic === "repair" ? "warning" : "outline"} size="xs">
               {TOPIC_LABEL[request.topic] ?? request.topic}
             </Badge>
+            {/* The client had the last word — this one is on her. */}
+            {request.awaitingArtist ? (
+              <Badge variant="warning" size="xs">
+                Needs a reply
+              </Badge>
+            ) : null}
           </div>
           {request.preferredWindow ? (
             <BodySm className="text-xs text-muted-foreground">
               Wants it: {request.preferredWindow}
             </BodySm>
           ) : null}
+          {/* The queue is sorted by this, so show what it sorted on. */}
+          <BodySm className="text-xs text-muted-foreground">
+            Last activity{" "}
+            {formatStudioDayMonthYear(
+              Date.parse(request.lastActivityAt),
+              ADMIN_LOCALE,
+            )}
+          </BodySm>
         </div>
         <div className="flex items-center gap-3">
           {contact?.email ? (
@@ -155,52 +167,64 @@ export function DesignRequestCard({
           <BodySm className="text-xs text-muted-foreground">
             Holds until {formatStudioDayMonthYear(Date.parse(offer.expiresAt), ADMIN_LOCALE)}
           </BodySm>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setBookOpen(true)}>
-              Book it for them
-            </Button>
-            <button
-              type="button"
-              className={cardActionNeutral()}
-              onClick={() => setReplyOpen(true)}
-            >
-              Reply
-            </button>
-            <button
-              type="button"
-              className={cardActionNeutral()}
-              disabled={pending}
-              onClick={() => run(() => withdrawOffer(offer.id))}
-            >
-              Withdraw
-            </button>
+          {/* Taking-away actions left, going-forward actions right, primary
+              last — the three used to sit shoulder to shoulder, one tap apart. */}
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <CloseRequestButton
+                requestId={request.id}
+                clientName={clientName}
+                hasLiveOffer
+              />
+              <button
+                type="button"
+                className={cardActionNeutral()}
+                disabled={pending}
+                onClick={() => run(() => withdrawOffer(offer.id))}
+              >
+                Withdraw offer
+              </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <button
+                type="button"
+                className={cardActionNeutral()}
+                onClick={() => setReplyOpen(true)}
+              >
+                Reply
+              </button>
+              <Button size="sm" onClick={() => setBookOpen(true)}>
+                Book it in
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-2 border-t border-border pt-3">
+        <div className="space-y-3 border-t border-border pt-3">
           {lapsed ? (
-            <BodySm className="w-full text-xs text-muted-foreground">
+            <BodySm className="text-xs text-muted-foreground">
               The previous offer {request.offer?.state === "used" ? "was booked" : "lapsed"}.
             </BodySm>
           ) : null}
-          <Button size="sm" onClick={() => setOfferOpen(true)}>
-            Make an offer
-          </Button>
-          <button
-            type="button"
-            className={cardActionNeutral()}
-            onClick={() => setReplyOpen(true)}
-          >
-            Reply
-          </button>
-          <button
-            type="button"
-            className={cardActionNeutral()}
-            disabled={pending}
-            onClick={() => run(() => declineDesignRequest(request.id))}
-          >
-            Close
-          </button>
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+            <CloseRequestButton
+              requestId={request.id}
+              clientName={clientName}
+              hasLiveOffer={false}
+            />
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <button
+                type="button"
+                className={cardActionNeutral()}
+                onClick={() => setReplyOpen(true)}
+              >
+                Reply
+              </button>
+              <Button size="sm" onClick={() => setOfferOpen(true)}>
+                Make an offer
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -301,7 +325,7 @@ function OfferForm({
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Repair — single nail rebuild"
+          placeholder="e.g. Almond set, chrome finish, hand-painted detail"
         />
       </div>
 
@@ -341,14 +365,20 @@ function OfferForm({
 
       <div className="space-y-2">
         <label className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground">
-          A note for them (optional)
+          Offer details (optional)
         </label>
         <Textarea
           rows={3}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Easy fix — bring the nail if you kept it."
+          placeholder="e.g. Two sessions' worth of detail in one sitting — I'll prep the art beforehand so we use the whole time on you."
         />
+        {/* It reads like a note, and notes are private everywhere else in the
+            admin — so say plainly that this one is not. */}
+        <BodySm className="text-xs text-muted-foreground">
+          The client reads this in the offer and the email. Private notes belong
+          on the booking or the client.
+        </BodySm>
       </div>
 
       <div className="space-y-2">

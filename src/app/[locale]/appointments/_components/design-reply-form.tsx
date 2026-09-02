@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { BodySm } from "@/components/ui/typography"
 import { usePhotoUpload } from "@/hooks/use-photo-upload"
+import { discardUploadedRef } from "@/modules/design/ref-actions"
 import {
   addDesignMessage,
   addDesignRef,
@@ -53,6 +54,19 @@ export function DesignReplyForm({
   const onFile = async (files: FileList | null) => {
     const key = await take(files)
     if (key) setPhotoKey(key)
+  }
+
+  // Already uploaded, so removing it has to reach the bucket too — otherwise a
+  // photo the client took back sits in storage until the orphan sweep runs.
+  // Refused mid-send: `addDesignRef` may be inserting the row for this very key.
+  const dropPhoto = () => {
+    if (sending) return
+    if (photoKey) {
+      discardUploadedRef(photoKey).catch(() => {
+        /* the orphan sweep is the backstop */
+      })
+    }
+    setPhotoKey(null)
   }
 
   const send = async (event: React.FormEvent) => {
@@ -138,7 +152,8 @@ export function DesignReplyForm({
             </BodySm>
             <button
               type="button"
-              onClick={() => setPhotoKey(null)}
+              disabled={sending}
+              onClick={dropPhoto}
               className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
             >
               {t("replyPhotoRemove")}

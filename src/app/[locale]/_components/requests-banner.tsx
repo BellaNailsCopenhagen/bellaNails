@@ -2,19 +2,25 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
-import { Bell, ChevronRight } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
+import {
+  AttentionBanner,
+  bannerBar,
+} from "@/components/ui/attention-banner"
+import { unreadStudioReplyCount } from "@/modules/design/unread"
 import { pendingRequestCount } from "@/modules/media/consent-requests"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { useSupabaseBrowserClient } from "@/platform/supabase/client"
 import { routes } from "@/config/routes"
 
 /**
- * One banner covering ALL of a client's pending consent requests, at the top of
- * the home page. Client component so the page stays static — signed-out
- * visitors and clients with nothing pending render nothing. Tapping opens the
- * Requests tab on /bookings.
+ * What is waiting for a client, at the top of the home page: pending consent
+ * requests, and threads the studio has answered since they last looked. Two
+ * lines rather than one sum — "a request for you" and "we've replied" ask for
+ * different things, and merging them would mislabel both.
+ *
+ * Client component so the page stays static — signed-out visitors and clients
+ * with nothing waiting render nothing. Tapping opens the Requests tab.
  */
 export function RequestsBanner() {
   const { clientId } = useCurrentUser()
@@ -26,20 +32,35 @@ export function RequestsBanner() {
     queryFn: () => pendingRequestCount(supabase, clientId!),
     enabled: Boolean(clientId),
   })
+  const { data: replies = 0 } = useQuery({
+    queryKey: ["unread-design-replies", clientId],
+    queryFn: () => unreadStudioReplyCount(supabase, clientId!),
+    enabled: Boolean(clientId),
+  })
 
-  if (!clientId || count <= 0) return null
+  if (!clientId) return null
+
+  const href = { pathname: routes.appointments, query: { tab: "requests" } }
+  const tap = t("requestBannerTap")
 
   return (
-    <Link
-      href={{ pathname: routes.appointments, query: { tab: "requests" } }}
-      className="flex items-center gap-3 border-b border-border bg-secondary/10 px-6 py-3 font-functional text-sm text-foreground transition-colors hover:bg-secondary/20"
-    >
-      <Bell className="size-4 shrink-0 text-secondary" />
-      <span className="min-w-0 flex-1">
-        {t("requestBanner", { count })}
-        <span className="text-muted-foreground"> — {t("requestBannerTap")}</span>
-      </span>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
+    <>
+      {replies > 0 ? (
+        <AttentionBanner
+          href={href}
+          className={bannerBar}
+          text={t("replyBanner", { count: replies })}
+          tap={tap}
+        />
+      ) : null}
+      {count > 0 ? (
+        <AttentionBanner
+          href={href}
+          className={bannerBar}
+          text={t("requestBanner", { count })}
+          tap={tap}
+        />
+      ) : null}
+    </>
   )
 }

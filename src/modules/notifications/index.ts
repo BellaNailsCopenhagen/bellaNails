@@ -9,6 +9,7 @@ export {
   markAllNotificationsRead,
   setNotificationRead,
   dismissNotification,
+  clearReadNotifications,
 } from "./actions"
 export {
   sendBookingConfirmationEmail,

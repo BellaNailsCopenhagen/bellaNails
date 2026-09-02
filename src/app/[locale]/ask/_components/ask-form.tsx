@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
 import { usePhotoUpload } from "@/hooks/use-photo-upload"
+import { discardUploadedRef } from "@/modules/design/ref-actions"
 import { createDesignRequest } from "@/modules/design/request-actions"
 import {
   DESIGN_TOPICS,
@@ -75,14 +76,21 @@ export function AskForm({
     setPhotos((prev) => [...prev, { key, previewUrl }])
   }
 
-  // Drops it from this submit only — the object is already in the bucket, and
-  // is cleaned up by the orphan sweep (modules/design/refs.ts) once it ages out.
-  const removePhoto = (key: string) =>
+  // Removing means removing: the object is already in the bucket, so it is
+  // deleted now rather than left for the orphan sweep to find days later. The
+  // UI drops it either way — a failed delete is the sweep's problem, not the
+  // client's. Refused mid-submit: the key is already on its way to a row.
+  const removePhoto = (key: string) => {
+    if (sending) return
     setPhotos((prev) => {
       const gone = prev.find((p) => p.key === key)
       if (gone) URL.revokeObjectURL(gone.previewUrl)
       return prev.filter((p) => p.key !== key)
     })
+    discardUploadedRef(key).catch(() => {
+      /* the orphan sweep is the backstop */
+    })
+  }
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -180,6 +188,7 @@ export function AskForm({
                 <button
                   type="button"
                   aria-label={t("removePhoto")}
+                  disabled={sending}
                   onClick={() => removePhoto(photo.key)}
                   className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-border bg-background text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >

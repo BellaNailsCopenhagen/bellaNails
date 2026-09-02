@@ -46,6 +46,23 @@ export const asDesignStatus = (value: string): DesignStatus =>
 export const asDesignTopic = (value: string): DesignTopic =>
   isDesignTopic(value) ? value : "other"
 
+/**
+ * Has the studio answered since the client last opened their threads? A
+ * never-seen thread counts as unread the moment there is anything to read.
+ *
+ * Lives here because two surfaces ask it — the My Space card (server) and the
+ * home banner (browser) — and a rule that disagrees with itself would have one
+ * of them counting a thread the other renders as read.
+ */
+export function isDesignThreadUnread(
+  seenAt: string | null,
+  lastArtistReplyAt: string | null,
+): boolean {
+  if (!lastArtistReplyAt) return false
+  if (!seenAt) return true
+  return Date.parse(lastArtistReplyAt) > Date.parse(seenAt)
+}
+
 // Caps. Sign-in already gates who can write in; these bound what one person can
 // pile up, and keep the artist's queue and the storage bill predictable.
 export const MAX_OPEN_REQUESTS_PER_CLIENT = 3

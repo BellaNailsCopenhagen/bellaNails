@@ -1,7 +1,7 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
 import {
   buttonHtml,
   esc,
@@ -19,6 +19,7 @@ import { formatStudioDayMonthYear } from "@/shared/studio-time"
  * never misled about what they have:
  *
  *   received  — "we have your message" (explicitly NOT a booking)
+ *   replied   — the client wrote back, so the artist is emailed too
  *   reply     — the artist wrote back with a question, still no offer
  *   offer     — a price and a length, with the link that books it
  *   declined  — closed, kindly
@@ -116,6 +117,39 @@ export async function sendDesignRequestArtistEmail(d: {
       "A client has written in",
       "",
       ...rows.map(([l, v]) => `${l}: ${v}`),
+      "",
+      `"${d.message}"`,
+      ...(reviewUrl ? ["", reviewUrl] : []),
+    ]),
+  })
+}
+
+// ─────────────────────────────────────────────── artist alert: they wrote back
+export async function sendDesignClientReplyArtistEmail(d: {
+  requestId: string
+  clientName: string
+  clientEmail: string | null
+  message: string
+}): Promise<EmailResult> {
+  const reviewUrl = ADMIN_URL ? `${ADMIN_URL}#design-${d.requestId}` : null
+
+  return send({
+    to: STUDIO_EMAIL,
+    replyTo: d.clientEmail ?? undefined,
+    subject: `Reply on a design request — ${d.clientName}`,
+    html: shell({
+      eyebrow: "Needs you",
+      heading: `${d.clientName} wrote back`,
+      greeting: "",
+      bodyHtml: `${quote(d.message)}${
+        reviewUrl
+          ? `<p style="margin:16px 0 0;"><a href="${esc(reviewUrl)}" style="color:${BRAND.cta};">Open the thread →</a></p>`
+          : para("Open it in the admin — the thread is on your home screen.")
+      }`,
+    }),
+    text: lines([
+      STUDIO_NAME,
+      `${d.clientName} wrote back`,
       "",
       `"${d.message}"`,
       ...(reviewUrl ? ["", reviewUrl] : []),
@@ -282,7 +316,11 @@ function rowsHtml(rows: [string, string][]): string {
 const lines = (parts: string[]) => parts.join("\n")
 
 /** One send path, so every design email gets the same from/reply-to treatment
-    and the same swallow-and-report failure contract. */
+    and the same swallow-and-report failure contract.
+
+    Sends as STUDIO_EMAIL, not the `bookings@` alias: these are a conversation,
+    and a reply arriving from a booking robot reads as the wrong sender. It is
+    also the mailbox SMTP authenticates as, so it needs no send-as alias. */
 async function send(msg: {
   to: string
   subject: string
@@ -292,7 +330,7 @@ async function send(msg: {
 }): Promise<EmailResult> {
   try {
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
+      from: STUDIO_EMAIL,
       replyTo: msg.replyTo ?? STUDIO_EMAIL,
       to: msg.to,
       subject: msg.subject,

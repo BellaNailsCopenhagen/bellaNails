@@ -18,6 +18,7 @@ import { resolveLocale } from "@/i18n/routing"
 import { buildBookingDraft } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
 import { offerUrlFor } from "@/modules/design/offer-token"
+import { stampArtistReply } from "@/modules/design/reply-stamp"
 import { verifyOfferToken } from "@/modules/design/offer-token"
 import { fetchClientContacts } from "@/modules/clients"
 import { getCurrentUser } from "@/modules/identity/server"
@@ -124,9 +125,10 @@ export async function createOffer(
     }
   }
 
+  const answeredAt = new Date().toISOString()
   const marked = await updateDesignRequest(db, request.id, {
     status: "offered",
-    answered_at: new Date().toISOString(),
+    answered_at: answeredAt,
   })
   // The offer row is the source of truth; status only drives the queue. Log a
   // failed flip rather than failing the send — but log it, because a request
@@ -134,6 +136,9 @@ export async function createOffer(
   if (!marked.ok) {
     console.error(`[design] offer ${saved.id} sent but request ${request.id} not marked offered:`, marked.message)
   }
+  // An offer IS the studio answering, so it raises the client's banner too.
+  // Its own write, so a missed stamp costs a banner and not the status flip.
+  await stampArtistReply(db, request.id, answeredAt)
 
   const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
   if (contact?.email) {

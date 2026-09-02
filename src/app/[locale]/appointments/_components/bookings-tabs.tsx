@@ -4,6 +4,10 @@ import { useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 import { Settings } from "lucide-react"
 
+import {
+  AttentionBanner,
+  bannerCard,
+} from "@/components/ui/attention-banner"
 import { TabBar, tabTriggerClassName } from "@/components/ui/tab-bar"
 import { cn } from "@/shared/cn"
 
@@ -12,13 +16,18 @@ export type BookingsTabKey = "bookings" | "gallery" | "requests" | "settings"
 /**
  * My Space tabs: Appointments · Gallery · Requests, with a settings gear pinned
  * to the far right for account settings. Each panel is server-rendered and
- * passed in as a slot; this only switches which shows. Initial tab comes from
- * `?tab=` (the home banner deep-links to Requests).
+ * passed in as a slot; this only switches which shows. The initial tab comes
+ * from `?tab=` (the home banner deep-links to Requests).
+ *
+ * The "studio has replied" banner lives here rather than on the page above it
+ * so it can call `setTab` — as a link to the page you are already on it was a
+ * no-op whenever the URL already carried `?tab=requests`.
  */
 export function BookingsTabs({
   defaultTab,
   galleryCount,
   requestCount,
+  unreadReplies,
   bookings,
   gallery,
   requests,
@@ -27,16 +36,28 @@ export function BookingsTabs({
   defaultTab: BookingsTabKey
   galleryCount: number
   requestCount: number
+  /** Threads the studio has answered since the client last looked. */
+  unreadReplies: number
   bookings: ReactNode
   gallery: ReactNode
   requests: ReactNode
   settings: ReactNode
 }) {
   const t = useTranslations("bookings")
+  const tDesign = useTranslations("designRequests")
   const [tab, setTab] = useState<BookingsTabKey>(defaultTab)
 
   return (
     <div className="space-y-6">
+      {unreadReplies > 0 && tab !== "requests" ? (
+        <AttentionBanner
+          onClick={() => setTab("requests")}
+          className={bannerCard}
+          text={tDesign("bannerTitle")}
+          tap={tDesign("bannerCta")}
+        />
+      ) : null}
+
       <TabBar
         tabs={[
           { value: "bookings", label: t("tabBookings") },

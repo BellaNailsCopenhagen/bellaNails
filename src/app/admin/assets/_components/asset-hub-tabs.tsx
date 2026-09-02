@@ -7,6 +7,7 @@ import { TabBar } from "@/components/ui/tab-bar"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { flashHighlight } from "@/components/admin/highlight-target"
 import { HubAssetCard } from "@/components/admin/hub-asset-card"
 import { GalleryBulkSheet } from "@/app/admin/assets/_components/gallery-bulk-sheet"
 import { FavouritesToggle } from "@/app/admin/assets/_components/favourites-toggle"
@@ -60,17 +61,11 @@ export function AssetHubTabs({
       (!favoritesOnly || a.favorited),
   )
 
+  // Re-runs on a filter change too: the target only exists once the tab it
+  // lives on is the one being rendered.
   useEffect(() => {
     if (!highlight) return
-    const el = document.getElementById(`media-${highlight}`)
-    if (!el) return
-    el.scrollIntoView({ behavior: "smooth", block: "center" })
-    el.classList.add("ring-2", "ring-foreground", "ring-offset-2")
-    const timer = setTimeout(
-      () => el.classList.remove("ring-2", "ring-foreground", "ring-offset-2"),
-      2200,
-    )
-    return () => clearTimeout(timer)
+    return flashHighlight(`media-${highlight}`)
   }, [highlight, tab, favoritesOnly])
 
   const tabs = [

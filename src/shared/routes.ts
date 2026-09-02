@@ -31,6 +31,11 @@ const adminNewQuery = (q?: {
 export const routes = {
   admin: {
     home: "/admin",
+    /** The home queue, scrolled to one thread / booking request. A `?focus=`
+        param, not a `#hash`: /admin is dynamic, so the anchor doesn't exist yet
+        when the browser looks for it. */
+    homeFocus: (elementId: string) =>
+      `/admin?focus=${encodeURIComponent(elementId)}`,
     agenda: "/admin/agenda",
     appointments: "/admin/appointments",
     hours: "/admin/hours",
@@ -38,6 +43,8 @@ export const routes = {
     more: "/admin/more",
     terms: "/admin/terms",
     testimonials: "/admin/testimonials",
+    testimonialFocus: (id: string) =>
+      `/admin/testimonials?focus=${encodeURIComponent(`testimonial-${id}`)}`,
     notifications: "/admin/notifications",
     assets: "/admin/assets",
     assetHighlight: (id: string) => `/admin/assets?highlight=${id}`,

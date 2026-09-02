@@ -27,6 +27,7 @@ import { offerState, type OfferState } from "@/shared/offer"
 import {
   asDesignStatus,
   asDesignTopic,
+  isDesignThreadUnread,
   type DesignStatus,
   type DesignTopic,
 } from "@/shared/design"
@@ -72,6 +73,15 @@ export type DesignRequestView = {
   refs: DesignRefView[]
   /** How many refs actually exist. Never derive the cap from `refs.length`. */
   refCount: number
+  /** An artist message the client hasn't opened My Space since. Client-side
+      only — the artist's unread state lives in owner_notifications. */
+  hasUnreadReply: boolean
+  /** When the studio last answered. Null until it has. */
+  lastArtistReplyAt: string | null
+  /** Newest thing that happened on this thread, whichever side did it. */
+  lastActivityAt: string
+  /** The last word is the client's — the thread is waiting on the artist. */
+  awaitingArtist: boolean
   offer: DesignOfferView | null
 }
 
@@ -128,6 +138,22 @@ function groupMessages(rows: DesignMessageRow[]): Map<string, DesignMessageView[
   return byRequest
 }
 
+/**
+ * The newest thing that happened, so the queue can lead with it. An offer posts
+ * no message, hence `last_artist_reply_at` in the mix; the request's own
+ * creation is the floor.
+ */
+function lastActivityOf(
+  row: DesignRequestRow,
+  messages: DesignMessageView[],
+): string {
+  const candidates = [row.created_at, row.last_artist_reply_at, messages.at(-1)?.createdAt]
+  return candidates.reduce<string>(
+    (latest, at) => (at && Date.parse(at) > Date.parse(latest) ? at : latest),
+    row.created_at,
+  )
+}
+
 /** Compose rows + their children into views. One query per child table. */
 async function composeRequests(
   db: Db,
@@ -151,6 +177,7 @@ async function composeRequests(
 
   return rows.map((row) => {
     const offer = offerBy.get(row.id)
+    const messages = messagesBy.get(row.id) ?? []
     return {
       id: row.id,
       clientId: row.client_id,
@@ -159,25 +186,44 @@ async function composeRequests(
       preferredWindow: row.preferred_window,
       bookingId: row.booking_id,
       createdAt: row.created_at,
-      messages: messagesBy.get(row.id) ?? [],
+      messages,
       refs: refsBy.get(row.id) ?? [],
       refCount: refCounts.get(row.id) ?? 0,
+      hasUnreadReply: isDesignThreadUnread(
+        row.client_seen_at,
+        row.last_artist_reply_at,
+      ),
+      lastArtistReplyAt: row.last_artist_reply_at,
+      lastActivityAt: lastActivityOf(row, messages),
+      awaitingArtist: messages.at(-1)?.author === "client",
       offer: offer ? toOfferView(offer, now) : null,
     }
   })
 }
 
-/**
- * The artist's queue — every request still needing the studio, oldest first, with the
- * contacts to reach each client. Mirrors `getPendingRequests` so the admin home
- * renders both queues the same way. Returns empty for a non-owner and degrades
- * to empty on a read failure rather than taking the home screen down.
- */
-export async function getOpenDesignRequests(now: number = Date.now()): Promise<{
-  requests: DesignRequestView[]
+export type DesignQueue = {
+  /** The studio owes an answer — newest activity first. */
+  needsAnswer: DesignRequestView[]
+  /** Answered with a live offer; the ball is with the client. */
+  awaitingClient: DesignRequestView[]
   contacts: Record<string, ClientContact>
-}> {
-  const empty = { requests: [], contacts: {} }
+}
+
+/**
+ * The artist's queue, split by whose turn it is and led by the newest activity.
+ *
+ * Both choices are deliberate. It used to be one oldest-first list, which
+ * buried the message that just arrived under three she had already answered and
+ * mixed "waiting on me" in with "waiting on her". A live offer moves a thread
+ * across — until the client writes back on it, which hands it straight back.
+ *
+ * Returns empty for a non-owner and degrades to empty on a read failure rather
+ * than taking the home screen down.
+ */
+export async function getOpenDesignRequests(
+  now: number = Date.now(),
+): Promise<DesignQueue> {
+  const empty: DesignQueue = { needsAnswer: [], awaitingClient: [], contacts: {} }
   const db = await requireOwner()
   if (!db) return empty
   try {
@@ -187,12 +233,23 @@ export async function getOpenDesignRequests(now: number = Date.now()): Promise<{
       composeRequests(db, rows, now),
       fetchClientContacts(rows.map((r) => r.client_id)),
     ])
-    return { requests, contacts }
+    const sorted = requests.sort(
+      (a, b) => Date.parse(b.lastActivityAt) - Date.parse(a.lastActivityAt),
+    )
+    return {
+      needsAnswer: sorted.filter(needsAnswer),
+      awaitingClient: sorted.filter((r) => !needsAnswer(r)),
+      contacts,
+    }
   } catch (error) {
     console.error("[design] queue load failed", errorMessage(error))
     return empty
   }
 }
+
+/** Waiting on the artist: nothing offered yet, or the client has written since. */
+const needsAnswer = (request: DesignRequestView): boolean =>
+  request.awaitingArtist || request.offer?.state !== "live"
 
 /** Badge count for the command centre. */
 export async function getOpenDesignRequestCount(): Promise<number> {
