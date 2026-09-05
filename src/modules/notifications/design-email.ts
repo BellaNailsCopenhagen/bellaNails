@@ -1,7 +1,7 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import { STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
 import {
   buttonHtml,
   esc,
@@ -10,6 +10,7 @@ import {
   quote,
   shell,
 } from "@/modules/notifications/email-layout"
+import { mailFrom, businessInbox } from "@/modules/notifications/sender"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { formatPrice } from "@/shared/money"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
@@ -99,7 +100,7 @@ export async function sendDesignRequestArtistEmail(d: {
   const reviewUrl = ADMIN_URL ? `${ADMIN_URL}#design-${d.requestId}` : null
 
   return send({
-    to: STUDIO_EMAIL,
+    to: await businessInbox(),
     replyTo: d.clientEmail ?? undefined,
     subject: `New design request — ${d.clientName}`,
     html: shell({
@@ -134,7 +135,7 @@ export async function sendDesignClientReplyArtistEmail(d: {
   const reviewUrl = ADMIN_URL ? `${ADMIN_URL}#design-${d.requestId}` : null
 
   return send({
-    to: STUDIO_EMAIL,
+    to: await businessInbox(),
     replyTo: d.clientEmail ?? undefined,
     subject: `Reply on a design request — ${d.clientName}`,
     html: shell({
@@ -169,7 +170,6 @@ export async function sendDesignReplyEmail(
 
   return send({
     to: d.to,
-    replyTo: STUDIO_EMAIL,
     subject: isEn
       ? `${STUDIO_NAME} — a reply about your design`
       : `${STUDIO_NAME} — svar om dit design`,
@@ -223,7 +223,6 @@ export async function sendOfferEmail(
 
   return send({
     to: d.to,
-    replyTo: STUDIO_EMAIL,
     subject: isEn
       ? `${STUDIO_NAME} — your offer`
       : `${STUDIO_NAME} — dit tilbud`,
@@ -273,7 +272,6 @@ export async function sendDesignRequestDeclinedEmail(
 
   return send({
     to: d.to,
-    replyTo: STUDIO_EMAIL,
     subject: isEn
       ? `${STUDIO_NAME} — about your message`
       : `${STUDIO_NAME} — om din besked`,
@@ -318,9 +316,9 @@ const lines = (parts: string[]) => parts.join("\n")
 /** One send path, so every design email gets the same from/reply-to treatment
     and the same swallow-and-report failure contract.
 
-    Sends as STUDIO_EMAIL, not the `bookings@` alias: these are a conversation,
-    and a reply arriving from a booking robot reads as the wrong sender. It is
-    also the mailbox SMTP authenticates as, so it needs no send-as alias. */
+    Sends as the studio's CONTACT address, not the bookings alias: these are a
+    conversation, and a reply arriving from a booking robot reads as the wrong
+    sender. */
 async function send(msg: {
   to: string
   subject: string
@@ -329,9 +327,10 @@ async function send(msg: {
   replyTo?: string
 }): Promise<EmailResult> {
   try {
+    const { from, replyTo } = await mailFrom("contact")
     return await sendEmail({
-      from: STUDIO_EMAIL,
-      replyTo: msg.replyTo ?? STUDIO_EMAIL,
+      from,
+      replyTo: msg.replyTo ?? replyTo,
       to: msg.to,
       subject: msg.subject,
       html: msg.html,

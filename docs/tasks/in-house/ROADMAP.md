@@ -81,7 +81,9 @@ studio-entered, client uploads never auto-publish — so it's not urgent).
   no third-party script, no cookie, no processor, nothing to add to the privacy
   notice. Google reCAPTCHA was ruled out deliberately (Google as processor +
   German/Austrian DPA precedent).
-- **SQL to apply:** `supabase/rate-limits.sql`, `supabase/booking-protection.sql`.
+- **SQL to apply:** `supabase/rate-limits.sql`, `supabase/booking-protection.sql`,
+  `supabase/business-profile.sql` (the business's own address / contacts / socials
+  — without it every surface silently falls back to the env defaults).
 - Still open: the **card option** (G) as the second path for someone who won't
   make an account; a lighter INLINE email-code step (no /login redirect) if the
   sign-in round trip costs too much conversion; a disposable-domain seed list

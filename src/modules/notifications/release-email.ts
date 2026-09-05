@@ -1,7 +1,8 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
+import { mailFrom } from "@/modules/notifications/sender"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { esc, FONT } from "@/modules/notifications/email-layout"
 import {
@@ -88,8 +89,7 @@ export async function sendMediaReleaseRequestEmail(
       : `${STUDIO_NAME}: tilladelse til at bruge dine billeder og video`
 
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
-      replyTo: STUDIO_EMAIL,
+      ...(await mailFrom("booking")),
       to: d.to,
       subject,
       html,

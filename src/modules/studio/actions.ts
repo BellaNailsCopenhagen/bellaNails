@@ -9,6 +9,7 @@ import {
   updateScheduleRule,
 } from "@/db/schedule-rules"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { revalidatePublicShell } from "@/modules/revalidate"
 import {
   getScheduleConflicts,
   getScheduleSnapshot,
@@ -116,6 +117,9 @@ export async function saveScheduleRule(
   if (!saved.ok) return { ok: false, error: "Couldn’t save the rule." }
 
   revalidatePath(routes.admin.hours)
+  // The footer states these hours on every page, and /hours is a page of its
+  // own — all prerendered, so the whole shell has to be told.
+  revalidatePublicShell()
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
   return { ok: true, conflicts }
 }
@@ -130,6 +134,9 @@ export async function deleteScheduleRule(id: string): Promise<HoursResult> {
   if (!removed.ok) return { ok: false, error: "Couldn’t remove the rule." }
 
   revalidatePath(routes.admin.hours)
+  // The footer states these hours on every page, and /hours is a page of its
+  // own — all prerendered, so the whole shell has to be told.
+  revalidatePublicShell()
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
   return { ok: true, conflicts }
 }

@@ -19,7 +19,6 @@ import {
   formatStudioTime,
 } from "@/shared/studio-time"
 import { rescheduleBookingPath } from "@/config/routes"
-import { STUDIO_EMAIL } from "@/config/studio"
 
 /**
  * BookingsUpcomingCard — one upcoming appointment: date/time, countdown,
@@ -28,9 +27,12 @@ import { STUDIO_EMAIL } from "@/config/studio"
 function BookingsUpcomingCard({
   booking,
   now,
+  contactEmail,
 }: {
   booking: DisplayBooking
   now: number
+  /** The studio's own contact address (Admin → More → Business). */
+  contactEmail: string
 }) {
   const t = useTranslations("bookings")
   const tCatalog = useTranslations("services")
@@ -117,13 +119,20 @@ function BookingsUpcomingCard({
           </div>
           {withinPolicy ? (
             <Caption className="block text-[11px] leading-relaxed tracking-wide normal-case">
-              {t("within24h")}{" "}
-              <a
-                href={`mailto:${STUDIO_EMAIL}`}
-                className="underline underline-offset-2 hover:text-foreground"
-              >
-                {STUDIO_EMAIL}
-              </a>
+              {t("within24h")}
+              {/* No address configured → the sentence stands without a dead
+                  `mailto:` after it. */}
+              {contactEmail ? (
+                <>
+                  {" "}
+                  <a
+                    href={`mailto:${contactEmail}`}
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {contactEmail}
+                  </a>
+                </>
+              ) : null}
             </Caption>
           ) : null}
         </div>

@@ -1,6 +1,7 @@
 import "server-only"
 
-import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
+import { mailFrom } from "@/modules/notifications/sender"
 import {
   buttonHtml,
   greetOf,
@@ -39,8 +40,7 @@ export async function sendTestimonialRequestEmail(d: {
 
   try {
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
-      replyTo: STUDIO_EMAIL,
+      ...(await mailFrom("booking")),
       to: d.to,
       subject: isEn
         ? `${STUDIO_NAME} — would you say a few words?`

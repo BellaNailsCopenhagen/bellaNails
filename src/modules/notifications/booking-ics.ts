@@ -1,4 +1,3 @@
-import { STUDIO_ADDRESS } from "@/config/studio"
 
 /**
  * A minimal RFC 5545 calendar invite for a booking, attached to booking emails
@@ -52,6 +51,9 @@ export function buildBookingIcs(e: {
   startIso: string
   endIso: string
   serviceName: string
+  /** The business's address, passed in — it is editable, so a constant here
+      would put a stale location in someone's calendar for months. */
+  location: string
   // A cancellation invite (METHOD:CANCEL + STATUS:CANCELLED) removes the entry
   // a prior PUBLISH added — same UID, higher SEQUENCE, so clients supersede it.
   cancelled?: boolean
@@ -75,7 +77,7 @@ export function buildBookingIcs(e: {
     `DTSTART:${dtStart}`,
     `DTEND:${dtEnd}`,
     `SUMMARY:${icsText(e.serviceName)}`,
-    `LOCATION:${icsText(STUDIO_ADDRESS)}`,
+    ...(e.location ? [`LOCATION:${icsText(e.location)}`] : []),
     ...(e.cancelled ? ["STATUS:CANCELLED"] : []),
     "END:VEVENT",
     "END:VCALENDAR",

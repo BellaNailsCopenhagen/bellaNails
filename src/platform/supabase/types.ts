@@ -680,6 +680,48 @@ export type Database = {
         }
         Relationships: []
       }
+      business_profile: {
+        Row: {
+          address_line_1: string | null
+          alert_email: string | null
+          address_line_2: string | null
+          booking_from_email: string | null
+          contact_email: string | null
+          facebook_url: string | null
+          id: boolean
+          instagram_url: string | null
+          map_image_key: string | null
+          tiktok_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line_1?: string | null
+          alert_email?: string | null
+          address_line_2?: string | null
+          booking_from_email?: string | null
+          contact_email?: string | null
+          facebook_url?: string | null
+          id?: boolean
+          instagram_url?: string | null
+          map_image_key?: string | null
+          tiktok_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string | null
+          alert_email?: string | null
+          address_line_2?: string | null
+          booking_from_email?: string | null
+          contact_email?: string | null
+          facebook_url?: string | null
+          id?: boolean
+          instagram_url?: string | null
+          map_image_key?: string | null
+          tiktok_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       booking_settings: {
         Row: {
           buffer_mins: number

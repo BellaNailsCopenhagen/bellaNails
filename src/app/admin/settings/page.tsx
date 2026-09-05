@@ -11,8 +11,9 @@ export const metadata: Metadata = { title: "App settings" }
 export const dynamic = "force-dynamic"
 
 /**
- * App settings — booking protection (how hard it is to book, and who may not),
- * then the optional-feature switches. Owner-gated by the proxy.
+ * App settings — how the software behaves: how hard it is to book, and which
+ * optional features are on. The studio's own details (address, contacts,
+ * social) live at /admin/business. Owner-gated by the proxy.
  */
 export default async function AdminSettingsPage() {
   const [flags, protection] = await Promise.all([

@@ -7,7 +7,8 @@ import {
   recordCommunication,
   statusFromEmailResult,
 } from "@/modules/notifications/communications"
-import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
+import { mailFrom } from "@/modules/notifications/sender"
 import { sendEmail } from "@/platform/email/client"
 
 /**
@@ -46,8 +47,7 @@ export async function requestReview(bookingId: string): Promise<ReviewRequestRes
   const cta = isEn ? "Leave a review" : "Skriv en anmeldelse"
 
   const res = await sendEmail({
-    from: BOOKING_FROM_EMAIL,
-    replyTo: STUDIO_EMAIL,
+    ...(await mailFrom("booking")),
     to: contact.email,
     subject: isEn
       ? `How was your visit to ${STUDIO_NAME}?`

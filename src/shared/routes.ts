@@ -40,6 +40,7 @@ export const routes = {
     appointments: "/admin/appointments",
     hours: "/admin/hours",
     settings: "/admin/settings",
+    business: "/admin/business",
     more: "/admin/more",
     terms: "/admin/terms",
     testimonials: "/admin/testimonials",
@@ -70,6 +71,9 @@ export const routes = {
  */
 export const revalidatePatterns = {
   adminClient: "/admin/clients/[id]",
+  /** The public shell. Revalidated as a LAYOUT, which takes every page under it
+      — the footer lives here, so a contact/social change touches all of them. */
+  publicLayout: "/[locale]",
   publicAppointments: "/[locale]/appointments",
   publicManage: "/[locale]/manage/[token]",
   publicServices: "/[locale]/services",

@@ -22,12 +22,14 @@ function BookingsContent({
   past,
   now,
   photosByBooking,
+  contactEmail,
 }: {
   failed: boolean
   upcoming: DisplayBooking[]
   past: DisplayBooking[]
   now: number
   photosByBooking: PhotosByBooking
+  contactEmail: string
 }) {
   const t = useTranslations("bookings")
 
@@ -45,7 +47,11 @@ function BookingsContent({
 
   return (
     <div className="space-y-16">
-      <UpcomingSection bookings={upcoming} now={now} />
+      <UpcomingSection
+        bookings={upcoming}
+        now={now}
+        contactEmail={contactEmail}
+      />
       <PastSection bookings={past} photosByBooking={photosByBooking} />
     </div>
   )
@@ -54,7 +60,9 @@ function BookingsContent({
 function UpcomingSection({
   bookings,
   now,
+  contactEmail,
 }: {
+  contactEmail: string
   bookings: DisplayBooking[]
   now: number
 }) {
@@ -84,6 +92,7 @@ function UpcomingSection({
             key={booking.row.id}
             booking={booking}
             now={now}
+            contactEmail={contactEmail}
           />
         ))}
       </ul>

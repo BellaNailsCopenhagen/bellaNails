@@ -13,6 +13,7 @@ import {
   Quote,
   ScrollText,
   SlidersHorizontal,
+  Store,
   type LucideIcon,
 } from "lucide-react"
 
@@ -82,8 +83,14 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.hours,
   },
   {
+    label: "Business",
+    description: "Address, email addresses, social accounts",
+    icon: Store,
+    href: routes.admin.business,
+  },
+  {
     label: "App settings",
-    description: "Turn optional features on or off",
+    description: "How clients book, and optional features",
     icon: SlidersHorizontal,
     href: routes.admin.settings,
   },

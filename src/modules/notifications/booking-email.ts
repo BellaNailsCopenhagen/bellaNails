@@ -1,13 +1,10 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import {
-  BOOKING_FROM_EMAIL,
-  STUDIO_ADDRESS,
-  STUDIO_EMAIL,
-  STUDIO_MAPS_URL,
-  STUDIO_NAME,
-} from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
+import { mailFrom } from "@/modules/notifications/sender"
+import { getBusinessProfile } from "@/modules/business/profile"
+import { mapsUrlFor, oneLineAddress } from "@/shared/business-profile"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { esc, FONT } from "@/modules/notifications/email-layout"
 import { formatPrice } from "@/shared/money"
@@ -89,6 +86,10 @@ type RenderParts = {
   manageUrl?: string
   manageCta?: string
   reply: string
+  /** Passed in, not imported: the business sets its own address, so a renderer
+      that reached for a constant would print last year's one. */
+  address: string
+  mapsUrl: string
 }
 
 function renderHtml(opts: RenderParts): string {
@@ -135,7 +136,7 @@ function renderHtml(opts: RenderParts): string {
           <div style="border-top:1px solid ${BRAND.divider};padding-top:20px;font-size:13px;line-height:1.7;color:${BRAND.textSecondary};">
             <div style="margin-bottom:8px;">${esc(opts.policy)}</div>
             ${manageHtml}
-            <div style="margin-bottom:8px;"><a href="${esc(STUDIO_MAPS_URL)}" style="color:${BRAND.textSecondary};text-decoration:underline;">${esc(STUDIO_ADDRESS)}</a></div>
+            ${opts.address ? `<div style="margin-bottom:8px;"><a href="${esc(opts.mapsUrl)}" style="color:${BRAND.textSecondary};text-decoration:underline;">${esc(opts.address)}</a></div>` : ""}
             <div>${esc(opts.reply)}</div>
           </div>
         </td></tr>
@@ -160,7 +161,8 @@ function renderText(opts: RenderParts): string {
   if (opts.manageUrl && opts.manageCta) {
     lines.push(`${opts.manageCta}: ${opts.manageUrl}`)
   }
-  lines.push(`${STUDIO_ADDRESS} — ${STUDIO_MAPS_URL}`, opts.reply)
+  if (opts.address) lines.push(`${opts.address} — ${opts.mapsUrl}`)
+  lines.push(opts.reply)
   return lines.join("\n")
 }
 
@@ -168,7 +170,10 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<EmailResult> {
   try {
     const t = pick(d.locale)
     const introRaw = t.intro[kind]
+    const profile = await getBusinessProfile()
     const parts: RenderParts = {
+      address: oneLineAddress(profile),
+      mapsUrl: mapsUrlFor(profile) ?? "",
       greeting: t.greeting(d.firstName),
       intro: typeof introRaw === "string" ? introRaw : introRaw[d.actor],
       rows: detailRows(d, kind, t),
@@ -186,10 +191,10 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<EmailResult> {
       endIso: d.endIso,
       serviceName: d.serviceName,
       cancelled: kind === "cancelled",
+      location: oneLineAddress(profile),
     })
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
-      replyTo: STUDIO_EMAIL,
+      ...(await mailFrom("booking")),
       to: d.to,
       subject: t.subject[kind],
       html: renderHtml(parts),

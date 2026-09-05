@@ -3,7 +3,7 @@ import "server-only"
 import { revalidatePath } from "next/cache"
 
 import { routing } from "@/i18n/routing"
-import { routes } from "@/shared/routes"
+import { revalidatePatterns, routes } from "@/shared/routes"
 
 /**
  * The prerendered public pages, per locale — `localePrefix` is always, so each
@@ -17,6 +17,15 @@ export function revalidateLocaleHomes(): void {
   for (const locale of routing.locales) {
     revalidatePath(routes.public.localeHome(locale))
   }
+}
+
+/**
+ * Everything under the public shell. The footer is in the `[locale]` layout, so
+ * a change to the studio's contact address or social links is on EVERY
+ * prerendered page — not just the ones that name it.
+ */
+export function revalidatePublicShell(): void {
+  revalidatePath(revalidatePatterns.publicLayout, "layout")
 }
 
 /** The home page plus /gallery — everything that renders placed client work. */

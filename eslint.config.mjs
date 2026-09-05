@@ -12,6 +12,7 @@ import nextTs from "eslint-config-next/typescript";
 /** Every module barrel. Importing one pulls the whole server surface. */
 const MODULE_BARRELS = [
   "@/modules/booking",
+  "@/modules/business",
   "@/modules/catalog",
   "@/modules/clients",
   "@/modules/design",

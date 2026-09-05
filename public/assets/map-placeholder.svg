@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-label="Stylised street map">
+  <title>Stylised street map</title>
+  <!-- A deliberately generic, address-free street pattern: the fallback must
+       not depict any real place, and drawing it here keeps the repo free of
+       third-party map imagery and its licensing. -->
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#efe9e4" />
+      <stop offset="1" stop-color="#e4dcd5" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#ground)" />
+
+  <!-- Parks -->
+  <g fill="#d8ded0">
+    <rect x="84" y="60" width="180" height="120" rx="10" />
+    <rect x="880" y="292" width="230" height="132" rx="10" />
+  </g>
+
+  <!-- Water -->
+  <path d="M0 388 C 150 356, 300 420, 470 396 C 640 372, 760 424, 900 404 L 1200 380 L 1200 480 L 0 480 Z" fill="#cfdbe0" />
+
+  <!-- Blocks -->
+  <g fill="#e7ded6" stroke="#d6cabf" stroke-width="2">
+    <rect x="330" y="52" width="200" height="128" rx="6" />
+    <rect x="596" y="52" width="150" height="128" rx="6" />
+    <rect x="812" y="52" width="298" height="128" rx="6" />
+    <rect x="84" y="246" width="180" height="96" rx="6" />
+    <rect x="330" y="246" width="200" height="96" rx="6" />
+    <rect x="596" y="246" width="150" height="96" rx="6" />
+  </g>
+
+  <!-- Streets -->
+  <g stroke="#ffffff" stroke-linecap="square" fill="none">
+    <g stroke-width="18">
+      <path d="M0 214 H1200" />
+      <path d="M290 0 V480" />
+    </g>
+    <g stroke-width="10">
+      <path d="M0 36 H1200" />
+      <path d="M556 0 V360" />
+      <path d="M776 0 V360" />
+      <path d="M64 0 V360" />
+      <path d="M0 362 H880" />
+    </g>
+    <g stroke-width="5" opacity="0.7">
+      <path d="M64 126 H290" />
+      <path d="M410 214 V362" />
+      <path d="M660 36 V214" />
+      <path d="M980 180 V300" />
+    </g>
+  </g>
+
+  <!-- Where you are -->
+  <g transform="translate(556 214)">
+    <circle r="30" fill="#8c6f63" opacity="0.16" />
+    <circle r="13" fill="#8c6f63" />
+    <circle r="5" fill="#efe9e4" />
+  </g>
+</svg>

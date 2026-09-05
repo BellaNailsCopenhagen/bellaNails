@@ -10,7 +10,8 @@ import { PageHeader } from "@/components/ui/page-header"
 import { Button } from "@/components/ui/button"
 import { BodySm, Eyebrow, H3 } from "@/components/ui/typography"
 import { routes } from "@/config/routes"
-import { STUDIO_ADDRESS } from "@/config/studio"
+import { getBusinessProfile } from "@/modules/business/profile"
+import { oneLineAddress } from "@/shared/business-profile"
 
 /**
  * Confirmation — the branded post-booking success page. The recap is fetched by
@@ -23,7 +24,11 @@ import { STUDIO_ADDRESS } from "@/config/studio"
  * have had to carry through the URL to get here.
  */
 export async function Confirmation({ id }: { id: string | null }) {
-  const t = await getTranslations("confirmation")
+  const [t, profile] = await Promise.all([
+    getTranslations("confirmation"),
+    getBusinessProfile(),
+  ])
+  const address = oneLineAddress(profile)
   // Sign a token so the (possibly guest) client can pre-approve the media release
   // for this booking. Guarded — a missing token secret just hides the opt-in.
   let releaseToken: string | null = null
@@ -56,7 +61,9 @@ export async function Confirmation({ id }: { id: string | null }) {
           <div className="w-full min-w-0 flex-1 space-y-10">
             <div className="space-y-2">
               <Eyebrow className="font-normal">{t("whereLabel")}</Eyebrow>
-              <BodySm className="text-foreground">{STUDIO_ADDRESS}</BodySm>
+              {address ? (
+                <BodySm className="text-foreground">{address}</BodySm>
+              ) : null}
               <BodySm>{t("arrivalNote")}</BodySm>
             </div>
 

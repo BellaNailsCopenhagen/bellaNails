@@ -1,7 +1,8 @@
 import "server-only"
 
 import { BRAND } from "@/config/brand"
-import { BOOKING_FROM_EMAIL, STUDIO_EMAIL, STUDIO_NAME } from "@/config/studio"
+import { STUDIO_NAME } from "@/config/studio"
+import { mailFrom, businessInbox } from "@/modules/notifications/sender"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { esc, greetOf, shell } from "@/modules/notifications/email-layout"
 import { formatPrice } from "@/shared/money"
@@ -93,8 +94,7 @@ ${noteHtml}
     ].join("\n")
 
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
-      replyTo: STUDIO_EMAIL,
+      ...(await mailFrom("booking")),
       to: d.to,
       subject: isEn
         ? `We've received your booking request`
@@ -183,10 +183,10 @@ ${noteHtml}${linkHtml}`
     ].join("\n")
 
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
+      ...(await mailFrom("booking")),
       // Artist can reply straight to the client.
-      replyTo: d.clientEmail ?? STUDIO_EMAIL,
-      to: STUDIO_EMAIL,
+      ...(d.clientEmail ? { replyTo: d.clientEmail } : {}),
+      to: await businessInbox(),
       subject: `New booking request — ${d.clientName}`,
       html: shell({
         eyebrow: "Booking request",
@@ -231,8 +231,7 @@ export async function sendBookingRequestDeclinedEmail(
     ].join("\n")
 
     return await sendEmail({
-      from: BOOKING_FROM_EMAIL,
-      replyTo: STUDIO_EMAIL,
+      ...(await mailFrom("booking")),
       to: d.to,
       subject: isEn
         ? `About your booking request`

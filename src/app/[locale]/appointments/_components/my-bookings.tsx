@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { getCurrentUser } from "@/modules/identity/server"
+import { getBusinessProfile } from "@/modules/business/profile"
 
 import { BookingsContent } from "@/app/[locale]/appointments/_components/bookings-content"
 import { TintedCard } from "@/components/ui/tinted-card"
@@ -27,10 +28,11 @@ export async function MyBookings({
   notice?: string | null
   media?: ClientMediaItem[]
 }) {
-  const [t, locale, user] = await Promise.all([
+  const [t, locale, user, profile] = await Promise.all([
     getTranslations("bookings"),
     getLocale(),
     getCurrentUser(),
+    getBusinessProfile(),
   ])
 
   const { bookings: display, loadError } = await getMyBookings(
@@ -76,6 +78,7 @@ export async function MyBookings({
         past={past}
         now={now}
         photosByBooking={photosByBooking}
+        contactEmail={profile.contactEmail}
       />
     </>
   )

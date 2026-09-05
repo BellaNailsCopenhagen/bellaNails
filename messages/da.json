@@ -13,7 +13,8 @@
     "space": "Mit rum",
     "terms": "Betingelser",
     "privacy": "Privatliv",
-    "ask": "Spørg om et design"
+    "ask": "Spørg om et design",
+    "hours": "Åbningstider"
   },
   "hero": {
     "kicker": "Neglesalon i Ørestad · København",
@@ -342,9 +343,9 @@
     "eyebrow": "Find os",
     "headingLead": "Her finder du",
     "headingAccent": "Bella Nails",
-    "hoursLine": "Mandag – lørdag · 09:00 – 18:00",
     "hoursNote": "Kun efter aftale",
-    "openMaps": "Find vej"
+    "openMaps": "Find vej",
+    "hoursLink": "Se åbningstider"
   },
   "home": {
     "eyebrow": "København · Studio",
@@ -373,7 +374,9 @@
     "legal": "Juridisk",
     "help": "Hjælp",
     "contactSupport": "Kontakt support",
-    "reportBug": "Rapportér en fejl"
+    "reportBug": "Rapportér en fejl",
+    "tiktok": "TikTok",
+    "hours": "Åbningstider"
   },
   "locale": {
     "label": "Sprog",
@@ -575,5 +578,26 @@
     },
     "closedTitle": "Denne invitation er lukket",
     "closedBody": "Du behøver ikke gøre noget — salonen har trukket forespørgslen tilbage. Tak alligevel."
+  },
+  "hours": {
+    "metaTitle": "Åbningstider – Bella Nails, Ørestad, København",
+    "metaDescription": "Hvornår Bella Nails er åben, hvor du finder salonen, og hvordan du booker. Kun efter aftale.",
+    "eyebrow": "Åbningstider",
+    "headingLead": "Hvornår vi har",
+    "headingAccent": "åbent",
+    "intro": "Alle behandlinger er efter aftale, så det er tiderne du kan booke inden for — ikke et drop-in-vindue. Passer intet af det, så spørg, og vi finder ud af noget.",
+    "closed": "Lukket",
+    "thisWeek": "Ugen",
+    "whereLabel": "Hvor du finder os",
+    "bookCta": "Book en tid",
+    "askCta": "Spørg om en anden tid",
+    "emptyTitle": "Åbningstiderne er ikke lagt op endnu",
+    "emptyBody": "Skriv til os, så finder vi en tid der passer.",
+    "exceptionsTitle": "Ændringer i den normale uge",
+    "exceptionsNone": "Der er ingen ændringer på vej.",
+    "exceptionsClosed": "Lukket",
+    "warningTitle": "Det er åbningstiderne — ikke de ledige tider",
+    "warningBody": "At en dag er åben betyder ikke, at hele dagen er ledig — allerede bookede tider, hvor lang tid hver behandling tager, og lidt luft imellem dem gør vinduet mindre. Enkelte dage kan også afvige fra mønsteret ovenfor. Bookingkalenderen er den, der er rigtig: den viser kun tider, du faktisk kan få.",
+    "openMaps": "Find vej"
   }
 }

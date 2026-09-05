@@ -13,7 +13,8 @@
     "space": "My Space",
     "terms": "Terms",
     "privacy": "Privacy",
-    "ask": "Ask about a design"
+    "ask": "Ask about a design",
+    "hours": "Opening hours"
   },
   "hero": {
     "kicker": "Nail Salon in Ørestad · Copenhagen",
@@ -342,9 +343,9 @@
     "eyebrow": "Find us",
     "headingLead": "Where to",
     "headingAccent": "Find Bella Nails",
-    "hoursLine": "Monday – Saturday · 09:00 – 18:00",
     "hoursNote": "By appointment only",
-    "openMaps": "Find your way"
+    "openMaps": "Find your way",
+    "hoursLink": "See opening hours"
   },
   "home": {
     "eyebrow": "Copenhagen · Studio",
@@ -373,7 +374,9 @@
     "legal": "Legal",
     "help": "Help",
     "contactSupport": "Contact support",
-    "reportBug": "Report a bug"
+    "reportBug": "Report a bug",
+    "tiktok": "TikTok",
+    "hours": "Hours"
   },
   "locale": {
     "label": "Language",
@@ -575,5 +578,26 @@
     },
     "closedTitle": "This invitation is closed",
     "closedBody": "No need to do anything — the studio withdrew the ask. Thank you all the same."
+  },
+  "hours": {
+    "metaTitle": "Opening hours – Bella Nails, Ørestad, Copenhagen",
+    "metaDescription": "When Bella Nails is open, where to find the studio, and how to book. By appointment only.",
+    "eyebrow": "Opening hours",
+    "headingLead": "When we're",
+    "headingAccent": "open",
+    "intro": "Every session is by appointment, so these are the hours you can book inside — not a drop-in window. If nothing here suits you, ask and we'll see what we can do.",
+    "closed": "Closed",
+    "thisWeek": "The week",
+    "whereLabel": "Where to find us",
+    "bookCta": "Book a time",
+    "askCta": "Ask for another time",
+    "emptyTitle": "Hours aren't published yet",
+    "emptyBody": "Send us a message and we'll find a time that works.",
+    "exceptionsTitle": "Changes to the usual week",
+    "exceptionsNone": "Nothing different coming up.",
+    "exceptionsClosed": "Closed",
+    "warningTitle": "These are the hours, not the free times",
+    "warningBody": "A day being open doesn't mean every hour of it is free — appointments already booked, the time each treatment takes, and a little space between them all narrow it down. Individual days can also differ from the pattern above. The booking calendar is the one that's right: it only ever shows times you can actually take.",
+    "openMaps": "Find your way"
   }
 }

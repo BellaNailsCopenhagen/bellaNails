@@ -1,6 +1,5 @@
 import type enMessages from "../../messages/en.json"
-
-import { STUDIO_EMAIL } from "./studio"
+import type { BusinessProfile } from "@/shared/business-profile"
 
 /**
  * Central route registry — the single source of truth for every internal path
@@ -20,6 +19,7 @@ export const routes = {
   confirmation: "/confirmation",
   requestSent: "/request-sent",
   ask: "/ask",
+  hours: "/hours",
   terms: "/terms",
   privacy: "/privacy",
   signIn: "/login",
@@ -53,12 +53,6 @@ export function offerPath(token: string): string {
 export function testimonialPath(token: string): string {
   return `/testimonial/${token}`
 }
-
-/** Outbound social links (open in a new tab). */
-export const externalLinks = {
-  instagram: "https://instagram.com",
-  facebook: "https://facebook.com",
-} as const
 
 // Label keys are validated against the real i18n catalogs so a renamed message
 // key fails the build here rather than rendering a raw key at runtime.
@@ -100,47 +94,68 @@ export type FooterColumn = {
   links: FooterNavLink[]
 }
 
-/** Footer navigation, grouped into columns. */
-export const footerNav: FooterColumn[] = [
-  {
-    headingKey: "studio",
-    links: [
-      { href: routes.services, labelKey: "services" },
-      { href: routes.gallery, labelKey: "gallery" },
-      { href: routes.ask, labelKey: "ask" },
-    ],
-  },
-  {
-    headingKey: "session",
-    links: [{ href: routes.book, labelKey: "reserve" }],
-  },
-  {
-    headingKey: "legal",
-    links: [
-      { href: routes.terms, labelKey: "terms" },
-      { href: routes.privacy, labelKey: "privacy" },
-    ],
-  },
-  {
-    headingKey: "follow",
-    links: [
-      { href: externalLinks.instagram, labelKey: "instagram", external: true },
-      { href: externalLinks.facebook, labelKey: "facebook", external: true },
-    ],
-  },
-  {
-    headingKey: "help",
-    links: [
-      {
-        href: `mailto:${STUDIO_EMAIL}`,
-        labelKey: "contactSupport",
-        external: true,
-      },
-      {
-        href: `mailto:${STUDIO_EMAIL}?subject=Bug%20report`,
-        labelKey: "reportBug",
-        external: true,
-      },
-    ],
-  },
-]
+/**
+ * Footer navigation, grouped into columns.
+ *
+ * A function of the studio's own profile, not a constant: the social links and
+ * the support address are hers to set, and a column of dead links to
+ * instagram.com was worse than no column. A social account she hasn't given us
+ * is simply left out — including its whole column, if she has none.
+ */
+export function footerNavFor(profile: BusinessProfile): FooterColumn[] {
+  const social: FooterNavLink[] = []
+  if (profile.instagramUrl) {
+    social.push({ href: profile.instagramUrl, labelKey: "instagram", external: true })
+  }
+  if (profile.facebookUrl) {
+    social.push({ href: profile.facebookUrl, labelKey: "facebook", external: true })
+  }
+  if (profile.tiktokUrl) {
+    social.push({ href: profile.tiktokUrl, labelKey: "tiktok", external: true })
+  }
+
+  return [
+    {
+      headingKey: "studio",
+      links: [
+        { href: routes.services, labelKey: "services" },
+        { href: routes.gallery, labelKey: "gallery" },
+        { href: routes.hours, labelKey: "hours" },
+        { href: routes.ask, labelKey: "ask" },
+      ],
+    },
+    {
+      headingKey: "session",
+      links: [{ href: routes.book, labelKey: "reserve" }],
+    },
+    {
+      headingKey: "legal",
+      links: [
+        { href: routes.terms, labelKey: "terms" },
+        { href: routes.privacy, labelKey: "privacy" },
+      ],
+    },
+    ...(social.length ? [{ headingKey: "follow" as const, links: social }] : []),
+    // No address configured → no Help column. `mailto:` with nothing after it
+    // opens a blank compose window, which is worse than no link.
+    ...(profile.contactEmail
+      ? [
+          {
+            headingKey: "help" as const,
+            links: [
+              {
+                href: `mailto:${profile.contactEmail}`,
+                labelKey: "contactSupport" as const,
+                external: true as const,
+              },
+              {
+                href: `mailto:${profile.contactEmail}?subject=Bug%20report`,
+                labelKey: "reportBug" as const,
+                external: true as const,
+              },
+            ],
+          },
+        ]
+      : []),
+  ]
+}
