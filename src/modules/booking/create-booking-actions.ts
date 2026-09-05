@@ -6,6 +6,7 @@ import {
   countActiveUpcomingBookingsForClient,
   insertBooking,
 } from "@/db/bookings"
+import { takeDurableToken } from "@/db/rate-limits"
 import { updateClientCommunicationLocale } from "@/db/clients"
 import { resolveLocale, type Locale } from "@/i18n/routing"
 import {
@@ -17,11 +18,23 @@ import {
   type BookingDraft,
 } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
+import {
+  callerIp,
+  checkBlocked,
+  getBookingProtectionSettings,
+} from "@/modules/booking/protection"
 import type { Slot } from "@/shared/booking-slots"
 import { serviceRef, type SubjectRef } from "@/shared/booking-subject"
 import { fetchClientContacts } from "@/modules/clients"
 import { ensureUser } from "@/modules/identity/ensure-user"
+import {
+  humanCheckConfigured,
+  spendHumanProof,
+  verifyHumanProof,
+} from "@/modules/identity/human-check"
+import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
+
 import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
 import {
   recordCommunication,
@@ -29,28 +42,38 @@ import {
 } from "@/modules/notifications/communications"
 import { recordTermsAcceptance } from "@/modules/terms/acceptance"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { requiresVerifiedIdentity } from "@/shared/booking-protection"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes, revalidatePatterns } from "@/shared/routes"
 
 // A real client holds at most this many active bookings at once (hands + feet).
 const MAX_ACTIVE_BOOKINGS = 2
 
+// Generous enough that a real person rebooking after a cancellation never
+// notices, tight enough that one validated account can't churn the calendar.
+// Durable (Postgres), because the in-process limiter is per instance.
+const CREATE_RULE = { limit: 10, window: "1 hour" }
+
 export type CreateBookingInput = {
   serviceId: string
   addonIds: string[]
   start: string // ISO UTC — a slot from getAvailableSlots
   name: string
-  email: string
+  /** Only read when "require a sign-in to book" is OFF — otherwise the session
+      owns the address and this is ignored. */
+  email?: string
   phone?: string
   notes?: string
   locale?: string
   /** Honeypot — a hidden form field; a non-empty value means a bot filled it. */
   honeypot?: string
+  /** Solved "I'm not a robot" proof, when the check is switched on. */
+  humanProof?: string
 }
 
 export type CreateBookingResult =
   | { ok: true; id: string }
-  | { ok: false; error: string; code?: "cap" }
+  | { ok: false; error: string; code?: "cap" | "auth" | "human" }
 
 // The client's confirmation email — best-effort (the sender swallows errors).
 async function sendConfirmation(
@@ -105,17 +128,35 @@ const draftInputFor = (input: {
   locale: input.locale,
 })
 
+/** Why the box didn't pass, in words a client can act on. */
+function humanCheckMessage(reason: string): string {
+  if (reason === "missing") return "Please tick the “I'm not a robot” box first."
+  if (reason === "expired" || reason === "reused") {
+    return "That check has expired — tick the box again and retry."
+  }
+  return "That check didn't pass — tick the box again and retry."
+}
+
 const overlapMessage = (reason: "overlap" | "error") =>
   reason === "overlap"
     ? "That time was just taken — please pick another."
     : "Couldn't create the booking."
 
 /**
- * Create an in-house booking. Public — a guest books by email (ensureUser
- * create-or-finds their client row). The slot is re-validated server-side and
- * the exclusion constraint guards the overlap race. Records service-terms
- * acceptance (best-effort). Guarded against public abuse by a hidden honeypot
- * field and a cap of 2 active bookings per client.
+ * Create an in-house booking. Public, and guarded in layers — the two the
+ * artist controls from App settings come first:
+ *
+ *   1. **Human check** — a solved proof-of-work, if she has it on.
+ *   2. **Access level** — from `verified` up, the email comes FROM the session.
+ *      At `open` it comes off the form, which is how the calendar came to be
+ *      writable by anyone who could POST.
+ *   3. **Blocklist** — her manual list of addresses, domains and IPs.
+ *
+ * Then the ones she doesn't control: the honeypot, a durable per-client rate
+ * limit, a cap of 2 active bookings, a server-side slot re-check, and the
+ * exclusion constraint on the overlap race. Records service-terms acceptance
+ * (best-effort). The `card` level is feature G
+ * (docs/tasks/in-house/CARD-HOLD.md).
  */
 export async function createBooking(
   input: CreateBookingInput,
@@ -124,13 +165,57 @@ export async function createBooking(
   // the trap), same message as a create failure.
   if (input.honeypot?.trim()) return { ok: false, error: "Couldn't create the booking." }
 
-  const email = input.email.trim().toLowerCase()
-  // 254 = RFC 5321 max — the pattern is otherwise unbounded (name/notes are capped).
-  if (email.length > 254 || !EMAIL_PATTERN.test(email)) {
-    return { ok: false, error: "Enter a valid email." }
+  const db = createSupabaseServiceRoleClient()
+
+  // The artist's dial (App settings → Booking protection). Both fall back to
+  // the safe side if the settings row can't be read.
+  const protection = await getBookingProtectionSettings(db)
+
+  // Her switch AND a signing secret: with no secret the box isn't rendered, so
+  // demanding a proof would refuse every booking.
+  const humanCheckOn = protection.humanCheck && humanCheckConfigured()
+  // Verified early (it is cheap, and rubbish should cost nothing) but SPENT
+  // late, with the other write guards — see below.
+  if (humanCheckOn) {
+    const human = await verifyHumanProof(input.humanProof)
+    if (!human.ok) {
+      return { ok: false, code: "human", error: humanCheckMessage(human.reason) }
+    }
   }
 
-  const db = createSupabaseServiceRoleClient()
+  // `code: "auth"` ONLY for a missing session — it sends the UI to sign-in, so
+  // a signed-in account that simply has no usable address must report a plain
+  // error instead of bouncing to /login and back forever.
+  const user = await getCurrentUser()
+  if (requiresVerifiedIdentity(protection.accessLevel) && !user) {
+    return {
+      ok: false,
+      code: "auth",
+      error: "Please sign in to book — it takes a moment and confirms your email.",
+    }
+  }
+
+  // Signed in → the session's address, which is what makes it verified. At the
+  // `open` level, fall back to the form's — and there the honeypot, the human
+  // check and the blocklist are what carry the weight.
+  const email = (user?.email ?? input.email ?? "").trim().toLowerCase()
+  if (email.length > 254 || !EMAIL_PATTERN.test(email)) {
+    return {
+      ok: false,
+      error: user
+        ? "Your account has no email address we can confirm to — please contact the studio."
+        : "Enter a valid email.",
+    }
+  }
+
+  // The manual blocklist — address, email domain or IP. Generic refusal: a
+  // blocked person learning WHICH of the three matched just rotates that one.
+  const ip = await callerIp()
+  const blocked = await checkBlocked(db, { email, ip })
+  if (blocked.blocked) {
+    return { ok: false, error: "We can't take this booking online — please contact the studio." }
+  }
+
   const prepared = await buildBookingDraft(db, draftInputFor(input), {
     checkSlot: true,
   })
@@ -139,6 +224,8 @@ export async function createBooking(
 
   let clientId: string
   try {
+    // Resolves to this client's own row; name fills if empty and phone
+    // refreshes to the number they booked with.
     clientId = await ensureUser({
       email,
       name: input.name.trim() || undefined,
@@ -169,6 +256,34 @@ export async function createBooking(
     }
   } catch {
     /* count failed — allow rather than block */
+  }
+
+  // Last thing before the write, so a taken slot or the cap above costs no
+  // quota. Durable (Postgres): the in-process limiter is per instance.
+  //
+  // Keyed on the CONNECTION as well as the client when there is no session:
+  // without one, `clientId` comes from whatever email was typed, so rotating
+  // addresses hands out a fresh bucket every time. The IP is the only stable
+  // thing left at the `open` level.
+  const buckets = [`booking:create:${clientId}`]
+  if (!user && ip) buckets.push(`booking:create:ip:${ip}`)
+  for (const bucket of buckets) {
+    if (!(await takeDurableToken(db, bucket, CREATE_RULE))) {
+      return {
+        ok: false,
+        error: "That's a lot of bookings in a short time — please contact the studio.",
+      }
+    }
+  }
+
+  // Claim the proof's single use here, not at verification: a taken slot or the
+  // cap above would otherwise burn it, and the client's next attempt would fail
+  // a check they had just passed.
+  if (humanCheckOn) {
+    const spent = await spendHumanProof(db, input.humanProof)
+    if (!spent.ok) {
+      return { ok: false, code: "human", error: humanCheckMessage(spent.reason) }
+    }
   }
 
   const locale = resolveLocale(input.locale)

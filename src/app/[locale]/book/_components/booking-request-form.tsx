@@ -61,6 +61,9 @@ export function BookingRequestForm({
   fixedStart,
   slots,
   slotLabels,
+  signInReturnPath,
+  humanProof,
+  onProofSpent,
 }: {
   serviceId: string
   addonIds: string[]
@@ -69,6 +72,11 @@ export function BookingRequestForm({
   fixedStart?: string
   slots?: Slot[]
   slotLabels?: ComponentProps<typeof SlotPicker>["labels"]
+  /** Where to return after sign-in if the session lapsed mid-flow. */
+  signInReturnPath: string
+  /** The solved human check from the step above — one tick covers both. */
+  humanProof: string | null
+  onProofSpent: () => void
 }) {
   const locale = useLocale()
   const copy = locale === "en" ? COPY.en : COPY.da
@@ -85,14 +93,22 @@ export function BookingRequestForm({
       start: startIso,
       kind,
       name: prefill.name ?? "",
-      email: prefill.email ?? "",
+      email: prefill.email,
       phone: prefill.phone,
       message: message.trim() || undefined,
       locale,
       honeypot: prefill.honeypot,
+      humanProof: humanProof ?? undefined,
     })
     // Leave the booking flow for a dedicated confirmation — not a lingering card.
     if (res.ok) router.replace(routes.requestSent)
+    // A proof is single-use, so a second send needs a fresh tick.
+    else if (res.code === "human") onProofSpent()
+    // Only reachable on a lapsed session (the gate is two steps back) — send
+    // them to sign in and straight back to where they were.
+    else if (res.code === "auth") {
+      router.push({ pathname: routes.signIn, query: { next: signInReturnPath } })
+    }
     return res
   }
 

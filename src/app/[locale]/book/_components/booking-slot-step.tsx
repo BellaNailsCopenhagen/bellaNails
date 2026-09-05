@@ -4,9 +4,16 @@ import { useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
-import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
+import {
+  SlotPicker,
+  type SlotPickerOutcome,
+} from "@/components/booking/slot-picker"
 import { BookingRequestForm } from "@/app/[locale]/book/_components/booking-request-form"
 import { Button } from "@/components/ui/button"
+import {
+  HumanCheck,
+  type HumanCheckLabels,
+} from "@/components/booking/human-check"
 import { createBooking } from "@/modules/booking/create-booking-actions"
 import type { Slot } from "@/shared/booking-slots"
 import type { BookingContact } from "@/shared/contact-validation"
@@ -28,6 +35,8 @@ export function BookingSlotStep({
   prefill,
   outsideEnabled,
   outsideSlots,
+  signInReturnPath,
+  humanLabels,
 }: {
   serviceId: string
   addonIds: string[]
@@ -36,12 +45,19 @@ export function BookingSlotStep({
   prefill: BookingContact
   outsideEnabled: boolean
   outsideSlots: Slot[]
+  /** Where to return after sign-in if the session lapsed mid-flow. */
+  signInReturnPath: string
+  /** Null → the check is off (or unconfigured), so no box and no proof. */
+  humanLabels: HumanCheckLabels | null
 }) {
   const t = useTranslations("booking")
   const locale = useLocale()
   const router = useRouter()
   const [capStart, setCapStart] = useState<string | null>(null)
   const [showOutside, setShowOutside] = useState(false)
+  // Null until the box is ticked. The server decides whether it is required —
+  // the flag lives there — so this is sent as-is either way.
+  const [humanProof, setHumanProof] = useState<string | null>(null)
 
   // One label set — shared by the normal picker and the outside-hours request one.
   const slotLabels = {
@@ -75,11 +91,12 @@ export function BookingSlotStep({
       addonIds,
       start,
       name: prefill.name ?? "",
-      email: prefill.email ?? "",
+      email: prefill.email,
       phone: prefill.phone,
       notes: prefill.notes,
       locale,
       honeypot: prefill.honeypot,
+      humanProof: humanProof ?? undefined,
     })
     if (!result.ok) {
       // Cap reached → offer to send this exact time as a request. Report success
@@ -89,20 +106,38 @@ export function BookingSlotStep({
         setCapStart(start)
         return { ok: true }
       }
+      // A spent or missing proof: clear it so ticking again mints a fresh one.
+      if (result.code === "human") {
+        setHumanProof(null)
+        return { ok: false, error: result.error }
+      }
+      // A session that lapsed between the details step and this tap — send them
+      // to sign in and straight back to the time they had chosen.
+      if (result.code === "auth") {
+        router.push({
+          pathname: routes.signIn,
+          query: { next: signInReturnPath },
+        })
+        return { ok: false, error: result.error }
+      }
       return { ok: false, error: result.error }
     }
-    router.replace({
-      pathname: routes.confirmation,
-      query: {
-        id: result.id,
-        ...(prefill.email ? { email: prefill.email } : {}),
-      },
-    })
+    router.replace({ pathname: routes.confirmation, query: { id: result.id } })
     return { ok: true }
   }
 
   return (
     <div className="space-y-6">
+      {/* Above the calendar on purpose: it is a step, and it should be done
+          before the tap that actually books. */}
+      {humanLabels ? (
+        <HumanCheck
+          labels={humanLabels}
+          proof={humanProof}
+          onSolved={setHumanProof}
+        />
+      ) : null}
+
       <SlotPicker
         slots={slots}
         locale={locale}
@@ -112,6 +147,9 @@ export function BookingSlotStep({
 
       {capStart ? (
         <BookingRequestForm
+          signInReturnPath={signInReturnPath}
+          humanProof={humanProof}
+          onProofSpent={() => setHumanProof(null)}
           key={capStart}
           serviceId={serviceId}
           addonIds={addonIds}
@@ -122,6 +160,9 @@ export function BookingSlotStep({
       ) : outsideEnabled ? (
         showOutside ? (
           <BookingRequestForm
+            signInReturnPath={signInReturnPath}
+            humanProof={humanProof}
+            onProofSpent={() => setHumanProof(null)}
             serviceId={serviceId}
             addonIds={addonIds}
             prefill={prefill}
@@ -130,7 +171,11 @@ export function BookingSlotStep({
             slotLabels={outsideLabels}
           />
         ) : (
-          <Button variant="ghost" size="sm" onClick={() => setShowOutside(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowOutside(true)}
+          >
             {locale === "en"
               ? "Can't find a time? Request one outside our hours"
               : "Finder du ikke et tidspunkt? Anmod om en tid uden for åbningstiden"}

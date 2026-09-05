@@ -14,19 +14,15 @@ import { STUDIO_ADDRESS } from "@/config/studio"
 
 /**
  * Confirmation — the branded post-booking success page. The recap is fetched by
- * booking id, and the hero secondary action is completing the account: sign-in
- * prefilled with the booking email. Signed-in visitors (including "just
- * activated here" — Show is reactive) get the "view my bookings" CTA instead. A
- * direct hit without an id renders a calm generic confirmed state — never an
- * error.
+ * booking id, and signed-in visitors get the "view my bookings" CTA. A direct
+ * hit without an id renders a calm generic confirmed state — never an error.
+ *
+ * The signed-OUT branch is no longer reachable from a fresh booking (booking
+ * requires a session), only from an old link or a lapsed one — so it offers a
+ * plain sign-in rather than an account pitch prefilled with an email we would
+ * have had to carry through the URL to get here.
  */
-export async function Confirmation({
-  id,
-  email,
-}: {
-  id: string | null
-  email?: string | null
-}) {
+export async function Confirmation({ id }: { id: string | null }) {
   const t = await getTranslations("confirmation")
   // Sign a token so the (possibly guest) client can pre-approve the media release
   // for this booking. Guarded — a missing token secret just hides the opt-in.
@@ -73,13 +69,7 @@ export async function Confirmation({
                 <Button
                   nativeButton={false}
                   render={
-                    <Link
-                      href={
-                        email
-                          ? { pathname: routes.signIn, query: { email } }
-                          : routes.signIn
-                      }
-                    />
+                    <Link href={routes.signIn} />
                   }
                 >
                   {t("accountTitle")}

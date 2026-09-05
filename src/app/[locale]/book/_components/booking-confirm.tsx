@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation"
+import { getPathname, Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/booking/appointment-summary"
 import { BookingSlotStep } from "@/app/[locale]/book/_components/booking-slot-step"
 import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-header"
@@ -10,7 +10,10 @@ import { serviceRef } from "@/shared/booking-subject"
 import { localizeSelection } from "@/shared/localize-selection"
 import { getBookingSlots, getMaxAdvanceDays } from "@/modules/booking"
 import type { ServiceWithAddons } from "@/modules/catalog"
-import type { BookingContact } from "@/shared/contact-validation"
+import {
+  bookingFlowQuery,
+  type BookingContact,
+} from "@/shared/contact-validation"
 import { routes } from "@/config/routes"
 
 /**
@@ -25,9 +28,13 @@ export async function BookingConfirm({
   addons,
   selectedAddonIds,
   prefill,
+  humanCheck,
 }: Pick<ServiceWithAddons, "service" | "addons"> & {
   selectedAddonIds: string[]
   prefill: BookingContact
+  /** Her switch, AND a signing secret to back it. Off → no box, and the action
+      doesn't ask for a proof either. */
+  humanCheck: boolean
 }) {
   const [t, locale, calendars, maxAdvanceDays] = await Promise.all([
     getTranslations("booking"),
@@ -41,19 +48,28 @@ export async function BookingConfirm({
   const { service: localizedService, addons: selectedAddons } =
     localizeSelection(service, addons, locale, selectedAddonIds)
 
+  // Where sign-in should land if the session lapses between here and the
+  // booking tap: this exact picker, selection and details intact.
+  const signInReturnPath = `${getPathname({ locale, href: routes.book })}?${bookingFlowQuery(
+    {
+      serviceId: service.id,
+      addonIds: selectedAddons.map((a) => a.id),
+      step: "confirm",
+      contact: prefill,
+    },
+  )}`
+
   // Carry the contact fields back so the details form re-renders filled —
-  // state lives in the URL across the whole flow.
-  const backQuery = {
-    service: service.id,
-    step: "details",
-    ...(selectedAddons.length
-      ? { addons: selectedAddons.map((a) => a.id).join(",") }
-      : {}),
-    ...(prefill.name ? { name: prefill.name } : {}),
-    ...(prefill.email ? { email: prefill.email } : {}),
-    ...(prefill.phone ? { phone: prefill.phone } : {}),
-    ...(prefill.notes ? { notes: prefill.notes } : {}),
-  }
+  // state lives in the URL across the whole flow. Same builder as the sign-in
+  // return path, so the two can't disagree about what "everything" is.
+  const backQuery = Object.fromEntries(
+    bookingFlowQuery({
+      serviceId: service.id,
+      addonIds: selectedAddons.map((a) => a.id),
+      step: "details",
+      contact: prefill,
+    }),
+  )
 
   return (
     <Section>
@@ -72,6 +88,18 @@ export async function BookingConfirm({
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           <div className="w-full min-w-0 flex-1 space-y-6">
             <BookingSlotStep
+              signInReturnPath={signInReturnPath}
+              humanLabels={
+                humanCheck
+                  ? {
+                      prompt: t("humanPrompt"),
+                      working: t("humanWorking"),
+                      done: t("humanDone"),
+                      failed: t("humanFailed"),
+                      note: t("humanNote"),
+                    }
+                  : null
+              }
               serviceId={service.id}
               addonIds={selectedAddons.map((a) => a.id)}
               slots={slots}

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { BodySm } from "@/components/ui/typography"
 import { TabBar } from "@/components/ui/tab-bar"
+import { Blocklist } from "@/app/admin/clients/_components/blocklist"
+import type { BlockedIdentityView } from "@/shared/booking-protection"
 import { matchesClientSearch } from "@/shared/client-search"
 import { routes } from "@/shared/routes"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
@@ -63,17 +65,25 @@ function ClientRows({ clients }: { clients: ClientRosterEntry[] }) {
 /**
  * The client directory — every client who has ever booked, split by whether
  * they've activated their own account (Active = reachable outside a booking) or
- * are booking-only. Tabs with counts + a one-line explanation each; client-side
- * search over name, phone + email (the roster is small at studio scale).
+ * are booking-only, plus the people who may no longer book at all. Tabs with
+ * counts + a one-line explanation each; client-side search over name, phone +
+ * email (the roster is small at studio scale).
  */
-type ClientTab = "active" | "booking-only"
+type ClientTab = "active" | "booking-only" | "blocked"
 
 const TAB_HELP: Record<ClientTab, string> = {
   active: "Signed into their own account — fine to contact outside a booking.",
   "booking-only": "Account created from a booking — contact for appointment matters only.",
+  blocked: "Refused at the booking form. Block someone from their own page, or add one by hand below.",
 }
 
-export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
+export function ClientDirectory({
+  clients,
+  blocked,
+}: {
+  clients: ClientRosterEntry[]
+  blocked: BlockedIdentityView[]
+}) {
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState<ClientTab>("active")
 
@@ -89,13 +99,16 @@ export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
 
   return (
     <div className="space-y-6">
-      <Input
-        type="search"
-        placeholder="Search name, phone, or email"
-        value={query}
-        onValueChange={setQuery}
-        aria-label="Search clients"
-      />
+      {/* The search filters the roster, and the blocked list isn't part of it. */}
+      {tab === "blocked" ? null : (
+        <Input
+          type="search"
+          placeholder="Search name, phone, or email"
+          value={query}
+          onValueChange={setQuery}
+          aria-label="Search clients"
+        />
+      )}
 
       <TabBar
         tabs={[
@@ -105,6 +118,11 @@ export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
             label: "Booking-only",
             count: bookingOnly.length,
           },
+          {
+            value: "blocked",
+            label: "Blocked",
+            count: blocked.length || undefined,
+          },
         ]}
         active={tab}
         onChange={setTab}
@@ -112,7 +130,9 @@ export function ClientDirectory({ clients }: { clients: ClientRosterEntry[] }) {
 
       <div className="space-y-2 pl-2">
         <BodySm className="text-xs">{TAB_HELP[tab]}</BodySm>
-        {shown.length ? (
+        {tab === "blocked" ? (
+          <Blocklist entries={blocked} />
+        ) : shown.length ? (
           <ClientRows clients={shown} />
         ) : (
           <EmptyState

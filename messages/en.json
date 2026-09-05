@@ -68,17 +68,16 @@
     "fields": {
       "fullName": "Full name",
       "fullNamePlaceholder": "e.g. Anna Jensen",
-      "email": "Email address",
-      "emailPlaceholder": "you@example.com",
       "phone": "Phone number",
       "phonePlaceholder": "+45 12 34 56 78",
       "notes": "Session notes (optional)",
-      "notesPlaceholder": "Anything we should know before your session"
+      "notesPlaceholder": "Anything we should know before your session",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com"
     },
     "privacyNote": "Your details are held privately and never shared. We'll only contact you in relation to your appointment.",
     "toTimeCta": "Choose a time",
     "confirmCta": "Confirm session",
-    "signInPrompt": "Already a client? <link>Sign in</link> and we'll fill these in for you.",
     "headingConfirm1": "Choose",
     "headingConfirm2": "Your Moment",
     "confirmIntro": "The final step — pick the date and time that suits you. Your treatment, add-ons and details travel with your appointment, and your confirmation arrives by email.",
@@ -102,7 +101,19 @@
     "advanceNote": "You can book up to {days} days in advance.",
     "availableLegend": "Available",
     "prevMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "headingSignIn1": "One",
+    "headingSignIn2": "quick step",
+    "signInIntro": "Sign in to finish booking. We'll send you a code by email — no password to remember.",
+    "signInWhy": "Confirming your email keeps the calendar for real appointments, and it means your bookings, photos and messages are all waiting for you in My Space.",
+    "signInCta": "Sign in to book",
+    "signInKeepsSelection": "Your treatment and any extras are kept — you'll come straight back here.",
+    "bookingAs": "Booking as {email}",
+    "humanPrompt": "I'm not a robot",
+    "humanWorking": "Checking…",
+    "humanDone": "Verified — thank you",
+    "humanFailed": "That didn't work — tap to try again",
+    "humanNote": "This check runs on our own server. Nothing is shared with Google or anyone else, and no cookie is set."
   },
   "bookings": {
     "metaTitle": "My Space – Bella Nails",

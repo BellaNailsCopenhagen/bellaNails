@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { SupabaseLoginForm } from "@/components/auth/supabase-login-form"
+import { safeInternalPath } from "@/shared/safe-next"
 
 export const metadata: Metadata = { title: "Log in" }
 
@@ -12,10 +13,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; redirect_url?: string; email?: string }>
 }) {
   const { next, redirect_url, email } = await searchParams
-  const requested = next ?? redirect_url ?? "/"
-  // Only ever redirect to a local path (guard against open-redirect).
-  const safeNext =
-    requested.startsWith("/") && !requested.startsWith("//") ? requested : "/"
+  const safeNext = safeInternalPath(next ?? redirect_url)
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-20">
       <div className="w-full max-w-sm">

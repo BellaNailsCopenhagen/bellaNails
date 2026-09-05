@@ -68,17 +68,16 @@
     "fields": {
       "fullName": "Fulde navn",
       "fullNamePlaceholder": "f.eks. Anna Jensen",
-      "email": "E-mailadresse",
-      "emailPlaceholder": "dig@eksempel.dk",
       "phone": "Telefonnummer",
       "phonePlaceholder": "+45 12 34 56 78",
       "notes": "Noter til sessionen (valgfrit)",
-      "notesPlaceholder": "Noget vi bør vide før din session"
+      "notesPlaceholder": "Noget vi bør vide før din session",
+      "email": "E-mailadresse",
+      "emailPlaceholder": "dig@eksempel.dk"
     },
     "privacyNote": "Dine oplysninger opbevares fortroligt og deles aldrig. Vi kontakter dig kun i forbindelse med din tid.",
     "toTimeCta": "Vælg et tidspunkt",
     "confirmCta": "Bekræft session",
-    "signInPrompt": "Allerede kunde? <link>Log ind</link>, så udfylder vi felterne for dig.",
     "headingConfirm1": "Vælg",
     "headingConfirm2": "dit tidspunkt",
     "confirmIntro": "Sidste trin — vælg den dato og det tidspunkt, der passer dig. Din behandling, tilvalg og oplysninger følger med din tid, og din bekræftelse kommer på e-mail.",
@@ -102,7 +101,19 @@
     "advanceNote": "Du kan booke op til {days} dage frem.",
     "availableLegend": "Ledig",
     "prevMonth": "Forrige måned",
-    "nextMonth": "Næste måned"
+    "nextMonth": "Næste måned",
+    "headingSignIn1": "Et",
+    "headingSignIn2": "hurtigt trin",
+    "signInIntro": "Log ind for at gennemføre din booking. Vi sender dig en kode på e-mail — ingen adgangskode at huske.",
+    "signInWhy": "Når din e-mail er bekræftet, holder vi kalenderen fri til rigtige aftaler — og dine bookinger, billeder og beskeder venter samlet i Mit rum.",
+    "signInCta": "Log ind for at booke",
+    "signInKeepsSelection": "Din behandling og eventuelle tilvalg gemmes — du kommer direkte tilbage hertil.",
+    "bookingAs": "Booker som {email}",
+    "humanPrompt": "Jeg er ikke en robot",
+    "humanWorking": "Tjekker…",
+    "humanDone": "Bekræftet — tak",
+    "humanFailed": "Det virkede ikke — tryk for at prøve igen",
+    "humanNote": "Dette tjek kører på vores egen server. Intet deles med Google eller andre, og der sættes ingen cookie."
   },
   "bookings": {
     "metaTitle": "Mit rum – Bella Nails",

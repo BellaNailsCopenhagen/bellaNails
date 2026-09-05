@@ -1,7 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { getCurrentUser } from "@/modules/identity/server"
-import { SignedOut } from "@/components/auth/auth-gate"
 import { getPathname, Link } from "@/i18n/navigation"
 import { AppointmentSummary } from "@/components/booking/appointment-summary"
 import { BookingStepHeader } from "@/app/[locale]/book/_components/booking-step-header"
@@ -13,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { BodySm } from "@/components/ui/typography"
 import type { ServiceWithAddons } from "@/modules/catalog"
 import {
+  bookingFlowQuery,
   EMAIL_HTML_PATTERN,
   MAX_NOTES_LENGTH,
   PHONE_HTML_PATTERN,
@@ -38,16 +38,26 @@ type Field = {
  * The selection arrives via the URL (`?service=…&addons=a,b&step=details`),
  * so this step is shareable/refreshable and back-navigation keeps state.
  * Field defaults: URL values (back-navigation) win over the signed-in user's
- * profile; signed-out visitors get a sign-in prompt that returns here.
+ * profile.
+ *
+ * **This is where the spam gate sits.** Browsing services and availability
+ * stays open to everyone; the ask for a verified email comes once there is a
+ * selection worth keeping, and the return URL carries it so nothing is lost.
+ * The email itself is never a field — it is the session's, which is the whole
+ * point of the gate and also keeps contact data out of the query string.
  */
 export async function BookingDetails({
   service,
   addons,
   selectedAddonIds,
   prefill = {},
+  signInRequired,
 }: Pick<ServiceWithAddons, "service" | "addons"> & {
   selectedAddonIds: string[]
   prefill?: BookingContact
+  /** The artist's switch (App settings → Spam & abuse). Off → guests may book,
+      so the form has to ask for an email of its own. */
+  signInRequired: boolean
 }) {
   const [t, locale, user] = await Promise.all([
     getTranslations("booking"),
@@ -74,9 +84,10 @@ export async function BookingDetails({
   // No add-ons on this service → the customise step is skipped; back = picker.
   const hasAddons = addons.length > 0
 
-  // All three are required — enforced natively here (required/type/pattern,
-  // browser-localized messages) and again at the /book routing gate
+  // Every field shown is required — enforced natively here (required/type/
+  // pattern, browser-localized messages) and again at the /book routing gate
   // (`isCompleteContact`), using the same patterns so they can't disagree.
+  // Email only appears when the session isn't supplying it.
   const fields: Field[] = [
     {
       id: "name",
@@ -87,15 +98,19 @@ export async function BookingDetails({
       minLength: 2,
       defaultValue: defaults.name,
     },
-    {
-      id: "email",
-      label: t("fields.email"),
-      placeholder: t("fields.emailPlaceholder"),
-      type: "email",
-      autoComplete: "email",
-      pattern: EMAIL_HTML_PATTERN,
-      defaultValue: defaults.email,
-    },
+    ...(signInRequired
+      ? []
+      : [
+          {
+            id: "email" as const,
+            label: t("fields.email"),
+            placeholder: t("fields.emailPlaceholder"),
+            type: "email",
+            autoComplete: "email",
+            pattern: EMAIL_HTML_PATTERN,
+            defaultValue: defaults.email,
+          },
+        ]),
     {
       id: "phone",
       label: t("fields.phone"),
@@ -108,15 +123,62 @@ export async function BookingDetails({
   ]
 
   const bookPath = getPathname({ locale, href: routes.book })
-  // Where the sign-in flow should land back: this exact step with selection.
-  const returnParams = new URLSearchParams({
-    service: service.id,
+  // Where the sign-in flow should land back: this exact step, selection and
+  // anything already typed intact.
+  const returnUrl = `${bookPath}?${bookingFlowQuery({
+    serviceId: service.id,
+    addonIds: selectedAddons.map((a) => a.id),
     step: "details",
-  })
-  if (selectedAddons.length) {
-    returnParams.set("addons", selectedAddons.map((a) => a.id).join(","))
+    contact: prefill,
+  })}`
+
+  // The gate only stands when the artist has it switched on.
+  if (signInRequired && !user) {
+    return (
+      <Section>
+        <Container className="max-w-4xl">
+          <BookingStepHeader
+            current={1}
+            skipCustomise={!hasAddons}
+            backHref={
+              hasAddons ? { pathname: routes.book, query: backQuery } : routes.book
+            }
+            backLabel={hasAddons ? t("backToCustomise") : t("back")}
+            eyebrow={t("eyebrow")}
+            lead={t("headingSignIn1")}
+            muted={t("headingSignIn2")}
+            intro={t("signInIntro")}
+          />
+
+          <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
+            <div className="w-full space-y-6 md:max-w-[25rem]">
+              <BodySm className="text-xs">{t("signInWhy")}</BodySm>
+              <Button
+                size="lg"
+                nativeButton={false}
+                render={
+                  <Link
+                    href={{
+                      pathname: routes.signIn,
+                      query: { next: returnUrl },
+                    }}
+                  />
+                }
+              >
+                {t("signInCta")}
+              </Button>
+              <BodySm className="text-xs">{t("signInKeepsSelection")}</BodySm>
+            </div>
+
+            <AppointmentSummary
+              service={localizedService}
+              selectedAddons={selectedAddons}
+            />
+          </div>
+        </Container>
+      </Section>
+    )
   }
-  const returnUrl = `${bookPath}?${returnParams.toString()}`
 
   return (
     <Section>
@@ -133,26 +195,6 @@ export async function BookingDetails({
           muted={t("headingDetails2")}
           intro={t("detailsIntro")}
         />
-
-        {/* Signed-out: offer sign-in (returning here) so the form can
-            prefill from the account profile. */}
-        <SignedOut>
-          <BodySm className="pb-8 text-xs">
-            {t.rich("signInPrompt", {
-              link: (chunks) => (
-                <Link
-                  href={{
-                    pathname: routes.signIn,
-                    query: { redirect_url: returnUrl },
-                  }}
-                  className="underline underline-offset-2 hover:text-foreground"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </BodySm>
-        </SignedOut>
 
         <div className="flex flex-col gap-12 md:flex-row md:items-start md:justify-between md:gap-16">
           {/* GET submit: the contact fields join the URL-driven flow state
@@ -176,6 +218,13 @@ export async function BookingDetails({
               />
             ) : null}
             <input type="hidden" name="step" value="confirm" />
+            {/* Not a field while the gate is on: the address comes from the
+                session, so it can't be typed wrong, spoofed, or left in the URL. */}
+            {signInRequired ? (
+              <BodySm className="text-xs">
+                {t("bookingAs", { email: user?.email ?? "" })}
+              </BodySm>
+            ) : null}
             {/* Honeypot: off-screen + aria-hidden + not tabbable, so neither
                 sighted nor screen-reader users ever fill it. A non-autocomplete
                 name so browsers/password managers won't autofill it; a bot that

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { cancelBookingById, insertBooking } from "@/db/bookings"
+import { purgeExpiredRateLimits } from "@/db/rate-limits"
 import type { Db } from "@/db/client"
 import { getDesignRequest, updateDesignRequest } from "@/db/design-requests"
 import {
@@ -382,6 +383,9 @@ export async function runDesignHousekeeping(limit = 50): Promise<{
       console.error("[design] orphan sweep failed", error)
       return 0
     }),
+    // Not design's business, but this is the only throttled sweep we have and
+    // the rate-limit table has no other cleaner. Move both to the cron (D).
+    purgeExpiredRateLimits(db).catch(() => 0),
   ])
   return { offersExpired: stale.length, refsPurged: refsPurged + orphansPurged }
 }

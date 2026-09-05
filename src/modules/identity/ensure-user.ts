@@ -18,9 +18,13 @@ type EnsureUserInput = {
 
 /**
  * Create-or-find a `clients` row by email; returns the client_id — the keystone
- * of the identity model. A guest booker gets an identity + history with no
- * login; a later Google/OTP login links this row by email (the
- * on_auth_user_created trigger sets auth_user_id).
+ * of the identity model. A login links the row by email (the
+ * on_auth_user_created trigger sets auth_user_id), and the studio can create
+ * one for a walk-in who has never signed in.
+ *
+ * The email must already be TRUSTED: the public booking paths pass the session's
+ * address, never a form field, because a row created from an unverified address
+ * is exactly the spam this gates (docs/tasks/in-house/CARD-HOLD.md).
  *
  * Name is filled-if-empty (a booking typo never clobbers a client's chosen
  * display name); phone is refreshed to the latest one they book with, since a

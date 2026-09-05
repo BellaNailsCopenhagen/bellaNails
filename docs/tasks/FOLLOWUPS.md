@@ -4,11 +4,12 @@ Small fixes/enhancements captured mid-work. Not blocking; pick up when convenien
 
 ### Design requests — deferred after the first build
 
-- **Rate limiting is per-process.** `shared/rate-limit.ts` holds state in one
-  serverless instance, so the 20-uploads/hour cap on `/api/media/sign` is
-  best-effort. Enough to stop one client looping; not a distributed defence. A
-  durable limiter (a Postgres counter, or an external store) is the real answer —
-  and `createBooking` wants the same thing (see the public-abuse guard below).
+- **Rate limiting is per-process** *(partly addressed)*. A durable limiter now
+  exists — `db/rate-limits.ts` + `supabase/rate-limits.sql`, counting inside
+  Postgres — and the two booking writes use it. `shared/rate-limit.ts` is still
+  what guards `/api/media/sign` (20 uploads/hour), design messages and the
+  housekeeping throttle, and those are still per-instance. Move them over if any
+  of them is ever actually abused; the pure function is fine for the throttle.
 - **Housekeeping has no scheduler.** `runDesignHousekeeping` is throttled to once
   an hour and triggered by someone opening `/admin`. If nobody does,
   offers don't expire and reference photos aren't purged. One cron trigger fixes
@@ -86,10 +87,13 @@ though it's only revealed after clicking "Request one". Lazy-load it: return onl
 
 ### In-house booking hardening (before launch)
 From the Phase 3a review of `createBooking`:
-- **Public-abuse guard** (blocker before launch): `createBooking` is a public
-  service-role write with no auth/rate-limit — an attacker can spam bookings +
-  junk `clients` rows and fill the calendar. Add rate-limiting / captcha /
-  honeypot (Cal had bot protection; we removed it).
+- ~~**Public-abuse guard** (blocker before launch)~~ — **DONE (2 Sep 2026).**
+  `createBooking` and `createBookingRequest` now require a signed-in session and
+  take the email FROM it, so a made-up address can no longer create a client row
+  or hold a slot. Behind that: the pre-existing honeypot, a durable per-client
+  rate limit (`db/rate-limits.ts`), and the 2-active-booking cap. This is the
+  sign-in half of feature F in [ROADMAP.md](in-house/ROADMAP.md); guests get a
+  card as their second path when G lands. **Apply `supabase/rate-limits.sql`.**
 - **Buffer is app-enforced, not DB-enforced**: the `bookings_no_overlap`
   exclusion constraint guarantees no raw overlap, but a rare concurrent race can
   create back-to-back bookings that skip the `buffer_mins` cleanup gap (both pass

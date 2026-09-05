@@ -9,6 +9,7 @@ import {
   ClientDirectory,
   type ClientRosterEntry,
 } from "@/app/admin/clients/_components/client-directory"
+import { getBlockedIdentities } from "@/modules/booking/protection"
 import { getClientDirectory, type DirectoryEntry } from "@/modules/clients"
 import { clientSearchText } from "@/shared/client-search"
 import { contactDisplayName } from "@/shared/contact"
@@ -47,7 +48,10 @@ function toRosterEntry(entry: DirectoryEntry): ClientRosterEntry {
 export default async function AdminClientsPage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const { clients: roster, loadError } = await getClientDirectory(now)
+  const [{ clients: roster, loadError }, blocked] = await Promise.all([
+    getClientDirectory(now),
+    getBlockedIdentities(),
+  ])
   const clients: ClientRosterEntry[] = roster.map(toRosterEntry)
 
   return (
@@ -70,13 +74,13 @@ export default async function AdminClientsPage() {
           title="Couldn’t load clients"
           body="Something went wrong reaching the studio's clients. Try again in a moment."
         />
-      ) : clients.length === 0 ? (
+      ) : clients.length === 0 && blocked.length === 0 ? (
         <EmptyState
           title="No clients yet"
           body="Clients appear here once they've booked."
         />
       ) : (
-        <ClientDirectory clients={clients} />
+        <ClientDirectory clients={clients} blocked={blocked} />
       )}
     </div>
   )

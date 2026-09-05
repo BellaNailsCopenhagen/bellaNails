@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { safeInternalPath } from "@/shared/safe-next"
+
 import { createSupabaseSessionServerClient } from "@/platform/supabase/ssr-server"
 
 /**
@@ -10,9 +12,8 @@ import { createSupabaseSessionServerClient } from "@/platform/supabase/ssr-serve
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/"
-  // Only allow a local path (guard against open-redirect + absolute-URL crashes).
-  const dest = next.startsWith("/") && !next.startsWith("//") ? next : "/"
+  // One shared guard — the naive startsWith check let `/\evil.com` through.
+  const dest = safeInternalPath(searchParams.get("next"))
 
   if (code) {
     const supabase = await createSupabaseSessionServerClient()

@@ -581,6 +581,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          reset_at: string
+          updated_at: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          reset_at: string
+          updated_at?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          reset_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       owner_notifications: {
         Row: {
           client_media_id: string | null
@@ -611,6 +632,51 @@ export type Database = {
           purpose?: string | null
           read_at?: string | null
           target_id?: string | null
+        }
+        Relationships: []
+      }
+      booking_protection: {
+        Row: {
+          access_level: string
+          human_check: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          human_check?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          human_check?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blocked_identities: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          reason: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          reason: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          reason?: string
+          value?: string
         }
         Relationships: []
       }
@@ -1162,7 +1228,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      purge_expired_rate_limits: {
+        Args: { p_older_than?: unknown }
+        Returns: number
+      }
+      take_rate_limit_token: {
+        Args: { p_key: string; p_limit: number; p_window: unknown }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

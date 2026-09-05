@@ -16,11 +16,13 @@ import { ClientCommunications } from "@/app/admin/clients/[id]/_components/clien
 import { ClientStatusBadge } from "@/app/admin/clients/[id]/_components/client-status-badge"
 import { ClientTermsPanel } from "@/app/admin/clients/[id]/_components/client-terms-panel"
 import { AskTestimonialButton } from "@/app/admin/clients/[id]/_components/ask-testimonial-button"
+import { BlockClientButton } from "@/app/admin/clients/[id]/_components/block-client-button"
 import { EraseClientButton } from "@/app/admin/clients/[id]/_components/erase-client-button"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { NoteFeed } from "@/components/admin/note-feed"
 import { getClientBookingHistory } from "@/modules/booking"
 import { getClientNotes, getClientPrivacyRecord } from "@/modules/clients"
+import { getEmailBlock } from "@/modules/booking/protection"
 import { getClientCommunications } from "@/modules/notifications"
 import { routing } from "@/i18n/routing"
 import { isActiveBookingStatus } from "@/shared/booking-status"
@@ -66,11 +68,12 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, privacy, comms, clientNotes] = await Promise.all([
+  const [hubAssets, privacy, comms, clientNotes, emailBlock] = await Promise.all([
     getHubAssets(id).catch(() => []),
     getClientPrivacyRecord(id),
     getClientCommunications(id),
     getClientNotes(id),
+    getEmailBlock(contact?.email),
   ])
   const { dataConsents, terms: termsAcceptances } = privacy
 
@@ -203,6 +206,20 @@ export default async function AdminClientPage({
       <ClientDataConsent clientId={id} dataConsents={dataConsents} />
 
       <ClientTermsPanel acceptances={termsAcceptances} />
+
+      {/* Stop them booking online. Reversible, and it touches no history —
+          kept apart from erasure below, which is neither. */}
+      <div className="flex flex-col gap-2 border-t border-border pt-6">
+        <BodySm className="text-xs text-muted-foreground">
+          Refuse this client at the booking form (you can still book them in
+          yourself, and you can undo it).
+        </BodySm>
+        <BlockClientButton
+          email={contact?.email ?? null}
+          clientName={clientName}
+          block={emailBlock}
+        />
+      </div>
 
       {/* GDPR erasure — anonymize on request (irreversible). */}
       <div className="flex flex-col gap-2 border-t border-border pt-6">

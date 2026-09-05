@@ -63,10 +63,29 @@ studio-entered, client uploads never auto-publish — so it's not urgent).
 
 ## Separately planned (pre-existing — still to build)
 
-### F · Guest spam gate — validated-identity-OR-card  — **PLANNED**
-- The guest gate: returning signed-in (clean) → free; guest → **sign in (validate
-  email)** or **add a card**. The **email/sign-in half can ship now** (reuses
-  Supabase OTP) as the interim spam layer; the card half = G.
+### F · Guest spam gate — validated-identity-OR-card  — **SIGN-IN HALF BUILT** (2 Sep 2026)
+- The gate: signed-in → book; not signed in → **sign in (validates the email)**.
+  The card alternative is G, so sign-in is currently the ONLY path.
+- Built: `createBooking` + `createBookingRequest` require a session and take the
+  email from it (never a form field); a durable per-client rate limit
+  (`db/rate-limits.ts`, counting in Postgres); the gate UI on the details step,
+  with the selection preserved through the sign-in round trip. Email left the
+  booking URL entirely, which also took contact PII out of logs and history.
+- **Now artist-controlled** (3 Sep 2026). `booking_protection` (one row) holds
+  an access LEVEL, not a boolean: `open` (anyone books) · `verified` (confirm an
+  email — the default) · `card` (offered, needs G). Plus a self-hosted
+  proof-of-work "I'm not a robot" box, and `blocked_identities` — her manual
+  blocklist by address, email domain or IP. All on Admin → App settings, because
+  every step up trades conversion for safety and only she can price that.
+- The human check is the ALTCHA scheme implemented in-repo, NOT a vendor:
+  no third-party script, no cookie, no processor, nothing to add to the privacy
+  notice. Google reCAPTCHA was ruled out deliberately (Google as processor +
+  German/Austrian DPA precedent).
+- **SQL to apply:** `supabase/rate-limits.sql`, `supabase/booking-protection.sql`.
+- Still open: the **card option** (G) as the second path for someone who won't
+  make an account; a lighter INLINE email-code step (no /login redirect) if the
+  sign-in round trip costs too much conversion; a disposable-domain seed list
+  for the blocklist if throwaway inboxes get abused.
 - Connected: **Supabase Auth** (live) + **Stripe** (G).
 
 ### G · Card-hold (Stripe authorization hold)  — **PLANNED (big)**

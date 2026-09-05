@@ -8,12 +8,25 @@ import {
   updateBookingRequest,
 } from "@/db/booking-requests"
 import { insertBooking } from "@/db/bookings"
+import { takeDurableToken } from "@/db/rate-limits"
 import { resolveLocale } from "@/i18n/routing"
 import { buildBookingDraft } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
+import {
+  callerIp,
+  checkBlocked,
+  getBookingProtectionSettings,
+} from "@/modules/booking/protection"
 import { fetchClientContacts } from "@/modules/clients"
 import { ensureUser } from "@/modules/identity/ensure-user"
+import {
+  humanCheckConfigured,
+  spendHumanProof,
+  verifyHumanProof,
+} from "@/modules/identity/human-check"
+import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
+
 import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
 import {
   recordCommunication,
@@ -29,10 +42,15 @@ import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
 import { serviceRef } from "@/shared/booking-subject"
 import { BOOKING_STATUS } from "@/shared/booking-status"
+import { requiresVerifiedIdentity } from "@/shared/booking-protection"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes } from "@/shared/routes"
 
 const MIN = 60_000
+
+// A request is cheaper for us than a booking but still costs an artist alert
+// and an email, so it gets its own durable per-client window.
+const REQUEST_RULE = { limit: 5, window: "1 hour" }
 
 // The booked window length: from the snapshot, else the request's own start→end
 // span (never 0/negative) — so adjusting the start keeps the appointment length.
@@ -58,27 +76,73 @@ export type CreateRequestInput = {
   start: string
   kind: "outside_hours" | "over_limit"
   name: string
-  email: string
+  /** Only read when "require a sign-in to book" is OFF. */
+  email?: string
   phone?: string
   message?: string
   locale?: string
   honeypot?: string
+  humanProof?: string
 }
 
 /**
  * A client asks for a slot the self-service flow won't grant (outside hours, or
- * past the 2-active cap). Public — a guest requests by email. Builds the same
- * as-booked snapshot as a booking but WITHOUT a slot check, records the request,
- * alerts the artist in-app, and emails the client a clear "received, not yet
- * confirmed" acknowledgement.
+ * past the 2-active cap). Builds the same as-booked snapshot as a booking but
+ * WITHOUT a slot check, records the request, alerts the artist in-app, and
+ * emails the client a clear "received, not yet confirmed" acknowledgement.
+ *
+ * Gated exactly like `createBooking`: this path writes a client row, an artist
+ * notification and two emails, so leaving it open to an unverified address
+ * would have been the hole the booking gate was closing.
  */
 export async function createBookingRequest(
   input: CreateRequestInput,
-): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+): Promise<
+  | { ok: true; id: string }
+  | { ok: false; error: string; code?: "auth" | "human" }
+> {
   if (input.honeypot?.trim()) return { ok: false, error: "Couldn't send the request." }
-  const email = input.email.trim().toLowerCase()
+
+  const db = createSupabaseServiceRoleClient()
+
+  // The same artist-controlled protection as createBooking — this path writes a
+  // client row, an artist alert and two emails, so leaving it ungated would be
+  // the hole the booking gate closes.
+  const protection = await getBookingProtectionSettings(db)
+
+  // Her switch AND a signing secret — see createBooking.
+  const humanCheckOn = protection.humanCheck && humanCheckConfigured()
+  if (humanCheckOn) {
+    const human = await verifyHumanProof(input.humanProof)
+    if (!human.ok) {
+      return {
+        ok: false,
+        code: "human",
+        error:
+          human.reason === "missing"
+            ? "Please tick the “I'm not a robot” box first."
+            : "That check didn't pass — tick the box again and retry.",
+      }
+    }
+  }
+
+  // `code: "auth"` ONLY for a missing session — see createBooking.
+  const user = await getCurrentUser()
+  if (requiresVerifiedIdentity(protection.accessLevel) && !user) {
+    return {
+      ok: false,
+      code: "auth",
+      error: "Please sign in to send a request — it confirms your email.",
+    }
+  }
+  const email = (user?.email ?? input.email ?? "").trim().toLowerCase()
   if (email.length > 254 || !EMAIL_PATTERN.test(email)) {
-    return { ok: false, error: "Enter a valid email." }
+    return {
+      ok: false,
+      error: user
+        ? "Your account has no email address we can reply to — please contact the studio."
+        : "Enter a valid email.",
+    }
   }
 
   // The slot check is off for a request, so guard the time here: must be in the
@@ -92,7 +156,12 @@ export async function createBookingRequest(
     return { ok: false, error: "That's too far ahead — pick a nearer date." }
   }
 
-  const db = createSupabaseServiceRoleClient()
+  const ip = await callerIp()
+  const blocked = await checkBlocked(db, { email, ip })
+  if (blocked.blocked) {
+    return { ok: false, error: "We can't take this request online — please contact the studio." }
+  }
+
   const prepared = await buildBookingDraft(
     db,
     {
@@ -114,6 +183,31 @@ export async function createBookingRequest(
     })
   } catch {
     return { ok: false, error: "Couldn't save your details — please try again." }
+  }
+
+  // Last thing before the write, so a rejected time costs no quota. Keyed on
+  // the connection too when there is no session — see createBooking.
+  const buckets = [`booking:request:${clientId}`]
+  if (!user && ip) buckets.push(`booking:request:ip:${ip}`)
+  for (const bucket of buckets) {
+    if (!(await takeDurableToken(db, bucket, REQUEST_RULE))) {
+      return {
+        ok: false,
+        error: "That's a lot of requests in a short time — please contact the studio.",
+      }
+    }
+  }
+
+  // Spent late, so a rejected time doesn't burn it — see createBooking.
+  if (humanCheckOn) {
+    const spent = await spendHumanProof(db, input.humanProof)
+    if (!spent.ok) {
+      return {
+        ok: false,
+        code: "human",
+        error: "That check has expired — tick the box again and retry.",
+      }
+    }
   }
 
   const saved = await insertBookingRequest(db, {

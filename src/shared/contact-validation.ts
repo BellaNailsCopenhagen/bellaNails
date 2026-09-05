@@ -38,6 +38,14 @@ export function toE164(raw: string | undefined | null): string | null {
   return /^\+\d{8,15}$/.test(candidate) ? candidate : null
 }
 
+/**
+ * What the booking flow carries in its URL.
+ *
+ * `email` is present ONLY when the artist has turned "require a sign-in to
+ * book" off — with the gate on, identity is the session's and the address never
+ * touches a query string, browser history or our access logs. With it off we
+ * have to ask, and that trade-off comes back with it.
+ */
 export type BookingContact = {
   name?: string
   email?: string
@@ -80,11 +88,39 @@ export function sanitizeContactText(
   return [...cleaned].slice(0, maxLength).join("")
 }
 
-/** True when name, email and phone are all present and well-formed. */
-export function isCompleteContact(contact: BookingContact): boolean {
+/**
+ * The flow's URL state, for a link that has to come back to a step with the
+ * selection intact — the sign-in round trip on the details step and the
+ * lapsed-session one on the confirm step build the same thing.
+ */
+export function bookingFlowQuery(input: {
+  serviceId: string
+  addonIds: string[]
+  step: "details" | "confirm"
+  contact?: BookingContact
+}): URLSearchParams {
+  const query = new URLSearchParams({
+    service: input.serviceId,
+    step: input.step,
+  })
+  if (input.addonIds.length) query.set("addons", input.addonIds.join(","))
+  const { name, email, phone, notes } = input.contact ?? {}
+  if (name) query.set("name", name)
+  if (email) query.set("email", email)
+  if (phone) query.set("phone", phone)
+  if (notes) query.set("notes", notes)
+  return query
+}
+
+/** True when the flow has everything the create call needs. The email is only
+    part of that when sign-in is off — otherwise the session supplies it. */
+export function isCompleteContact(
+  contact: BookingContact,
+  { requireEmail = false }: { requireEmail?: boolean } = {},
+): boolean {
   return (
     (contact.name?.trim().length ?? 0) >= 2 &&
-    EMAIL_PATTERN.test(contact.email ?? "") &&
-    PHONE_PATTERN.test(contact.phone ?? "")
+    PHONE_PATTERN.test(contact.phone ?? "") &&
+    (!requireEmail || EMAIL_PATTERN.test(contact.email ?? ""))
   )
 }
