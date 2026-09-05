@@ -86,11 +86,23 @@ export async function DesignRequestList({
           render — anything later hasn't been seen. */}
       <DesignThreadsSeen seenAt={newestAnswer(requests)} />
 
-      <div className="space-y-1">
-        <Eyebrow>{t("sectionTitle")}</Eyebrow>
-        <BodySm className="text-xs text-muted-foreground">
-          {t("sectionIntro")}
-        </BodySm>
+      {/* Above the threads, not below them: starting a new one is why a client
+          opens this tab, and a client with a long history had to scroll past
+          every past conversation to find the way to begin another. */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <Eyebrow>{t("sectionTitle")}</Eyebrow>
+          <BodySm className="text-xs text-muted-foreground">
+            {t("sectionIntro")}
+          </BodySm>
+        </div>
+        <Button
+          size="sm"
+          nativeButton={false}
+          render={<Link href={routes.ask} />}
+        >
+          {t("askCta")}
+        </Button>
       </div>
 
       <ul className="space-y-4">

@@ -9,6 +9,7 @@ import {
   withdrawDataConsentFor,
 } from "@/db/client-consents"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { DataConsentPurpose } from "@/shared/data-consent"
 import { routes } from "@/shared/routes"
 
 /**
@@ -21,11 +22,6 @@ export type ConsentActionResult =
   | { ok: true; note?: string }
   | { ok: false; error: string }
 
-type DataPurpose =
-  | "testimonial_site"
-  | "testimonial_some"
-  | "name_site"
-  | "name_some"
 
 async function callerId(): Promise<string | null> {
   const user = await getCurrentUser()
@@ -33,7 +29,7 @@ async function callerId(): Promise<string | null> {
 }
 
 export async function decideDataConsent(
-  purpose: DataPurpose,
+  purpose: DataConsentPurpose,
   decision: "granted" | "declined",
 ): Promise<ConsentActionResult> {
   const userId = await callerId()
@@ -43,20 +39,23 @@ export async function decideDataConsent(
   const consent = await findDataConsent(supabase, userId, purpose)
   if (!consent) return { ok: false, error: "not_found" }
 
-  // Reset the sibling timestamps so a re-grant after a withdrawal/decline can't
-  // leave a contradictory audit row (e.g. status=granted with a stale withdrawn_at).
+  // `withdrawn_at` is NOT cleared on a re-grant: it records that consent was
+  // once withdrawn, and the accountability story depends on it surviving —
+  // `status` alone says what is true now. The media release path keeps it for
+  // the same reason. The other two are cleared, so no row claims both a grant
+  // and a decline.
   const now = new Date().toISOString()
   const stamp =
     decision === "granted"
-      ? { granted_at: now, declined_at: null, withdrawn_at: null }
-      : { declined_at: now, granted_at: null, withdrawn_at: null }
+      ? { granted_at: now, declined_at: null }
+      : { declined_at: now, granted_at: null }
   await updateDataConsent(supabase, consent.id, { status: decision, ...stamp })
   revalidatePath(routes.admin.client(userId))
   return { ok: true }
 }
 
 export async function withdrawDataConsent(
-  purpose: DataPurpose,
+  purpose: DataConsentPurpose,
 ): Promise<ConsentActionResult> {
   const userId = await callerId()
   if (!userId) return { ok: false, error: "unauthorized" }

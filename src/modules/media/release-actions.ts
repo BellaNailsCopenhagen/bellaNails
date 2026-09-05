@@ -14,6 +14,7 @@ import { getBookingOwner } from "@/db/bookings"
 import { deleteGalleryItemsForAsset } from "@/db/gallery-items"
 import {
   findRelease,
+  insertRelease,
   listReleasesForBookings,
   updateRelease,
   upsertReleases,
@@ -222,6 +223,55 @@ export async function restoreMediaRelease(
   // No public surface changed — withdrawal deleted the copy, and re-placing it
   // is a separate, explicit step.
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+  return { ok: true }
+}
+
+/**
+ * The client OFFERS an appointment the studio never asked about. My Space lists
+ * every past appointment with all three purposes, so this is the path for a
+ * purpose that has no row at all — consent given on the client's own initiative,
+ * recorded with the same wording version as any other grant.
+ *
+ * Insert-only, so it cannot touch a row that exists: `requested` is answered
+ * with `decideMediaRelease` and a `declined`/`withdrawn` one with
+ * `restoreMediaRelease`, and no prior "no" is reachable from here at all.
+ */
+export async function offerMediaRelease(
+  bookingId: string,
+  purpose: ReleasePurpose,
+): Promise<ReleaseActionResult> {
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: "unauthorized" }
+  const supabase = createSupabaseServiceRoleClient()
+
+  const booking = await getBookingOwner(supabase, bookingId)
+  if (!booking || booking.client_id !== user.id) {
+    return { ok: false, error: "not_found" }
+  }
+  const now = new Date().toISOString()
+  const saved = await insertRelease(supabase, {
+    booking_id: bookingId,
+    client_id: user.id,
+    purpose,
+    status: "granted" as const,
+    requested_at: now,
+    granted_at: now,
+    consent_version: MEDIA_RELEASE_CONSENT_VERSION,
+  })
+  // The unique (booking_id, purpose) is the guard, so a request that landed
+  // between the page render and this tap loses the race rather than being
+  // overwritten with a grant the client was never shown.
+  if (!saved.ok) return { ok: false, error: "already_decided" }
+
+  // The artist has to be told: nothing prompted this, so nobody is watching for
+  // it, and permission she never asked for is worth nothing unless she knows.
+  await notifyOwner(supabase, {
+    kind: "media_consent_offered",
+    clientId: user.id,
+    purpose,
+  })
+  revalidatePath(routes.admin.client(user.id))
+  revalidatePath(routes.admin.assets)
   return { ok: true }
 }
 

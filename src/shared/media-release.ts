@@ -20,6 +20,17 @@ export function isReleasePurpose(value: string): value is ReleasePurpose {
   return (RELEASE_PURPOSES as readonly string[]).includes(value)
 }
 
+/** A purpose's state as the UI reads it. `none` is not a stored status — it is
+    the absence of a row, i.e. a purpose the studio never asked about. */
+export const RELEASE_STATES = [
+  "none",
+  "requested",
+  "granted",
+  "declined",
+  "withdrawn",
+] as const
+export type ReleaseState = (typeof RELEASE_STATES)[number]
+
 type PurposeCopy = { label: string; description: string }
 
 type ReleaseCopy = {
@@ -46,10 +57,21 @@ type ReleaseCopy = {
   ui: {
     sectionTitle: string
     sectionIntro: string
+    /** The tab opens by explaining the process — the same substance the emailed
+        approval page gives, so a choice made here is just as informed. */
+    explainTitle: string
+    explainSteps: string[]
+    explainNote: string
     allow: string
     decline: string
     shared: string
     stopSharing: string
+    /** Waiting on the client — the studio has asked and nothing is decided. */
+    awaiting: string
+    /** No media on this appointment yet, so there is nothing to show anywhere. */
+    noMediaYet: string
+    /** No past appointments at all — the tab has nothing to list. */
+    noAppointments: string
     /** Terminal state + the way back — re-granting must be as easy as leaving. */
     notShared: string
     allowAgain: string
@@ -99,11 +121,24 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     ui: {
       sectionTitle: "Brug af billeder og video",
       sectionIntro:
-        "Salonen har bedt om lov til at bruge medier fra disse tider. Du bestemmer, og kan altid trække det tilbage.",
+        "Alle dine tider står her — også dem vi ikke har spurgt om. Du bestemmer for hver enkelt, og kan altid trække det tilbage.",
+      explainTitle: "Sådan fungerer det",
+      explainSteps: [
+        "Vi spørger for hver tid og for hvert sted — vores hjemmeside, sociale medier eller undervisning. Intet hænger sammen: ja til ét er ikke ja til de andre.",
+        "Det gælder billederne og videoen af dine negle fra den tid — selve arbejdet. Dit navn og dine ord spørger vi særskilt om længere nede på siden.",
+        "Intet bliver vist, før du siger ja. En tid, vi ikke har spurgt om, er din at tilbyde — eller at lade stå præcis som den er.",
+        "Du kan altid ombestemme dig. Vores hjemmeside opdateres med det samme; et opslag på sociale medier tager vi ned i hånden, som regel inden for få dage.",
+      ],
+      explainNote:
+        "Dit valg er frit, og intet omkring dine tider afhænger af det.",
       allow: "Tillad",
       decline: "Nej tak",
       shared: "Delt",
       stopSharing: "Stop deling",
+      awaiting: "Venter på dit svar",
+      noMediaYet: "Ingen billeder fra denne tid endnu.",
+      noAppointments:
+        "Når du har været her, står tiden på listen — sammen med dine valg om den.",
       notShared: "Deles ikke",
       allowAgain: "Tillad igen",
       retract: {
@@ -149,11 +184,24 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     ui: {
       sectionTitle: "Use of photos & video",
       sectionIntro:
-        "The studio asked to use media from these appointments. It's your choice, and you can withdraw anytime.",
+        "Every appointment you've had is listed here, including the ones we haven't asked about. You decide for each, and you can withdraw anytime.",
+      explainTitle: "How this works",
+      explainSteps: [
+        "We ask per appointment, and per place — our website, social media, or teaching. Nothing is bundled: yes to one is not yes to the others.",
+        "It covers the photos and video of your nails from that appointment — the work itself. Your name and your words are asked for separately, further down this page.",
+        "Nothing is shown anywhere until you say yes. An appointment we haven't asked about is yours to offer, or to leave exactly as it is.",
+        "You can change your mind at any time. Our website updates straight away; a social post we take down by hand, usually within a few days.",
+      ],
+      explainNote:
+        "Your choice is free, and nothing about your appointments depends on it.",
       allow: "Allow",
       decline: "No thanks",
       shared: "Shared",
       stopSharing: "Stop sharing",
+      awaiting: "Waiting for your answer",
+      noMediaYet: "No photos from this appointment yet.",
+      noAppointments:
+        "Once you've had an appointment, it will be listed here along with your choices about it.",
       notShared: "Not shared",
       allowAgain: "Allow again",
       retract: {
@@ -174,7 +222,34 @@ export const pickReleaseCopy = (locale: string) =>
 export const bookingRef = (bookingId: string) =>
   bookingId.slice(0, 8).toUpperCase()
 
-export type ReleasePurposeState = { purpose: ReleasePurpose; status: string }
+export type ReleasePurposeState = {
+  purpose: ReleasePurpose
+  status: ReleaseState
+}
+
+/**
+ * Every purpose, always, in one fixed order — the shape My Space renders.
+ *
+ * Two things were wrong with rendering the stored rows directly: a purpose the
+ * studio had not asked about simply vanished, and the rows arrive in whatever
+ * order Postgres returns them, so answering one item reshuffled the others under
+ * the client's finger. Projecting onto the constant fixes both, and makes the
+ * card's shape independent of what happens to be stored.
+ */
+export function fillReleasePurposes(
+  states: ReleasePurposeState[],
+): ReleasePurposeState[] {
+  const byPurpose = new Map(states.map((s) => [s.purpose, s.status]))
+  return RELEASE_PURPOSES.map((purpose) => ({
+    purpose,
+    status: byPurpose.get(purpose) ?? "none",
+  }))
+}
+
+/** Of a permission that is NOT currently given: does allowing it now mean
+    allowing it *again*? Only a withdrawal follows a real grant — a first ask and
+    a refusal are both plainly "allow". */
+export const isRegrant = (status: ReleaseState) => status === "withdrawn"
 
 /** Group release rows by their booking — the one shape My Space + the admin card
     both read. Structural input so it stays free of any db type. */
@@ -184,7 +259,10 @@ export function groupReleasesByBooking(
   const map = new Map<string, ReleasePurposeState[]>()
   for (const r of rows) {
     const list = map.get(r.booking_id) ?? []
-    list.push({ purpose: r.purpose as ReleasePurpose, status: r.status })
+    list.push({
+      purpose: r.purpose as ReleasePurpose,
+      status: r.status as ReleaseState,
+    })
     map.set(r.booking_id, list)
   }
   return map

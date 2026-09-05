@@ -19,6 +19,7 @@ import { ADMIN_LOCALE } from "@/config/admin"
 const PURPOSE_LABEL: Record<string, string> = {
   website: "website",
   social: "social",
+  education: "teaching",
 }
 
 /** What happened, and what it wants — one entry per kind so a booking request
@@ -48,6 +49,10 @@ const COPY: Record<
     line: "wrote you a few words",
     helper: "Read it, and switch it on if you'd like it on the home page.",
   },
+  media_consent_offered: {
+    line: "offered a set you hadn't asked about",
+    helper: "Permission is granted — pick the shots and place them in the hub.",
+  },
   media_consent_restored: {
     line: "allowed publishing again",
     // Withdrawal deleted the public copy, so permission alone changes nothing
@@ -75,6 +80,9 @@ function copyFor(n: OwnerNotification): { line: string; helper?: string; warn?: 
   if (n.kind === "media_consent_restored") {
     return { ...COPY.media_consent_restored, line: `allowed ${where} again` }
   }
+  if (n.kind === "media_consent_offered") {
+    return { ...COPY.media_consent_offered, line: `offered you ${where}` }
+  }
   return COPY[n.kind] ?? { line: "sent an update" }
 }
 
@@ -95,6 +103,7 @@ const FALLBACK: Record<string, string> = {
   design_reply: routes.admin.home,
   testimonial_submitted: routes.admin.testimonials,
   media_consent_restored: routes.admin.assets,
+  media_consent_offered: routes.admin.assets,
 }
 
 function hrefFor(n: OwnerNotification): string {

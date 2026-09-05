@@ -206,3 +206,18 @@ lands straight on the per-purpose state, the "Confirm taken down" action, and th
 usage manager (where it's used).
 - [notifications/page.tsx](../../src/app/admin/notifications/page.tsx) — `hrefFor(n)`
 - [asset-hub-tabs.tsx](../../src/components/admin/asset-hub-tabs.tsx) → [hub-asset-card.tsx](../../src/components/admin/hub-asset-card.tsx) — `autoOpen` prop
+
+### Server-action error codes reach the client as raw strings ⏳
+`useActionRunner` toasts `result.error` verbatim, and the media/consent actions
+return codes — `not_found`, `unauthorized`, `update_failed`, and now
+`already_decided` from `offerMediaRelease`. A client hitting one sees the code.
+Pre-existing across the module; the fix is a shared code→localized-copy map read
+by the runner's callers, not a per-action English sentence.
+- [release-actions.ts](../../src/modules/media/release-actions.ts)
+- [use-action-runner.ts](../../src/hooks/use-action-runner.ts)
+
+### "Client offered a set" notification doesn't say which appointment ⏳
+`media_consent_offered` links to the assets hub with no `targetId`, so the artist
+learns she has permission but not for which booking. Needs a `FOCUS` entry and a
+card to land on — the same plumbing `media_consent_withdrawn` already has.
+- [notification-row.tsx](../../src/app/admin/notifications/_components/notification-row.tsx)

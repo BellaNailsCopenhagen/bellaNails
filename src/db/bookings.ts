@@ -90,6 +90,21 @@ export async function listBookingLabelsByIds(
   return data ?? []
 }
 
+/** Every booking of one client, labelled — the My Space permission cards list
+    one per appointment, asked about or not. Same minimal columns as above. */
+export async function listBookingLabelsForClient(
+  db: Db,
+  clientId: string,
+): Promise<BookingLabelRow[]> {
+  const { data, error } = await db
+    .from("bookings")
+    .select("id, status, start_time, selected_addons")
+    .eq("client_id", clientId)
+    .order("start_time", { ascending: false })
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 /** Owner + booked product of one booking by row id — the media uploader
     verifies the booking belongs to the client before linking an image. */
 export async function getBookingOwner(

@@ -7,6 +7,7 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import {
   ConfirmActionButton,
+  restoreLink,
   withdrawPill,
 } from "@/components/ui/confirm-action-button"
 import { useActionRunner } from "@/hooks/use-action-runner"
@@ -15,12 +16,20 @@ import {
   decideDataConsent,
   withdrawDataConsent,
 } from "@/modules/media/consent-actions"
+import {
+  DATA_CONSENT_PURPOSES,
+  type DataConsentPurpose,
+} from "@/shared/data-consent"
 
 /**
- * The client's data-consent centre on /appointments — the studio's requests to
- * use their name / testimonial, with Allow / No and a withdraw once granted.
- * (Media use is now a booking-level RELEASE, approved per appointment — see the
- * release cards.) The client is always in control; declines stay per-item.
+ * Your name and your words — the studio's requests to use them, and what you
+ * have already answered. (Media from an appointment is a booking-level RELEASE,
+ * decided per appointment — see the cards above.)
+ *
+ * Every purpose the studio has asked about stays listed whatever the answer, in
+ * one fixed order: a decline that erases its own row leaves nothing to change
+ * your mind with, and the table is read without an ORDER BY, so the rows moved
+ * around every time one was answered.
  */
 export function ConsentCentre({
   dataConsents,
@@ -30,9 +39,8 @@ export function ConsentCentre({
   const t = useTranslations("bookings")
   const { pending, run: act } = useActionRunner(t("actionError"))
 
-  // Localized prompt for a data-use request. Literal keys keep it type-safe;
-  // an unknown purpose falls back to its raw value rather than throwing.
-  const dataPrompt = (purpose: string) => {
+  // Localized prompt for a data-use request. Literal keys keep it type-safe.
+  const dataPrompt = (purpose: DataConsentPurpose) => {
     switch (purpose) {
       case "name_site":
         return t("useNameSite")
@@ -42,96 +50,96 @@ export function ConsentCentre({
         return t("useTestimonialSite")
       case "testimonial_some":
         return t("useTestimonialSome")
-      default:
-        return purpose
     }
   }
 
-  const dataRequests = dataConsents.filter(
-    (c) => c.status === "requested" || c.status === "granted",
-  )
+  const byPurpose = new Map(dataConsents.map((c) => [c.purpose, c.status]))
+  // Only what the studio has actually asked about: unlike a media release, the
+  // client has nothing to offer here on their own initiative.
+  const asked = DATA_CONSENT_PURPOSES.filter((purpose) => byPurpose.has(purpose))
 
-  if (!dataRequests.length) return null
+  if (!asked.length) return null
 
   return (
     <section className="space-y-4">
       <div className="space-y-1">
         <Eyebrow>{t("permsEyebrow")}</Eyebrow>
-        <BodySm className="text-xs">{t("permsIntro")}</BodySm>
+        <BodySm className="max-w-prose text-xs">{t("permsIntro")}</BodySm>
       </div>
 
       <div className="space-y-3">
-        {dataRequests.map((consent) => (
-          <TintedCard
-            key={consent.purpose}
-            className="flex items-center gap-4 p-4"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="font-functional text-sm text-foreground">
-                {dataPrompt(consent.purpose)}
-              </p>
-              {consent.status === "granted" ? (
-                <p className="font-functional text-xs text-success">
-                  {t("dataAllowed")}
+        {asked.map((purpose) => {
+          const status = byPurpose.get(purpose)
+          return (
+            <TintedCard
+              key={purpose}
+              className="flex flex-wrap items-center gap-4 p-4"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-functional text-sm text-foreground">
+                  {dataPrompt(purpose)}
                 </p>
-              ) : null}
-            </div>
-            {consent.status === "granted" ? (
-              <ConfirmActionButton
-                action={() =>
-                  withdrawDataConsent(
-                    consent.purpose as Parameters<typeof withdrawDataConsent>[0],
-                  )
-                }
-                labels={{
-                  title: t("withdrawDataTitle"),
-                  body: t("withdrawDataBody"),
-                  confirm: t("withdrawConfirm"),
-                  confirming: t("withdrawConfirming"),
-                  cancel: t("deleteCancel"),
-                  failed: t("loadError"),
-                }}
-                trigger={
-                  <button type="button" className={withdrawPill}>
-                    {t("stopUsingCta")}
-                  </button>
-                }
-              />
-            ) : (
-              <div className="flex shrink-0 gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    act(() =>
-                      decideDataConsent(
-                        consent.purpose as Parameters<typeof decideDataConsent>[0],
-                        "declined",
-                      ),
-                    )
-                  }
-                >
-                  {t("consentDecline")}
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    act(() =>
-                      decideDataConsent(
-                        consent.purpose as Parameters<typeof decideDataConsent>[0],
-                        "granted",
-                      ),
-                    )
-                  }
-                >
-                  {t("consentAllow")}
-                </Button>
+                {status === "granted" ? (
+                  <p className="font-functional text-xs text-success">
+                    {t("dataAllowed")}
+                  </p>
+                ) : status !== "requested" ? (
+                  <p className="font-functional text-xs text-muted-foreground">
+                    {t("dataNotAllowed")}
+                  </p>
+                ) : null}
               </div>
-            )}
-          </TintedCard>
-        ))}
+
+              {status === "granted" ? (
+                <ConfirmActionButton
+                  action={() => withdrawDataConsent(purpose)}
+                  labels={{
+                    title: t("withdrawDataTitle"),
+                    body: t("withdrawDataBody"),
+                    confirm: t("withdrawConfirm"),
+                    confirming: t("withdrawConfirming"),
+                    cancel: t("deleteCancel"),
+                    failed: t("loadError"),
+                  }}
+                  trigger={
+                    <button type="button" className={withdrawPill}>
+                      {t("stopUsingCta")}
+                    </button>
+                  }
+                />
+              ) : status === "requested" ? (
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => act(() => decideDataConsent(purpose, "declined"))}
+                  >
+                    {t("consentDecline")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => act(() => decideDataConsent(purpose, "granted"))}
+                  >
+                    {t("consentAllow")}
+                  </Button>
+                </div>
+              ) : (
+                /* Said no, or withdrew. Same rule as the release cards: only a
+                   permission that was once given is given "again". */
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => act(() => decideDataConsent(purpose, "granted"))}
+                  className={restoreLink}
+                >
+                  {status === "withdrawn" ? t("consentAllowAgain") : t("consentAllow")}
+                </button>
+              )}
+            </TintedCard>
+          )
+        })}
       </div>
     </section>
   )

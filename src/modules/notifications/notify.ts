@@ -6,6 +6,7 @@ import { insertNotification } from "@/db/owner-notifications"
 export type OwnerNotificationKind =
   | "media_consent_withdrawn"
   | "media_consent_restored"
+  | "media_consent_offered"
   | "shared_image_deleted"
   | "booking_request"
   | "design_request"

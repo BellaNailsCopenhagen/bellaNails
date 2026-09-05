@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import {
   ConfirmActionButton,
   withdrawPill,
@@ -10,6 +12,8 @@ import { signOut } from "@/modules/identity/actions"
 /** Self-serve account deletion (anonymize): personal data + your uploads go,
     bookings stay as records, studio-published photos need per-item withdrawal. */
 export function DeleteAccountButton() {
+  const t = useTranslations("account")
+
   return (
     <ConfirmActionButton
       action={async () => {
@@ -22,16 +26,16 @@ export function DeleteAccountButton() {
       }}
       trigger={
         <button type="button" className={withdrawPill}>
-          Delete my account
+          {t("deleteCta")}
         </button>
       }
       labels={{
-        title: "Delete your account?",
-        body: "This removes your login and personal details, and deletes any photos you uploaded that the studio isn't using. Your bookings are kept as required records (anonymized). Photos the studio has published to its website or social media stay — you can withdraw consent for those and we'll remove them from public view as soon as possible. This can't be undone.",
-        confirm: "Delete",
-        confirming: "Deleting…",
-        cancel: "Cancel",
-        failed: "Couldn't delete — try again.",
+        title: t("deleteTitle"),
+        body: t("deleteBody"),
+        confirm: t("deleteConfirm"),
+        confirming: t("deleteConfirming"),
+        cancel: t("deleteCancel"),
+        failed: t("deleteFailed"),
       }}
     />
   )

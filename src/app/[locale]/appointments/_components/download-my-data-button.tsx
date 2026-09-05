@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { Button } from "@/components/ui/button"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import { requestMyDataExport } from "@/modules/clients/data-export-actions"
@@ -9,7 +11,8 @@ import { requestMyDataExport } from "@/modules/clients/data-export-actions"
  * server action and hands it to the browser as a download — no file is stored.
  */
 export function DownloadMyDataButton() {
-  const { pending, run } = useActionRunner()
+  const t = useTranslations("account")
+  const { pending, run } = useActionRunner(t("downloadFailed"))
 
   const onClick = () =>
     run(async () => {
@@ -30,7 +33,7 @@ export function DownloadMyDataButton() {
 
   return (
     <Button variant="outline" size="sm" disabled={pending} onClick={onClick}>
-      {pending ? "Preparing…" : "Download my data"}
+      {pending ? t("preparing") : t("download")}
     </Button>
   )
 }

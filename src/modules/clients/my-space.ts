@@ -1,6 +1,6 @@
 import "server-only"
 
-import { listBookingLabelsByIds } from "@/db/bookings"
+import { listBookingLabelsForClient } from "@/db/bookings"
 import { getClientProfile, type ClientProfile } from "@/db/clients"
 import { listReleasesForClient } from "@/db/media-releases"
 import { createAuthedSupabaseServerClient } from "@/platform/supabase/server"
@@ -15,6 +15,7 @@ import { getTermsAcceptances, type TermsAcceptance } from "@/modules/terms"
 import { metaOf } from "@/shared/booking-policy"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import {
+  fillReleasePurposes,
   groupReleasesByBooking,
   toReleaseCard,
   type ReleaseRequestCard,
@@ -28,7 +29,8 @@ import {
 export type MySpace = {
   media: ClientMediaItem[]
   dataConsents: DataConsentItem[]
-  releaseRequests: ReleaseRequestCard[]
+  /** One per past appointment — what the studio may show, and where. */
+  permissions: ReleaseRequestCard[]
   requestCount: number
   profile: ClientProfile | null
 }
@@ -36,58 +38,62 @@ export type MySpace = {
 export const EMPTY_MY_SPACE: MySpace = {
   media: [],
   dataConsents: [],
-  releaseRequests: [],
+  permissions: [],
   requestCount: 0,
   profile: null,
 }
 
-/** Booking-level media releases the client can act on. Every booking that was
-    ever asked about is kept, including ones where they said no or later
-    withdrew: re-granting has to be as easy as withdrawing, and they cannot
-    re-grant what the page refuses to show them. */
-async function getReleaseRequests(
+/**
+ * One card per appointment the client has actually had — the Permissions tab
+ * lists them all, whether the studio ever asked about them or not.
+ *
+ * The list is driven by the BOOKINGS, not by the release rows: a client who was
+ * never asked still sees the appointment and can offer it, one who said no still
+ * sees the way back, and the set stops changing shape as answers are given.
+ *
+ * Cancelled is dropped — its release is void. So is a booking that has not
+ * happened yet, UNLESS it already carries a release: the confirmation page lets
+ * a client pre-approve at the moment they book, and consent that cannot be
+ * withdrawn as easily as it was given is not consent (GDPR Art. 7(3)).
+ */
+async function getPermissionCards(
   db: Awaited<ReturnType<typeof createAuthedSupabaseServerClient>>,
   clientId: string,
+  now: number,
 ): Promise<ReleaseRequestCard[]> {
-  const rows = await listReleasesForClient(db, clientId)
-  const byBooking = [...groupReleasesByBooking(rows).entries()]
-  if (!byBooking.length) return []
+  const [rows, bookings] = await Promise.all([
+    listReleasesForClient(db, clientId),
+    listBookingLabelsForClient(db, clientId),
+  ])
+  const byBooking = groupReleasesByBooking(rows)
 
-  const labels = await listBookingLabelsByIds(
-    db,
-    byBooking.map(([bookingId]) => bookingId),
-  )
-  const labelById = new Map(labels.map((b) => [b.id, b]))
-
-  return byBooking
-    // A cancelled booking's release is void — drop it from the UI.
-    .filter(([bookingId]) => {
-      const booking = labelById.get(bookingId)
-      return !booking || booking.status !== BOOKING_STATUS.cancelled
-    })
-    .map(([bookingId, purposes]) => {
-      const booking = labelById.get(bookingId)
-      return toReleaseCard(
-        bookingId,
-        booking ? metaOf(booking) : {},
-        booking?.start_time ?? null,
-        purposes,
-      )
-    })
-    .sort((a, b) => (b.startIso ?? "").localeCompare(a.startIso ?? ""))
+  return bookings
+    .filter(
+      (booking) =>
+        booking.status !== BOOKING_STATUS.cancelled &&
+        (Date.parse(booking.start_time) <= now || byBooking.has(booking.id)),
+    )
+    .map((booking) =>
+      toReleaseCard(
+        booking.id,
+        metaOf(booking),
+        booking.start_time,
+        fillReleasePurposes(byBooking.get(booking.id) ?? []),
+      ),
+    )
 }
 
 export async function getMySpace(clientId: string): Promise<MySpace> {
   const db = await createAuthedSupabaseServerClient()
-  const [media, dataConsents, releaseRequests, requestCount, profile] =
+  const [media, dataConsents, permissions, requestCount, profile] =
     await Promise.all([
       getClientMedia(db, clientId).catch(() => []),
       getClientDataConsents(db, clientId).catch(() => []),
-      getReleaseRequests(db, clientId).catch(() => []),
+      getPermissionCards(db, clientId, Date.now()).catch(() => []),
       pendingRequestCount(db, clientId).catch(() => 0),
       getClientProfile(db, clientId).catch(() => null),
     ])
-  return { media, dataConsents, releaseRequests, requestCount, profile }
+  return { media, dataConsents, permissions, requestCount, profile }
 }
 
 /** The consent + terms panels on a client's admin detail page. */

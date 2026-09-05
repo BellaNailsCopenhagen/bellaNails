@@ -20,7 +20,7 @@ import { routes } from "@/config/routes"
  * different things, and merging them would mislabel both.
  *
  * Client component so the page stays static — signed-out visitors and clients
- * with nothing waiting render nothing. Tapping opens the Requests tab.
+ * with nothing waiting render nothing.
  */
 export function RequestsBanner() {
   const { clientId } = useCurrentUser()
@@ -40,14 +40,19 @@ export function RequestsBanner() {
 
   if (!clientId) return null
 
-  const href = { pathname: routes.appointments, query: { tab: "requests" } }
+  // The two lines now land on different tabs — an answer to your own thread is
+  // in Ask, a permission the studio wants is in Permissions.
+  const tabHref = (tab: string) => ({
+    pathname: routes.appointments,
+    query: { tab },
+  })
   const tap = t("requestBannerTap")
 
   return (
     <>
       {replies > 0 ? (
         <AttentionBanner
-          href={href}
+          href={tabHref("ask")}
           className={bannerBar}
           text={t("replyBanner", { count: replies })}
           tap={tap}
@@ -55,7 +60,7 @@ export function RequestsBanner() {
       ) : null}
       {count > 0 ? (
         <AttentionBanner
-          href={href}
+          href={tabHref("permissions")}
           className={bannerBar}
           text={t("requestBanner", { count })}
           tap={tap}

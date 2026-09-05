@@ -9,6 +9,7 @@ import {
   toReleaseCard,
   type ReleasePurpose,
   type ReleaseRequestCard,
+  type ReleaseState,
 } from "@/shared/media-release"
 
 /**
@@ -32,6 +33,9 @@ export async function getReleaseRequestForToken(
     bookingId,
     label ? metaOf(label) : {},
     label?.start_time ?? null,
-    rows.map((r) => ({ purpose: r.purpose as ReleasePurpose, status: r.status })),
+    rows.map((r) => ({
+      purpose: r.purpose as ReleasePurpose,
+      status: r.status as ReleaseState,
+    })),
   )
 }

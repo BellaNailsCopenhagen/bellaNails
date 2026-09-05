@@ -33,7 +33,11 @@ export async function listReleasesForBookings(
   return data ?? []
 }
 
-/** A client's own releases, newest request first — the My Space per-booking view. */
+/** A client's own releases — the My Space per-booking view and the data export.
+    Deliberately unbounded: My Space builds its list from the BOOKINGS and looks
+    each purpose up in here, so a truncated read doesn't shorten the page, it
+    mislabels a granted permission as never asked. The rows are small and RLS
+    scopes them to one person. */
 export async function listReleasesForClient(
   db: Db,
   clientId: string,
@@ -49,14 +53,17 @@ export async function listReleasesForClient(
     | "withdrawn_at"
   >[]
 > {
-  const { data } = await db
+  const { data, error } = await db
     .from("media_releases")
     .select(
       "id, booking_id, purpose, status, consent_version, granted_at, withdrawn_at",
     )
     .eq("client_id", clientId)
     .order("requested_at", { ascending: false })
-    .limit(200)
+  // Throws rather than degrades: an empty result here is indistinguishable from
+  // "never asked", so a swallowed failure would tell a client their live
+  // permission was never given — and drop every release from a GDPR export.
+  if (error) throw new Error(error.message)
   return data ?? []
 }
 
@@ -147,6 +154,18 @@ export async function upsertReleases(
   const { error } = await db
     .from("media_releases")
     .upsert(values, { onConflict: "booking_id,purpose" })
+  return error ? { ok: false, message: error.message } : { ok: true }
+}
+
+/** Record a release that does not exist yet — the client offering an
+    appointment nobody asked about. INSERT, never upsert: the unique
+    (booking_id, purpose) is what guarantees a prior decision can't be
+    overwritten, and a check-then-upsert leaves a window where it can. */
+export async function insertRelease(
+  db: Db,
+  value: ReleaseUpsert,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db.from("media_releases").insert(value)
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
