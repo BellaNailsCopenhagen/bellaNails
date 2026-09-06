@@ -5,6 +5,7 @@ import { CalendarPlus, Mail, Phone, TriangleAlert, User } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PriceTag } from "@/components/ui/price-tag"
+import { IncomeOverrideField } from "@/components/admin/income-override-field"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { AddBookingMediaButton } from "@/components/admin/add-booking-media-button"
 import { AdminCancelButton } from "@/components/admin/admin-cancel-button"
@@ -233,12 +234,23 @@ export function QueueBookingCard({
         </div>
 
         <div className="shrink-0 space-y-1 text-right">
-          <PriceTag cents={row.total_price_cents} className="text-base" />
+          {/* The effective figure leads — it is what Insights counted. The booked
+              price stays reachable on the adjust control, so the two never
+              disagree silently. */}
+          <PriceTag
+            cents={row.income_override_cents ?? row.total_price_cents}
+            className="text-base"
+          />
           {booking.durationMins ? (
             <p className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
               {booking.durationMins} min
             </p>
           ) : null}
+          <IncomeOverrideField
+            bookingId={row.id}
+            bookedCents={row.total_price_cents ?? 0}
+            overrideCents={row.income_override_cents}
+          />
         </div>
       </div>
 

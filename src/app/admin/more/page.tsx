@@ -109,9 +109,9 @@ const ITEMS: MoreItem[] = [
   },
   {
     label: "Insights",
-    description: "Income and occupancy at a glance",
+    description: "What your appointments brought in, and how full the week was",
     icon: BarChart3,
-    soon: true,
+    href: routes.admin.insights,
   },
 ]
 

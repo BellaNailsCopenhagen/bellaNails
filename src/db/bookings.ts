@@ -12,7 +12,7 @@ import type { Db, Insert, Row } from "./client"
     is the client's identity key (not PII); the admin queue resolves it to
     name/phone/email via the clients table, the client list simply ignores it. */
 const BOOKING_COLUMNS =
-  "id, client_id, start_time, end_time, status, total_price_cents, selected_addons, client_notes, no_show_at"
+  "id, client_id, start_time, end_time, status, total_price_cents, income_override_cents, selected_addons, client_notes, no_show_at"
 
 export type BookingRow = Pick<
   Row<"bookings">,
@@ -22,6 +22,9 @@ export type BookingRow = Pick<
   | "end_time"
   | "status"
   | "total_price_cents"
+  /** The artist's own correction to what this earned — see shared/insights.ts.
+      Null means "no correction"; 0 means "brought in nothing". */
+  | "income_override_cents"
   | "selected_addons"
   | "client_notes"
   | "no_show_at"
@@ -254,6 +257,38 @@ export async function listBookingsFrom(
   return data ?? []
 }
 
+/**
+ * Every booking STARTING within a window, whatever its status — the Insights
+ * read. Cancelled ones are kept deliberately: one carrying an income override is
+ * a no-show fee that was actually charged, and dropping it would lose it.
+ *
+ * Paged, because PostgREST caps a response at 1000 rows and returns the first
+ * page with NO error — a busy year would silently lose its most recent months,
+ * which are the ones anyone looks at.
+ */
+export async function listBookingsBetween(
+  db: Db,
+  fromIso: string,
+  toIso: string,
+): Promise<BookingRow[]> {
+  const PAGE = 1000
+  const all: BookingRow[] = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db
+      .from("bookings")
+      .select(BOOKING_COLUMNS)
+      .gte("start_time", fromIso)
+      .lt("start_time", toIso)
+      .order("start_time", { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(error.message)
+    const page = data ?? []
+    all.push(...page)
+    if (page.length < PAGE) return all
+  }
+}
+
+
 /** Finished bookings, newest first — admin agenda "past". */
 export async function listBookingsBefore(
   db: Db,
@@ -423,6 +458,29 @@ export async function rescheduleBookingById(
   if (data.length === 0) {
     return { ok: false, reason: "error", message: "no rows updated" }
   }
+  return { ok: true }
+}
+
+/**
+ * Record (or clear) the artist's own figure for what an appointment earned.
+ * NEVER touches `total_price_cents` — the booked price stays the source of truth
+ * and the override sits beside it, so the two can always be compared.
+ *
+ * Reports a miss: an update matching no row returns no error, so a stale card
+ * would otherwise say "Saved" over a booking that is no longer there.
+ */
+export async function setBookingIncomeOverride(
+  db: Db,
+  id: string,
+  cents: number | null,
+): Promise<{ ok: boolean; message?: string }> {
+  const { data, error } = await db
+    .from("bookings")
+    .update({ income_override_cents: cents })
+    .eq("id", id)
+    .select("id")
+  if (error) return { ok: false, message: error.message }
+  if (!(data ?? []).length) return { ok: false, message: "not_found" }
   return { ok: true }
 }
 

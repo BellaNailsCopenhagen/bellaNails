@@ -38,6 +38,7 @@ export const routes = {
       `/admin?focus=${encodeURIComponent(elementId)}`,
     agenda: "/admin/agenda",
     appointments: "/admin/appointments",
+    insights: "/admin/insights",
     hours: "/admin/hours",
     settings: "/admin/settings",
     business: "/admin/business",

@@ -315,11 +315,22 @@ Mostly client-facing, on the signed-in `/bookings` surface — which the website
 
 An owner-only overview screen — **explicitly indicative, not accounting** (a big persistent "For information only — not an accounting or tax record" disclaimer, since it's derived from booking totals and ignores no-shows-charged, tips, refunds, fees, VAT).
 
-- ⬜ **Monthly revenue** — Σ **effective income** of **completed** appointments (ended AND active — not cancelled, not future) per studio-TZ month, in DKK. Reuses the completed/active derivation + `groupBookingsByMonth`.
-- ⬜ **Per-appointment income override** — since it's info-only, the artist can correct each appointment's income (refunds, no-show fees, tips) via a nullable `income_override_cents` column (never overwrites the booked `total_price_cents`); **effective income = `income_override_cents ?? total_price_cents`** (`??`, so a `0` = real zero). Owner-only inline edit on the expanded card; overridden rows get an "adjusted" marker.
-- ⬜ **Occupancy %** — Σ appointment footprint ÷ available working minutes, so the artist sees whether time slots are used optimally. **Footprint = duration + the 30-min `afterEventBuffer`** (the real turnaround the calendar blocks). Realized from completed appointments; optionally a projected figure from upcoming.
-- ⬜ ⚠️ **Prerequisite: define the studio's working hours** (occupancy's denominator). Today they live in Cal.com's availability schedule, not our DB — start by mirroring open days/hours into `config/studio.ts`; read Cal availability via API only if hours change often. Buffer is 30 min per event type (constant for now).
-- ⬜ Owner-only, `noindex`; new screen (e.g. `/admin/overview`) linked from **More**. No client PII — amounts + times only.
+- ✅ **Monthly revenue** — Σ **effective income** of **completed** appointments (ended AND active — not cancelled, not future) per studio-TZ month, in DKK. Reuses the completed/active derivation + `groupBookingsByMonth`.
+- ✅ **Per-appointment income override** — since it's info-only, the artist can correct each appointment's income (refunds, no-show fees, tips) via a nullable `income_override_cents` column (never overwrites the booked `total_price_cents`); **effective income = `income_override_cents ?? total_price_cents`** (`??`, so a `0` = real zero). Owner-only inline edit on the expanded card; overridden rows get an "adjusted" marker.
+- ✅ **Occupancy %** — Σ appointment footprint ÷ available working minutes, so the artist sees whether time slots are used optimally. **Footprint = duration + the 30-min `afterEventBuffer`** (the real turnaround the calendar blocks). Realized from completed appointments; optionally a projected figure from upcoming.
+- ✅ ⚠️ **Prerequisite: define the studio's working hours** — RESOLVED: hours are DB-backed (`schedule_rules`), so `dayRanges(..., "standard")` is the denominator.
+- ✅ Owner-only, `noindex`; the screen is **`/admin/insights`** (matching the label More already used), linked from **More**. No client PII — amounts + times only.
+
+Built Sept 2026. Two departures from the spec above, both because the spec's
+assumptions changed underneath it:
+- **Occupancy is shown for the CURRENT month only.** Opening hours are not kept
+  historically, so a past month would be divided by the week the studio keeps
+  today — a two-day winter measured against a five-day spring reads as a failure
+  that never happened. Past months still show booked hours, which is a fact.
+- **A no-show earns nothing but still occupies the time.** The slot was blocked
+  and could not be resold, so it counts against the week; it adds no income
+  unless the artist records what she actually charged. Income and occupancy are
+  therefore two predicates, not one (`shared/insights.ts`).
 
 Decisions / to verify:
 
