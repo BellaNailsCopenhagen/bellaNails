@@ -24,6 +24,7 @@ import {
 import { requireOwner } from "@/modules/identity/require-owner"
 import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
+import { isPublicSurface, isAssetSurface, surfacesForPurpose } from "@/shared/asset-surfaces"
 import { routes } from "@/shared/routes"
 
 export type AssetHubResult = { ok: true; note?: string } | { ok: false; error: string }
@@ -43,7 +44,10 @@ async function publishOne(
   supabase: NonNullable<ServiceClient>,
   media: MediaPublishRow,
   purpose: PublishPurpose,
-): Promise<{ ok: true; assetId?: string; note?: string } | { ok: false; error: string }> {
+): Promise<
+  | { ok: true; assetId?: string; created?: boolean; note?: string }
+  | { ok: false; error: string }
+> {
   if (!media.booking_id) return { ok: false, error: "Image isn’t linked to a booking." }
   if (!(await isBookingReleased(supabase, media.booking_id, purpose))) {
     return { ok: false, error: "The client hasn’t released this booking for that use." }
@@ -51,7 +55,7 @@ async function publishOne(
   // Idempotent — one public copy per (original, purpose). A repeat/racy call
   // reuses the existing copy instead of leaking a duplicate object + row.
   const existing = await listAssetsForMediaByPurpose(supabase, [media.id], purpose)
-  if (existing.length) return { ok: true, assetId: existing[0].id }
+  if (existing.length) return { ok: true, assetId: existing[0].id, created: false }
   if (!media.storage_key) return { ok: false, error: "Image file is missing." }
 
   const published = await publishToPublic(media.storage_key)
@@ -72,27 +76,57 @@ async function publishOne(
     client_media_id: media.id,
     purpose,
   })
-  return asset.ok ? { ok: true, assetId: asset.id } : { ok: false, error: "Couldn’t save the copy." }
+  return asset.ok
+    ? { ok: true, assetId: asset.id, created: true }
+    : { ok: false, error: "Couldn’t save the copy." }
 }
 
-/** Publish one image/video for a purpose (hub card action). */
-export async function publishMedia(
+/**
+ * Put a photo on a surface, making the public copy if this is the first place it
+ * goes. One step, deliberately: publishing used to be its own button, which left
+ * a world-readable file sitting on no surface — public, rendered nowhere, and
+ * indistinguishable in the hub from a photo that had never been published.
+ */
+export async function placeMedia(
   mediaId: string,
   purpose: PublishPurpose,
+  surface: string,
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!isAssetSurface(surface)) return { ok: false, error: "Unknown use-case." }
+  // Never trust the card's gating: the surface has to be one this consent covers.
+  if (!surfacesForPurpose(purpose).includes(surface)) {
+    return { ok: false, error: "That use-case isn’t covered by the client’s consent." }
+  }
 
   const [media] = await listMediaForPublish(supabase, [mediaId])
   if (!media) return { ok: false, error: "not_found" }
 
-  const result = await publishOne(supabase, media, purpose)
-  if (!result.ok) return result
+  const published = await publishOne(supabase, media, purpose)
+  if (!published.ok) return published
+  // Storage not configured — publishOne reports it and there is nothing to place.
+  if (!published.assetId) return { ok: true, note: published.note }
+
+  const placed = await placeAsset(supabase, published.assetId, surface, null)
+  if (!placed.ok) {
+    // Roll back a copy we just made: publishing exists to serve this placement,
+    // and leaving it behind is the world-readable orphan this flow removed. Only
+    // ours — an existing copy may be in use on a service section or a gallery
+    // item, neither of which is an `asset_usages` row.
+    if (published.created) {
+      const key = await getAssetStorageKey(supabase, published.assetId)
+      if (key) await deleteObject(key)
+      await deleteAsset(supabase, published.assetId)
+    }
+    return { ok: false, error: "Couldn’t save the use-case." }
+  }
 
   revalidatePath(routes.admin.assets)
-  if (purpose === "website") revalidatePublicSurfaces()
-  return { ok: true, note: result.note }
+  if (isPublicSurface(surface)) revalidatePublicSurfaces()
+  return { ok: true, note: published.note }
 }
+
 
 /**
  * Bulk "add to website gallery" — for each selected original whose booking is
@@ -161,13 +195,32 @@ export async function confirmTakedown(assetId: string): Promise<AssetHubResult> 
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
+  // Unconditional, unlike retireAssetIfUnused: consent is gone, so the copy goes
+  // even if a service section or a gallery item still shows it. Those losing
+  // their picture is the correct consequence of a withdrawal, not a reason to
+  // keep publishing one.
+  //
+  // FILE FIRST. The row is the only thing that still points at the object, so
+  // dropping it while the file survives leaves a withdrawn photo world-readable
+  // with nothing left to retry the delete — the one outcome a takedown exists to
+  // prevent.
   const storageKey = await getAssetStorageKey(supabase, assetId)
+  if (storageKey) {
+    const gone = await deleteObject(storageKey)
+    if (!gone.ok) {
+      console.error(`[takedown] file for asset ${assetId} not deleted:`, gone.error)
+      return {
+        ok: false,
+        error: "Couldn’t delete the file — the photo is still public. Try again.",
+      }
+    }
+  }
   await deleteGalleryItemsForAsset(supabase, assetId)
   // Deleting the asset cascades its asset_usages.
   await deleteAsset(supabase, assetId)
-  if (storageKey) await deleteObject(storageKey)
 
   revalidatePath(routes.admin.assets)
+  revalidatePublicSurfaces()
   return { ok: true }
 }
 
@@ -191,11 +244,13 @@ export async function setMediaFavorite(
   return { ok: true }
 }
 
-/** Set aside (or restore) a client upload without deleting it — keeps the New
-    tab to real pending work. The client's photo is untouched. */
-export async function setMediaDismissed(
+/** Set a photo aside, or take it back off the shelf — the artist's own "not
+    using this one". Deleting is not the alternative: the client sees these
+    photos in My Space, so the image has to stay. Orthogonal to consent, which is
+    why it filters the hub rather than appearing in a photo's state. */
+export async function setMediaSetAside(
   mediaId: string,
-  dismissed: boolean,
+  setAside: boolean,
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
@@ -203,7 +258,7 @@ export async function setMediaDismissed(
   const saved = await setMediaDismissedAt(
     supabase,
     mediaId,
-    dismissed ? new Date().toISOString() : null,
+    setAside ? new Date().toISOString() : null,
   )
   if (!saved.ok) return { ok: false, error: "Couldn’t update." }
 

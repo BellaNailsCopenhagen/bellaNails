@@ -146,3 +146,19 @@ export async function setSectionSortOrder(
     .eq("id", sectionId)
   return { ok: !error }
 }
+
+/** How many service sections still show this asset — checked before a published
+    copy is deleted, because `service_sections.asset_id` is `on delete set null`
+    and would silently leave a section with no image. THROWS: a failed count that
+    returned 0 would green-light deleting a photo a live page still shows. */
+export async function countSectionsUsingAsset(
+  db: Db,
+  assetId: string,
+): Promise<number> {
+  const { count, error } = await db
+    .from("service_sections")
+    .select("id", { count: "exact", head: true })
+    .eq("asset_id", assetId)
+  if (error) throw new Error(`Failed to count sections: ${error.message}`)
+  return count ?? 0
+}

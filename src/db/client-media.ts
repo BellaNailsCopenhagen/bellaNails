@@ -238,6 +238,8 @@ export async function setMediaFavorited(
   return { ok: !error }
 }
 
+/** `dismissed_at` is the artist's "set aside" shelf — the column predates the
+    name and renaming it is a migration for nothing. */
 export async function setMediaDismissed(
   db: Db,
   mediaId: string,

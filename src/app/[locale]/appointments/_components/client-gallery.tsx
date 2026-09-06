@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Eyebrow } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -15,6 +15,7 @@ import type { ClientMediaItem } from "@/modules/media/client-gallery"
  */
 export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
   const t = useTranslations("bookings")
+  const locale = useLocale()
 
   if (!media.length) {
     return (
@@ -30,7 +31,7 @@ export function ClientGallery({ media }: { media: ClientMediaItem[] }) {
       <Eyebrow as="h3">{t("galleryFromStudio")}</Eyebrow>
       <ul className="columns-2 gap-4 sm:columns-3">
         {media.map((item) => (
-          <ClientGalleryTile key={item.id} item={item} />
+          <ClientGalleryTile key={item.id} item={item} locale={locale} />
         ))}
       </ul>
     </section>

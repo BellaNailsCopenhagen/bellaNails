@@ -10,11 +10,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
-import { HubAssetCard } from "@/components/admin/hub-asset-card"
+import { HubAppointmentCard } from "@/components/admin/hub-appointment-card"
 import { kindForType } from "@/shared/media-policy"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import { uploadMedia } from "@/platform/storage/browser"
-import type { HubAsset } from "@/modules/media/asset-hub"
+import type { HubAppointment } from "@/modules/media/asset-hub"
 import type { ConsentStatus, DataConsentItem } from "@/modules/media/client-gallery"
 import { addClientMedia, requestDataConsent } from "@/modules/media/owner-media-actions"
 
@@ -40,13 +40,16 @@ export type BookingOption = { id: string; label: string }
  */
 export function ClientMediaGallery({
   clientId,
-  hubAssets,
+  hubAppointments,
+  now,
   clientName,
   bookings = [],
   defaultBookingId = null,
 }: {
   clientId: string
-  hubAssets: HubAsset[]
+  hubAppointments: HubAppointment[]
+  /** Request-time clock, from the page — a component may not read it. */
+  now: number
   clientName: string
   bookings?: BookingOption[]
   defaultBookingId?: string | null
@@ -107,13 +110,14 @@ export function ClientMediaGallery({
         </Button>
       </div>
 
-      {hubAssets.length ? (
-        <ul className="columns-2 gap-4 sm:columns-3">
-          {hubAssets.map((asset) => (
-            <HubAssetCard
-              key={asset.mediaId}
-              asset={asset}
+      {hubAppointments.length ? (
+        <ul className="space-y-4">
+          {hubAppointments.map((appointment) => (
+            <HubAppointmentCard
+              key={appointment.key}
+              appointment={appointment}
               clientName={clientName}
+              now={now}
               showClient={false}
             />
           ))}

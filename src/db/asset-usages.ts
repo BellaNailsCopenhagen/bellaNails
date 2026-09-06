@@ -43,6 +43,20 @@ export async function listAssetsOnSurface(
   })
 }
 
+/** How many surfaces show this asset. THROWS — the retire guard reads it, and a
+    failed count of 0 is indistinguishable from "shown nowhere". */
+export async function countUsagesForAsset(
+  db: Db,
+  assetId: string,
+): Promise<number> {
+  const { count, error } = await db
+    .from("asset_usages")
+    .select("id", { count: "exact", head: true })
+    .eq("asset_id", assetId)
+  if (error) throw new Error(`Failed to count placements: ${error.message}`)
+  return count ?? 0
+}
+
 export async function listUsagesForAssets(
   db: Db,
   assetIds: string[],
@@ -55,15 +69,24 @@ export async function listUsagesForAssets(
   return data ?? []
 }
 
-export async function listSurfacesForAsset(
+/** Set the post link on a placement that already exists. UPDATE, never upsert:
+    an upsert would re-create a placement removed in another tab, putting a photo
+    back on a surface the artist had just taken it off. Reports whether a row was
+    actually there. */
+export async function setUsageLink(
   db: Db,
   assetId: string,
-): Promise<string[]> {
-  const { data } = await db
+  surface: string,
+  url: string | null,
+): Promise<{ ok: boolean; found: boolean }> {
+  const { data, error } = await db
     .from("asset_usages")
-    .select("surface")
+    .update({ url })
     .eq("asset_id", assetId)
-  return (data ?? []).map((u) => u.surface)
+    .eq("surface", surface)
+    .select("id")
+  if (error) return { ok: false, found: false }
+  return { ok: true, found: (data ?? []).length > 0 }
 }
 
 export async function placeAsset(
@@ -78,33 +101,25 @@ export async function placeAsset(
   return { ok: !error }
 }
 
-/** Remove one placement, returning the surface it was on so the caller knows
-    whether a public surface needs revalidating. */
+/** Remove one placement, returning the surface it was on (does a public page
+    need rebuilding?) and the asset it belonged to (is anything still showing
+    that copy?). */
 export async function removeUsage(
   db: Db,
   usageId: string,
-): Promise<{ ok: true; surface: string | null } | { ok: false }> {
+): Promise<
+  { ok: true; surface: string | null; assetId: string | null } | { ok: false }
+> {
   const { data, error } = await db
     .from("asset_usages")
     .delete()
     .eq("id", usageId)
-    .select("surface")
+    .select("surface, asset_id")
     .maybeSingle()
   if (error) return { ok: false }
-  return { ok: true, surface: data?.surface ?? null }
-}
-
-/** Drop every placement of an asset except one surface — used when social
-    consent survives a site withdrawal. */
-export async function removeUsagesExceptSurface(
-  db: Db,
-  assetId: string,
-  keepSurface: string,
-): Promise<{ ok: boolean }> {
-  const { error } = await db
-    .from("asset_usages")
-    .delete()
-    .eq("asset_id", assetId)
-    .neq("surface", keepSurface)
-  return { ok: !error }
+  return {
+    ok: true,
+    surface: data?.surface ?? null,
+    assetId: data?.asset_id ?? null,
+  }
 }

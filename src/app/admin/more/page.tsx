@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bell,
   CalendarRange,
+  Camera,
   ChevronRight,
   Clock,
   Images,
@@ -65,10 +66,16 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.services,
   },
   {
-    label: "Shared assets",
-    description: "Place approved client photos into use-cases",
+    label: "Client photos",
+    description: "Ask permission per appointment, then choose where each photo is used",
     icon: Images,
     href: routes.admin.assets,
+  },
+  {
+    label: "Studio gallery",
+    description: "Your own work on the gallery and home pages — no permission needed",
+    icon: Camera,
+    href: routes.admin.gallery,
   },
   {
     label: "Terms",

@@ -117,19 +117,6 @@ export async function isBookingReleased(
   return Boolean(data)
 }
 
-/** A client's still-pending release requests — the My Space "action needed" list. */
-export async function listRequestedReleasesForClient(
-  db: Db,
-  clientId: string,
-): Promise<Pick<Row<"media_releases">, "id" | "booking_id" | "purpose">[]> {
-  const { data } = await db
-    .from("media_releases")
-    .select("id, booking_id, purpose")
-    .eq("client_id", clientId)
-    .eq("status", "requested")
-  return data ?? []
-}
-
 /** Pending-request count — the requests badge. */
 export async function countRequestedReleasesForClient(
   db: Db,

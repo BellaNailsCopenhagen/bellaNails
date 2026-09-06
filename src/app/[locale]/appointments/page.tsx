@@ -139,6 +139,7 @@ export default async function BookingsPage({
             permissions={
               <PermissionsPanel
                 permissions={space.permissions}
+                permissionsError={space.permissionsError}
                 media={space.media}
                 dataConsents={space.dataConsents}
                 testimonialInviteToken={testimonialInvite?.token ?? null}

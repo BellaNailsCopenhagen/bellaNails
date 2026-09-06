@@ -5,6 +5,7 @@ import { ReleaseExplainer } from "@/app/[locale]/appointments/_components/releas
 import { TestimonialInviteCard } from "@/app/[locale]/appointments/_components/testimonial-invite-card"
 import type { ClientMediaItem, DataConsentItem } from "@/modules/media/client-gallery"
 import type { MyTestimonial } from "@/modules/testimonials"
+import { ErrorState } from "@/components/ui/error-state"
 import type { ReleaseRequestCard } from "@/shared/media-release"
 
 /**
@@ -18,12 +19,14 @@ import type { ReleaseRequestCard } from "@/shared/media-release"
  */
 export function PermissionsPanel({
   permissions,
+  permissionsError,
   media,
   dataConsents,
   testimonialInviteToken,
   testimonials,
 }: {
   permissions: ReleaseRequestCard[]
+  permissionsError: boolean
   media: ClientMediaItem[]
   dataConsents: DataConsentItem[]
   testimonialInviteToken: string | null
@@ -39,10 +42,17 @@ export function PermissionsPanel({
   return (
     <div className="space-y-10">
       <ReleaseExplainer />
-      <MediaReleaseCards
-        cards={permissions}
-        mediaCountByBooking={mediaCountByBooking}
-      />
+      {permissionsError ? (
+        <ErrorState
+          title="We couldn’t load your choices"
+          body="Nothing has changed — we just couldn’t read them right now. Please try again in a moment."
+        />
+      ) : (
+        <MediaReleaseCards
+          cards={permissions}
+          mediaCountByBooking={mediaCountByBooking}
+        />
+      )}
       <ConsentCentre dataConsents={dataConsents} />
       {testimonialInviteToken ? (
         <TestimonialInviteCard token={testimonialInviteToken} />

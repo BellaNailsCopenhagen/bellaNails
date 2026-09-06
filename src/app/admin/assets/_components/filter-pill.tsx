@@ -1,17 +1,28 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { Star } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
 import { cn } from "@/shared/cn"
 
-export function FavouritesToggle({
+/**
+ * An orthogonal filter on the hub — favourites, set-aside. These are the
+ * artist's own marks on a photo: they apply in any state, so they sit beside the
+ * tabs as toggles rather than competing for a place on the state ladder.
+ */
+export function FilterPill({
+  icon: Icon,
   active,
+  fillWhenActive = false,
   onToggle,
   title,
   children,
 }: {
+  icon: LucideIcon
   active: boolean
+  /** Filling reads as "on" for a star. For a sparkle or a crossed-out eye it
+      just fills the glyph in until it isn't one — opt in per icon. */
+  fillWhenActive?: boolean
   onToggle: () => void
   title?: string
   children: ReactNode
@@ -29,7 +40,7 @@ export function FavouritesToggle({
           : "border-border text-muted-foreground hover:text-foreground",
       )}
     >
-      <Star className={cn("size-3.5", active && "fill-current")} />
+      <Icon className={cn("size-3.5", active && fillWhenActive && "fill-current")} />
       {children}
     </button>
   )

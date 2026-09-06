@@ -39,11 +39,11 @@ export async function decideDataConsent(
   const consent = await findDataConsent(supabase, userId, purpose)
   if (!consent) return { ok: false, error: "not_found" }
 
-  // `withdrawn_at` is NOT cleared on a re-grant: it records that consent was
-  // once withdrawn, and the accountability story depends on it surviving —
-  // `status` alone says what is true now. The media release path keeps it for
-  // the same reason. The other two are cleared, so no row claims both a grant
-  // and a decline.
+  // `withdrawn_at` is NOT cleared on a re-grant: it records that the client once
+  // took their permission back, and the accountability story depends on it
+  // surviving — `status` alone says what is true now. Every release path holds
+  // the same rule. The other two are cleared, so no row claims both a grant and
+  // a decline.
   const now = new Date().toISOString()
   const stamp =
     decision === "granted"

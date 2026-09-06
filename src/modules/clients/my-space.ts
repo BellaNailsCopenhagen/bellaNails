@@ -31,6 +31,10 @@ export type MySpace = {
   dataConsents: DataConsentItem[]
   /** One per past appointment — what the studio may show, and where. */
   permissions: ReleaseRequestCard[]
+  /** The permissions read failed. NOT the same as an empty list: telling someone
+      they have no permissions on record when the query broke is a lie about
+      their own data. */
+  permissionsError: boolean
   requestCount: number
   profile: ClientProfile | null
 }
@@ -39,6 +43,7 @@ export const EMPTY_MY_SPACE: MySpace = {
   media: [],
   dataConsents: [],
   permissions: [],
+  permissionsError: false,
   requestCount: 0,
   profile: null,
 }
@@ -89,11 +94,21 @@ export async function getMySpace(clientId: string): Promise<MySpace> {
     await Promise.all([
       getClientMedia(db, clientId).catch(() => []),
       getClientDataConsents(db, clientId).catch(() => []),
-      getPermissionCards(db, clientId, Date.now()).catch(() => []),
+      getPermissionCards(db, clientId, Date.now()).catch((error) => {
+        console.error("[my-space] permissions read failed", error)
+        return null
+      }),
       pendingRequestCount(db, clientId).catch(() => 0),
       getClientProfile(db, clientId).catch(() => null),
     ])
-  return { media, dataConsents, permissions, requestCount, profile }
+  return {
+    media,
+    dataConsents,
+    permissions: permissions ?? [],
+    permissionsError: permissions === null,
+    requestCount,
+    profile,
+  }
 }
 
 /** The consent + terms panels on a client's admin detail page. */

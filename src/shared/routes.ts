@@ -48,6 +48,7 @@ export const routes = {
       `/admin/testimonials?focus=${encodeURIComponent(`testimonial-${id}`)}`,
     notifications: "/admin/notifications",
     assets: "/admin/assets",
+    gallery: "/admin/gallery",
     assetHighlight: (id: string) => `/admin/assets?highlight=${id}`,
     clients: "/admin/clients",
     client: (id: string) => `/admin/clients/${id}`,

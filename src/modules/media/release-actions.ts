@@ -120,15 +120,16 @@ async function applyDecision(
     flaggedSocial = await unpublishBookingMedia(supabase, bookingId, purpose)
   }
   const now = new Date().toISOString()
+  // `withdrawn_at` is never cleared — see owner-media-actions. Only the pair
+  // that would contradict each other is reset.
   const stamp =
     decision === "granted"
       ? {
           granted_at: now,
           declined_at: null,
-          withdrawn_at: null,
           consent_version: MEDIA_RELEASE_CONSENT_VERSION,
         }
-      : { declined_at: now, granted_at: null, withdrawn_at: null }
+      : { declined_at: now, granted_at: null }
   await updateRelease(supabase, releaseId, { status: decision, ...stamp })
   return flaggedSocial
 }

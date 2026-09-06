@@ -11,6 +11,10 @@ import {
 } from "@/components/admin/status-filter"
 import { BookingListRow } from "@/components/admin/booking-list-row"
 import {
+  CalendarView,
+  type DayStateCounts,
+} from "@/components/admin/calendar-view"
+import {
   groupBookingsByMonth,
   groupBookingsByWeek,
   studioMonthKey,
@@ -38,6 +42,13 @@ const MODES: [ViewMode, string][] = [
   ["all", "All"],
   ["weekly", "Weekly"],
   ["monthly", "Monthly"],
+]
+
+type Layout = "list" | "calendar"
+
+const LAYOUTS: [Layout, string][] = [
+  ["list", "List"],
+  ["calendar", "Calendar"],
 ]
 
 type Section = {
@@ -151,10 +162,14 @@ function Segmented<T extends string>({
 }
 
 /**
- * The Appointments browse: an All / Weekly / Monthly granularity toggle plus a
- * status filter, rendering collapsible sections (divider + 40px between them)
- * of condensed rows that expand to the full card. Switching granularity resets
- * collapse to that mode's defaults (current period open, the rest collapsed).
+ * The Appointments browse: List or Calendar, a status filter over both, and — in
+ * the list — an All / Weekly / Monthly granularity toggle rendering collapsible
+ * sections of condensed rows that expand to the full card. Switching granularity
+ * resets collapse to that mode's defaults.
+ *
+ * The calendar is for finding a day, so picking one drops back to the list
+ * narrowed to it: a month grid is the fastest way to remember WHEN something
+ * was, and the list is the only place the appointment can actually be worked on.
  */
 export function AdminBookings({
   bookings,
@@ -170,16 +185,42 @@ export function AdminBookings({
   photosByBooking?: Record<string, { id: string; url: string; kind: string }[]>
 }) {
   const [mode, setMode] = useState<ViewMode>("all")
+  const [layout, setLayout] = useState<Layout>("list")
+  const [monthOffset, setMonthOffset] = useState(0)
+  // A single day picked off the calendar, as a studio day number.
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [states, setStates] = useState<Set<BookingState>>(
     () => new Set(ALL_BOOKING_STATES),
   )
   // Keys the user toggled away from their default open/closed state.
   const [overrides, setOverrides] = useState<Set<string>>(new Set())
 
+  const byStatus = useMemo(
+    () => bookings.filter((b) => states.has(bookingState(b.row, now))),
+    [bookings, states, now],
+  )
+
   const sections = useMemo(() => {
-    const filtered = bookings.filter((b) => states.has(bookingState(b.row, now)))
+    const filtered =
+      selectedDay == null
+        ? byStatus
+        : byStatus.filter((b) => studioDayNumber(startMs(b)) === selectedDay)
     return buildSections(mode, filtered, now)
-  }, [mode, states, bookings, now])
+  }, [mode, byStatus, selectedDay, now])
+
+  // Per-day composition for the calendar, honouring the status filter so the
+  // two views can never disagree about what is there.
+  const dayCounts = useMemo(() => {
+    const counts = new Map<number, DayStateCounts>()
+    for (const booking of byStatus) {
+      const day = studioDayNumber(startMs(booking))
+      const perState = counts.get(day) ?? {}
+      const state = bookingState(booking.row, now)
+      perState[state] = (perState[state] ?? 0) + 1
+      counts.set(day, perState)
+    }
+    return counts
+  }, [byStatus, now])
 
   const toggleState = (state: BookingState, checked: boolean) =>
     setStates((prev) => {
@@ -193,8 +234,12 @@ export function AdminBookings({
     setMode(next)
     setOverrides(new Set())
   }
+  // A picked day narrows the list to one thing she asked for, so it opens. Past
+  // and Future default to collapsed, which otherwise meant tapping a day in the
+  // calendar landed on a lone closed header and looked like nothing was there.
   const isOpen = (section: Section) =>
-    overrides.has(section.key) ? !section.defaultOpen : section.defaultOpen
+    selectedDay != null ||
+    (overrides.has(section.key) ? !section.defaultOpen : section.defaultOpen)
   const toggle = (key: string) =>
     setOverrides((prev) => {
       const next = new Set(prev)
@@ -209,11 +254,44 @@ export function AdminBookings({
           filter dropdown — the hierarchy (prominent segmented vs quiet
           dropdown) reads clearly and stays tidy on a phone. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Segmented options={MODES} value={mode} onChange={switchMode} />
+        <div className="flex flex-wrap items-center gap-3">
+          <Segmented options={LAYOUTS} value={layout} onChange={setLayout} />
+          {layout === "list" ? (
+            <Segmented options={MODES} value={mode} onChange={switchMode} />
+          ) : null}
+        </div>
         <StatusFilter selected={states} onToggle={toggleState} />
       </div>
 
-      {sections.length === 0 ? (
+      {/* A day picked off the calendar narrows the list until it is cleared —
+          shown as a chip so the list can never look mysteriously short. */}
+      {selectedDay != null ? (
+        <button
+          type="button"
+          onClick={() => setSelectedDay(null)}
+          className="flex items-center gap-2 self-start rounded-full border border-border px-3 py-1 font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {formatStudioDayMonthYear(dayNumberToMs(selectedDay), ADMIN_LOCALE)}
+          <span aria-hidden>×</span>
+          <span className="sr-only">Show every day again</span>
+        </button>
+      ) : null}
+
+      {layout === "calendar" ? (
+        <CalendarView
+          dayCounts={dayCounts}
+          now={now}
+          offset={monthOffset}
+          onOffsetChange={setMonthOffset}
+          onSelectDay={(day) => {
+            setSelectedDay(day)
+            setOverrides(new Set())
+            setLayout("list")
+          }}
+        />
+      ) : null}
+
+      {layout === "calendar" ? null : sections.length === 0 ? (
         <Eyebrow as="p" className="py-4 normal-case">
           No appointments match this filter.
         </Eyebrow>

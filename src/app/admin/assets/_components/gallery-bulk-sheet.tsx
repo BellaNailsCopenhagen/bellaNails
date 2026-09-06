@@ -1,15 +1,15 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check } from "lucide-react"
+import { Check, Star } from "lucide-react"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
-import { FavouritesToggle } from "@/app/admin/assets/_components/favourites-toggle"
+import { FilterPill } from "@/app/admin/assets/_components/filter-pill"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import { bulkAddToGallery } from "@/modules/media/asset-actions"
-import type { HubAsset } from "@/modules/media/asset-hub"
+import type { HubAppointment, HubAsset } from "@/modules/media/asset-hub"
 import { cn } from "@/shared/cn"
 
 type Candidate = { asset: HubAsset }
@@ -21,11 +21,11 @@ type Candidate = { asset: HubAsset }
  * from the booking card / hub, so this sheet only places already-released media.)
  */
 export function GalleryBulkSheet({
-  assets,
+  appointments,
   open,
   onOpenChange,
 }: {
-  assets: HubAsset[]
+  appointments: HubAppointment[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -35,19 +35,24 @@ export function GalleryBulkSheet({
 
   const candidates: Candidate[] = useMemo(
     () =>
-      assets.flatMap((asset) => {
-        // Only bookings the client released for the website qualify.
-        if (asset.releases.website !== "granted") return []
-        const websitePublished = asset.published.find(
-          (p) => p.purpose === "website",
-        )
-        const onGallery = (websitePublished?.usages ?? []).some(
-          (u) => u.surface === "clients_gallery",
-        )
-        if (onGallery) return []
-        return [{ asset }]
-      }),
-    [assets],
+      appointments.flatMap((appointment) =>
+        appointment.photos.flatMap((asset) => {
+          // Everything here starts SELECTED, so anything she would not want
+          // published has to be gone before she taps Add.
+          if (asset.setAside) return []
+          // Only appointments the client released for the website qualify.
+          if (asset.releases.website !== "granted") return []
+          const websitePublished = asset.published.find(
+            (p) => p.purpose === "website",
+          )
+          const onGallery = (websitePublished?.usages ?? []).some(
+            (u) => u.surface === "clients_gallery",
+          )
+          if (onGallery) return []
+          return [{ asset }]
+        }),
+      ),
+    [appointments],
   )
 
   const shown = favoritesOnly
@@ -75,12 +80,14 @@ export function GalleryBulkSheet({
       <SheetContent className="space-y-5">
         <div className="flex items-start justify-between gap-4">
           <SheetTitle>Add to website gallery</SheetTitle>
-          <FavouritesToggle
+          <FilterPill
+            icon={Star}
+            fillWhenActive
             active={favoritesOnly}
             onToggle={() => setFavoritesOnly((v) => !v)}
           >
             Favourites
-          </FavouritesToggle>
+          </FilterPill>
         </div>
 
         {shown.length ? (

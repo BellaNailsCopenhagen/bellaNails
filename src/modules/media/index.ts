@@ -48,8 +48,8 @@ export {
 export {
   bulkAddToGallery,
   confirmTakedown,
-  publishMedia,
-  setMediaDismissed,
+  placeMedia,
+  setMediaSetAside,
   setMediaFavorite,
 } from "./asset-actions"
-export { addAssetUsage, removeAssetUsage } from "./usage-actions"
+export { removeAssetUsage, setPlacementLink } from "./usage-actions"

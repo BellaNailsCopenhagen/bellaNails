@@ -1,3 +1,5 @@
+import { listUsagesForAssets } from "@/db/asset-usages"
+import { listAssetsForMedia } from "@/db/assets"
 import type { Db } from "@/db/client"
 import { listDataConsents } from "@/db/client-consents"
 import { listMediaForClient } from "@/db/client-media"
@@ -20,6 +22,11 @@ export type ConsentStatus =
   | "declined"
   | "withdrawn"
 
+/** One place a photo of this client is actually shown, and under which
+    permission. `purpose` is the release the studio published it under; `surface`
+    is where that copy sits. */
+export type ClientMediaUse = { surface: string; purpose: string }
+
 export type ClientMediaItem = {
   id: string
   kind: string
@@ -28,6 +35,8 @@ export type ClientMediaItem = {
   serviceId: string | null
   bookingId: string | null
   createdAt: string
+  /** Empty means this photo is private to the studio and the client. */
+  usedOn: ClientMediaUse[]
 }
 
 type Client = Db
@@ -37,6 +46,38 @@ export async function getClientMedia(
   clientId: string,
 ): Promise<ClientMediaItem[]> {
   const media = await listMediaForClient(supabase, clientId)
+
+  // Where each photo actually ended up. A client is entitled to know not just
+  // what they allowed, but what was DONE with it — `assets` and `asset_usages`
+  // are public-readable, so this needs no extra privilege.
+  const assets = await listAssetsForMedia(
+    supabase,
+    media.map((m) => m.id),
+  ).catch(() => [])
+  const usages = await listUsagesForAssets(
+    supabase,
+    assets.map((a) => a.id),
+  ).catch(() => [])
+  const surfacesByAsset = new Map<string, string[]>()
+  for (const usage of usages) {
+    surfacesByAsset.set(usage.asset_id, [
+      ...(surfacesByAsset.get(usage.asset_id) ?? []),
+      usage.surface,
+    ])
+  }
+  const usedByMedia = new Map<string, ClientMediaUse[]>()
+  for (const asset of assets) {
+    if (!asset.client_media_id) continue
+    const uses = (surfacesByAsset.get(asset.id) ?? []).map((surface) => ({
+      surface,
+      purpose: asset.purpose ?? "website",
+    }))
+    if (!uses.length) continue
+    usedByMedia.set(asset.client_media_id, [
+      ...(usedByMedia.get(asset.client_media_id) ?? []),
+      ...uses,
+    ])
+  }
 
   // Private objects have no public URL — resolve a short-lived presigned GET for
   // display. Degrades to the stored locator when storage isn't configured.
@@ -56,6 +97,7 @@ export async function getClientMedia(
         serviceId: m.service_id,
         bookingId: m.booking_id,
         createdAt: m.created_at,
+        usedOn: usedByMedia.get(m.id) ?? [],
       }
     }),
   )

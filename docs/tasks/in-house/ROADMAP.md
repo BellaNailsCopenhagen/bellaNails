@@ -196,3 +196,18 @@ load. Pre-size/optimize + record an LCP/TTFB baseline before/after.
 4. **C** (push + preferences) — largest; do after the email flows are proven.
 5. ~~**H** (booking requests)~~ — **built** (unmerged; SQL pending). Then **G**
    (Stripe card-hold) and un-defer **D/E** as needed.
+
+## Studio gallery admin + asset-surface cleanup (2026-09-06)
+The artist can now manage the studio half of `/gallery` herself — `gallery_items`
+had no admin at all, only `supabase/seed.sql`, and the live project holds **0**
+of them, so that section of the public page renders nothing today. Full CRUD at
+`/admin/gallery`, with the five home-page positions as the featured flag and a
+warning that these images sit outside the consent flow entirely.
+
+- **SQL to apply:** `supabase/gallery-surface-cleanup.sql` — retires the dead
+  `testimonial` asset surface. Nothing renders it, and a placement there made a
+  photo read as "Live" while appearing nowhere. The live project has no such rows
+  (checked 2026-09-06), so applying it is cheap; what it buys is the CHECK
+  constraint that stops new ones. The admin also handles a stranded row now — a
+  surface a copy already sits on always gets a toggle, so it can be removed even
+  after the product stops offering it.

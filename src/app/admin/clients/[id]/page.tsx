@@ -29,7 +29,7 @@ import { isActiveBookingStatus } from "@/shared/booking-status"
 import { NO_SHOW_ALERT_THRESHOLD } from "@/shared/booking-policy"
 import { contactDisplayName } from "@/shared/contact"
 import { routes } from "@/shared/routes"
-import { getHubAssets } from "@/modules/media/asset-hub"
+import { getHubAppointments } from "@/modules/media/asset-hub"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -68,8 +68,8 @@ export default async function AdminClientPage({
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAssets, privacy, comms, clientNotes, emailBlock] = await Promise.all([
-    getHubAssets(id).catch(() => []),
+  const [hubAppointments, privacy, comms, clientNotes, emailBlock] = await Promise.all([
+    getHubAppointments(id).catch(() => []),
     getClientPrivacyRecord(id),
     getClientCommunications(id),
     getClientNotes(id),
@@ -174,7 +174,10 @@ export default async function AdminClientPage({
       {/* Appointment history + the image gallery are tabbed; data-use consent
           stays on the page body below. */}
       <AdminClientTabs
-        galleryCount={hubAssets.length}
+        galleryCount={hubAppointments.reduce(
+          (total, appointment) => total + appointment.photos.length,
+          0,
+        )}
         defaultTab={defaultTab}
         appointment={
           <ClientBookings
@@ -188,7 +191,8 @@ export default async function AdminClientPage({
         gallery={
           <ClientMediaGallery
             clientId={id}
-            hubAssets={hubAssets}
+            hubAppointments={hubAppointments}
+            now={now}
             clientName={clientName}
             bookings={bookingOptions}
             defaultBookingId={defaultBookingId}

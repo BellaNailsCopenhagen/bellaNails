@@ -97,7 +97,9 @@ function requestedReleaseRow(
     requested_at: new Date().toISOString(),
     granted_at: null,
     declined_at: null,
-    withdrawn_at: null,
+    // `withdrawn_at` is NOT cleared, here or anywhere: it is the record that the
+    // client once exercised their right to take permission back (GDPR Art. 7(3)),
+    // and asking again does not un-happen it. `status` says what is true now.
   }
 }
 
@@ -205,7 +207,7 @@ export async function requestDataConsent(
     requested_at: new Date().toISOString(),
     granted_at: null,
     declined_at: null,
-    withdrawn_at: null,
+    // See above — a withdrawal timestamp survives a fresh request.
   })
   if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
 
