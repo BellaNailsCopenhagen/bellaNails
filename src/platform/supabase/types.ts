@@ -688,6 +688,7 @@ export type Database = {
           booking_from_email: string | null
           contact_email: string | null
           facebook_url: string | null
+          hero_asset_key: string | null
           id: boolean
           instagram_url: string | null
           map_image_key: string | null
@@ -701,6 +702,7 @@ export type Database = {
           booking_from_email?: string | null
           contact_email?: string | null
           facebook_url?: string | null
+          hero_asset_key?: string | null
           id?: boolean
           instagram_url?: string | null
           map_image_key?: string | null
@@ -714,6 +716,7 @@ export type Database = {
           booking_from_email?: string | null
           contact_email?: string | null
           facebook_url?: string | null
+          hero_asset_key?: string | null
           id?: boolean
           instagram_url?: string | null
           map_image_key?: string | null

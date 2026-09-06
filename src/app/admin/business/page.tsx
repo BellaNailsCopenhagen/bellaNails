@@ -17,7 +17,8 @@ export const dynamic = "force-dynamic"
  * Owner-gated by the proxy.
  */
 export default async function AdminBusinessPage() {
-  const { values, mapImageUrl } = await getBusinessProfileForAdmin()
+  const { values, mapImageUrl, heroBackground } =
+    await getBusinessProfileForAdmin()
 
   return (
     <div className="space-y-8">
@@ -32,7 +33,11 @@ export default async function AdminBusinessPage() {
         </BodySm>
       </div>
 
-      <BusinessSettings profile={values} mapImageUrl={mapImageUrl} />
+      <BusinessSettings
+        profile={values}
+        mapImageUrl={mapImageUrl}
+        heroBackground={heroBackground}
+      />
     </div>
   )
 }

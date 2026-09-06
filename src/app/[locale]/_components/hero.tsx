@@ -2,6 +2,8 @@ import Image from "next/image"
 import { getTranslations } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
+import { HeroVideo } from "@/app/[locale]/_components/hero-video"
+import { getBusinessProfile } from "@/modules/business/profile"
 import { Button } from "@/components/ui/button"
 import {
   Display,
@@ -13,22 +15,34 @@ import { routes } from "@/config/routes"
 
 /**
  * Hero — full-bleed landing statement. Fills the viewport below the 4rem
- * header. Uses a temporary local hero photo until the final brand imagery
- * (and later video options) are ready.
+ * header.
+ *
+ * What sits behind it is hers to change: a photo or a film uploaded on the
+ * Business page. The kind is read from the stored key, so one upload decides
+ * which of the two renders. Nothing uploaded — or storage not configured — and
+ * it is the photo shipped with the app, because the first screen of the site
+ * cannot be allowed to be empty.
  */
 export async function Hero() {
-  const t = await getTranslations("hero")
+  const [t, { heroBackground }] = await Promise.all([
+    getTranslations("hero"),
+    getBusinessProfile(),
+  ])
 
   return (
     <section className="relative flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden">
-      <Image
-        src="/assets/hero_image.jpg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="absolute inset-0 -z-10 object-cover object-center"
-      />
+      {heroBackground.kind === "video" ? (
+        <HeroVideo src={heroBackground.url} />
+      ) : (
+        <Image
+          src={heroBackground.url}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 -z-10 object-cover object-center"
+        />
+      )}
       {/* Comp overlay: diagonal darkening for text contrast. */}
       <div
         aria-hidden

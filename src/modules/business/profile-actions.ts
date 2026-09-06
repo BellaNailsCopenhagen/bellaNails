@@ -92,7 +92,7 @@ export async function saveBusinessProfile(
 const PRIVATE_PREFIX = "private/"
 
 /**
- * Set the map picture from a freshly uploaded object.
+ * Publish a freshly uploaded object and hang one profile column off it.
  *
  * The browser uploads to the PRIVATE area — that is the only place an owner
  * upload may go — so this publishes a copy into the public bucket and stores
@@ -102,9 +102,15 @@ const PRIVATE_PREFIX = "private/"
  * or public buckets (only `refs` has an orphan sweep), so an object dropped on
  * a failure path stays there for good — and a stranded PUBLIC copy stays
  * readable by anyone who saw its URL.
+ *
+ * The map picture and the hero background do the identical dance, and getting
+ * one of its four exits wrong is invisible until the bucket is full of things
+ * nobody can reach — so they do it once, here.
  */
-export async function setBusinessMapImage(
+async function swapProfileAsset(
+  column: "map_image_key" | "hero_asset_key",
   privateKey: string,
+  failure: string,
 ): Promise<ProfileResult> {
   const db = await requireOwner()
   if (!db) return { ok: false, error: "unauthorized" }
@@ -116,23 +122,21 @@ export async function setBusinessMapImage(
 
   // Read the outgoing key BEFORE anything replaces it. A failure here must not
   // pass silently: it is how an old public copy gets stranded.
-  const previous = await previousMapKey(db)
+  const previous = await previousKey(db, column)
 
   const published = await publishToPublic(privateKey)
   if (!published.ok) {
     // The staging upload is ours and now useless.
     await cleanUp([privateKey])
-    return { ok: false, error: "Couldn’t save the picture." }
+    return { ok: false, error: failure }
   }
 
-  const saved = await upsertBusinessProfile(db, {
-    map_image_key: published.data.key,
-  })
+  const saved = await upsertBusinessProfile(db, { [column]: published.data.key })
   if (!saved.ok) {
-    // The row still points at the old picture, so the copy just published is an
+    // The row still points at the old one, so the copy just published is an
     // orphan — and a publicly readable one. Take both staging objects with it.
     await cleanUp([published.data.key, privateKey])
-    return { ok: false, error: "Couldn’t save the picture." }
+    return { ok: false, error: failure }
   }
 
   // The row is safely on the new copy: the staging original and the one it
@@ -143,13 +147,15 @@ export async function setBusinessMapImage(
   return { ok: true }
 }
 
-/** Remove the uploaded picture and fall back to the shipped illustration. */
-export async function clearBusinessMapImage(): Promise<ProfileResult> {
+/** Drop the asset and fall back to whatever ships with the app. */
+async function clearProfileAsset(
+  column: "map_image_key" | "hero_asset_key",
+): Promise<ProfileResult> {
   const db = await requireOwner()
   if (!db) return { ok: false, error: "unauthorized" }
 
-  const previous = await previousMapKey(db)
-  const saved = await upsertBusinessProfile(db, { map_image_key: null })
+  const previous = await previousKey(db, column)
+  const saved = await upsertBusinessProfile(db, { [column]: null })
   if (!saved.ok) return { ok: false, error: "Couldn’t remove it." }
 
   await cleanUp([previous])
@@ -157,19 +163,53 @@ export async function clearBusinessMapImage(): Promise<ProfileResult> {
   return { ok: true }
 }
 
+/** Set the map picture from a freshly uploaded object. */
+export async function setBusinessMapImage(
+  privateKey: string,
+): Promise<ProfileResult> {
+  return swapProfileAsset("map_image_key", privateKey, "Couldn’t save the picture.")
+}
+
+/** Remove the uploaded picture and fall back to the shipped illustration. */
+export async function clearBusinessMapImage(): Promise<ProfileResult> {
+  return clearProfileAsset("map_image_key")
+}
+
 /**
- * The map key the row currently holds, or null.
+ * Set the hero background — the photo or film behind the landing statement.
  *
- * A read failure returns null — clearing or replacing the picture must still
- * work — but it is LOUD, because null here is indistinguishable from "there
- * was no picture" and the difference is an object nobody will ever collect.
+ * Size is NOT re-checked here. The cap on a film is about what the site costs to
+ * serve, not about what is safe to store, and the bucket's own limit is the
+ * backstop that matters — so the admin enforces the budget and this enforces the
+ * boundary (owner, own upload area).
  */
-async function previousMapKey(db: Db): Promise<string | null> {
+export async function setHeroBackground(
+  privateKey: string,
+): Promise<ProfileResult> {
+  return swapProfileAsset("hero_asset_key", privateKey, "Couldn’t save the background.")
+}
+
+/** Remove it and fall back to the photo shipped with the app. */
+export async function clearHeroBackground(): Promise<ProfileResult> {
+  return clearProfileAsset("hero_asset_key")
+}
+
+/**
+ * The key the row currently holds for a column, or null.
+ *
+ * A read failure returns null — clearing or replacing must still work — but it
+ * is LOUD, because null here is indistinguishable from "there was nothing" and
+ * the difference is an object nobody will ever collect.
+ */
+async function previousKey(
+  db: Db,
+  column: "map_image_key" | "hero_asset_key",
+): Promise<string | null> {
   try {
-    return (await getBusinessProfileRow(db))?.map_image_key ?? null
+    return (await getBusinessProfileRow(db))?.[column] ?? null
   } catch (error) {
     console.error(
-      "[business] couldn't read the current map key — the object it points at will be stranded:",
+      `[business] couldn't read the current ${column} — the object it points at will be stranded:`,
       error instanceof Error ? error.message : error,
     )
     return null
@@ -184,7 +224,7 @@ async function cleanUp(keys: (string | null | undefined)[]): Promise<void> {
     if (!key) continue
     const removed = await deleteObject(key)
     if (!removed.ok) {
-      console.error("[business] orphaned map object", key, removed.error)
+      console.error("[business] orphaned profile object", key, removed.error)
     }
   }
 }

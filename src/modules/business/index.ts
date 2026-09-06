@@ -15,6 +15,8 @@ export { getBusinessProfile, getBusinessProfileForAdmin } from "./profile"
 // barrel — see AGENTS.md).
 export {
   clearBusinessMapImage,
+  clearHeroBackground,
   saveBusinessProfile,
   setBusinessMapImage,
+  setHeroBackground,
 } from "./profile-actions"

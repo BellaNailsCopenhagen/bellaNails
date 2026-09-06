@@ -71,3 +71,29 @@ export function extForType(contentType: string): string {
 export function kindForType(contentType: string): "image" | "video" {
   return contentType.startsWith("video/") ? "video" : "image"
 }
+
+/**
+ * Photo or film, read from a stored key's extension.
+ *
+ * The extension is written by the presign route from the content type, so it
+ * describes the bytes rather than guessing at them — which is why a surface that
+ * accepts either can store ONE key and no separate "kind" to keep in step.
+ * Anything unrecognised reads as an image: that renders an `<img>`, which fails
+ * as a broken picture rather than as a silent black rectangle.
+ */
+export function kindForKey(key: string): "image" | "video" {
+  const dot = key.lastIndexOf(".")
+  const ext = dot >= 0 ? key.slice(dot).toLowerCase() : ""
+  return VIDEO_TYPES.some((type) => EXT[type] === ext) ? "video" : "image"
+}
+
+/**
+ * The cap on a hero film, and the one number in the app worth arguing about.
+ *
+ * A background video is served to EVERY visitor of the landing page, so it is
+ * the largest recurring cost the site has: a film at this cap is about 640 page
+ * loads against a 5 GB monthly egress allowance. Ten seconds of 1080p at a sane
+ * bitrate lands near 4 MB, so this leaves room without leaving room for a
+ * phone's untouched 45-second clip.
+ */
+export const HERO_VIDEO_MAX_BYTES = 8 * 1024 * 1024

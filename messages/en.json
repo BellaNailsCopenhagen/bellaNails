@@ -21,7 +21,9 @@
     "headlineLead": "Where Craft",
     "headlineAccent": "Becomes Art",
     "reserveCta": "Reserve your session",
-    "scroll": "Scroll"
+    "scroll": "Scroll",
+    "pauseBackground": "Pause the background film",
+    "playBackground": "Play the background film"
   },
   "services": {
     "eyebrow": "Most requested",

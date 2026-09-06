@@ -53,6 +53,7 @@ export async function upsertBusinessProfile(
     address_line_1?: string | null
     address_line_2?: string | null
     map_image_key?: string | null
+    hero_asset_key?: string | null
     instagram_url?: string | null
     facebook_url?: string | null
     tiktok_url?: string | null

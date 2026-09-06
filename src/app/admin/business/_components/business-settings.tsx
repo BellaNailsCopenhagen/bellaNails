@@ -6,10 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
+import { HeroBackgroundField } from "@/app/admin/business/_components/hero-background-field"
 import { MapImageField } from "@/app/admin/business/_components/map-image-field"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import { saveBusinessProfile } from "@/modules/business/profile-actions"
-import type { BusinessProfileInput } from "@/shared/business-profile"
+import type {
+  BusinessProfileInput,
+  HeroBackground,
+} from "@/shared/business-profile"
 
 type Field = {
   id: keyof BusinessProfileInput
@@ -75,10 +79,12 @@ const SOCIAL: Field[] = [
 export function BusinessSettings({
   profile,
   mapImageUrl,
+  heroBackground,
 }: {
   profile: BusinessProfileInput
   /** The map picture in use — the uploaded one, or the shipped illustration. */
   mapImageUrl: string
+  heroBackground: HeroBackground
 }) {
   const { pending, run } = useActionRunner()
   const [form, setForm] = useState<BusinessProfileInput>(profile)
@@ -121,6 +127,8 @@ export function BusinessSettings({
       </div>
 
       <MapImageField currentUrl={mapImageUrl} />
+
+      <HeroBackgroundField current={heroBackground} />
 
       <div className="space-y-5">
         <Eyebrow as="h3">Email</Eyebrow>

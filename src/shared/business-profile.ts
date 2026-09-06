@@ -15,6 +15,10 @@ export type BusinessProfile = {
   /** Street line, then post town. May be empty — no address is compiled in. */
   addressLine1: string
   addressLine2: string
+  /** What sits behind the landing statement — the uploaded asset, else the
+      photo shipped with the app. `kind` decides whether the hero renders an
+      image or a film. */
+  heroBackground: HeroBackground
   /** Resolved URL for the map picture — the uploaded one, else the generic
       illustration shipped with the app. Never null: the section always has
       something to show once there is an address. */
@@ -38,6 +42,30 @@ export type BusinessProfileInput = {
   facebookUrl: string
   tiktokUrl: string
 }
+
+/** The hero background, resolved. Never null — there is always the shipped
+    photo to fall back to. */
+export type HeroBackground = { url: string; kind: "image" | "video" }
+
+/**
+ * The photo shipped with the app: the hero before she has uploaded anything, and
+ * the `poster` behind a film while it loads. A background that starts as a black
+ * rectangle reads as a broken page for the second it lasts.
+ */
+export const DEFAULT_HERO_IMAGE = "/assets/hero_image.jpg"
+
+export const DEFAULT_HERO_BACKGROUND: HeroBackground = {
+  url: DEFAULT_HERO_IMAGE,
+  kind: "image",
+}
+
+/** What to aim for, said in the admin. Full-bleed behind text, so it is cropped
+    hard on a phone — the subject has to survive losing its sides. */
+export const HERO_GUIDANCE = {
+  width: 1900,
+  height: 1200,
+  seconds: 10,
+} as const
 
 /**
  * The fallback map picture: an abstract, address-free street pattern drawn by

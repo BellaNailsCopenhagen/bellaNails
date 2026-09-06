@@ -5,10 +5,13 @@ import { cache } from "react"
 import { getBusinessProfileRow, isMissingTable } from "@/db/business-profile"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import { objectUrl } from "@/platform/storage/supabase"
+import { kindForKey } from "@/shared/media-policy"
 import {
   DEFAULT_MAP_IMAGE,
   type BusinessProfile,
   type BusinessProfileInput,
+  DEFAULT_HERO_BACKGROUND,
+  type HeroBackground,
 } from "@/shared/business-profile"
 import {
   DEFAULT_ADDRESS_LINE_1,
@@ -30,6 +33,16 @@ import {
  *
  * Memoized per request: the footer, Find us and the email senders all ask.
  */
+/** A stored key to something the hero can render. An unset key, or one that
+    won't resolve because storage isn't configured, falls back to the shipped
+    photo — the hero is the whole first screen and must never be empty. */
+function resolveHero(key: string | null | undefined): HeroBackground {
+  const trimmed = key?.trim()
+  if (!trimmed) return DEFAULT_HERO_BACKGROUND
+  const url = objectUrl(trimmed)
+  return url ? { url, kind: kindForKey(trimmed) } : DEFAULT_HERO_BACKGROUND
+}
+
 export const getBusinessProfile = cache(async (): Promise<BusinessProfile> => {
   const fallback: BusinessProfile = {
     contactEmail: DEFAULT_CONTACT_EMAIL,
@@ -37,6 +50,7 @@ export const getBusinessProfile = cache(async (): Promise<BusinessProfile> => {
     alertEmail: DEFAULT_ALERT_EMAIL,
     addressLine1: DEFAULT_ADDRESS_LINE_1,
     addressLine2: DEFAULT_ADDRESS_LINE_2,
+    heroBackground: DEFAULT_HERO_BACKGROUND,
     mapImageUrl: DEFAULT_MAP_IMAGE,
     instagramUrl: null,
     facebookUrl: null,
@@ -57,6 +71,7 @@ export const getBusinessProfile = cache(async (): Promise<BusinessProfile> => {
         fallback.alertEmail,
       addressLine1: row.address_line_1?.trim() || fallback.addressLine1,
       addressLine2: row.address_line_2?.trim() || fallback.addressLine2,
+      heroBackground: resolveHero(row.hero_asset_key),
       // A key that won't resolve (storage unconfigured) degrades to the
       // shipped illustration rather than a broken image.
       mapImageUrl:
@@ -106,6 +121,7 @@ function reportReadFailure(error: unknown): void {
 export async function getBusinessProfileForAdmin(): Promise<{
   values: BusinessProfileInput
   mapImageUrl: string
+  heroBackground: HeroBackground
 }> {
   const blank: BusinessProfileInput = {
     contactEmail: "",
@@ -119,7 +135,13 @@ export async function getBusinessProfileForAdmin(): Promise<{
   }
   try {
     const row = await getBusinessProfileRow(createSupabaseServerClient())
-    if (!row) return { values: blank, mapImageUrl: DEFAULT_MAP_IMAGE }
+    if (!row) {
+      return {
+        values: blank,
+        mapImageUrl: DEFAULT_MAP_IMAGE,
+        heroBackground: DEFAULT_HERO_BACKGROUND,
+      }
+    }
     return {
       values: {
         contactEmail: row.contact_email ?? "",
@@ -134,10 +156,15 @@ export async function getBusinessProfileForAdmin(): Promise<{
       mapImageUrl:
         (row.map_image_key?.trim() ? objectUrl(row.map_image_key.trim()) : null) ??
         DEFAULT_MAP_IMAGE,
+      heroBackground: resolveHero(row.hero_asset_key),
     }
   } catch (error) {
     // The page still renders; she just sees blanks and can fill them in.
     reportReadFailure(error)
-    return { values: blank, mapImageUrl: DEFAULT_MAP_IMAGE }
+    return {
+      values: blank,
+      mapImageUrl: DEFAULT_MAP_IMAGE,
+      heroBackground: DEFAULT_HERO_BACKGROUND,
+    }
   }
 }

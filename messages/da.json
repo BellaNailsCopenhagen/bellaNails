@@ -21,7 +21,9 @@
     "headlineLead": "Hvor håndværk",
     "headlineAccent": "bliver kunst",
     "reserveCta": "Reservér din tid",
-    "scroll": "Scroll"
+    "scroll": "Scroll",
+    "pauseBackground": "S\u00e6t baggrundsfilmen p\u00e5 pause",
+    "playBackground": "Afspil baggrundsfilmen"
   },
   "services": {
     "eyebrow": "Mest efterspurgt",
