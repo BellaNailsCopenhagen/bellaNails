@@ -20,6 +20,7 @@ import {
 import {
   pickReleaseCopy,
   isRegrant,
+  releaseCardId,
   type ReleasePurpose,
   type ReleaseRequestCard,
   type ReleaseState,
@@ -75,7 +76,11 @@ export function MediaReleaseCards({
               ? formatStudioDate(card.startIso, locale)
               : ""
             return (
-              <TintedCard key={card.bookingId} className="space-y-3 p-4">
+              <TintedCard
+                key={card.bookingId}
+                id={releaseCardId(card.bookingId)}
+                className="space-y-3 p-4"
+              >
                 <div>
                   <p className="font-functional text-sm text-foreground">
                     {serviceName}

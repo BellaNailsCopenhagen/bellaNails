@@ -17,7 +17,7 @@ import {
   DEFAULT_MAP_IMAGE,
   MAP_IMAGE_GUIDANCE,
 } from "@/shared/business-profile"
-import { IMAGE_MAX_DIM } from "@/shared/media-policy"
+import { PORTFOLIO_IMAGE } from "@/shared/media-policy"
 
 /**
  * The picture shown on the home page under the address.
@@ -80,7 +80,7 @@ export function MapImageField({ currentUrl }: { currentUrl: string }) {
       <BodySm className="text-xs text-muted-foreground">
         Best at <strong>{MAP_IMAGE_GUIDANCE.width} × {MAP_IMAGE_GUIDANCE.height}</strong>{" "}
         ({MAP_IMAGE_GUIDANCE.ratio}) — a wide band, not a square. Anything wider
-        is fine and gets scaled down to {IMAGE_MAX_DIM}px; anything much taller
+        is fine and gets scaled down to {PORTFOLIO_IMAGE.maxDim}px; anything much taller
         will be cropped top and bottom. JPG, PNG or WebP.
       </BodySm>
 

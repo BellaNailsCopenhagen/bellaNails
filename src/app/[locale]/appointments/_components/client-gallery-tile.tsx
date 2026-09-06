@@ -4,7 +4,9 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 import { BodySm } from "@/components/ui/typography"
+import { useJumpToPermissions } from "@/app/[locale]/appointments/_components/my-space-tabs"
 import type { ClientMediaItem } from "@/modules/media/client-gallery"
 import { pickReleaseCopy, type ReleasePurpose } from "@/shared/media-release"
 
@@ -15,18 +17,28 @@ import { pickReleaseCopy, type ReleasePurpose } from "@/shared/media-release"
  * upload. Whether the studio may publish an appointment's media is a
  * booking-level permission, decided on the Permissions tab — so the tile does not
  * ask for anything. It does REPORT: a client who allowed something is entitled
- * to see what was actually done with it, and where.
+ * to see what was actually done with it, and where — and it leads to the control
+ * that can take it back, because permission has to be as easy to withdraw as it
+ * was to give (GDPR Art. 7(3)).
  */
 export function ClientGalleryTile({
   item,
   locale,
+  canManagePermission,
 }: {
   item: ClientMediaItem
   locale: string
+  /** False when this appointment has no permission card — a cancelled one, or
+      one nobody has been asked about yet. Better no button than one that lands
+      on a list with nothing highlighted. */
+  canManagePermission: boolean
 }) {
   const t = useTranslations("bookings")
   const [open, setOpen] = useState(false)
   const copy = pickReleaseCopy(locale)
+  const jumpToPermissions = useJumpToPermissions()
+  // A local const so the null-check narrows inside the handler below.
+  const bookingId = item.bookingId
 
   // One line per place it is shown, named the way the permission page named it.
   const shownIn = item.usedOn.map(
@@ -96,6 +108,22 @@ export function ClientGalleryTile({
               {t("usedManageNote")}
             </BodySm>
           </div>
+
+          {/* Permission is granted per APPOINTMENT, not per photo, so this leads
+              to that appointment's card rather than offering a per-photo control
+              it could not honour. */}
+          {canManagePermission && bookingId && jumpToPermissions ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setOpen(false)
+                jumpToPermissions(bookingId)
+              }}
+            >
+              {t("seeInAppointment")}
+            </Button>
+          ) : null}
         </SheetContent>
       </Sheet>
     </li>

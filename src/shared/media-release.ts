@@ -222,6 +222,11 @@ export const pickReleaseCopy = (locale: string) =>
 export const bookingRef = (bookingId: string) =>
   bookingId.slice(0, 8).toUpperCase()
 
+/** DOM id of an appointment's permission card. Defined with the card, not at
+    either end, so the photo that links to it and the card it lands on can never
+    drift apart. */
+export const releaseCardId = (bookingId: string) => `release-${bookingId}`
+
 export type ReleasePurposeState = {
   purpose: ReleasePurpose
   status: ReleaseState

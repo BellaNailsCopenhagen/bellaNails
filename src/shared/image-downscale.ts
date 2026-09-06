@@ -1,16 +1,19 @@
-import { IMAGE_MAX_DIM, IMAGE_QUALITY } from "@/shared/media-policy"
+import type { ImagePolicy } from "@/shared/media-policy"
 
 /**
- * Client-side prep for a client upload: downscale (longest side ≤ maxDim) and
+ * Client-side prep for every image upload: downscale (longest side ≤ maxDim) and
  * re-encode to webp, **preserving the original aspect ratio** — we never crop a
  * client's photo. The re-encode strips EXIF/GPS (GDPR data-minimisation) so raw
  * metadata never leaves the device; `imageOrientation: "from-image"` bakes the
  * EXIF rotation in first, so portraits don't land sideways. Browser-only
  * (canvas) — call from a client component.
+ *
+ * The policy is passed in, never defaulted: which tier applies is the server's
+ * call, and a default here would be a second answer to that question.
  */
 export async function downscaleImage(
-  file: File,
-  maxDim: number = IMAGE_MAX_DIM,
+  file: Blob,
+  { maxDim, quality }: ImagePolicy,
 ): Promise<Blob> {
   const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
   const { width, height } = bitmap
@@ -32,7 +35,7 @@ export async function downscaleImage(
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Encode failed"))),
       "image/webp",
-      IMAGE_QUALITY,
+      quality,
     ),
   )
 }

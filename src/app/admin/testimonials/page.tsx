@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import { TestimonialList } from "@/app/admin/testimonials/_components/testimonial-list"
 import { BackToMore } from "@/components/admin/back-to-more"
-import { HighlightTarget } from "@/components/admin/highlight-target"
+import { HighlightTarget } from "@/components/ui/highlight-target"
 import { BodySm, Eyebrow, H2 } from "@/components/ui/typography"
 import { getTestimonialsForAdmin } from "@/modules/testimonials"
 import { singleParam } from "@/shared/search-params"

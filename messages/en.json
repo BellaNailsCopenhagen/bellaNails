@@ -208,6 +208,7 @@
     "usedWhere": "Where this photo is shown",
     "usedNowhere": "Nowhere — this one is private to you and the studio.",
     "usedManageNote": "You decide this per appointment, on the Permissions tab.",
+    "seeInAppointment": "Manage this appointment\u2019s permissions",
     "usedOnHome": "front page",
     "withdrawDoneNote": "That's done — this photo is private again. You're welcome to share it with us again anytime.",
     "closeCta": "Close",
@@ -308,6 +309,9 @@
     "clientWorkLead": "Fresh from",
     "clientWorkAccent": "the Chair",
     "clientWorkAlt": "Nail work by Bella Nails"
+  },
+  "photo": {
+    "close": "Close"
   },
   "confirmation": {
     "metaTitle": "Appointment Confirmed – Bella Nails, Ørestad, Copenhagen",

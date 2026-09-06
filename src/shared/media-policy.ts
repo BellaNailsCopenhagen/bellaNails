@@ -11,18 +11,41 @@ export const CLIENT_MAX_BYTES = 5 * 1024 * 1024 // post-optimisation an image is
 export const OWNER_MAX_BYTES = 200 * 1024 * 1024 // room for a short demo clip
 
 /**
- * The image policy, in one place (decision 31 Aug 2026): every upload is
- * downscaled to `IMAGE_MAX_DIM` on its longest side and re-encoded to WebP at
- * `IMAGE_QUALITY`. Measured output at these settings is ~46 KB for a wide photo
- * and ~87 KB for a close-up, so ~62 KB blended — roughly 17,000 images in the
- * 1 GB free tier. Storage is not the constraint; egress is.
+ * The image policy, in two tiers. Every upload is downscaled to `maxDim` on its
+ * longest side and re-encoded to WebP at `quality`; the re-encode also strips
+ * EXIF, so a photo's GPS never reaches a public object.
+ *
+ * A client's upload is working material — a reference photo, often a screenshot
+ * of someone else's set — and 1200px is plenty to work from. The studio's own
+ * photos ARE the product: they get shown full-screen in the gallery lightbox, so
+ * they keep more pixels.
+ *
+ * Measured on the studio's own 6240x4160 originals (6 Sep 2026). At 1900px
+ * q0.75: a wide shot 68 KB, a close-up 102 KB, a phone-sharpened close-up
+ * 154 KB — so ~150 KB is the ceiling, ~100 KB the blend, about 10,000 images in
+ * the 1 GB free tier. Storage is not the constraint; egress is.
+ *
+ * The portfolio tier trades quality for resolution because resolution wins:
+ * against the original at a 1300px view (a lightbox on a 2x laptop), 1900px
+ * q0.75 scores 40.6 dB where 1200px q0.82 scores 35.3 — a visibly better photo
+ * for 28 KB more. Past q0.78 the curve flattens: another 35 KB buys 1.4 dB.
+ * The client tier keeps q0.82 because at 1200px there is no extra resolution to
+ * pay for it with.
  *
  * Aspect ratio is always preserved: we never crop an upload. A client's
  * reference photo is often a screenshot, where a centre crop can cut the design
  * out of frame. Fixed ratios belong to OUR display surfaces, in CSS.
  */
-export const IMAGE_MAX_DIM = 1200
-export const IMAGE_QUALITY = 0.82
+export type ImagePolicy = { maxDim: number; quality: number }
+
+export const CLIENT_IMAGE: ImagePolicy = { maxDim: 1200, quality: 0.82 }
+export const PORTFOLIO_IMAGE: ImagePolicy = { maxDim: 1900, quality: 0.75 }
+
+/** Which tier a caller gets. Decided server-side, from the same `isOwner` the
+    bucket is chosen by — the browser must not be able to ask for the bigger one. */
+export function imagePolicy(owner: boolean): ImagePolicy {
+  return owner ? PORTFOLIO_IMAGE : CLIENT_IMAGE
+}
 
 export function uploadPolicy(owner: boolean): {
   allowedTypes: string[]

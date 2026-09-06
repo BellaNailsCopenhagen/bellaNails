@@ -38,7 +38,9 @@ export function AddBookingMediaButton({
             ? "Storage isn’t set up yet."
             : up.reason === "unsupported"
               ? "That file type isn’t allowed."
-              : "Upload failed.",
+              : up.reason === "process_failed"
+                ? "That image couldn’t be read."
+                : "Upload failed.",
         )
         return
       }

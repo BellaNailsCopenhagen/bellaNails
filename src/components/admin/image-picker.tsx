@@ -50,7 +50,9 @@ export function ImagePicker({
             ? "That file type isn’t allowed."
             : up.reason === "not_configured"
               ? "Storage isn’t set up yet."
-              : "Upload failed.",
+              : up.reason === "process_failed"
+                ? "That image couldn’t be read."
+                : "Upload failed.",
         )
         return
       }

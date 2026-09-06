@@ -118,6 +118,7 @@ export default async function BookingsPage({
           />
           <MySpaceTabs
             defaultTab={tabFromParam(singleParam(query.tab) ?? null)}
+            defaultFocusBookingId={singleParam(query.focus) ?? null}
             galleryCount={space.media.length}
             askCount={askCount}
             permissionCount={
@@ -146,7 +147,15 @@ export default async function BookingsPage({
                 testimonials={myTestimonials}
               />
             }
-            gallery={<ClientGallery media={space.media} />}
+            gallery={
+              <ClientGallery
+                media={space.media}
+                // Only these appointments HAVE a permission card to jump to:
+                // a cancelled one, or a future one nobody has been asked about
+                // yet, is filtered out of the list upstream.
+                permissionBookingIds={space.permissions.map((c) => c.bookingId)}
+              />
+            }
             settings={
               <AccountSettings
                 email={space.profile?.email ?? null}

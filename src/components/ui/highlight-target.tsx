@@ -24,6 +24,8 @@ export function flashHighlight(elementId: string): (() => void) | undefined {
  * the card has streamed in, finds nothing, and leaves you at the top of a list
  * to match the notification's wording against twenty cards by hand.
  *
+ * Shared by the admin deep links and My Space's photo → appointment jump.
+ *
  * Mounting after the payload means the element is there — so the scroll is
  * driven from a `?focus=` param instead.
  */

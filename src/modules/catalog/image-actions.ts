@@ -2,12 +2,23 @@
 
 import { insertAsset } from "@/db/assets"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { publishToPublic } from "@/platform/storage/supabase"
+import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
 
 /**
  * Publishing a freshly-uploaded studio image (a private storage key from
  * uploadMedia) into the public bucket, in the two shapes the catalog needs.
  * Both return the picker's value shape so either can back an ImagePicker.
+ *
+ * The private upload is STAGING, and is deleted once the public copy is safely
+ * recorded. An owner's upload always lands in the private bucket — that is the
+ * signed-upload route's rule, not a choice made here — and for a studio image
+ * nothing ever reads it again: the row that gets written points at the public
+ * key. Left behind it is unreachable, so taking the image down later deletes the
+ * public copy and the row while the original sits in the bucket forever. That is
+ * not a tidiness problem: the artist is told the file is deleted.
+ *
+ * A client's photo is the opposite case and must keep its original — that one is
+ * her library copy, and `client_media.storage_key` still points at it.
  */
 
 export type PublishedImage =
@@ -47,7 +58,14 @@ export async function publishStudioAsset(
     media_type: "image",
     storage_key: published.key,
   })
-  if (!asset.ok) return { ok: false, error: "Couldn’t save the image." }
+  if (!asset.ok) {
+    // Nothing points at the copy now, and it is world-readable — take it back
+    // out and keep the staging file so she can retry.
+    await deleteObject(published.key)
+    return { ok: false, error: "Couldn’t save the image." }
+  }
+
+  await discardStaging(storageKey)
   return { ok: true, assetId: asset.id, url: published.url }
 }
 
@@ -62,5 +80,17 @@ export async function publishStudioImageUrl(
 
   const published = await publish(storageKey)
   if (!published.ok) return published
+
+  await discardStaging(storageKey)
   return { ok: true, assetId: null, url: published.url }
+}
+
+/** The published copy is the artifact; the upload it was copied from is not.
+    A failure here only leaves a file — the image is published either way — so it
+    is logged rather than surfaced. */
+async function discardStaging(storageKey: string): Promise<void> {
+  const gone = await deleteObject(storageKey)
+  if (!gone.ok) {
+    console.error(`[asset] staging upload ${storageKey} kept:`, gone.error)
+  }
 }
