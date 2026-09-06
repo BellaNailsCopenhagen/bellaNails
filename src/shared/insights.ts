@@ -126,12 +126,37 @@ export function capacityMins(
     }, 0)
 }
 
-/** Share of the open week that was booked, 0-100. Null when nothing was open —
-    a percentage of no hours is not 0%, it is not a question. */
+/**
+ * Share of the open week that was booked, 0-100.
+ *
+ * Null for the two cases that are not a percentage: no hours were open, and —
+ * for a past month nobody was watching — nobody knows how many were. Both must
+ * read as "no answer" rather than 0%, which would look like a catastrophic month
+ * instead of a missing measurement.
+ */
 export function occupancyPercent(
   bookedMins: number,
-  openMins: number,
+  openMins: number | null,
 ): number | null {
-  if (openMins <= 0) return null
+  if (openMins === null || openMins <= 0) return null
   return Math.round((bookedMins / openMins) * 100)
+}
+
+/** A studio month, as the sortable key the snapshots are stored under. */
+export const monthKey = (year: number, month: number): number =>
+  year * 12 + (month - 1)
+
+/**
+ * The span of months a read has to cover — first and last of what needs working
+ * out. With every snapshot in place that is the current month alone, which is
+ * the whole point: one month of appointments instead of a year of them.
+ */
+export function computeSpan(
+  keysToCompute: number[],
+): { fromKey: number; toKey: number } | null {
+  if (!keysToCompute.length) return null
+  return {
+    fromKey: Math.min(...keysToCompute),
+    toKey: Math.max(...keysToCompute),
+  }
 }

@@ -211,3 +211,18 @@ warning that these images sit outside the consent flow entirely.
   constraint that stops new ones. The admin also handles a stranded row now — a
   surface a copy already sits on always gets a toggle, so it can be removed even
   after the product stops offering it.
+
+## Insights snapshots (2026-09-06)
+Closed months are frozen in `insights_months` instead of being recomputed. The
+point is not mainly speed: recomputing history lets the schedule rewrite a past
+month's occupancy and an erasure request shrink its income long after the month
+ended. Freezing it is what makes a past figure worth showing — which is why past
+months now show their share of open hours again.
+
+- **SQL to apply:** `supabase/insights-months.sql`, then regenerate
+  `src/platform/supabase/types.ts`. The table's shape is already hand-written
+  into the generated file so the app type-checks meanwhile.
+- Until it is applied the page still works — the snapshot read returns null, the
+  page computes every month live (today's behaviour) and says so in a note.
+- Measured on the live data: a cold read touches every booking of the year; with
+  the months frozen it touches only the current month's.

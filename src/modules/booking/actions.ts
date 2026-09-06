@@ -18,7 +18,9 @@ import {
 } from "@/modules/booking/availability"
 import { manageUrlFor, verifyBookingToken } from "@/modules/booking/manage-token"
 import { fetchClientContacts } from "@/modules/clients"
+import { markInsightsMonthStale } from "@/db/insights-months"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { monthKeyOf } from "@/modules/studio/insights"
 import { getCurrentUser } from "@/modules/identity/server"
 import {
   sendBookingCancellationEmail,
@@ -489,6 +491,13 @@ export async function setBookingNoShow(
   )
   if (!result.ok) return { ok: false, error: "failed" }
 
+  // A no-show earns nothing (shared/insights.ts), so marking one changes that
+  // month's income — and a closed month is served from a kept row that would
+  // otherwise keep reporting the price nobody paid. Marked, not dropped: the
+  // hours that month was open are unchanged and must not be worked out again.
+  await markInsightsMonthStale(service, monthKeyOf(booking.start_time))
+
   revalidateAdminBookingViews()
+  revalidatePath(routes.admin.insights)
   return { ok: true }
 }

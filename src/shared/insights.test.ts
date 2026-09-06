@@ -3,6 +3,7 @@ import { test } from "node:test"
 
 import {
   capacityMins,
+  computeSpan,
   countsAsEarned,
   countsAsOccupied,
   effectiveIncomeCents,
@@ -151,6 +152,17 @@ test("today counts only as far as the clock has got", () => {
 
 test("no open hours is not nought per cent — it is not a question", () => {
   assert.equal(occupancyPercent(0, 0), null)
+  // Nor is "we never recorded what your hours were that month". Showing 0% there
+  // would read as a catastrophic month rather than a missing measurement.
+  assert.equal(occupancyPercent(900, null), null)
   assert.equal(occupancyPercent(90, 480), 19)
   assert.equal(occupancyPercent(480, 480), 100)
+})
+
+test("the read covers only the months that need it", () => {
+  // The steady state — one month of appointments instead of a year of them.
+  assert.deepEqual(computeSpan([24312]), { fromKey: 24312, toKey: 24312 })
+  assert.deepEqual(computeSpan([24305, 24312]), { fromKey: 24305, toKey: 24312 })
+  // Nothing to do means no booking read at all.
+  assert.equal(computeSpan([]), null)
 })

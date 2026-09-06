@@ -2,6 +2,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { BodySm } from "@/components/ui/typography"
 import { EmptyState } from "@/components/ui/empty-state"
 import { InsightsDisclaimer } from "@/app/admin/insights/_components/insights-disclaimer"
+import { RecalculateButton } from "@/app/admin/insights/_components/recalculate-button"
 import type { InsightsMonth } from "@/modules/studio/insights"
 import { formatStudioMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -25,12 +26,14 @@ function asHours(mins: number): string {
 export function InsightsBoard({
   months,
   bufferMins,
+  snapshotsUnavailable,
 }: {
   months: InsightsMonth[]
   bufferMins: number
+  snapshotsUnavailable: boolean
 }) {
   const withActivity = months.filter(
-    (month) => month.appointments > 0 || month.openMins > 0,
+    (month) => month.appointments > 0 || (month.openMins ?? 0) > 0,
   )
   const current = months.find((month) => month.inProgress)
 
@@ -59,8 +62,8 @@ export function InsightsBoard({
               )
             }
             note={
-              current.openMins > 0
-                ? `${asHours(current.bookedMins)} of ${asHours(current.openMins)} open`
+              current.openMins
+                ? `${asHours(current.bookedMins)} of ${asHours(current.openMins)} open so far`
                 : "No opening hours set for this month"
             }
           />
@@ -69,14 +72,17 @@ export function InsightsBoard({
 
       {withActivity.length ? (
         <section className="space-y-3">
-          <p className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-            Month by month
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
+              Month by month
+            </p>
+            <RecalculateButton />
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] border-collapse">
               <thead>
                 <tr className="border-b border-border text-left">
-                  {["Month", "Done", "Brought in", "Booked"].map(
+                  {["Month", "Done", "Brought in", "Booked", "Of open hours"].map(
                     (heading, index) => (
                       <th
                         key={heading}
@@ -118,6 +124,14 @@ export function InsightsBoard({
                     </td>
                     <td className="py-3 text-right font-functional text-sm text-muted-foreground">
                       {asHours(month.bookedMins)}
+                      {month.openMins ? (
+                        <span className="block text-[0.625rem] text-muted-foreground/70">
+                          of {asHours(month.openMins)}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="py-3 text-right font-functional text-sm text-muted-foreground">
+                      {month.occupancy === null ? "—" : `${month.occupancy}%`}
                     </td>
                   </tr>
                 ))}
@@ -140,11 +154,20 @@ export function InsightsBoard({
           time but earns nothing, unless you record what you charged for it.
         </BodySm>
         <BodySm className="text-xs text-muted-foreground">
-          The share of open hours is shown for this month only, measured against
-          the days and hours that have actually passed. Past months aren&rsquo;t
-          given one: your opening hours aren&rsquo;t kept month by month, so an
-          older month would be divided by the week you keep today.
+          A month keeps the opening hours it actually had, so changing your week
+          now leaves last winter as it was rather than re-dividing it by the week
+          you keep today. A month showing no percentage is one nobody was
+          watching — it ended before this was kept — and it stays that way rather
+          than being given a figure worked out from the wrong week. This month is
+          measured against the days and hours that have actually passed.
         </BodySm>
+        {snapshotsUnavailable ? (
+          <BodySm className="text-xs text-warning">
+            Months aren&rsquo;t being kept yet — every figure here was worked out
+            just now. Apply <code>supabase/insights-months.sql</code> and they
+            will settle.
+          </BodySm>
+        ) : null}
       </div>
     </div>
   )

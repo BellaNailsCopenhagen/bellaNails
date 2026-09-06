@@ -19,7 +19,8 @@ export const dynamic = "force-dynamic"
 export default async function AdminInsightsPage() {
   // eslint-disable-next-line react-hooks/purity -- request-time clock read
   const now = Date.now()
-  const { months, bufferMins, loadError } = await getStudioInsights(now)
+  const { months, bufferMins, snapshotsUnavailable, loadError } =
+    await getStudioInsights(now)
 
   return (
     <div className="space-y-6">
@@ -39,7 +40,11 @@ export default async function AdminInsightsPage() {
           body="Something went wrong reading the appointments. Try again in a moment — nothing has changed."
         />
       ) : (
-        <InsightsBoard months={months} bufferMins={bufferMins} />
+        <InsightsBoard
+          months={months}
+          bufferMins={bufferMins}
+          snapshotsUnavailable={snapshotsUnavailable}
+        />
       )}
     </div>
   )

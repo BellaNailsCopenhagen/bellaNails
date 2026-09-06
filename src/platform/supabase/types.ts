@@ -749,6 +749,39 @@ export type Database = {
         }
         Relationships: []
       }
+      insights_months: {
+        Row: {
+          adjusted: number
+          appointments: number
+          booked_mins: number
+          computed_at: string
+          income_cents: number
+          month_key: number
+          open_mins: number | null
+          stale: boolean
+        }
+        Insert: {
+          adjusted?: number
+          appointments?: number
+          booked_mins?: number
+          computed_at?: string
+          income_cents?: number
+          month_key: number
+          open_mins?: number | null
+          stale?: boolean
+        }
+        Update: {
+          adjusted?: number
+          appointments?: number
+          booked_mins?: number
+          computed_at?: string
+          income_cents?: number
+          month_key?: number
+          open_mins?: number | null
+          stale?: boolean
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           client_id: string
