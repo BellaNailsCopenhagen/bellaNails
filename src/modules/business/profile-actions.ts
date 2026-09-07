@@ -58,7 +58,13 @@ export async function saveBusinessProfile(
     tiktok_url: normalizeSocialUrl("tiktokUrl", input.tiktokUrl),
   }
   const saved = await upsertBusinessProfile(db, stored)
-  if (!saved.ok) return { ok: false, error: "Couldn’t save that." }
+  if (!saved.ok) {
+    // The reason, or this is unsolvable from the outside: every field goes in one
+    // upsert, so a single column the database is missing fails the whole form —
+    // and "Couldn't save that" on an address change tells nobody that.
+    console.error("[business] profile save failed:", saved.message)
+    return { ok: false, error: "Couldn’t save that." }
+  }
 
   revalidatePath(routes.admin.business)
   // The footer is in the public layout, so this is the whole prerendered site —
