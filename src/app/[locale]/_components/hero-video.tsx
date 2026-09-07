@@ -1,8 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { Pause, Play } from "lucide-react"
 import { useTranslations } from "next-intl"
+
+import { DEFAULT_HERO_IMAGE } from "@/shared/business-profile"
 
 /**
  * A film behind the landing statement.
@@ -19,6 +22,11 @@ import { useTranslations } from "next-intl"
  * film — which is the opposite of the promise. A paused video paints its own
  * first frame once the metadata lands, and that frame is hers.
  *
+ * A film that will not DECODE is a different matter, and falls back to that
+ * photo: the container is chosen by whichever browser she uploaded from, so it
+ * is possible to store one a visitor's browser cannot play, and the first screen
+ * of the site is not allowed to be an empty gradient.
+ *
  * The pause control is a button and not the whole surface: the middle of the
  * hero is the Reserve CTA, and a full-bleed click target would swallow it.
  * WCAG 2.2.2 wants a way to stop anything that moves for more than five
@@ -28,19 +36,31 @@ export function HeroVideo({ src }: { src: string }) {
   const t = useTranslations("hero")
   const video = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false)
+  const [undecodable, setUndecodable] = useState(false)
 
   useEffect(() => {
     const element = video.current
     if (!element) return
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
-    element.preload = "auto"
-    // Autoplay can still be refused (a data-saver, a browser policy). Staying
-    // paused is a fine outcome — the poster is already showing.
-    element.play().then(
-      () => setPlaying(true),
-      () => setPlaying(false),
-    )
+    // Read the state off the ELEMENT rather than tracking it alongside: iOS Low
+    // Power Mode and a browser's own data-saving both pause a video without
+    // asking, and a button that then still says "Pause" tells a screen reader
+    // the opposite of what is happening.
+    const sync = () => setPlaying(!element.paused)
+    element.addEventListener("play", sync)
+    element.addEventListener("pause", sync)
+
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      element.preload = "auto"
+      // Autoplay can still be refused. Staying paused is a fine outcome — the
+      // first frame is showing either way.
+      void element.play().catch(() => {})
+    }
+
+    return () => {
+      element.removeEventListener("play", sync)
+      element.removeEventListener("pause", sync)
+    }
   }, [])
 
   const toggle = () => {
@@ -48,14 +68,23 @@ export function HeroVideo({ src }: { src: string }) {
     if (!element) return
     if (element.paused) {
       element.preload = "auto"
-      element.play().then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      )
+      void element.play().catch(() => {})
     } else {
       element.pause()
-      setPlaying(false)
     }
+  }
+
+  if (undecodable) {
+    return (
+      <Image
+        src={DEFAULT_HERO_IMAGE}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="absolute inset-0 -z-10 object-cover object-center"
+      />
+    )
   }
 
   return (
@@ -67,6 +96,7 @@ export function HeroVideo({ src }: { src: string }) {
         loop
         playsInline
         preload="metadata"
+        onError={() => setUndecodable(true)}
         aria-hidden
         tabIndex={-1}
         className="absolute inset-0 -z-10 size-full object-cover object-center"

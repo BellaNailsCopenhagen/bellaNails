@@ -11,8 +11,8 @@ export const CLIENT_MAX_BYTES = 5 * 1024 * 1024 // post-optimisation an image is
 export const OWNER_MAX_BYTES = 200 * 1024 * 1024 // room for a short demo clip
 
 /**
- * The image policy, in two tiers. Every upload is downscaled to `maxDim` on its
- * longest side and re-encoded to WebP at `quality`; the re-encode also strips
+ * The image policy, in two tiers. Every upload is optimised: shrunk to `maxDim`
+ * on its longest side and re-encoded to WebP at `quality`; the re-encode also strips
  * EXIF, so a photo's GPS never reaches a public object.
  *
  * A client's upload is working material — a reference photo, often a screenshot
@@ -88,12 +88,33 @@ export function kindForKey(key: string): "image" | "video" {
 }
 
 /**
- * The cap on a hero film, and the one number in the app worth arguing about.
+ * Re-encoding policy for a film. One tier: video comes from the artist only —
+ * a client's upload tier is images, and the presign route enforces it.
  *
- * A background video is served to EVERY visitor of the landing page, so it is
- * the largest recurring cost the site has: a film at this cap is about 640 page
- * loads against a 5 GB monthly egress allowance. Ten seconds of 1080p at a sane
- * bitrate lands near 4 MB, so this leaves room without leaving room for a
- * phone's untouched 45-second clip.
+ * 1280px because a hero film sits behind a dark gradient with text over it,
+ * where resolution is the thing least worth paying for. At 1.2 Mbps that is
+ * about 150 KB a second, so the `maxSeconds` ceiling doubles as the size
+ * ceiling: 30 seconds lands near 4.5 MB, inside `maxBytes` below.
+ *
+ * That ceiling exists because the re-encode runs in REAL TIME — a minute of
+ * footage is a minute of waiting — not because a longer film would be too big.
  */
-export const HERO_VIDEO_MAX_BYTES = 8 * 1024 * 1024
+export type VideoPolicy = {
+  maxDim: number
+  bitsPerSecond: number
+  fps: number
+  maxSeconds: number
+  /** Checked on whatever is about to be stored, re-encoded or not. `bitsPerSecond`
+      is a hint the encoder may miss, and a film it could not re-encode at all
+      arrives here untouched — so this is the one number that actually holds. */
+  maxBytes: number
+}
+
+export const VIDEO: VideoPolicy = {
+  maxDim: 1280,
+  bitsPerSecond: 1_200_000,
+  fps: 30,
+  maxSeconds: 30,
+  maxBytes: 8 * 1024 * 1024,
+}
+

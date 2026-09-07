@@ -75,7 +75,7 @@ export function objectUrl(key: string): string | null {
  * A one-shot signed URL the browser PUTs the bytes to, plus the key to persist.
  * Size and MIME are enforced by the bucket's own `file_size_limit` /
  * `allowed_mime_types` (see docs/tasks/design-requests/PLAN.md) — the caller
- * still gates types in the route, and the browser still downscales first.
+ * still gates types in the route, and the browser still optimises first.
  */
 export type SignedUploadTarget = { bucket: string; key: string; token: string }
 

@@ -3,8 +3,8 @@ import { test } from "node:test"
 
 import {
   CLIENT_IMAGE,
-  HERO_VIDEO_MAX_BYTES,
   PORTFOLIO_IMAGE,
+  VIDEO,
   imagePolicy,
   kindForKey,
 } from "@/shared/media-policy"
@@ -49,8 +49,19 @@ test("only the owner gets the portfolio tier", () => {
   assert.ok(PORTFOLIO_IMAGE.maxDim > CLIENT_IMAGE.maxDim)
 })
 
-test("the hero film cap stays in the range the admin promises", () => {
+test("the film cap is a whole number of MB, which is how it is worded", () => {
   // The admin tells her a whole number of MB; a cap that isn't one would make
   // that copy a lie.
-  assert.equal(HERO_VIDEO_MAX_BYTES % (1024 * 1024), 0)
+  assert.equal(VIDEO.maxBytes % (1024 * 1024), 0)
+})
+
+test("the length ceiling cannot on its own exceed the byte cap", () => {
+  // maxSeconds is what actually bounds the output: bitrate x duration. If that
+  // product were over maxBytes, a film could pass the length check and then be
+  // rejected on size after she had waited out the whole re-encode.
+  const worstCaseBytes = (VIDEO.bitsPerSecond / 8) * VIDEO.maxSeconds
+  assert.ok(
+    worstCaseBytes <= VIDEO.maxBytes,
+    `${Math.round(worstCaseBytes / 1024 / 1024)} MB worst case vs ${VIDEO.maxBytes / 1024 / 1024} MB cap`,
+  )
 })

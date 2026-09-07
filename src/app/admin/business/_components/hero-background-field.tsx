@@ -18,7 +18,8 @@ import {
   HERO_GUIDANCE,
   type HeroBackground,
 } from "@/shared/business-profile"
-import { HERO_VIDEO_MAX_BYTES, PORTFOLIO_IMAGE } from "@/shared/media-policy"
+import { PORTFOLIO_IMAGE, VIDEO } from "@/shared/media-policy"
+import { videoOptimizeSupported } from "@/shared/video-optimize"
 
 const asMb = (bytes: number) => Math.round(bytes / 1024 / 1024)
 /** One decimal, so "that film is 8 MB, keep it under 8 MB" can't happen. */
@@ -28,32 +29,43 @@ const asExactMb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1)
  * The picture — or the film — behind the landing statement.
  *
  * A film is the only asset here served to every single visitor of the home page,
- * so its size is a running cost rather than a one-off: at the cap it is about
- * 640 page loads against a 5 GB monthly allowance. Hence a limit she is told
- * about before she picks, rather than a mysterious failure after a two-minute
- * upload.
+ * so its size is a running cost rather than a one-off. Which is why it is
+ * re-encoded on the way out, the same as a photo: 1280px at 1.2 Mbps turns a
+ * phone's 40 MB clip into two or three. The re-encode runs in real time, so it
+ * reports a percentage rather than spinning.
  *
- * A photo needs no such cap — the uploader downscales it on the way out.
+ * The byte cap is only consulted when this browser CANNOT re-encode. Applying it
+ * to the original file otherwise would reject a 40 MB clip that was about to
+ * become 2 MB.
  */
 export function HeroBackgroundField({ current }: { current: HeroBackground }) {
   const { pending, run } = useActionRunner()
-  const { inputRef, uploading, pick, take } = usePhotoUpload({
-    processFailed: "Couldn’t read that image — try another.",
-    notConfigured: "Media storage isn’t set up yet.",
-    rateLimited: "That’s a lot of uploads at once — wait a moment.",
-    unsupported: "Use a JPG, PNG, WebP, MP4 or WebM.",
-    failed: "That upload didn’t work — try again.",
-  })
+  const { inputRef, uploading, progress, pick, take } = usePhotoUpload(
+    {
+      processFailed: "Couldn’t read that image — try another.",
+      notConfigured: "Media storage isn’t set up yet.",
+      rateLimited: "That’s a lot of uploads at once — wait a moment.",
+      unsupported: "Use a JPG, PNG, WebP, MP4 or WebM.",
+      tooLong: `That film is longer than ${VIDEO.maxSeconds} seconds — trim it and try again.`,
+      tooLarge: `That film is still over ${asMb(VIDEO.maxBytes)} MB after shrinking — a shorter or calmer clip will compress further.`,
+      failed: "That upload didn’t work — try again.",
+    },
+    VIDEO,
+  )
 
   const isDefault = current.url === DEFAULT_HERO_IMAGE
 
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
-    // Checked here and not in the action: nothing is uploaded yet, so she finds
-    // out before waiting for it rather than after.
-    if (file?.type.startsWith("video/") && file.size > HERO_VIDEO_MAX_BYTES) {
+    // Only when nothing is going to shrink it. Checked here and not in the
+    // action so she finds out before the upload rather than after it.
+    if (
+      file?.type.startsWith("video/") &&
+      !videoOptimizeSupported() &&
+      file.size > VIDEO.maxBytes
+    ) {
       toast.error(
-        `That film is ${asExactMb(file.size)} MB — keep it under ${asMb(HERO_VIDEO_MAX_BYTES)} MB, or the home page gets slow for everyone.`,
+        `That film is ${asExactMb(file.size)} MB and this browser can’t shrink it — keep it under ${asMb(VIDEO.maxBytes)} MB, or the home page gets slow for everyone.`,
       )
       // `take()` normally clears this on its way out. Returning before it means
       // doing so here, or picking the same path again fires no change event and
@@ -116,9 +128,11 @@ export function HeroBackgroundField({ current }: { current: HeroBackground }) {
           {HERO_GUIDANCE.width} × {HERO_GUIDANCE.height}
         </strong>{" "}
         and is scaled down to {PORTFOLIO_IMAGE.maxDim}px. A film should be short —
-        about {HERO_GUIDANCE.seconds} seconds, looping, under{" "}
-        <strong>{asMb(HERO_VIDEO_MAX_BYTES)} MB</strong>, and it is sent to every
-        visitor, so a smaller one is a faster site. JPG, PNG, WebP, MP4 or WebM.
+        about {HERO_GUIDANCE.seconds} seconds, and no longer than{" "}
+        {VIDEO.maxSeconds}. It is shrunk to {VIDEO.maxDim}px and re-encoded here
+        in your browser, which takes about as long as the film itself, so upload
+        it straight off the camera and let it do the work. It has no sound: the
+        background is always muted. JPG, PNG, WebP, MP4 or WebM.
       </BodySm>
 
       <div className="flex flex-wrap items-center gap-4">
@@ -136,11 +150,13 @@ export function HeroBackgroundField({ current }: { current: HeroBackground }) {
           onClick={pick}
         >
           <ImagePlus className="size-3.5" />
-          {uploading || pending
-            ? "Uploading…"
-            : isDefault
-              ? "Upload a background"
-              : "Replace background"}
+          {progress !== null
+            ? `Shrinking the film… ${Math.round(progress * 100)}%`
+            : uploading || pending
+              ? "Uploading…"
+              : isDefault
+                ? "Upload a background"
+                : "Replace background"}
         </Button>
 
         {isDefault ? null : (

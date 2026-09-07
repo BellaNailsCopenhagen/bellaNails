@@ -7,7 +7,7 @@ import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/sup
  * Mints a one-shot signed upload target. Requires a signed-in caller; the role
  * picks the allowed types (checked here), the bucket — the artist's originals vs
  * a client's design references, each with its own server-enforced size limit —
- * and the image tier the browser must downscale to. A client asking for a video
+ * and the image tier the browser must optimise to. A client asking for a video
  * is rejected. Returns 503 when storage isn't configured, so the uploader
  * degrades to "not yet available".
  *

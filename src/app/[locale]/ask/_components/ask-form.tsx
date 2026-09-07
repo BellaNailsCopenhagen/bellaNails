@@ -27,7 +27,7 @@ type Attachment = { key: string; previewUrl: string }
 
 /**
  * The client's message to the artist. Photos upload as they're picked (each is
- * downscaled + EXIF-stripped in the browser first) and the returned storage keys
+ * optimised + EXIF-stripped in the browser first) and the returned storage keys
  * travel with the submit, so a half-finished form never leaves a request behind.
  *
  * On success the form is replaced by a plain acknowledgement rather than a

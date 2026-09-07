@@ -1,7 +1,7 @@
 import type { ImagePolicy } from "@/shared/media-policy"
 
 /**
- * Client-side prep for every image upload: downscale (longest side ≤ maxDim) and
+ * Client-side prep for every image upload: shrink (longest side ≤ maxDim) and
  * re-encode to webp, **preserving the original aspect ratio** — we never crop a
  * client's photo. The re-encode strips EXIF/GPS (GDPR data-minimisation) so raw
  * metadata never leaves the device; `imageOrientation: "from-image"` bakes the
@@ -11,7 +11,7 @@ import type { ImagePolicy } from "@/shared/media-policy"
  * The policy is passed in, never defaulted: which tier applies is the server's
  * call, and a default here would be a second answer to that question.
  */
-export async function downscaleImage(
+export async function optimizeImage(
   file: Blob,
   { maxDim, quality }: ImagePolicy,
 ): Promise<Blob> {
