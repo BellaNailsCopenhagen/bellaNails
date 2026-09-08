@@ -4,7 +4,6 @@ import { listActiveBookingsFrom } from "@/db/bookings"
 import type { Db } from "@/db/client"
 import { fetchClientContacts } from "@/modules/clients/contacts"
 import { getSchedule } from "@/modules/studio/hours"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { standardDay, type Schedule } from "@/shared/schedule"
 import type { TimeRange } from "@/shared/studio-hours"
@@ -48,10 +47,16 @@ const fits = (
   day: number,
 ) => containedIn(startMs, endMs, toInstants(day, ranges))
 
-/** The current schedule. Call BEFORE a mutation to capture the "before", then
-    pass it to getScheduleConflicts after saving. */
+/**
+ * The current schedule. Call BEFORE a mutation to capture the "before", then
+ * pass it to getScheduleConflicts after saving.
+ *
+ * `db` is required. It used to default to a service-role client, which every
+ * real caller overrode with a `requireOwner()` one — so the default was gated
+ * in practice and a bypass waiting for the first caller who forgot.
+ */
 export async function getScheduleSnapshot(
-  db: Db = createSupabaseServiceRoleClient(),
+  db: Db,
 ): Promise<ScheduleSnapshot> {
   return { schedule: await getSchedule(db) }
 }
@@ -65,7 +70,8 @@ export async function getScheduleSnapshot(
  */
 export async function getScheduleConflicts(
   before: ScheduleSnapshot,
-  db: Db = createSupabaseServiceRoleClient(),
+  /** Required, for the same reason as `getScheduleSnapshot`'s. */
+  db: Db,
 ): Promise<ScheduleConflict[]> {
   const [after, bookings] = await Promise.all([
     getScheduleSnapshot(db),
