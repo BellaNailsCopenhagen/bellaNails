@@ -8,6 +8,7 @@ import {
   updateBookingRequest,
 } from "@/db/booking-requests"
 import { insertBooking } from "@/db/bookings"
+import { updateClientCommunicationLocale } from "@/db/clients"
 import { takeDurableToken } from "@/db/rate-limits"
 import { resolveLocale } from "@/i18n/routing"
 import { buildBookingDraft } from "@/modules/booking/booking-draft"
@@ -225,12 +226,30 @@ export async function createBookingRequest(
   if (!saved.ok) return { ok: false, error: "Couldn't save the request — please try again." }
 
   const locale = resolveLocale(input.locale)
+  // Remember the site locale, exactly as createBooking does. Without it this
+  // path used the browsing locale while ACCEPT used the stored one, so a
+  // request made in Danish was acknowledged in Danish and confirmed in English
+  // — one client, one conversation, two languages. Best-effort: a pre-migration
+  // missing column must never fail the request.
+  try {
+    await updateClientCommunicationLocale(db, clientId, locale)
+  } catch {
+    /* the request stands regardless */
+  }
+
   // In-app alert for the artist (best-effort). Push lands with Feature C.
   await notifyOwner(db, {
     kind: "booking_request",
     clientId,
     targetId: saved.id,
   })
+
+  // The stored name, not the one typed at step 02. `ensureUser` deliberately
+  // does not overwrite an existing client's name (a checkout typo must not
+  // rename them), so greeting with the typed one made the ack say "Hej QA"
+  // while the admin card and the confirmation used their real name. The name
+  // they type is either the record or ignored — it cannot be both.
+  const contact = (await fetchClientContacts([clientId]))[clientId]
 
   const { serviceName, addonNames } = localizedBookingNames(
     metaOf({ selected_addons: draft.values.selected_addons }),
@@ -241,7 +260,7 @@ export async function createBookingRequest(
   const [res] = await Promise.all([
     sendBookingRequestReceivedEmail({
       to: email,
-      firstName: input.name.trim().split(/\s+/)[0] || null,
+      firstName: contact?.firstName ?? null,
       locale,
       kind: input.kind,
       serviceName,
@@ -252,7 +271,8 @@ export async function createBookingRequest(
     }),
     sendBookingRequestArtistEmail({
       requestId: saved.id,
-      clientName: input.name.trim() || email,
+      // Their address is more use to her than "Client" when we have no name.
+      clientName: contact?.firstName || contact?.fullName || email,
       clientEmail: email,
       clientPhone: input.phone?.trim() || null,
       kind: input.kind,

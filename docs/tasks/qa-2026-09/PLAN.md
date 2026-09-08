@@ -243,7 +243,7 @@ plan). The code half is that a control which cannot work must not look like one 
     strings. Pick one and make all three agree.
   - **Verify:** what the email sends and what the screen asks for are the same number.
 
-- [ ] ### QA-15 · One client, one conversation, two languages **[live]**
+- [x] ### QA-15 · One client, one conversation, two languages **[live]**
 
   The request acknowledgement came in Danish (sent from the `/da` flow); the confirmation
   for that same request arrived in English, because accept uses the client's stored
@@ -510,3 +510,22 @@ work items either.
   copy will stay correct either way, which was the point of taking the number
   out rather than changing 6 to 8. The OTP input still has no `maxLength`, on
   purpose: a cap would break the day the setting changes.
+- **QA-15 · the plan's suggested locale rule is not implementable as written.**
+  "The stored `communication_locale` wins when set, and the browsing locale
+  seeds it on first contact" needs "not set" to exist, and
+  `supabase/client-locale.sql` declares the column `text not null default 'da'`
+  — so a client who has never expressed a preference is indistinguishable from
+  one who chose Danish. The rule shipped instead is the one `createBooking`
+  already used: **a client-initiated action stamps the browsing locale, and
+  every email reads the stored value.** Same outcome for the reported bug, no
+  migration, and the two paths now agree instead of being a third rule.
+  If you want the artist's manual override in `/admin/clients/[id]` to survive
+  a client booking in the other language, that needs the column nullable — say
+  so and it is a small migration plus one condition.
+- **QA-15 · the name question was already answered in the code.**
+  `ensureUser` documents "name is filled-if-empty (a booking typo never
+  clobbers a client's chosen display name)", which is the right rule — so the
+  typed name is *ignored* for the record, and the fix was to stop the ack email
+  greeting with it. It now uses the stored name like the admin card and the
+  confirmation do. For a brand-new client the stored name IS the one they
+  typed, so there is one code path, not two.
