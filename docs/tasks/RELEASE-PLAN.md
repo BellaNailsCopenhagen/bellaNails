@@ -9,12 +9,16 @@ it (a dashboard, a decision, a piece of real content). **Code** = I can do it.
 
 Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 
+Counts are what is still **open** — struck rows below are done.
+
 | | Human | Code | Total |
 | --- | --- | --- | --- |
 | **Must** | 9 | 2 | 11 |
-| **Should** | 9 | 12 | 21 |
-| **Could** | 1 | 11 | 12 |
+| **Should** | 8 | 11 | 19 |
+| **Could** | 2 | 11 | 13 |
 | **Won't (this release)** | — | 5 | 5 |
+
+H17 is excluded — test data you're clearing before release.
 
 ---
 
@@ -35,7 +39,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | # | What | Why it matters | Where |
 | --- | --- | --- | --- |
 | H1 | **Point `bellanails.dk` at Vercel** | Deploys go Ready but the domain still resolves to the old host. Nothing below is live until this is. A green deploy is not a live site. | Vercel → Domains |
-| H2 | **Set `NEXT_PUBLIC_SITE_URL` to the live domain in Vercel** | Every canonical, hreflang, the sitemap and the robots `Sitemap:` line are built from it. Wrong value = a sitemap advertising `localhost:3000` to Google. | Vercel → Env |
+| H2 | **Set `NEXT_PUBLIC_SITE_URL` to the live domain in Vercel** | It currently holds **`https://test.bellanails.dk`**. Every canonical, hreflang, the sitemap and the robots `Sitemap:` line are built from it, so until it is `https://bellanails.dk` the site deploys as a staging copy — which the code now handles by refusing crawlers entirely (`Disallow: /` + `noindex`). Nothing is indexable until this changes. | Vercel → Env |
 | H3 | **Run `pnpm deploy:prod`** | `deploy` is **25 commits** behind `main` — the whole QA remediation is unreleased. The command is classifier-blocked for me. | terminal |
 | H4 | **Publish real terms + privacy (v2)** | Both documents currently open by telling the reader they are drafts, and clients are recorded as accepting them at step 03. This is the one item with legal exposure. Old acceptances keep pointing at the text they agreed to. | `/admin/terms` |
 | H5 | **Confirm the opening hours** | Mon–Fri closed, Sat–Sun 10:00–18:00. Every bookable slot, the JSON-LD Google reads, and the hours page all derive from it. | `/admin/hours` |
@@ -66,18 +70,18 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | H13 | **Submit core citations with identical NAP** | Krak.dk, De Gule Sider, Trustpilot, Facebook, Instagram, Apple Maps, Bing Places. Consistency is the ranking signal. | external |
 | H14 | **Add the social URLs** | All three blank, so the footer shows no social column and the JSON-LD carries no `sameAs`. | `/admin/business` |
 | H15 | **Give me the phone number + geo coordinates** | Deliberately omitted from the `NailSalon` schema rather than guessed — Google *displays* a telephone from structured data, so a placeholder is worse than none. | — |
-| H16 | **Apply `supabase/gallery-surface-cleanup.sql`** | Retires the `testimonial` asset surface. The delete is a no-op (live `asset_usages` holds one row, surface `clients_gallery`); the value is the constraint that stops new ones. | SQL editor |
-| H18 | **Apply `supabase/drop-dead-columns.sql`** | Five columns live carries that nothing reads (`services.cal_event_slug`, four on `feature_flags`). Applying it makes a fresh `schema.sql` bootstrap and the live project the same shape — the only difference between them today. Regenerate `types.ts` after. | SQL editor |
-| H17 | **Two clients called Raul, and the QA leftovers** | Two rows, 2 and 3 bookings, separate emails. Plus one cancelled 12 Sep booking left by the pass. Notifications are already cleared. | `/admin/clients` |
+| ~~H16~~ | ~~**Apply `supabase/gallery-surface-cleanup.sql`**~~ — **DONE 8 Sep**, verified: `surface='testimonial'` is now refused (check violation) | Retires the `testimonial` asset surface. The delete is a no-op (live `asset_usages` holds one row, surface `clients_gallery`); the value is the constraint that stops new ones. | SQL editor |
+| ~~H18~~ | ~~**Apply `supabase/drop-dead-columns.sql`**~~ — **DONE 8 Sep**, verified: all five gone, and a fresh `schema.sql` bootstrap now matches live **exactly** (292 columns, zero drift) | Five columns live carries that nothing reads (`services.cal_event_slug`, four on `feature_flags`). Applying it makes a fresh `schema.sql` bootstrap and the live project the same shape — the only difference between them today. Regenerate `types.ts` after. | SQL editor |
+| H17 | **Two clients called Raul, and the QA leftovers** | Two rows, 2 and 3 bookings, separate emails. Plus one cancelled 12 Sep booking left by the pass. Notifications already cleared. **Your call — being cleaned before release, so not tracked here.** | `/admin/clients` |
+| H19 | **Drop `NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL` from Vercel** | A leftover from the retired storage migration. Storage is Supabase Storage — there is not one Scaleway or S3 reference left in `src/`. Harmless but misleading about which vendor the app uses. | Vercel → Env |
 
 ## Should · Code
 
 | # | What | Why it matters | Effort |
 | --- | --- | --- | --- |
 | C4 | **Lazy-load the outside-hours calendar** | When outside-hours is on, the whole outside calendar (closed weekdays yield the entire window each day — roughly 1–2k slots over the horizon) ships in the RSC payload for **every** booking visitor, though it is only revealed after clicking "Request one". This is the main funnel, and speed is a local ranking factor. | Medium |
-| C5 | **Media performance baseline + pre-sizing** | Scaleway has no CDN and no image transforms, so photos are the likely dominant load. Record LCP/TTFB before and after. Feature M. | Medium |
+| C5 | **Media performance baseline** | Feature M's premise is out of date: storage is **Supabase Storage**, not Scaleway, and pre-sizing already happens in the browser on upload (`optimizeImage` / `optimizeVideo`). What is left is an actual LCP/TTFB measurement of the photo-heavy pages, and then a decision on whether Supabase's image transforms are worth turning on. Measure before building anything. | Small |
 | C6 | **A11y + Lighthouse pass, no-flicker** | Part of launch hardening (L). Cheap to do once, expensive to retrofit. | Medium |
-| C7 | **Give the housekeeping job a trigger** | `runDesignHousekeeping` is throttled to hourly and fires only when someone opens `/admin`. If nobody does, offers never expire and reference photos are never purged. One cron trigger. | Small |
 | C8 | **`withdrawDataConsent` doesn't notify or revalidate** | Unlike `withdrawMediaConsent`. Latent today because name/testimonial has no public render — it will silently fail to take content down the day one ships. | Small |
 | C9 | **Booking-request copy into the catalogue** | `booking-request-form.tsx` + `booking-slot-step.tsx` use a hand-rolled bilingual map instead of `t()`. The copy is correct da/en, so this is drift risk rather than a visible bug — the last client-facing text outside the catalogues after QA-13. | Small |
 | C10 | **Audit the other 11 service-role callers** | QA-18 gated the nine reads it named. Eleven more module files build a service-role client without a gate and **most of them should** (`ensure-user`, `availability`, token-validated reads). Each needs its own judgement before anyone assumes service-role means admin. | Medium |
@@ -94,6 +98,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | # | Who | What | Note |
 | --- | --- | --- | --- |
 | D1 | Human | **Confirm the open decisions** | Root locale (→ C14) · admin stays English-only · keep or hide the "card on file" NOT-AVAILABLE radio · should a future appointment appear in the permissions list · a cancelled future booking filing under History. All five are cheap once answered. |
+| C7 | Code | **Decide what triggers housekeeping** — no scheduler in the stack. `/admin` being opened most days *is* the trigger; the exposure is a quiet week. Accept it and say so in the code, or add one (`in-house/SCHEDULER-OPTIONS.md`). |  |
 | C15 | Code | **Resend action on the communications log** | Feature A is otherwise built (log + per-client view + manual reminder batch). Resend is the missing verb. |
 | C16 | Code | **ICS calendar feed (read-only, signed)** | She lost her external calendar when Cal went. Confirmation emails already attach an `.ics`; a subscribable feed is the cheap replacement. |
 | C17 | Code | **Waitlist / cancellation backfill** | Cheap now that we own the slots. Turns a cancellation into a booking. |
@@ -170,3 +175,14 @@ Checked against the code and the live database today:
   for, still validated if given.
 - **The admin says which fields are required.** Marked from what each action
   actually refuses, across seven forms, with `aria-required` on the inputs.
+- **A staging deploy no longer competes with the real domain.** Production's
+  `NEXT_PUBLIC_SITE_URL` is `https://test.bellanails.dk`, which was harmless
+  until the SEO surface shipped a crawlable `robots.txt` and a self-canonical on
+  every page. Off the production host it is now `Disallow: /` plus `noindex,
+  nofollow`. The host rule is pure and tested, including the lookalike case
+  (`bellanails.dk.evil.example` ends with the production host — which is why it
+  parses the hostname rather than calling `endsWith`).
+- **H16 + H18 applied by Raul**, and verified: the `testimonial` surface is
+  refused by a check constraint, the five dead columns are gone, and a fresh
+  `schema.sql` bootstrap now matches live **exactly** — 292 columns, zero drift.
+  "Clean slate" and "live" are the same thing as of today.
