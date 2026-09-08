@@ -15,6 +15,8 @@ import {
 import {
   dayNumberForIso,
   isoForDayNumber,
+  toClock,
+  toMinutes,
   weekdayIndexForDayNumber,
   WEEKDAYS,
 } from "@/shared/studio-hours"
@@ -23,7 +25,9 @@ import { ADMIN_LOCALE } from "@/config/admin"
 
 /** What the stepper was opened for — add a rule on a clicked day, or edit one. */
 export type SheetState =
-  | { mode: "add"; dayNumber: number }
+  /** `startAt` is where in the day the artist tapped, when she tapped the grid
+      rather than the date — the axis is readable now, so a tap means a time. */
+  | { mode: "add"; dayNumber: number; startAt?: string }
   | { mode: "edit"; rule: ScheduleRule }
 
 type Repeat = "weekly" | "date" | "range"
@@ -61,11 +65,15 @@ function seed(state: SheetState) {
       label: r.label ?? "",
     }
   }
+  // A tapped position seeds the start and keeps the default length; tapping the
+  // date (no position) keeps the old 10:00–18:00.
+  const start = state.startAt ?? "10:00"
+  const end = toClock(Math.min(toMinutes(start) + 8 * 60, 23 * 60 + 59))
   return {
     kind: "standard" as ScheduleKind,
     allDay: false,
-    start: "10:00",
-    end: "18:00",
+    start,
+    end,
     repeat: "weekly" as Repeat,
     weekday: weekdayIndexForDayNumber(state.dayNumber),
     onDate: isoForDayNumber(state.dayNumber),

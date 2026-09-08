@@ -307,7 +307,7 @@ plan). The code half is that a control which cannot work must not look like one 
     (`media/owner-media-actions.ts`) — both TypeScript-only unions, erased at runtime.
   - **Verify:** every admin page still renders as owner; lint and build clean.
 
-- [ ] ### QA-19 · The hours editor has no hour axis **[live]**
+- [x] ### QA-19 · The hours editor has no hour axis **[live]**
 
   "Tap a day to add hours" — but the day grid is an unlabelled box with four faint
   dividers and no times down the side. On a closed day it is an empty rectangle with a
@@ -579,3 +579,14 @@ work items either.
   caller passes a `requireOwner()` client, so it is gated in practice, but the
   default is a gate-bypass waiting for a caller who forgets. Making the
   parameter required would close it.
+- **QA-19 · today's column was already a few pixels out of line.** The round
+  date pill on today is 24px tall against ~20px for the plain dates beside it,
+  so today's grid body started lower than its neighbours'. Invisible while
+  there was no axis; fatal once there is one, so every day header now has a
+  fixed height.
+- **QA-19 · self-review caught the now-line being silently absent.** The first
+  version computed minutes-into-the-day with `dayNumberToMs`, which anchors at
+  **midday UTC** — it produced −225 for a 10:15 studio morning, which reads as
+  "off the axis" and drew nothing at all rather than drawing something wrong.
+  It uses `studioWallTimeToInstant(day, "00:00")` now, which is DST-correct.
+  Verified numerically against the real helper: 10:15 local → 26.6% down.

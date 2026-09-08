@@ -1,6 +1,12 @@
 "use client"
 
-import { useMemo, useState, type KeyboardEvent } from "react"
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -13,6 +19,7 @@ import {
 import {
   dayNumberForIso,
   isoForDayNumber,
+  toClock,
   toMinutes,
   WEEKDAYS,
   weekdayIndexForDayNumber,
@@ -22,6 +29,7 @@ import {
   formatStudioDayMonthYear,
   formatStudioMonthYear,
   studioDayNumber,
+  studioWallTimeToInstant,
 } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -35,6 +43,63 @@ const STRIPES = {
 const HATCH = {
   backgroundImage:
     "repeating-linear-gradient(45deg, rgba(110,110,110,0.55) 0 3px, transparent 3px 7px)",
+}
+
+// Every column's day header is this tall so all eight bodies (the hour axis and
+// the seven days) start at the same y. Without it today's round date pill is
+// taller than the plain dates beside it and the grid lines drift by a few px —
+// which is exactly the kind of drift that makes an axis untrustworthy.
+const HEADER_H = "h-10"
+
+/** The hours to draw, every hour across the axis. Labelled every second one:
+    16 hours in 288px is 18px each, so labelling all of them would overlap. */
+function axisHours(axisStart: number, axisEnd: number) {
+  const first = Math.ceil(axisStart / 60)
+  const last = Math.floor(axisEnd / 60)
+  return Array.from({ length: Math.max(0, last - first + 1) }, (_, i) => {
+    const hour = first + i
+    return {
+      hour,
+      /** Position down the column, 0–100. */
+      pct: ((hour * 60 - axisStart) / (axisEnd - axisStart)) * 100,
+      labelled: hour % 2 === 0,
+    }
+  })
+}
+
+/**
+ * The hour labels down the left edge.
+ *
+ * The grid always had a time axis — blocks are positioned by minute against it
+ * — but nothing drew it, so the artist was placing blocks on an unlabelled box
+ * with four faint dividers. This is the screen that decides every bookable
+ * slot; it has to say what time a position means.
+ */
+function TimeAxis({
+  axisStart,
+  axisEnd,
+}: {
+  axisStart: number
+  axisEnd: number
+}) {
+  return (
+    <div className="min-w-0 select-none" aria-hidden>
+      <div className={`mb-1 ${HEADER_H}`} />
+      <div className="relative h-72">
+        {axisHours(axisStart, axisEnd)
+          .filter((h) => h.labelled)
+          .map((h) => (
+            <span
+              key={h.hour}
+              style={{ top: `${h.pct}%` }}
+              className="absolute right-1 -translate-y-1/2 font-functional text-[10px] tabular-nums text-muted-foreground"
+            >
+              {String(h.hour).padStart(2, "0")}
+            </span>
+          ))}
+      </div>
+    </div>
+  )
 }
 
 function blockClass(kind: ScheduleKind): string {
@@ -86,6 +151,7 @@ function DayColumn({
   isToday,
   axisStart,
   axisSpan,
+  nowPct,
   onPick,
   onEdit,
 }: {
@@ -94,11 +160,29 @@ function DayColumn({
   isToday: boolean
   axisStart: number
   axisSpan: number
-  onPick: (dayNumber: number) => void
+  /** Where the clock sits down the axis, 0–100, or null when it is off it. */
+  nowPct: number | null
+  onPick: (dayNumber: number, startAt?: string) => void
   onEdit: (rule: ScheduleRule) => void
 }) {
   const iso = isoForDayNumber(dayNumber)
   const weekday = weekdayIndexForDayNumber(dayNumber)
+
+  // Where you tapped IS the time you meant, now that the axis says what a
+  // position means. Snapped to the quarter hour; the header above still adds
+  // at the default, since a date has no y position.
+  const pickAtPosition = (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    const box = e.currentTarget.getBoundingClientRect()
+    if (box.height === 0) return onPick(dayNumber)
+    const minutes = axisStart + ((e.clientY - box.top) / box.height) * axisSpan
+    const snapped = Math.round(minutes / 15) * 15
+    const clamped = Math.min(
+      Math.max(snapped, axisStart),
+      axisStart + axisSpan - 15,
+    )
+    onPick(dayNumber, toClock(clamped))
+  }
   return (
     // Whole column adds for the day; blocks stop propagation to edit instead.
     <div
@@ -109,7 +193,7 @@ function DayColumn({
       onKeyDown={activateOnKey(() => onPick(dayNumber))}
       className="min-w-0 cursor-pointer rounded-sm"
     >
-      <div className="mb-1 flex items-center justify-between gap-1 px-1 py-0.5">
+      <div className={`mb-1 flex ${HEADER_H} items-center justify-between gap-1 px-1`}>
         <span className="min-w-0">
           <span className="block font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground">
             {WEEKDAYS[weekday].label.slice(0, 3)}
@@ -126,17 +210,31 @@ function DayColumn({
         </span>
         <Plus className="size-3.5 shrink-0 text-muted-foreground" />
       </div>
-      <div className="relative h-72 overflow-hidden rounded-sm border border-border bg-muted/30">
-        {[25, 50, 75].map((pct) => (
+      <div
+        onClick={pickAtPosition}
+        className="relative h-72 overflow-hidden rounded-sm border border-border bg-muted/30"
+      >
+        {/* One line per hour, stronger on the labelled ones, so a position in
+            the column can be read off the axis beside it. */}
+        {axisHours(axisStart, axisStart + axisSpan).map((h) => (
           <div
-            key={pct}
-            className="absolute inset-x-0 border-t border-border/40"
-            style={{ top: `${pct}%` }}
+            key={h.hour}
+            className={`absolute inset-x-0 border-t ${
+              h.labelled ? "border-border/50" : "border-border/25"
+            }`}
+            style={{ top: `${h.pct}%` }}
           />
         ))}
         {rules.length === 0 ? (
-          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-functional text-[10px] text-muted-foreground/50">
-            —
+          // A dash in an empty box says nothing. This is a closed day, and the
+          // whole column is already the "add hours" target.
+          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 space-y-0.5 text-center">
+            <span className="block font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground">
+              Closed
+            </span>
+            <span className="block font-functional text-[9px] text-muted-foreground/70">
+              Tap to add hours
+            </span>
           </span>
         ) : null}
         {/* No-work renders LAST (on top): it wins the hierarchy, so its hatch must
@@ -172,6 +270,16 @@ function DayColumn({
             </button>
           )
         })}
+        {/* The clock, on today only. On a screen used to decide what is still
+            bookable, "where are we now" is half the question. */}
+        {isToday && nowPct !== null ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 z-10 border-t border-destructive"
+            style={{ top: `${nowPct}%` }}
+          >
+            <span className="absolute -top-1 left-0 size-2 rounded-full bg-destructive" />
+          </div>
+        ) : null}
       </div>
     </div>
   )
@@ -248,10 +356,20 @@ export function ScheduleCalendar({
 }: {
   schedule: Schedule
   now: number
-  onPickDay: (dayNumber: number) => void
+  onPickDay: (dayNumber: number, startAt?: string) => void
   onEditRule: (rule: ScheduleRule) => void
 }) {
   const [view, setView] = useState<"week" | "month">("week")
+
+  // Seeded from the server's `now` — so the first paint matches the markup —
+  // then kept up by the minute. A "now" line an hour stale is worse than none
+  // on the screen that decides what is still bookable.
+  const [clock, setClock] = useState(now)
+  useEffect(() => {
+    const tick = setInterval(() => setClock(Date.now()), 60_000)
+    return () => clearInterval(tick)
+  }, [])
+
   const today = studioDayNumber(now)
   const rulesForDay = useRulesForDay(schedule)
 
@@ -278,6 +396,21 @@ export function ScheduleCalendar({
   const axisStart = Math.max(0, Math.min(6 * 60, ...starts))
   const axisEnd = Math.min(24 * 60, Math.max(22 * 60, ...ends))
   const axisSpan = axisEnd - axisStart
+
+  // Minutes into the STUDIO day, as a position down the axis — null when the
+  // clock is outside the drawn window (before 06:00, after 22:00) so no line is
+  // drawn rather than one pinned to an edge that would read as a real time.
+  //
+  // Via `studioWallTimeToInstant`, not `dayNumberToMs`: the latter anchors at
+  // midday UTC and would put this two hours out and sometimes negative — which
+  // fails silently, because a negative reads as "off the axis" and simply
+  // draws nothing.
+  const clockMinutes =
+    (clock - studioWallTimeToInstant(studioDayNumber(clock), "00:00")) / 60_000
+  const nowPct =
+    clockMinutes >= axisStart && clockMinutes <= axisEnd
+      ? ((clockMinutes - axisStart) / axisSpan) * 100
+      : null
 
   const weekLabel = formatStudioDayMonthYear(
     new Date(`${isoForDayNumber(weekStart)}T12:00:00Z`).getTime(),
@@ -356,7 +489,11 @@ export function ScheduleCalendar({
 
       {view === "week" ? (
         <>
-          <div className="hidden grid-cols-7 gap-2 md:grid">
+          <div
+            className="hidden gap-2 md:grid"
+            style={{ gridTemplateColumns: "1.75rem repeat(7, minmax(0, 1fr))" }}
+          >
+            <TimeAxis axisStart={axisStart} axisEnd={axisEnd} />
             {weekDays.map((d) => (
               <DayColumn
                 key={d}
@@ -365,6 +502,7 @@ export function ScheduleCalendar({
                 isToday={d === today}
                 axisStart={axisStart}
                 axisSpan={axisSpan}
+                nowPct={nowPct}
                 onPick={onPickDay}
                 onEdit={onEditRule}
               />
@@ -388,15 +526,22 @@ export function ScheduleCalendar({
                 </button>
               ))}
             </div>
-            <DayColumn
-              dayNumber={weekDays[mobileDay]}
-              rules={rulesForDay(weekDays[mobileDay])}
-              isToday={weekDays[mobileDay] === today}
-              axisStart={axisStart}
-              axisSpan={axisSpan}
-              onPick={onPickDay}
-              onEdit={onEditRule}
-            />
+            <div
+              className="grid gap-2"
+              style={{ gridTemplateColumns: "1.75rem minmax(0, 1fr)" }}
+            >
+              <TimeAxis axisStart={axisStart} axisEnd={axisEnd} />
+              <DayColumn
+                dayNumber={weekDays[mobileDay]}
+                rules={rulesForDay(weekDays[mobileDay])}
+                isToday={weekDays[mobileDay] === today}
+                axisStart={axisStart}
+                axisSpan={axisSpan}
+                nowPct={nowPct}
+                onPick={onPickDay}
+                onEdit={onEditRule}
+              />
+            </div>
           </div>
         </>
       ) : (

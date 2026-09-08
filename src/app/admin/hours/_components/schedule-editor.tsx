@@ -100,13 +100,16 @@ export function ScheduleEditor({
       <section className="space-y-3">
         <Eyebrow as="h2">Schedule</Eyebrow>
         <BodySm className="text-xs">
-          Tap a day to add hours, or a block to edit it. A rule repeats every week
-          or lands on a single date — layer working, outside &amp; off freely.
+          Tap the grid at the time you want, or a block to edit it — the hours
+          run down the left edge. A rule repeats every week or lands on a single
+          date; layer working, outside &amp; off freely.
         </BodySm>
         <ScheduleCalendar
           schedule={schedule}
           now={now}
-          onPickDay={(dayNumber) => openSheet({ mode: "add", dayNumber })}
+          onPickDay={(dayNumber, startAt) =>
+            openSheet({ mode: "add", dayNumber, startAt })
+          }
           onEditRule={(rule) => openSheet({ mode: "edit", rule })}
         />
       </section>
