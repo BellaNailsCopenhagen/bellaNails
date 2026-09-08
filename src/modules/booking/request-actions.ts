@@ -16,6 +16,10 @@ import { updateClientCommunicationLocale } from "@/db/clients"
 import { takeDurableToken } from "@/db/rate-limits"
 import type { Db } from "@/db/client"
 import { resolveLocale } from "@/i18n/routing"
+import {
+  getOverrideSlotsForDuration,
+  getSlotsForDuration,
+} from "@/modules/booking/availability"
 import { buildBookingDraft } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
 import {
@@ -60,6 +64,7 @@ import { serviceRef } from "@/shared/booking-subject"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { requiresVerifiedIdentity } from "@/shared/booking-protection"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
+import type { Slot } from "@/shared/booking-slots"
 import { routes } from "@/shared/routes"
 import { isWithinStandardHours } from "@/shared/schedule"
 import { studioDayNumber } from "@/shared/studio-time"
@@ -373,6 +378,37 @@ export async function createBookingRequest(
 
   revalidatePath(routes.admin.home)
   return { ok: true, id: saved.id }
+}
+
+/**
+ * Free times for adjusting a booking REQUEST as the artist.
+ *
+ * Takes the request id, not a service ref — for the two reasons
+ * `getOwnerOfferSlots` does. It sizes slots from the request's own snapshot,
+ * which is what `acceptBookingRequest` books, so the picker can no longer offer
+ * a length the accept then ignores (a service whose duration changed after the
+ * request was raised made the two disagree). And the duration is read
+ * server-side, so a crafted call cannot ask for slots of an arbitrary length.
+ *
+ * `override` ignores hours and days off; taken slots are still excluded, and
+ * the overlap constraint is still the backstop on write.
+ */
+export async function getOwnerSlotsForRequest(
+  requestId: string,
+  override = false,
+): Promise<Slot[]> {
+  const db = await requireOwner()
+  if (!db) return []
+
+  const request = await getBookingRequest(db, requestId)
+  if (!request) return []
+
+  const mins = Math.round(requestDurationMs(request) / MIN)
+  if (mins <= 0) return []
+
+  return override
+    ? getOverrideSlotsForDuration(mins, db)
+    : getSlotsForDuration(mins, db, { ignoreLeadTime: true })
 }
 
 /** Artist accepts a request → creates the real booking from its snapshot,

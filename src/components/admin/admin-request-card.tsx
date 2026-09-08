@@ -22,15 +22,11 @@ import { cardActionNeutral } from "@/components/admin/card-action"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import {
   acceptBookingRequest,
+  getOwnerSlotsForRequest,
   rejectBookingRequest,
 } from "@/modules/booking/request-actions"
-import {
-  getOwnerOverrideSlots,
-  getOwnerSlots,
-} from "@/modules/booking/create-booking-actions"
 import type { RequestView } from "@/modules/booking"
 import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
-import { serviceRef } from "@/shared/booking-subject"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -93,12 +89,14 @@ export function AdminRequestCard({
     return { ok: false as const, error: res.error }
   }
 
-  // Lazy-load the studio's available slots the first time Adjust opens — same
-  // availability + limitations as the admin New-booking flow (getOwnerSlots).
+  // Lazy-load the studio's available slots the first time Adjust opens. Keyed
+  // on the REQUEST, not on a service ref built here: the length comes from the
+  // request's own snapshot server-side, which is what accepting books — so the
+  // picker can't offer a slot of a length the accept then ignores.
   const openAdjust = () => {
     setAdjustOpen(true)
-    if (slots === null && request.serviceId) {
-      getOwnerSlots(serviceRef(request.serviceId, request.addonIds))
+    if (slots === null) {
+      getOwnerSlotsForRequest(request.id)
         .then(setSlots)
         .catch(() => {
           setSlots([])
@@ -111,8 +109,8 @@ export function AdminRequestCard({
   // ignored, existing bookings still excluded).
   const toggleIgnore = (next: boolean) => {
     setIgnoreLimits(next)
-    if (next && overrideSlots === null && request.serviceId) {
-      getOwnerOverrideSlots(serviceRef(request.serviceId, request.addonIds))
+    if (next && overrideSlots === null) {
+      getOwnerSlotsForRequest(request.id, true)
         .then(setOverrideSlots)
         .catch(() => {
           setOverrideSlots([])
