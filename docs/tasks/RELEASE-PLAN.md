@@ -105,7 +105,7 @@ so the gate is honest about what is still missing from R1.
 | C10 | **Audit the other 11 service-role callers** | QA-18 gated the nine reads it named. Eleven more module files build a service-role client without a gate and **most of them should** (`ensure-user`, `availability`, token-validated reads). Each needs its own judgement before anyone assumes service-role means admin. | Medium |
 
 | C14 | **Root locale: make `/` always `/da`** | Needs H-side confirmation first (see D1). Today `/` negotiates from Accept-Language, so an English browser lands on `/en` — defensible, but this is a Danish-first studio. | Trivial |
-| C27 | **A share card that says what was shared** | One generic Open Graph card lives at `[locale]/opengraph-image.tsx` and Next inherits it everywhere, so sharing a service link into a chat shows "Where craft becomes art" rather than the service. The pages people actually paste are the service detail ones — give them a card carrying the service name, price and duration. | Small |
+
 | C26 | **Mark required fields in the rest of the admin** | Done for the seven forms whose actions refuse without them. The schedule-rule stepper, the gallery sheet, the section manager and the blocklist have no *unmarked* required field today, but if one gains one it needs `FieldLabel required` — the pattern is in `components/admin/field-label.tsx`. | Trivial |
 
 ---
