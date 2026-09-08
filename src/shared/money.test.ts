@@ -44,3 +44,19 @@ test("an empty box is missing, not free — the QA-09 trap", () => {
   // And a deliberate zero still reads as zero, which a free add-on needs.
   assert.equal(parseKroner("0"), 0)
 })
+
+test("a Danish-grouped price becomes the right cents, not a hundredth of it", () => {
+  // The design offer quoted 1.200 kr to a client as 1,20 kr, because
+  // `Number("1.200")` is 1.2. Both catalog sheets and the offer form go through
+  // parseKroner now; this pins the conversion the whole way to cents.
+  const cents = (typed: string) => {
+    const kr = parseKroner(typed)
+    return kr === null ? null : Math.round(kr * 100)
+  }
+  assert.equal(cents("1.200"), 120_000) // 1.200 kr — was 120 (1,20 kr)
+  assert.equal(cents("1.200,50"), 120_050) // was NaN, so refused outright
+  assert.equal(cents("420"), 42_000)
+  assert.equal(cents("420,50"), 42_050)
+  assert.equal(cents(""), null) // missing stays missing
+  assert.equal(cents("gratis"), null)
+})

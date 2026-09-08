@@ -29,7 +29,7 @@ import { OVERRIDE_WINDOW_LABEL } from "@/shared/booking-slots"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { OFFER_DURATION_PRESETS } from "@/shared/design"
 import { OFFER_DEFAULT_DAYS } from "@/shared/offer"
-import { formatPrice } from "@/shared/money"
+import { formatPrice, parseKroner } from "@/shared/money"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -307,11 +307,13 @@ function OfferForm({
   const [note, setNote] = useState("")
   const [days, setDays] = useState(OFFER_DEFAULT_DAYS)
 
-  // An empty field parses to 0, which would send a free offer — require digits.
-  const priceInput = kr.trim().replace(",", ".")
-  const priceCents = Math.round(Number(priceInput) * 100)
-  const validPrice =
-    priceInput !== "" && Number.isFinite(priceCents) && priceCents >= 0
+  // `parseKroner`, not `Number()`: this offer is a price quoted to a client, and
+  // `Number("1.200")` is 1.2 — a 1.200 kr offer went out as 1,20 kr. It also
+  // returns null for an empty or unparseable field, so "missing" stays missing
+  // rather than becoming a free offer.
+  const kroner = parseKroner(kr)
+  const priceCents = kroner === null ? null : Math.round(kroner * 100)
+  const validPrice = priceCents !== null && priceCents >= 0
   const valid = Boolean(name.trim()) && mins > 0 && validPrice
 
   return (
@@ -411,7 +413,7 @@ function OfferForm({
               requestId,
               nameEn: name,
               durationMins: mins,
-              priceCents,
+              priceCents: priceCents ?? 0,
               artistNote: note || undefined,
               holdDays: days,
             })

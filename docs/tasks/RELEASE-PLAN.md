@@ -48,7 +48,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 
 | # | What | Why it matters | Effort |
 | --- | --- | --- | --- |
-| C1 | **The design offer sends the wrong price** — `design-request-card.tsx:312` | `Number("1.200")` is `1.2`, so a **1.200 kr offer reaches the client as 1,20 kr**. Only Danish thousands-grouping-without-decimals is affected (the empty case is already guarded, and `1.200,50` becomes NaN and is refused). `parseKroner` exists for exactly this and is the one caller not using it. Real money, real client. | Trivial |
+| ~~C1~~ | ~~**The design offer sends the wrong price**~~ — **FIXED 8 Sep** — `design-request-card.tsx:312` | `Number("1.200")` is `1.2`, so a **1.200 kr offer reaches the client as 1,20 kr**. Only Danish thousands-grouping-without-decimals is affected (the empty case is already guarded, and `1.200,50` becomes NaN and is refused). `parseKroner` exists for exactly this and is the one caller not using it. Real money, real client. | Trivial |
 | C2 | **`/gallery` is empty and now in the sitemap** | `gallery_items` has 0 rows, so a main-nav page renders a heading over blank space — and QA-12 just offered it to crawlers. Either hide the nav entry + drop it from `indexableRoutes` while empty, or wait for content. Hiding is the safe default. | Small |
 | C3 | **Drop "læs mere" while the detail pages are empty** | The other half of H9, and the one that does not wait on content. If H9 lands first, skip this. | Trivial |
 
