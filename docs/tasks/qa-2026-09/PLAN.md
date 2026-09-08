@@ -273,7 +273,7 @@ plan). The code half is that a control which cannot work must not look like one 
     refusal.
   - **Verify:** post two incompatible add-on ids directly → refused.
 
-- [ ] ### QA-17 · A booking request can name any time at all **[code]**
+- [x] ### QA-17 · A booking request can name any time at all **[code]**
 
   `createBookingRequest` runs with `checkSlot: false` and never verifies that an
   `outside_hours` request is actually outside hours, or that an `over_limit` one is
@@ -547,3 +547,17 @@ work items either.
 
   What WAS missing is a test — `sanitizeSelectedAddonIds` is a pure rule with
   none, so this item shipped six instead of a redundant guard.
+- **QA-17 · `MAX_ACTIVE_BOOKINGS` was declared twice in effect.** The cap of 2
+  lived as a private constant in `create-booking-actions.ts`, so the request
+  path had no way to check the limit it exists to overflow. Both now read
+  `MAX_ACTIVE_BOOKINGS` from `shared/booking-policy.ts`.
+- **QA-17 · the reason checks fail OPEN, deliberately.** A schedule or count
+  read that errors lets the request through rather than refusing a client who
+  genuinely cannot self-serve — matching how `createBooking` treats its own
+  cap check. Manual approval is the backstop, which is what makes that the right
+  way round; the tests pin the empty-schedule case explicitly.
+- **QA-17 · there is still no "the slot is taken" reason.** A client who picks a
+  time inside standard hours that is already booked now gets "book it in the
+  usual way", and the booking flow will tell them it is taken. That is correct
+  but slightly circular. A third kind (`slot_taken`) would let them ask for a
+  time the studio might squeeze in — a product decision, not a bug.

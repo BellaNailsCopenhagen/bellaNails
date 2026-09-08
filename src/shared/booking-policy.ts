@@ -129,6 +129,22 @@ export function canRequestReview(
 }
 
 /**
+ * How many upcoming bookings one client may hold (hands + feet). Beyond it the
+ * self-service flow refuses and offers a request instead — which is what makes
+ * `over_limit` a checkable claim rather than a label.
+ */
+export const MAX_ACTIVE_BOOKINGS = 2
+
+/**
+ * How many undecided requests one client may hold at once.
+ *
+ * Each one costs the artist an alert and two emails, and the 5/hour rate limit
+ * alone let one person queue five conflicting asks an hour. Three is enough for
+ * a real "any of these times?" and few enough to answer.
+ */
+export const MAX_PENDING_REQUESTS = 3
+
+/**
  * How far ahead a request may name a time. A year and a day, so "same date
  * next year" is never refused by a leap-year rounding error.
  */

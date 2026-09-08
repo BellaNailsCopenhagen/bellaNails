@@ -11,6 +11,7 @@ import {
   type DayHours,
   type TimeRange,
 } from "@/shared/studio-hours"
+import { studioWallTimeToInstant } from "@/shared/studio-time"
 
 export type ScheduleKind = "standard" | "outside" | "no_work"
 
@@ -87,4 +88,25 @@ export function standardDay(
   const raw = unionRanges(rangesOf(applies.filter((r) => r.kind === "standard")))
   const noWork = rangesOf(applies.filter((r) => r.kind === "no_work"))
   return { raw, effective: subtractRanges(raw, noWork) }
+}
+
+/**
+ * Does this instant fall inside the effective standard hours for its day?
+ *
+ * The question behind an `outside_hours` request: if the answer is yes, the
+ * normal booking flow already covers this time and calling it "outside hours"
+ * is untrue. A time that is merely TAKEN is still inside standard hours — the
+ * booking flow says so itself, and that is not what this asks.
+ */
+export function isWithinStandardHours(
+  schedule: Schedule,
+  dayNumber: number,
+  atMs: number,
+): boolean {
+  const { ranges } = dayRanges(schedule, dayNumber, "standard")
+  return ranges.some(
+    ([open, close]) =>
+      atMs >= studioWallTimeToInstant(dayNumber, open) &&
+      atMs < studioWallTimeToInstant(dayNumber, close),
+  )
 }

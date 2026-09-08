@@ -40,6 +40,22 @@ export async function countPendingBookingRequests(db: Db): Promise<number> {
   return count ?? 0
 }
 
+/** How many undecided requests one client is holding — the per-client cap.
+    Distinct from `countPendingBookingRequests`, which is the artist's whole
+    queue. */
+export async function countPendingBookingRequestsForClient(
+  db: Db,
+  clientId: string,
+): Promise<number> {
+  const { count, error } = await db
+    .from("booking_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", clientId)
+    .eq("status", "pending")
+  if (error) throw new Error(error.message)
+  return count ?? 0
+}
+
 /** One request by id — the accept/reject path reads it (and re-checks status). */
 export async function getBookingRequest(
   db: Db,

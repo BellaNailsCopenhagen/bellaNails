@@ -3,13 +3,18 @@
 import { revalidatePath } from "next/cache"
 
 import {
+  countPendingBookingRequestsForClient,
   getBookingRequest,
   insertBookingRequest,
   updateBookingRequest,
 } from "@/db/booking-requests"
-import { insertBooking } from "@/db/bookings"
+import {
+  countActiveUpcomingBookingsForClient,
+  insertBooking,
+} from "@/db/bookings"
 import { updateClientCommunicationLocale } from "@/db/clients"
 import { takeDurableToken } from "@/db/rate-limits"
+import type { Db } from "@/db/client"
 import { resolveLocale } from "@/i18n/routing"
 import { buildBookingDraft } from "@/modules/booking/booking-draft"
 import { manageUrlFor } from "@/modules/booking/manage-token"
@@ -27,6 +32,7 @@ import {
 } from "@/modules/identity/human-check"
 import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
+import { getSchedule } from "@/modules/studio"
 
 import { sendBookingConfirmationEmail } from "@/modules/notifications/booking-email"
 import {
@@ -45,6 +51,8 @@ import {
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import {
   localizedBookingNames,
+  MAX_ACTIVE_BOOKINGS,
+  MAX_PENDING_REQUESTS,
   metaOf,
   requestTimeProblem,
 } from "@/shared/booking-policy"
@@ -53,6 +61,8 @@ import { BOOKING_STATUS } from "@/shared/booking-status"
 import { requiresVerifiedIdentity } from "@/shared/booking-protection"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes } from "@/shared/routes"
+import { isWithinStandardHours } from "@/shared/schedule"
+import { studioDayNumber } from "@/shared/studio-time"
 
 const MIN = 60_000
 
@@ -91,6 +101,49 @@ export type CreateRequestInput = {
   locale?: string
   honeypot?: string
   humanProof?: string
+}
+
+/**
+ * Is the stated reason provably untrue? Returns the refusal, or null.
+ *
+ * Fails OPEN on a read error, like every other count in this flow: a hiccup
+ * must not block a client who genuinely can't self-serve.
+ */
+async function requestReasonProblem(
+  db: Db,
+  input: { kind: "outside_hours" | "over_limit"; clientId: string; startIso: string },
+): Promise<string | null> {
+  const startMs = new Date(input.startIso).getTime()
+
+  if (input.kind === "outside_hours") {
+    try {
+      const schedule = await getSchedule(db)
+      const day = studioDayNumber(startMs)
+      // Inside the effective standard hours means the normal flow covers this
+      // time. If the slot is merely taken, the booking flow says so — that is
+      // not "outside hours".
+      if (isWithinStandardHours(schedule, day, startMs)) {
+        return "That time is inside our normal hours — please book it in the usual way."
+      }
+    } catch {
+      return null
+    }
+    return null
+  }
+
+  try {
+    const active = await countActiveUpcomingBookingsForClient(
+      db,
+      input.clientId,
+      new Date().toISOString(),
+    )
+    if (active < MAX_ACTIVE_BOOKINGS) {
+      return "You can book this yourself — you haven't reached the maximum of active bookings."
+    }
+  } catch {
+    return null
+  }
+  return null
 }
 
 /**
@@ -187,6 +240,33 @@ export async function createBookingRequest(
     })
   } catch {
     return { ok: false, error: "Couldn't save your details — please try again." }
+  }
+
+  // A request says WHY the normal flow can't serve it. Neither reason was ever
+  // checked, so "outside hours" could name a Saturday morning the studio is
+  // open, and "over the limit" could come from someone with no bookings at all
+  // — each one costing an artist alert and two emails. Manual approval is the
+  // backstop, which is why this is hardening: refuse the claim that is provably
+  // untrue, and fail OPEN on a read error rather than blocking a real ask.
+  const unjustified = await requestReasonProblem(db, {
+    kind: input.kind,
+    clientId,
+    startIso: input.start,
+  })
+  if (unjustified) return { ok: false, error: unjustified }
+
+  // One person could queue five conflicting asks an hour under the rate limit
+  // alone. A cap on UNDECIDED requests bounds what she has to work through.
+  try {
+    const pending = await countPendingBookingRequestsForClient(db, clientId)
+    if (pending >= MAX_PENDING_REQUESTS) {
+      return {
+        ok: false,
+        error: `You already have ${MAX_PENDING_REQUESTS} requests waiting for an answer — the studio will come back to you on those first.`,
+      }
+    }
+  } catch {
+    /* count failed — allow rather than block */
   }
 
   // Last thing before the write, so a rejected time costs no quota. Keyed on

@@ -23,6 +23,7 @@ import {
   checkBlocked,
   getBookingProtectionSettings,
 } from "@/modules/booking/protection"
+import { MAX_ACTIVE_BOOKINGS } from "@/shared/booking-policy"
 import type { Slot } from "@/shared/booking-slots"
 import { serviceRef, type SubjectRef } from "@/shared/booking-subject"
 import { fetchClientContacts } from "@/modules/clients"
@@ -45,9 +46,6 @@ import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { requiresVerifiedIdentity } from "@/shared/booking-protection"
 import { EMAIL_PATTERN, toE164 } from "@/shared/contact-validation"
 import { routes, revalidatePatterns } from "@/shared/routes"
-
-// A real client holds at most this many active bookings at once (hands + feet).
-const MAX_ACTIVE_BOOKINGS = 2
 
 // Generous enough that a real person rebooking after a cancellation never
 // notices, tight enough that one validated account can't churn the calendar.
