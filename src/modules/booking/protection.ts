@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 import type { Db } from "@/db/client"
 import { findBlockedIdentity, listBlockedIdentities } from "@/db/blocked-identities"
 import { getBookingProtection } from "@/db/booking-protection"
+import { humanCheckConfigured } from "@/modules/identity/human-check"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
@@ -41,6 +42,23 @@ export async function getBookingProtectionSettings(
       error instanceof Error ? error.message : error,
     )
     return DEFAULT_BOOKING_PROTECTION
+  }
+}
+
+/** Her choices plus what the deployment can actually enforce. Separate fields
+    on purpose: the toggle is hers, availability is the deploy's, and collapsing
+    them is what let a ticked box mean "protected" when nothing was running. */
+export type BookingProtectionAdminView = {
+  protection: BookingProtection
+  /** False when there is no `HUMAN_CHECK_SECRET` to sign a challenge with. */
+  humanCheckAvailable: boolean
+}
+
+/** The App-settings screen's one question. */
+export async function getBookingProtectionForAdmin(): Promise<BookingProtectionAdminView> {
+  return {
+    protection: await getBookingProtectionSettings(),
+    humanCheckAvailable: humanCheckConfigured(),
   }
 }
 

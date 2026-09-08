@@ -45,8 +45,11 @@ const LEVEL_COPY: Record<
 
 export function BookingProtectionSettings({
   protection,
+  humanCheckAvailable,
 }: {
   protection: BookingProtection
+  /** False = no signing key on this deployment, so the check cannot run. */
+  humanCheckAvailable: boolean
 }) {
   const { pending, run } = useActionRunner()
   const [level, setLevel] = useState<BookingAccessLevel>(protection.accessLevel)
@@ -133,22 +136,52 @@ export function BookingProtectionSettings({
         })}
       </ul>
 
-      <div className="rounded-lg border border-border p-4">
-        <label className="flex items-start gap-3">
+      <div
+        className={`rounded-lg border border-border p-4 ${
+          humanCheckAvailable ? "" : "opacity-60"
+        }`}
+      >
+        <label
+          className={`flex items-start gap-3 ${
+            humanCheckAvailable ? "" : "cursor-not-allowed"
+          }`}
+        >
+          {/* Her choice stays ticked when the check can't run — it is a real
+              preference and it takes effect the moment the key is set. What
+              changes is that the card stops implying it is doing something. */}
           <input
             type="checkbox"
             checked={humanCheck}
-            disabled={pending}
+            disabled={pending || !humanCheckAvailable}
             onChange={(e) => toggleHumanCheck(e.target.checked)}
             className="mt-0.5 size-4 shrink-0"
           />
           <span className="min-w-0 space-y-1">
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <ShieldCheck className="size-3.5 shrink-0 text-muted-foreground" />
               <span className="font-functional text-sm font-medium text-foreground">
                 “I’m not a robot” box
               </span>
+              {humanCheckAvailable ? null : (
+                <Badge variant="outline" size="xs">
+                  Not running
+                </Badge>
+              )}
             </span>
+            {humanCheckAvailable ? null : (
+              <span className="block font-functional text-xs text-destructive">
+                This deployment has no signing key for the check, so clients are
+                never shown the box and bookings are never asked for it. Your
+                choice here is saved and starts working the moment the key is
+                set.
+              </span>
+            )}
+            {!humanCheckAvailable && level === "open" ? (
+              <span className="block font-functional text-xs text-destructive">
+                With “Anyone can book” selected and this not running, nothing at
+                all is checking who books — a script could take every slot.
+              </span>
+            ) : null}
             <span className="block font-functional text-xs text-muted-foreground">
               A box the client ticks on the booking form. It stops scripted
               booking; a determined person can still get past it. Worth leaving

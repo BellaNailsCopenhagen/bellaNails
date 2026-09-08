@@ -4,7 +4,7 @@ import { BackToMore } from "@/components/admin/back-to-more"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
 import { BookingProtectionSettings } from "@/app/admin/settings/_components/booking-protection"
 import { FeatureSettings } from "@/app/admin/settings/_components/feature-settings"
-import { getBookingProtectionSettings } from "@/modules/booking/protection"
+import { getBookingProtectionForAdmin } from "@/modules/booking/protection"
 import { getFeatureFlags } from "@/modules/studio"
 
 export const metadata: Metadata = { title: "App settings" }
@@ -16,9 +16,9 @@ export const dynamic = "force-dynamic"
  * social) live at /admin/business. Owner-gated by the proxy.
  */
 export default async function AdminSettingsPage() {
-  const [flags, protection] = await Promise.all([
+  const [flags, { protection, humanCheckAvailable }] = await Promise.all([
     getFeatureFlags(),
-    getBookingProtectionSettings(),
+    getBookingProtectionForAdmin(),
   ])
 
   return (
@@ -33,7 +33,10 @@ export default async function AdminSettingsPage() {
         </BodySm>
       </div>
 
-      <BookingProtectionSettings protection={protection} />
+      <BookingProtectionSettings
+        protection={protection}
+        humanCheckAvailable={humanCheckAvailable}
+      />
 
       <div className="space-y-1 border-t border-border pt-6">
         <Eyebrow as="h2">Features</Eyebrow>

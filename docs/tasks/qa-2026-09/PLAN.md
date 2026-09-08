@@ -85,7 +85,7 @@ reading the source, not triggered.
 Both of these are half a fix: the value belongs in the environment (see § Not in this
 plan). The code half is that a control which cannot work must not look like one that can.
 
-- [ ] ### QA-05 · Bot protection reads as ON while it is not running **[live]**
+- [x] ### QA-05 · Bot protection reads as ON while it is not running **[live]**
 
   `HUMAN_CHECK_SECRET` is unset, so `humanCheckConfigured()` is false: the box never
   renders **and** `createBooking` skips the proof. The App-settings toggle stays ticked.
@@ -435,3 +435,7 @@ work items either.
   `e241edbb-c136-4078-833c-7da2071df28e` still holds an unread `booking_request`
   notification (`6948dd85-0858-4e0c-b02b-d254c2ea8130`). The fix is not
   retroactive; clear it with the × in /admin/notifications.
+- **QA-05 · `src/instrumentation.ts` is now the place to say what is dark.** It
+  warns once per server start about `HUMAN_CHECK_SECRET`. Every other
+  env-guarded integration degrades just as quietly (`GOOGLE_REVIEW_URL`,
+  the manage-token secret, SMTP) and each is one line here.
