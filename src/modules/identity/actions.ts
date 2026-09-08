@@ -13,7 +13,7 @@ function callbackUrl(next: string): string {
  * Client-side auth actions over Supabase Auth. The login form calls these; each
  * returns the supabase-js `{ data, error }` result for the caller to handle.
  */
-export function signInWithGoogle(next = "/") {
+export function signInWithGoogle(next: string) {
   return createSupabaseSessionBrowserClient().auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: callbackUrl(next) },

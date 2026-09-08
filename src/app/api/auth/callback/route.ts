@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   // One shared guard — the naive startsWith check let `/\evil.com` through.
-  const dest = safeInternalPath(searchParams.get("next"))
+  // `next` always arrives locale-prefixed from the form; the fallback is reached
+  // only by a hand-made callback URL, where negotiating the locale is right.
+  const dest = safeInternalPath(searchParams.get("next"), "/")
 
   if (code) {
     const supabase = await createSupabaseSessionServerClient()

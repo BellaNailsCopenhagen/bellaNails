@@ -19,7 +19,7 @@ reading the source, not triggered.
 
 ## Batch A — blocks a first real client
 
-- [ ] ### QA-01 · Sign-in hangs on "Verifying…" when there is no `next` **[live]**
+- [x] ### QA-01 · Sign-in hangs on "Verifying…" when there is no `next` **[live]**
 
   The header "Log ind" link is `/da/login` with no `?next=`. A correct code creates the
   session, but the form never navigates: the button sits on `VERIFYING…` indefinitely and
@@ -403,3 +403,19 @@ item above.
 - One booking, Sat 12 Sep 10:00, Classic Gel Extension + Stones — already cancelled, so
   inert but visible in history.
 - Four emails in `home@bellanails.dk`; three OTP sign-ins as `veronica.a@`.
+
+---
+
+## Found while fixing
+
+Scope-adjacent things noticed while working an item. Not fixed there; not yet
+work items either.
+
+- **QA-01 · `/api/auth/callback` reports OAuth failure to nobody.** The failure
+  path redirects to `/login?error=auth`, but `login/page.tsx` reads only `next`,
+  `redirect_url` and `email`. A visitor whose Google sign-in failed gets a blank
+  login form with no explanation. Needs a string in both catalogues, so it
+  belongs with QA-13.
+- **QA-01 · the redirect is locale-less.** That same failure redirect targets
+  `/login`, which the proxy then locale-negotiates — so a Danish visitor whose
+  OAuth failed can land on `/en/login`. Same class as QA-01, different caller.

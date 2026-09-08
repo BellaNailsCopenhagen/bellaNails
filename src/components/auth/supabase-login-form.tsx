@@ -62,10 +62,11 @@ async function attempt(
  * land after auth (already validated to a local path by the page).
  */
 export function SupabaseLoginForm({
-  next = "/",
+  next,
   defaultEmail = "",
 }: {
-  next?: string
+  /** Where to land after auth — a safe local path, locale prefix included. */
+  next: string
   /** Prefilled when the visitor just gave us this address (post-booking). */
   defaultEmail?: string
 }) {
