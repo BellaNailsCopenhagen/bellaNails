@@ -262,6 +262,11 @@
     "replyBanner": "{count, plural, =1 {Bella Nails har svaret på din besked} other {Bella Nails har svaret på # af dine beskeder}}"
   },
   "account": {
+    "errNameTooLong": "Det navn er for langt.",
+    "errPhoneTooLong": "Det telefonnummer er for langt.",
+    "errExport": "Kunne ikke lave din fil \u2014 pr\u00f8v igen.",
+    "permissionsErrorTitle": "Vi kunne ikke hente dine valg",
+    "permissionsErrorBody": "Der er ikke \u00e6ndret noget \u2014 vi kunne bare ikke l\u00e6se dem lige nu. Pr\u00f8v igen om et \u00f8jeblik.",
     "detailsTitle": "Dine oplysninger",
     "detailsIntro": "Det, vi har om dig. Din e-mail er den, du logger ind med, så den kan ikke ændres her — skriv til salonen, så flytter vi den.",
     "email": "E-mail",
@@ -313,6 +318,7 @@
     "clientWorkAlt": "Neglearbejde af Bella Nails"
   },
   "photo": {
+    "errSaveChoice": "Kunne ikke gemme dit valg.",
     "close": "Luk"
   },
   "confirmation": {
@@ -339,6 +345,27 @@
     "accountBody": "Bekræft din e-mail med en engangskode — ingen adgangskode nødvendig — og flyt, aflys eller book igen ét samlet sted.",
     "signedInBody": "Din tid er knyttet til din konto — flyt, aflys eller book igen, når det passer dig.",
     "viewBookings": "Se mine tider"
+  },
+  "login": {
+    "metaTitle": "Log ind",
+    "title": "Log ind",
+    "intro": "Forts\u00e6t med Google eller din e-mail.",
+    "google": "Forts\u00e6t med Google",
+    "or": "eller",
+    "emailPlaceholder": "dig@email.dk",
+    "sendCode": "Send mig en kode",
+    "sending": "Sender\u2026",
+    "haveCode": "Jeg har allerede en kode",
+    "codeSentTo": "Indtast koden, vi sendte til {email}.",
+    "codePlaceholder": "12345678",
+    "verify": "Bekr\u00e6ft og forts\u00e6t",
+    "verifying": "Bekr\u00e6fter\u2026",
+    "otherEmail": "Brug en anden e-mail",
+    "signOut": "Log ud",
+    "googleFailed": "Kunne ikke starte Google-login \u2014 pr\u00f8v igen.",
+    "sendFailed": "Kunne ikke sende koden \u2014 pr\u00f8v igen om et \u00f8jeblik.",
+    "verifyFailed": "Koden virkede ikke \u2014 bed om en ny.",
+    "oauthFailed": "Google-login blev ikke gennemf\u00f8rt. Pr\u00f8v igen, eller brug en kode i stedet."
   },
   "errors": {
     "eyebrow": "Noget gik galt",
@@ -470,6 +497,13 @@
     "eyebrow": "Behandlingen"
   },
   "ask": {
+    "errSignIn": "Log ind f\u00f8rst.",
+    "errTopic": "V\u00e6lg hvad det handler om.",
+    "errMessage": "Fort\u00e6l os, hvad du har i tankerne.",
+    "errTooLong": "Den besked er for lang.",
+    "errTooMany": "Du har allerede et par \u00e5bne beskeder \u2014 vi svarer p\u00e5 dem f\u00f8rst.",
+    "errSend": "Kunne ikke sende \u2014 pr\u00f8v igen.",
+    "errSave": "Noget gik galt, da vi gemte din besked \u2014 skriv til os p\u00e5 e-mail i stedet.",
     "metaTitle": "Spørg os – Bella Nails, Ørestad, København",
     "metaDescription": "Fortæl os hvad du har i tankerne — et helt sæt, en enkelt reparation eller en idé du ikke ved om kan lade sig gøre — så vender vi tilbage med en pris og hvor lang tid det tager.",
     "eyebrow": "Spørg",
@@ -582,6 +616,11 @@
     "photosHeading": "Dine billeder"
   },
   "testimonialForm": {
+    "errLink": "Linket er ikke gyldigt.",
+    "errFields": "Tjek dit navn og dine ord.",
+    "errGone": "Denne invitation findes ikke l\u00e6ngere.",
+    "errUsed": "Denne invitation er allerede brugt.",
+    "errNotYours": "Denne invitation tilh\u00f8rer en anden.",
     "metaTitle": "Sig et par ord – Bella Nails",
     "metaDescription": "Del en kort tanke om din tid hos Bella Nails.",
     "eyebrow": "Et par ord",

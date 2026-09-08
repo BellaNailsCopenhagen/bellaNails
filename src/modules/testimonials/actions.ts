@@ -1,6 +1,9 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
 import { revalidatePath } from "next/cache"
+
+import { resolveLocale } from "@/i18n/routing"
 
 import {
   claimTestimonial,
@@ -117,6 +120,8 @@ export async function requestTestimonial(input: {
  * the gate, so a used or declined invitation can't be filled in twice.
  */
 export async function submitTestimonial(input: {
+  /** The locale on screen, so a refusal comes back in it. */
+  locale: string
   token: string
   authorName: string
   occupation?: string
@@ -124,25 +129,30 @@ export async function submitTestimonial(input: {
   /** Required — publication IS the purpose. Withdrawable at any time (Art. 7(3)). */
   consent: boolean
 }): Promise<TestimonialResult> {
+  const t = await getTranslations({
+    locale: resolveLocale(input.locale),
+    namespace: "testimonialForm",
+  })
+
   const id = verifyTestimonialToken(input.token)
-  if (!id) return { ok: false, error: "This link isn’t valid." }
+  if (!id) return { ok: false, error: t("errLink") }
 
   const checked = validateTestimonial(input)
   // The form validates too; this is the boundary, not the message.
-  if (!checked.ok) return { ok: false, error: "Please check your name and your words." }
+  if (!checked.ok) return { ok: false, error: t("errFields") }
 
   const db = createSupabaseServiceRoleClient()
   const row = await getTestimonial(db, id)
-  if (!row) return { ok: false, error: "This invitation no longer exists." }
+  if (!row) return { ok: false, error: t("errGone") }
   if (row.status !== "requested") {
-    return { ok: false, error: "This invitation has already been used." }
+    return { ok: false, error: t("errUsed") }
   }
 
   // Whoever holds the emailed token may write, but a signed-in visitor must BE
   // the client — a consent record has to be authored by the person consenting.
   const user = await getCurrentUser()
   if (user && user.id !== row.client_id) {
-    return { ok: false, error: "This invitation belongs to someone else." }
+    return { ok: false, error: t("errNotYours") }
   }
 
   const saved = await claimTestimonial(db, id, {
@@ -156,7 +166,7 @@ export async function submitTestimonial(input: {
     // Stays invisible until the studio chooses it. Never set from this side.
     visible: false,
   })
-  if (!saved.ok) return { ok: false, error: "This invitation has already been used." }
+  if (!saved.ok) return { ok: false, error: t("errUsed") }
 
   await notifyOwner(db, {
     kind: "testimonial_submitted",

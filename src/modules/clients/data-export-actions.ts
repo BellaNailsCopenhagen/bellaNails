@@ -1,5 +1,9 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
+
+import { resolveLocale } from "@/i18n/routing"
+
 import { listBookingRequestsForClient } from "@/db/booking-requests"
 import { listBookingsForClient } from "@/db/bookings"
 import { listDataConsents } from "@/db/client-consents"
@@ -27,7 +31,7 @@ export type DataExportResult =
   | { ok: true; filename: string; json: string }
   | { ok: false; error: string }
 
-export async function requestMyDataExport(): Promise<DataExportResult> {
+export async function requestMyDataExport(locale: string): Promise<DataExportResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "unauthorized" }
 
@@ -175,6 +179,15 @@ export async function requestMyDataExport(): Promise<DataExportResult> {
       "[data-export] failed —",
       error instanceof Error ? error.message : error,
     )
-    return { ok: false, error: "Couldn’t build your export — please try again." }
+    return { ok: false, error: await exportError(locale) }
   }
+}
+
+/** The one client-facing refusal here, in the language on screen. */
+async function exportError(locale: string): Promise<string> {
+  const t = await getTranslations({
+    locale: resolveLocale(locale),
+    namespace: "account",
+  })
+  return t("errExport")
 }

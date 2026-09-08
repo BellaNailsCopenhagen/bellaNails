@@ -215,7 +215,7 @@ plan). The code half is that a control which cannot work must not look like one 
 
 ## Batch E — language and copy
 
-- [ ] ### QA-13 · The login page is entirely English on a Danish-default site **[live]**
+- [x] ### QA-13 · The login page is entirely English on a Danish-default site **[live]**
 
   Tab title "Log in", then "Continue with Google or your email", "CONTINUE WITH GOOGLE",
   "EMAIL ME A CODE", "I already have a code" — inside a Danish header and footer, on the
@@ -487,3 +487,19 @@ work items either.
   has 0 rows, so it is currently a heading over blank space being offered to a
   crawler. It is a permanent main-nav page so it belongs in the sitemap; the
   emptiness is the content item already in § Not in this plan.
+- **QA-13 · it settled half of QA-14 by hand.** The new login copy states no
+  digit count at all (`codeSentTo` is "Enter the code sent to {email}") and the
+  placeholder is `12345678`, matching what Supabase actually sends. So QA-14 is
+  now only the App-settings line promising clients "a 6-digit code" — plus
+  Raul's decision on whether to shorten the OTP instead.
+- **QA-13 · `useActionRunner` prefers the action's message over the caller's
+  localized fallback.** `toast.error(result.error || fallbackError)` — which is
+  right (a specific reason beats a generic one) but means any English string an
+  action returns wins over translated copy. That is why this leak existed. The
+  five client-facing actions are fixed; the ~45 remaining English strings are
+  all in owner-only actions, where English is the design.
+- **QA-13 · the release actions were toasting raw codes at clients.**
+  `preApproveRelease` and friends answer with `"not_found"`, `"invalid_link"`,
+  `"already_decided"` — a good contract, but nothing translated them, so a
+  failure put the code itself in a toast. Now mapped through
+  `releaseErrorCopy()` at all three client surfaces.

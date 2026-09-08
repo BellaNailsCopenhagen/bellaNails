@@ -16,6 +16,10 @@ import { getBookingOwner } from "@/db/bookings"
 import { getLiveOfferForRequest, updateOffer } from "@/db/offers"
 import { getPublicServiceRow } from "@/db/services"
 import { fetchClientContacts } from "@/modules/clients"
+import { getTranslations } from "next-intl/server"
+
+import { resolveLocale } from "@/i18n/routing"
+
 import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
 import type { EmailResult } from "@/platform/email/client"
@@ -67,6 +71,9 @@ const MESSAGE_RULE = { limit: 20, windowMs: 60 * 60 * 1000 }
 const REF_PREFIX = "refs/"
 
 export type CreateDesignRequestInput = {
+  /** The locale on screen, so a refusal comes back in it. Distinct from the
+      client's stored `communication_locale`, which is what the EMAILS use. */
+  locale: string
   topic: string
   message: string
   /** Storage keys already uploaded by this client through /api/media/sign. */
@@ -80,14 +87,19 @@ export type CreateDesignRequestInput = {
 export async function createDesignRequest(
   input: CreateDesignRequestInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
-  const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "Please sign in first." }
+  const t = await getTranslations({
+    locale: resolveLocale(input.locale),
+    namespace: "ask",
+  })
 
-  if (!isDesignTopic(input.topic)) return { ok: false, error: "Pick what this is about." }
+  const user = await getCurrentUser()
+  if (!user) return { ok: false, error: t("errSignIn") }
+
+  if (!isDesignTopic(input.topic)) return { ok: false, error: t("errTopic") }
   const message = input.message.trim()
-  if (!message) return { ok: false, error: "Tell us what you have in mind." }
+  if (!message) return { ok: false, error: t("errMessage") }
   if (message.length > MAX_MESSAGE_LENGTH) {
-    return { ok: false, error: "That message is too long." }
+    return { ok: false, error: t("errTooLong") }
   }
   const preferredWindow = input.preferredWindow?.trim().slice(0, MAX_PREFERRED_WINDOW_LENGTH) || null
 
@@ -104,7 +116,7 @@ export async function createDesignRequest(
     if (open >= MAX_OPEN_REQUESTS_PER_CLIENT) {
       return {
         ok: false,
-        error: "You already have a few open messages — we'll reply to those first.",
+        error: t("errTooMany"),
       }
     }
   } catch {
@@ -131,7 +143,7 @@ export async function createDesignRequest(
     booking_id: bookingId,
     preferred_window: preferredWindow,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t send that — please try again." }
+  if (!saved.ok) return { ok: false, error: t("errSend") }
 
   const wrote = await insertDesignMessage(db, {
     request_id: saved.id,
@@ -150,10 +162,10 @@ export async function createDesignRequest(
       console.error(`[design] BLANK request ${saved.id} could not be rolled back:`, undone.message)
       return {
         ok: false,
-        error: "Something went wrong saving your message — please email us instead.",
+        error: t("errSave"),
       }
     }
-    return { ok: false, error: "Couldn’t send that — please try again." }
+    return { ok: false, error: t("errSend") }
   }
 
   let attachedRefs = 0

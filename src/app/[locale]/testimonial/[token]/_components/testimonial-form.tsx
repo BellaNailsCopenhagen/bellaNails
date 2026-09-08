@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -28,6 +28,7 @@ import {
  */
 export function TestimonialForm({ token }: { token: string }) {
   const t = useTranslations("testimonialForm")
+  const locale = useLocale()
   const [authorName, setAuthorName] = useState("")
   const [occupation, setOccupation] = useState("")
   const [body, setBody] = useState("")
@@ -45,6 +46,7 @@ export function TestimonialForm({ token }: { token: string }) {
     setSending(true)
     try {
       const result = await submitTestimonial({
+        locale,
         token,
         authorName,
         occupation,

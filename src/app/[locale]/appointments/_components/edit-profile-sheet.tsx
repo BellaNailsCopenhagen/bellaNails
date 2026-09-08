@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,6 +31,7 @@ export function EditProfileSheet({
   const [nameValue, setName] = useState(name ?? "")
   const [phoneValue, setPhone] = useState(phone ?? "")
   const { pending, run } = useActionRunner(t("saveFailed"))
+  const locale = useLocale()
 
   // Reopening after a cancel must not show what was abandoned.
   const openSheet = () => {
@@ -42,6 +43,7 @@ export function EditProfileSheet({
   const save = () =>
     run(async () => {
       const result = await updateMyProfile({
+        locale,
         name: nameValue,
         phone: phoneValue,
       })

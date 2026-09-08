@@ -5,6 +5,8 @@ import { ReleaseExplainer } from "@/app/[locale]/appointments/_components/releas
 import { TestimonialInviteCard } from "@/app/[locale]/appointments/_components/testimonial-invite-card"
 import type { ClientMediaItem, DataConsentItem } from "@/modules/media/client-gallery"
 import type { MyTestimonial } from "@/modules/testimonials"
+import { getTranslations } from "next-intl/server"
+
 import { ErrorState } from "@/components/ui/error-state"
 import type { ReleaseRequestCard } from "@/shared/media-release"
 
@@ -17,7 +19,7 @@ import type { ReleaseRequestCard } from "@/shared/media-release"
  * a client who has answered everything still has somewhere to go and change
  * their mind.
  */
-export function PermissionsPanel({
+export async function PermissionsPanel({
   permissions,
   permissionsError,
   media,
@@ -32,6 +34,7 @@ export function PermissionsPanel({
   testimonialInviteToken: string | null
   testimonials: MyTestimonial[]
 }) {
+  const t = await getTranslations("account")
   const mediaCountByBooking: Record<string, number> = {}
   for (const item of media) {
     if (!item.bookingId) continue
@@ -44,8 +47,8 @@ export function PermissionsPanel({
       <ReleaseExplainer />
       {permissionsError ? (
         <ErrorState
-          title="We couldn’t load your choices"
-          body="Nothing has changed — we just couldn’t read them right now. Please try again in a moment."
+          title={t("permissionsErrorTitle")}
+          body={t("permissionsErrorBody")}
         />
       ) : (
         <MediaReleaseCards

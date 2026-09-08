@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { resolveLocale } from "@/i18n/routing"
 import { safeInternalPath } from "@/shared/safe-next"
 
 import { createSupabaseSessionServerClient } from "@/platform/supabase/ssr-server"
@@ -23,5 +24,10 @@ export async function GET(request: Request) {
     if (!error) return NextResponse.redirect(new URL(dest, origin))
   }
 
-  return NextResponse.redirect(new URL("/login?error=auth", origin))
+  // Report the failure in the language they were signing in from. `next` is
+  // locale-prefixed (the form builds it that way), so its first segment is the
+  // locale; a bare "/login" would be locale-negotiated afresh and could answer
+  // a Danish sign-in in English.
+  const locale = resolveLocale(dest.split("/")[1])
+  return NextResponse.redirect(new URL(`/${locale}/login?error=auth`, origin))
 }

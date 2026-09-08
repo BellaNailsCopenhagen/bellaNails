@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -60,6 +61,10 @@ async function attempt(
 /**
  * Supabase Auth login: Google OAuth + passwordless email OTP. `next` is where to
  * land after auth (already validated to a local path by the page).
+ *
+ * Every string comes from the catalogue. This is the one screen standing
+ * between a Danish client and a booking, and it used to be entirely English
+ * inside a Danish header and footer.
  */
 export function SupabaseLoginForm({
   next,
@@ -70,6 +75,7 @@ export function SupabaseLoginForm({
   /** Prefilled when the visitor just gave us this address (post-booking). */
   defaultEmail?: string
 }) {
+  const t = useTranslations("login")
   const [step, setStep] = useState<"email" | "otp">("email")
   const [email, setEmail] = useState(defaultEmail)
   const [otp, setOtp] = useState("")
@@ -81,7 +87,7 @@ export function SupabaseLoginForm({
     setError(null)
     const failure = await attempt(
       () => signInWithGoogle(next),
-      "Couldn’t start Google sign-in — try again.",
+      t("googleFailed"),
     )
     // On success the browser navigates to Google — no further work here.
     if (failure) {
@@ -95,7 +101,7 @@ export function SupabaseLoginForm({
     setError(null)
     const failure = await attempt(
       () => sendEmailOtp(email),
-      "Couldn’t send the code — try again in a moment.",
+      t("sendFailed"),
     )
     setPending(false)
     if (failure) setError(failure)
@@ -107,7 +113,7 @@ export function SupabaseLoginForm({
     setError(null)
     const failure = await attempt(
       () => verifyEmailOtp(email, otp),
-      "That code didn’t work — request a new one.",
+      t("verifyFailed"),
     )
     if (failure) {
       setError(failure)
@@ -120,18 +126,18 @@ export function SupabaseLoginForm({
   return (
     <div className="w-full space-y-6">
       <div className="space-y-1 text-center">
-        <H2>Log in</H2>
-        <BodySm className="text-xs">Continue with Google or your email.</BodySm>
+        <H2>{t("title")}</H2>
+        <BodySm className="text-xs">{t("intro")}</BodySm>
       </div>
 
       <Button className="w-full" disabled={pending} onClick={google}>
-        Continue with Google
+        {t("google")}
       </Button>
 
       <div className="flex items-center gap-3 text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
         <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux">
-          or
+          {t("or")}
         </span>
         <span className="h-px flex-1 bg-border" />
       </div>
@@ -150,7 +156,7 @@ export function SupabaseLoginForm({
             autoComplete="email"
             value={email}
             onValueChange={setEmail}
-            placeholder="you@email.com"
+            placeholder={t("emailPlaceholder")}
             required
           />
           <Button
@@ -159,7 +165,7 @@ export function SupabaseLoginForm({
             className="w-full"
             disabled={pending || !email}
           >
-            {pending ? "Sending…" : "Email me a code"}
+            {pending ? t("sending") : t("sendCode")}
           </Button>
           {/* The code step is otherwise only reachable through a successful
               send, stranding anyone whose email arrived late or in a closed
@@ -173,7 +179,7 @@ export function SupabaseLoginForm({
             }}
             className="font-functional text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
           >
-            I already have a code
+            {t("haveCode")}
           </button>
         </form>
       ) : (
@@ -184,20 +190,18 @@ export function SupabaseLoginForm({
             verify()
           }}
         >
-          <BodySm className="text-xs">
-            Enter the 6-digit code sent to {email}.
-          </BodySm>
+          <BodySm className="text-xs">{t("codeSentTo", { email })}</BodySm>
           <Input
             inputMode="numeric"
             name="otp"
             autoComplete="one-time-code"
             value={otp}
             onValueChange={setOtp}
-            placeholder="123456"
+            placeholder={t("codePlaceholder")}
             required
           />
           <Button type="submit" className="w-full" disabled={pending || !otp}>
-            {pending ? "Verifying…" : "Verify & continue"}
+            {pending ? t("verifying") : t("verify")}
           </Button>
           <button
             type="button"
@@ -208,7 +212,7 @@ export function SupabaseLoginForm({
             }}
             className="font-functional text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            Use a different email
+            {t("otherEmail")}
           </button>
         </form>
       )}

@@ -262,6 +262,11 @@
     "replyBanner": "{count, plural, =1 {Bella Nails has replied to your message} other {Bella Nails has replied to # of your messages}}"
   },
   "account": {
+    "errNameTooLong": "That name is too long.",
+    "errPhoneTooLong": "That phone number is too long.",
+    "errExport": "Couldn\u2019t build your export \u2014 please try again.",
+    "permissionsErrorTitle": "We couldn\u2019t load your choices",
+    "permissionsErrorBody": "Nothing has changed \u2014 we just couldn\u2019t read them right now. Please try again in a moment.",
     "detailsTitle": "Your details",
     "detailsIntro": "What we hold about you. Your email is how you sign in, so it can't be changed here — write to the studio and we'll move it.",
     "email": "Email",
@@ -313,6 +318,7 @@
     "clientWorkAlt": "Nail work by Bella Nails"
   },
   "photo": {
+    "errSaveChoice": "Couldn\u2019t save your choice.",
     "close": "Close"
   },
   "confirmation": {
@@ -339,6 +345,27 @@
     "accountBody": "Verify your email with a one-time code — no password needed — and reschedule, cancel or rebook in one place.",
     "signedInBody": "Your appointment is linked to your account — reschedule, cancel or rebook whenever you need.",
     "viewBookings": "View my appointments"
+  },
+  "login": {
+    "metaTitle": "Sign in",
+    "title": "Sign in",
+    "intro": "Continue with Google or your email.",
+    "google": "Continue with Google",
+    "or": "or",
+    "emailPlaceholder": "you@email.com",
+    "sendCode": "Email me a code",
+    "sending": "Sending\u2026",
+    "haveCode": "I already have a code",
+    "codeSentTo": "Enter the code sent to {email}.",
+    "codePlaceholder": "12345678",
+    "verify": "Verify & continue",
+    "verifying": "Verifying\u2026",
+    "otherEmail": "Use a different email",
+    "signOut": "Sign out",
+    "googleFailed": "Couldn\u2019t start Google sign-in \u2014 try again.",
+    "sendFailed": "Couldn\u2019t send the code \u2014 try again in a moment.",
+    "verifyFailed": "That code didn\u2019t work \u2014 request a new one.",
+    "oauthFailed": "Google sign-in didn\u2019t complete. Try again, or use a code instead."
   },
   "errors": {
     "eyebrow": "Something went wrong",
@@ -470,6 +497,13 @@
     "eyebrow": "The Service"
   },
   "ask": {
+    "errSignIn": "Please sign in first.",
+    "errTopic": "Pick what this is about.",
+    "errMessage": "Tell us what you have in mind.",
+    "errTooLong": "That message is too long.",
+    "errTooMany": "You already have a few open messages \u2014 we\u2019ll reply to those first.",
+    "errSend": "Couldn\u2019t send that \u2014 please try again.",
+    "errSave": "Something went wrong saving your message \u2014 please email us instead.",
     "metaTitle": "Ask us – Bella Nails, Ørestad, Copenhagen",
     "metaDescription": "Tell us what you have in mind — a whole set, a single fix, or an idea you're not sure is possible — and we'll come back with a price and how long it takes.",
     "eyebrow": "Ask",
@@ -582,6 +616,11 @@
     "photosHeading": "Your photos"
   },
   "testimonialForm": {
+    "errLink": "This link isn\u2019t valid.",
+    "errFields": "Please check your name and your words.",
+    "errGone": "This invitation no longer exists.",
+    "errUsed": "This invitation has already been used.",
+    "errNotYours": "This invitation belongs to someone else.",
     "metaTitle": "Say a few words – Bella Nails",
     "metaDescription": "Share a short thought about your time at Bella Nails.",
     "eyebrow": "A few words",

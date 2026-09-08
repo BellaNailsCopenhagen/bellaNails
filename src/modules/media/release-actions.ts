@@ -351,7 +351,7 @@ export async function preApproveRelease(
       consent_version: MEDIA_RELEASE_CONSENT_VERSION,
     })),
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t save your choice." }
+  if (!saved.ok) return { ok: false, error: "save_failed" }
 
   revalidatePath(routes.admin.client(booking.client_id))
   return { ok: true }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
 import { toast } from "sonner"
@@ -43,6 +43,7 @@ export function AskForm({
   serviceId?: string
 }) {
   const t = useTranslations("ask")
+  const locale = useLocale()
   const router = useRouter()
 
   const [topic, setTopic] = useState<DesignTopic>(defaultTopic)
@@ -98,6 +99,7 @@ export function AskForm({
     setSending(true)
     try {
       const result = await createDesignRequest({
+        locale,
         topic,
         message,
         refKeys: photos.map((p) => p.key),

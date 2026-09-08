@@ -53,6 +53,22 @@ type ReleaseCopy = {
   /** Shown once a decision is recorded. */
   granted: string
   declined: string
+  /**
+   * Why a save didn't happen, keyed by the code the action returns.
+   *
+   * The actions here deliberately answer with stable codes rather than prose —
+   * a code is a contract, prose is a language — but nothing was translating
+   * them, so `useActionRunner` toasted "not_found" at the client.
+   */
+  errors: {
+    invalid_link: string
+    not_found: string
+    save_failed: string
+    update_failed: string
+    already_decided: string
+    unauthorized: string
+    unknown: string
+  }
   /** My Space release cards (registered client). */
   ui: {
     sectionTitle: string
@@ -118,6 +134,15 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     declineAll: "Afvis alle",
     granted: "Tak — dine valg er gemt.",
     declined: "Noteret — vi bruger ikke dine optagelser.",
+    errors: {
+      invalid_link: "Linket er ikke gyldigt længere — bed studiet om et nyt.",
+      not_found: "Vi kan ikke finde den tid.",
+      save_failed: "Kunne ikke gemme dit valg — prøv igen.",
+      update_failed: "Kunne ikke gemme ændringen — prøv igen.",
+      already_decided: "Det er allerede besvaret. Du kan ændre det i Mit rum.",
+      unauthorized: "Log ind for at ændre dette.",
+      unknown: "Det gik ikke igennem — prøv igen om et øjeblik.",
+    },
     ui: {
       sectionTitle: "Brug af billeder og video",
       sectionIntro:
@@ -181,6 +206,15 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     declineAll: "Decline all",
     granted: "Thank you — your choices are saved.",
     declined: "Noted — we won't use your recordings.",
+    errors: {
+      invalid_link: "That link isn't valid any more — ask the studio for a new one.",
+      not_found: "We can't find that appointment.",
+      save_failed: "Couldn't save your choice — please try again.",
+      update_failed: "Couldn't save that change — please try again.",
+      already_decided: "That has already been answered. You can change it in My Space.",
+      unauthorized: "Please sign in to change this.",
+      unknown: "That didn't go through — please try again in a moment.",
+    },
     ui: {
       sectionTitle: "Use of photos & video",
       sectionIntro:
@@ -301,4 +335,16 @@ export function toReleaseCard(
     ref: bookingRef(bookingId),
     purposes,
   }
+}
+
+/** One of the actions' codes, in the visitor's language. Anything unrecognised
+    falls to `unknown` rather than being shown raw. */
+export function releaseErrorCopy(
+  locale: string,
+  code: string | undefined,
+): string {
+  const { errors } = pickReleaseCopy(locale)
+  return code && code in errors
+    ? errors[code as keyof typeof errors]
+    : errors.unknown
 }

@@ -12,6 +12,7 @@ import { useActionRunner } from "@/hooks/use-action-runner"
 import { respondToReleaseToken } from "@/modules/media/release-actions"
 import {
   pickReleaseCopy,
+  releaseErrorCopy,
   type ReleasePurpose,
   type ReleaseRequestCard,
 } from "@/shared/media-release"
@@ -89,7 +90,10 @@ export function ApproveRelease({
             : "declined",
         )
       }
-      return result
+      // The action answers with a code; saying it out loud is our job.
+      return result.ok
+        ? result
+        : { ...result, error: releaseErrorCopy(locale, result.error) }
     })
 
   return (

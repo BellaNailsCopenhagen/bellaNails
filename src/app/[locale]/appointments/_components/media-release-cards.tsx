@@ -19,6 +19,7 @@ import {
 } from "@/modules/media/release-actions"
 import {
   pickReleaseCopy,
+  releaseErrorCopy,
   isRegrant,
   releaseCardId,
   type ReleasePurpose,
@@ -50,8 +51,18 @@ export function MediaReleaseCards({
   const locale = useLocale()
   const isEn = locale === "en"
   const copy = pickReleaseCopy(locale)
-  const failed = isEn ? "Something went wrong." : "Noget gik galt."
-  const { pending, run } = useActionRunner(failed)
+  const { pending, run: runRaw } = useActionRunner(copy.errors.unknown)
+
+  // The release actions answer with codes ("not_found", "save_failed"), and
+  // nothing was translating them — so a failure toasted the code itself at the
+  // client. Wrapped once here rather than at each of the five buttons.
+  const run: typeof runRaw = (action) =>
+    runRaw(async () => {
+      const result = await action()
+      return result.ok
+        ? result
+        : { ...result, error: releaseErrorCopy(locale, result.error) }
+    })
 
   return (
     <section className="space-y-4">
@@ -114,7 +125,7 @@ export function MediaReleaseCards({
                       purpose={purpose}
                       status={status}
                       copy={copy.ui}
-                      failed={failed}
+                      failed={copy.errors.unknown}
                       pending={pending}
                       run={run}
                     />

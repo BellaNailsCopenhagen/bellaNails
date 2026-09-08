@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { useActionRunner } from "@/hooks/use-action-runner"
@@ -13,10 +13,11 @@ import { requestMyDataExport } from "@/modules/clients/data-export-actions"
 export function DownloadMyDataButton() {
   const t = useTranslations("account")
   const { pending, run } = useActionRunner(t("downloadFailed"))
+  const locale = useLocale()
 
   const onClick = () =>
     run(async () => {
-      const res = await requestMyDataExport()
+      const res = await requestMyDataExport(locale)
       if (res.ok) {
         const blob = new Blob([res.json], { type: "application/json" })
         const url = URL.createObjectURL(blob)

@@ -12,6 +12,7 @@ import { useActionRunner } from "@/hooks/use-action-runner"
 import { preApproveRelease } from "@/modules/media/release-actions"
 import {
   pickReleaseCopy,
+  releaseErrorCopy,
   RELEASE_PURPOSES,
   type ReleasePurpose,
 } from "@/shared/media-release"
@@ -36,7 +37,7 @@ export function ConfirmationRelease({
 }) {
   const locale = useLocale()
   const copy = pickReleaseCopy(locale)
-  const { pending, run } = useActionRunner()
+  const { pending, run } = useActionRunner(copy.errors.unknown)
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [saved, setSaved] = useState(false)
 
@@ -60,7 +61,8 @@ export function ConfirmationRelease({
       const chosen = RELEASE_PURPOSES.filter((p) => checked[p])
       const result = await preApproveRelease(token, chosen)
       if (result.ok) setSaved(true)
-      return result
+      // The action answers with a code; saying it out loud is our job.
+      return result.ok ? result : { ...result, error: releaseErrorCopy(locale, result.error) }
     })
 
   return (

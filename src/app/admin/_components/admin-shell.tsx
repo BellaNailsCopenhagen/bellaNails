@@ -86,7 +86,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 {newTab.label}
               </Button>
             ) : null}
-            <SignOutButton />
+            <SignOutButton label="Sign out" />
           </div>
         </div>
       </header>

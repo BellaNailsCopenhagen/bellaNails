@@ -1,5 +1,9 @@
 "use server"
 
+import { getTranslations } from "next-intl/server"
+
+import { resolveLocale } from "@/i18n/routing"
+
 import { revalidatePath } from "next/cache"
 import { hasLocale } from "next-intl"
 
@@ -19,14 +23,21 @@ const MAX_PHONE = 40
 export async function updateMyProfile(input: {
   name: string
   phone: string
+  /** The locale they are looking at, so a refusal comes back in it. */
+  locale: string
 }): Promise<ProfileResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "not signed in" }
 
+  const t = await getTranslations({
+    locale: resolveLocale(input.locale),
+    namespace: "account",
+  })
+
   const name = input.name.trim()
   const phone = input.phone.trim()
-  if (name.length > MAX_NAME) return { ok: false, error: "Name is too long." }
-  if (phone.length > MAX_PHONE) return { ok: false, error: "Phone is too long." }
+  if (name.length > MAX_NAME) return { ok: false, error: t("errNameTooLong") }
+  if (phone.length > MAX_PHONE) return { ok: false, error: t("errPhoneTooLong") }
 
   const saved = await updateClientProfile(createSupabaseServiceRoleClient(), user.id, {
     name: name || null,
