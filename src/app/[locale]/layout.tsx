@@ -9,7 +9,7 @@ import { HideOnCheckout } from "@/components/layout/hide-on-checkout"
 import { SiteHeader } from "@/components/layout/site-header"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { routing } from "@/i18n/routing"
-import { SITE_URL } from "@/config/site"
+import { isProductionSite, SITE_URL } from "@/config/site"
 import { fontVariables } from "@/config/fonts"
 import "../globals.css"
 
@@ -31,6 +31,11 @@ export async function generateMetadata({
 
   return {
     metadataBase: new URL(SITE_URL),
+    // Belt and braces with robots.txt: a disallow stops a crawl, but a page
+    // already known needs telling to drop it. Off the production host every
+    // public page is noindex — a staging copy must not compete with the real
+    // domain for the studio's own name.
+    ...(isProductionSite() ? {} : { robots: { index: false, follow: false } }),
     title: {
       default: t("title"),
       template: "%s · Bella Nails",

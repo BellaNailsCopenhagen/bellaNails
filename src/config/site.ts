@@ -1,12 +1,19 @@
 import type { Metadata } from "next"
 
 import { routing } from "@/i18n/routing"
+import { isIndexableOrigin } from "@/shared/site-host"
 
 /** Canonical site origin, trailing-slash-normalized. One constant so the
     layout metadata and URLs baked into emails can never disagree. */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://bellanails.dk"
 ).replace(/\/+$/, "")
+
+/**
+ * Is THIS deployment the real site? Drives the `noindex` on every public page
+ * and the disallow-all in robots.txt — see `shared/site-host.ts` for why.
+ */
+export const isProductionSite = (): boolean => isIndexableOrigin(SITE_URL)
 
 /**
  * The absolute URL of one public path in one locale.
