@@ -232,7 +232,7 @@ plan). The code half is that a control which cannot work must not look like one 
   - **Verify:** `/da/login` is entirely Danish including the tab title; `/en/login`
     unchanged; both catalogues still have equal key counts.
 
-- [ ] ### QA-14 · The code is eight digits and every screen says six **[live]**
+- [x] ### QA-14 · The code is eight digits and every screen says six **[live]**
 
   Four codes arrived this session, all 8 digits. The login screen says "Enter the 6-digit
   code", the placeholder is `123456`, and App settings promises clients "a 6-digit code".
@@ -503,3 +503,10 @@ work items either.
   `"already_decided"` — a good contract, but nothing translated them, so a
   failure put the code itself in a toast. Now mapped through
   `releaseErrorCopy()` at all three client surfaces.
+- **QA-14 · resolved by removing the number, not by matching it.** All three
+  places now describe "a code" with no digit count, and the login placeholder is
+  eight digits because that is what Supabase currently sends. If you would
+  rather have six, Auth → Providers → Email is still yours to change — and the
+  copy will stay correct either way, which was the point of taking the number
+  out rather than changing 6 to 8. The OTP input still has no `maxLength`, on
+  purpose: a cap would break the day the setting changes.

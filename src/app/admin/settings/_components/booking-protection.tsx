@@ -33,7 +33,10 @@ const LEVEL_COPY: Record<
   },
   verified: {
     label: "Confirm an email first",
-    body: "We email a 6-digit code (or they use Google) before they can book. Confirming also gives them My Space, where their appointments and photos live.",
+    // No digit count: the length is a Supabase Auth setting, not ours, and the
+    // four codes that arrived during QA were 8 digits while every screen said
+    // 6. Copy that states a number is copy that goes stale the day it changes.
+    body: "We email them a one-time code (or they use Google) before they can book. Confirming also gives them My Space, where their appointments and photos live.",
     cost: "One extra step · strong protection. Made-up addresses can't take slots. This is the recommended setting.",
   },
   card: {
