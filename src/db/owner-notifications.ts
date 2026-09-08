@@ -83,6 +83,23 @@ export async function deleteReadNotifications(db: Db): Promise<{ ok: boolean }> 
   return { ok: !error }
 }
 
+/** Dismiss every alert of one kind about one row. The counterpart to
+    `insertNotification`: once the request/testimonial it points at is decided,
+    the alert is no longer something needing an answer. Plural because a retried
+    insert can leave more than one. */
+export async function deleteNotificationsForTarget(
+  db: Db,
+  kind: string,
+  targetId: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const { error } = await db
+    .from("owner_notifications")
+    .delete()
+    .eq("kind", kind)
+    .eq("target_id", targetId)
+  return error ? { ok: false, message: error.message } : { ok: true }
+}
+
 /** Remove one notification entirely (dismiss). */
 export async function deleteNotification(
   db: Db,

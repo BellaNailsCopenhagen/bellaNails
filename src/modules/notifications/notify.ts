@@ -1,7 +1,10 @@
 import "server-only"
 
 import type { Db } from "@/db/client"
-import { insertNotification } from "@/db/owner-notifications"
+import {
+  deleteNotificationsForTarget,
+  insertNotification,
+} from "@/db/owner-notifications"
 
 export type OwnerNotificationKind =
   | "media_consent_withdrawn"
@@ -42,5 +45,29 @@ export async function notifyOwner(
   })
   if (!saved.ok) {
     console.error(`[notify] ${input.kind} alert not recorded:`, saved.message)
+  }
+}
+
+/**
+ * The mirror of `notifyOwner`: the row an alert pointed at has been decided, so
+ * the alert has stopped being a question. Best-effort and LOGGED for the same
+ * reason — a swallowed delete leaves a permanent "needs you" pointing at a
+ * decided item, and a badge count that never reaches zero stops meaning
+ * anything at all.
+ */
+export async function dismissOwnerNotifications(
+  supabase: Db,
+  input: { kind: OwnerNotificationKind; targetId: string },
+): Promise<void> {
+  const cleared = await deleteNotificationsForTarget(
+    supabase,
+    input.kind,
+    input.targetId,
+  )
+  if (!cleared.ok) {
+    console.error(
+      `[notify] ${input.kind} alert for ${input.targetId} not dismissed:`,
+      cleared.message,
+    )
   }
 }

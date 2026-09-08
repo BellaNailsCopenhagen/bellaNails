@@ -63,7 +63,7 @@ reading the source, not triggered.
   - **Verify:** `/da/confirmation` and `/en/confirmation` say nothing is reserved;
     `?id=<real>` is unchanged.
 
-- [ ] ### QA-04 · A decided request keeps a permanent "needs you" notification **[live]**
+- [x] ### QA-04 · A decided request keeps a permanent "needs you" notification **[live]**
 
   Accepting a booking request clears it from the queue but leaves the notification in
   `NEEDS YOU`, deep-linking to `/admin?focus=request-<id>` where nothing renders. The
@@ -419,3 +419,19 @@ work items either.
 - **QA-01 · the redirect is locale-less.** That same failure redirect targets
   `/login`, which the proxy then locale-negotiates — so a Danish visitor whose
   OAuth failed can land on `/en/login`. Same class as QA-01, different caller.
+- **QA-04 · the same leak exists for every other alert kind.** Nine `notifyOwner`
+  calls, no automatic dismissal anywhere — the only clearing is manual (open it,
+  ×, clear-read, mark-all-read). The ones with an in-app resolution point, so the
+  same fix applies: `design_request` and `design_reply` (resolved by replying or
+  sending an offer), `testimonial_submitted` (resolved by approving), and
+  `media_consent_offered` (resolved by placing the asset). One line each with
+  `dismissOwnerNotifications`, now that it exists.
+- **QA-04 · the consent kinds can't be dismissed by target at all.** Every
+  `media_consent_*` row in the live inbox has `target_id` NULL, so there is
+  nothing to match on. They are informational rather than to-dos, so being
+  read is arguably the right end state — but four unread `media_consent_restored`
+  and one `media_consent_offered` are sitting in the badge count today.
+- **QA-04 · one stale alert predates the fix.** The accepted request
+  `e241edbb-c136-4078-833c-7da2071df28e` still holds an unread `booking_request`
+  notification (`6948dd85-0858-4e0c-b02b-d254c2ea8130`). The fix is not
+  retroactive; clear it with the × in /admin/notifications.

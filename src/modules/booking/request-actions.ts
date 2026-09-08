@@ -32,7 +32,10 @@ import {
   recordCommunication,
   statusFromEmailResult,
 } from "@/modules/notifications/communications"
-import { notifyOwner } from "@/modules/notifications/notify"
+import {
+  dismissOwnerNotifications,
+  notifyOwner,
+} from "@/modules/notifications/notify"
 import {
   sendBookingRequestArtistEmail,
   sendBookingRequestDeclinedEmail,
@@ -326,6 +329,13 @@ export async function acceptBookingRequest(
       `[booking-request] booking ${result.id} created but request ${requestId} not marked accepted:`,
       flipped.message,
     )
+  } else {
+    // Decided, so it is no longer a question — clear the artist's alert or it
+    // sits in NEEDS YOU forever, linking to a request that no longer renders.
+    await dismissOwnerNotifications(db, {
+      kind: "booking_request",
+      targetId: requestId,
+    })
   }
 
   // Confirmation to the client (best-effort) — a real booking now exists.
@@ -359,6 +369,7 @@ export async function acceptBookingRequest(
 
   revalidatePath(routes.admin.home)
   revalidatePath(routes.admin.appointments)
+  revalidatePath(routes.admin.notifications)
   return { ok: true, bookingId: result.id }
 }
 
@@ -377,11 +388,19 @@ export async function rejectBookingRequest(
     return { ok: false, error: "This request was already decided." }
   }
 
-  await updateBookingRequest(db, requestId, {
+  const flipped = await updateBookingRequest(db, requestId, {
     status: "rejected",
     reject_reason: reason?.trim() || null,
     decided_at: new Date().toISOString(),
   })
+  // Only once it is actually stored — a failed flip leaves the request pending,
+  // and a pending request still needs her.
+  if (flipped.ok) {
+    await dismissOwnerNotifications(db, {
+      kind: "booking_request",
+      targetId: requestId,
+    })
+  }
 
   const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
   if (contact?.email) {
@@ -406,6 +425,7 @@ export async function rejectBookingRequest(
   }
 
   revalidatePath(routes.admin.home)
+  revalidatePath(routes.admin.notifications)
   return { ok: true }
 }
 
