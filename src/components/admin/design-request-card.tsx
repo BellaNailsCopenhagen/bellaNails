@@ -13,6 +13,7 @@ import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm, Eyebrow } from "@/components/ui/typography"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { SlotPicker } from "@/components/booking/slot-picker"
+import { adminSlotLabels } from "@/components/admin/slot-labels"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { CloseRequestButton } from "@/components/admin/close-request-button"
 import { useActionRunner } from "@/hooks/use-action-runner"
@@ -25,7 +26,6 @@ import {
 import { getOwnerOfferSlots } from "@/modules/design/slot-actions"
 import type { DesignRequestView } from "@/modules/design/reads"
 import type { Slot } from "@/shared/booking-slots"
-import { OVERRIDE_WINDOW_LABEL } from "@/shared/booking-slots"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { OFFER_DURATION_PRESETS } from "@/shared/design"
 import { OFFER_DEFAULT_DAYS } from "@/shared/offer"
@@ -41,23 +41,6 @@ const TOPIC_LABEL: Record<string, string> = {
   other: "Something else",
 }
 
-const SLOT_LABELS = {
-  chooseDate: "Choose a date",
-  chooseTime: "Choose a time",
-  empty: "No available times right now.",
-  confirm: "Book this time",
-  confirming: "Booking…",
-  genericError: "Couldn’t book — try another time.",
-  advanceNote: "The studio's normal available times.",
-  availableLegend: "Available",
-  prevMonth: "Previous month",
-  nextMonth: "Next month",
-}
-
-const OVERRIDE_LABELS = {
-  ...SLOT_LABELS,
-  advanceNote: `Working hours & days off ignored (${OVERRIDE_WINDOW_LABEL}) — only taken slots are hidden.`,
-}
 
 /**
  * One design request, and the whole life of its offer — draft, sent, booked.
@@ -489,7 +472,7 @@ function BookOfferPicker({
         slots={(ignoreLimits ? overrideSlots : slots) ?? []}
         locale={ADMIN_LOCALE}
         onConfirm={confirm}
-        labels={ignoreLimits ? OVERRIDE_LABELS : SLOT_LABELS}
+        labels={adminSlotLabels({ override: ignoreLimits })}
       />
     </div>
   )

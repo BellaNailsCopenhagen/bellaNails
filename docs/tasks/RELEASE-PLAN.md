@@ -125,7 +125,7 @@ so the gate is honest about what is still missing from R1.
 | C20 | Code | **Dated "replace a day's hours"** | The `schedule_rules` model is additive — to shorten a day you add a `no_work` block. The editor copy says so; a true replace needs a model tweak. |
 | C21 | Code | **Bake the buffer into the DB constraint** | `bookings_no_overlap` guarantees no raw overlap, but a rare concurrent race can produce back-to-back bookings that skip the cleanup gap. |
 | C22 | Code | **Move the last per-process rate limits to the durable one** | `/api/media/sign`, design messages and the housekeeping throttle still use the in-memory limiter. Fine until one is actually abused. |
-| C23 | Code | **Dedupe the SlotPicker label sets** | Near-identical label objects in three call sites; renaming a field means editing every copy. |
+
 | C24 | Code | **Orphan sweep past 1000 objects** | Fine at the studio's volume; revisit if `media-refs` grows. |
 
 ---

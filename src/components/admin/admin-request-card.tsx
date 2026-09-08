@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { SlotPicker } from "@/components/booking/slot-picker"
+import { adminSlotLabels } from "@/components/admin/slot-labels"
 import { cardActionNeutral } from "@/components/admin/card-action"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import {
@@ -26,7 +27,7 @@ import {
   rejectBookingRequest,
 } from "@/modules/booking/request-actions"
 import type { RequestView } from "@/modules/booking"
-import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
+import type { Slot } from "@/shared/booking-slots"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
@@ -38,25 +39,6 @@ const KIND_LABEL: Record<string, string> = {
   over_limit: "Over the 2-booking limit",
 }
 
-// Same wording as the admin New-booking picker (this is the same availability).
-const SLOT_LABELS = {
-  chooseDate: "Choose a date",
-  chooseTime: "Choose a time",
-  empty: "No available times right now.",
-  confirm: "Book this time",
-  confirming: "Booking…",
-  genericError: "Couldn’t book — try another time.",
-  advanceNote: "The studio's normal available times.",
-  availableLegend: "Available",
-  prevMonth: "Previous month",
-  nextMonth: "Next month",
-}
-
-// Override picker: hours + days off ignored — only taken slots are removed.
-const OVERRIDE_LABELS = {
-  ...SLOT_LABELS,
-  advanceNote: `Working hours & days off ignored (${OVERRIDE_WINDOW_LABEL}) — only taken slots are hidden.`,
-}
 
 export function AdminRequestCard({
   request,
@@ -235,7 +217,7 @@ export function AdminRequestCard({
                 slots={(ignoreLimits ? overrideSlots : slots) ?? []}
                 locale={ADMIN_LOCALE}
                 onConfirm={confirmSlot}
-                labels={ignoreLimits ? OVERRIDE_LABELS : SLOT_LABELS}
+                labels={adminSlotLabels({ override: ignoreLimits })}
               />
             )}
           </div>
