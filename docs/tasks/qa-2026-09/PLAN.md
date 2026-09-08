@@ -38,7 +38,7 @@ reading the source, not triggered.
     `?next=/da/book?service=…&step=details` → returns to that exact step (already works;
     don't regress it).
 
-- [ ] ### QA-02 · The DK / EN toggle drops the query string **[live]**
+- [x] ### QA-02 · The DK / EN toggle drops the query string **[live]**
 
   Mid-checkout, switching language throws the visitor back to the service picker: the
   chosen service, add-ons, step, name and phone all disappear. Same loss on
