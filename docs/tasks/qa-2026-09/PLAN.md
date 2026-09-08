@@ -170,7 +170,7 @@ plan). The code half is that a control which cannot work must not look like one 
     only send the decline email once the status is actually stored.
   - **Verify:** force the update to fail → no email, an honest error, request still pending.
 
-- [ ] ### QA-11 · Accepting a request can book into the past **[code]**
+- [x] ### QA-11 · Accepting a request can book into the past **[code]**
 
   `acceptBookingRequest` validates only `Number.isFinite(startMs)` — no past check, no
   upper bound, no availability check. A stale "Adjust time" sheet left open overnight can

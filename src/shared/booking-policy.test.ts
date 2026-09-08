@@ -6,6 +6,8 @@ import {
   canRequestMediaConsent,
   canRequestReview,
   MEDIA_REQUEST_LEAD_MS,
+  REQUEST_HORIZON_DAYS,
+  requestTimeProblem,
 } from "@/shared/booking-policy"
 
 const booking = (
@@ -71,4 +73,34 @@ test("neither is offered for a cancelled or no-show booking", () => {
   const late = END + 86_400_000
   assert.equal(canRequestMediaConsent(appt("cancelled"), late), false)
   assert.equal(canRequestReview(appt("cancelled"), late), false)
+})
+
+// The only bound on a booking request's time — the slot check is off — and it
+// has to hold on the way in AND when the artist accepts.
+const DAY = 24 * 60 * 60 * 1000
+const NOW = Date.parse("2026-09-08T09:00:00.000Z")
+const iso = (ms: number) => new Date(ms).toISOString()
+
+test("a sensible future time is accepted", () => {
+  assert.equal(requestTimeProblem(iso(NOW + DAY), NOW), null)
+})
+
+test("the past is refused — this is accepting a stale Adjust-time sheet", () => {
+  assert.equal(requestTimeProblem(iso(NOW - 1), NOW), "past")
+  assert.equal(requestTimeProblem(iso(NOW - 30 * DAY), NOW), "past")
+  // Exactly now is not in the past.
+  assert.equal(requestTimeProblem(iso(NOW), NOW), null)
+})
+
+test("beyond the horizon is refused, and the boundary is inclusive", () => {
+  assert.equal(requestTimeProblem(iso(NOW + REQUEST_HORIZON_DAYS * DAY), NOW), null)
+  assert.equal(
+    requestTimeProblem(iso(NOW + REQUEST_HORIZON_DAYS * DAY + 1), NOW),
+    "tooFar",
+  )
+})
+
+test("an unparseable time is its own answer, not silently past", () => {
+  assert.equal(requestTimeProblem("not a date", NOW), "invalid")
+  assert.equal(requestTimeProblem("", NOW), "invalid")
 })

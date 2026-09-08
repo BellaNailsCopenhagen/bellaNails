@@ -42,7 +42,11 @@ import {
   sendBookingRequestReceivedEmail,
 } from "@/modules/notifications/request-email"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
-import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
+import {
+  localizedBookingNames,
+  metaOf,
+  requestTimeProblem,
+} from "@/shared/booking-policy"
 import { serviceRef } from "@/shared/booking-subject"
 import { BOOKING_STATUS } from "@/shared/booking-status"
 import { requiresVerifiedIdentity } from "@/shared/booking-protection"
@@ -148,16 +152,12 @@ export async function createBookingRequest(
     }
   }
 
-  // The slot check is off for a request, so guard the time here: must be in the
-  // future and within a year (an outside-hours pick is otherwise unbounded).
-  const startMs = new Date(input.start).getTime()
-  const nowMs = Date.now()
-  if (!Number.isFinite(startMs) || startMs < nowMs) {
-    return { ok: false, error: "Pick a time in the future." }
-  }
-  if (startMs > nowMs + 366 * 24 * 60 * 60 * 1000) {
+  // The slot check is off for a request, so this is the only bound on the time.
+  const when = requestTimeProblem(input.start, Date.now())
+  if (when === "tooFar") {
     return { ok: false, error: "That's too far ahead — pick a nearer date." }
   }
+  if (when) return { ok: false, error: "Pick a time in the future." }
 
   const ip = await callerIp()
   const blocked = await checkBlocked(db, { email, ip })
@@ -293,8 +293,18 @@ export async function acceptBookingRequest(
 
   const meta = metaOf(request)
   const startIso = opts?.startIso ?? request.start_time
+  // Only "does it parse" used to be checked here, so an Adjust-time sheet left
+  // open overnight could book into the past — the overlap constraint was the
+  // only thing standing in the way. Same rule the request came in under.
+  const when = requestTimeProblem(startIso, Date.now())
+  if (when === "past") {
+    return { ok: false, error: "That time has passed — pick a new one." }
+  }
+  if (when === "tooFar") {
+    return { ok: false, error: "That's too far ahead — pick a nearer date." }
+  }
+  if (when) return { ok: false, error: "Pick a valid time." }
   const startMs = new Date(startIso).getTime()
-  if (!Number.isFinite(startMs)) return { ok: false, error: "Pick a valid time." }
   const endIso = new Date(startMs + requestDurationMs(request)).toISOString()
 
   const result = await insertBooking(db, {
@@ -434,32 +444,5 @@ export async function rejectBookingRequest(
 
   revalidatePath(routes.admin.home)
   revalidatePath(routes.admin.notifications)
-  return { ok: true }
-}
-
-/** Artist adjusts a request's requested time before accepting (end recomputed
-    from the snapshot duration). */
-export async function updateBookingRequestTime(
-  requestId: string,
-  startIso: string,
-): Promise<RequestActionResult> {
-  const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
-
-  const request = await getBookingRequest(db, requestId)
-  if (!request || request.status !== "pending") {
-    return { ok: false, error: "Request not found." }
-  }
-  const startMs = new Date(startIso).getTime()
-  if (!Number.isFinite(startMs)) return { ok: false, error: "Pick a valid time." }
-  const endIso = new Date(startMs + requestDurationMs(request)).toISOString()
-
-  const saved = await updateBookingRequest(db, requestId, {
-    start_time: startIso,
-    end_time: endIso,
-  })
-  if (!saved.ok) return { ok: false, error: "Couldn't update — please try again." }
-
-  revalidatePath(routes.admin.home)
   return { ok: true }
 }

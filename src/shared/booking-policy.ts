@@ -128,6 +128,35 @@ export function canRequestReview(
   )
 }
 
+/**
+ * How far ahead a request may name a time. A year and a day, so "same date
+ * next year" is never refused by a leap-year rounding error.
+ */
+export const REQUEST_HORIZON_DAYS = 366
+
+export type RequestTimeProblem = "invalid" | "past" | "tooFar"
+
+/**
+ * Why this start time cannot be requested or accepted, or null if it can.
+ *
+ * A request runs with the slot check OFF — it exists to ask for a time the
+ * self-service flow won't grant — so this is the only bound on it, and it has
+ * to hold on the way IN and on the way out. Accepting used to check only that
+ * the timestamp parsed, so an "Adjust time" sheet left open overnight could
+ * turn into a booking in the past with nothing but the overlap constraint in
+ * the way.
+ */
+export function requestTimeProblem(
+  startIso: string,
+  now: number,
+): RequestTimeProblem | null {
+  const startMs = new Date(startIso).getTime()
+  if (!Number.isFinite(startMs)) return "invalid"
+  if (startMs < now) return "past"
+  if (startMs > now + REQUEST_HORIZON_DAYS * 24 * 60 * 60 * 1000) return "tooFar"
+  return null
+}
+
 /** At/above this, a client is a repeat offender (gate + admin share it). */
 export const NO_SHOW_ALERT_THRESHOLD = 2
 
