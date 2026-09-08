@@ -349,6 +349,11 @@ async function bookOffer(
  * land in the artist's TTFB. A scheduled job is its proper home
  * (docs/tasks/in-house/SCHEDULER-OPTIONS.md).
  */
+// Deliberately the IN-MEMORY limiter, unlike the upload and message limits.
+// This throttles idempotent cleanup, not a client action: per-instance means it
+// may run a few times an hour instead of once, which costs a little work and
+// breaks nothing — and the alternative is a database round trip on every
+// /admin render, which is what triggers it.
 const housekeeping: RateLimitState = new Map()
 const HOUSEKEEPING_RULE = { limit: 1, windowMs: 60 * 60 * 1000 }
 

@@ -46,7 +46,7 @@ import {
   MAX_PREFERRED_WINDOW_LENGTH,
   MAX_REFS_PER_REQUEST,
 } from "@/shared/design"
-import { takeToken, type RateLimitState } from "@/shared/rate-limit"
+import { takeDurableToken } from "@/db/rate-limits"
 import { routes } from "@/shared/routes"
 
 /**
@@ -61,8 +61,10 @@ export type DesignActionResult = { ok: true } | { ok: false; error: string }
 // Appending to a thread is cheap for the client and not for us (a row, an owner
 // notification, and one more entry on an unpaginated card). Best-effort per
 // instance — see shared/rate-limit.ts.
-const messages: RateLimitState = new Map()
-const MESSAGE_RULE = { limit: 20, windowMs: 60 * 60 * 1000 }
+// Durable for the same reason as the upload limit: each message inserts an
+// owner notification and grows an unpaginated admin card, and a per-instance
+// counter is barely a limit on serverless.
+const MESSAGE_RULE = { limit: 20, window: "1 hour" }
 
 /** Reference uploads land in the `refs/` area. The prefix check confines an
     attachment to that bucket — it is not an ownership proof (keys are random
@@ -238,7 +240,13 @@ export async function addDesignMessage(
   if (!user) return { ok: false, error: "Please sign in first." }
   // The open-request cap bounds REQUESTS; nothing bounded messages, and each one
   // also inserts an owner notification and grows an unpaginated admin card.
-  if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
+  if (
+    !(await takeDurableToken(
+      createSupabaseServiceRoleClient(),
+      `design:message:${user.id}`,
+      MESSAGE_RULE,
+    ))
+  ) {
     return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
   }
   const message = body.trim()
@@ -294,7 +302,13 @@ export async function addDesignRef(
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
   if (!user) return { ok: false, error: "Please sign in first." }
-  if (!takeToken(messages, user.id, Date.now(), MESSAGE_RULE)) {
+  if (
+    !(await takeDurableToken(
+      createSupabaseServiceRoleClient(),
+      `design:message:${user.id}`,
+      MESSAGE_RULE,
+    ))
+  ) {
     return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
   }
   if (!storageKey.startsWith(REF_PREFIX)) return { ok: false, error: "Couldn’t attach that." }

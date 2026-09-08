@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/modules/identity/server"
-import { takeToken, type RateLimitState } from "@/shared/rate-limit"
+import { takeDurableToken } from "@/db/rate-limits"
+import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { extForType, imagePolicy, uploadPolicy } from "@/shared/media-policy"
 import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/supabase"
 
@@ -23,14 +24,23 @@ import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/sup
  * attaching three photos never notices.
  */
 
-const uploads: RateLimitState = new Map()
-const CLIENT_UPLOAD_RULE = { limit: 20, windowMs: 60 * 60 * 1000 }
+// Durable, not in-memory: this guards STORAGE writes, and a per-process counter
+// on serverless gives each instance its own allowance — 20 per hour becomes 20
+// per hour per instance, which is not a limit. Counted in Postgres instead.
+const CLIENT_UPLOAD_RULE = { limit: 20, window: "1 hour" }
 export async function POST(req: Request) {
   const user = await getCurrentUser()
   if (!user) return new Response("Unauthorized", { status: 401 })
 
   // The artist is trusted; a client is not.
-  if (!user.isOwner && !takeToken(uploads, user.id, Date.now(), CLIENT_UPLOAD_RULE)) {
+  if (
+    !user.isOwner &&
+    !(await takeDurableToken(
+      createSupabaseServiceRoleClient(),
+      `media:upload:${user.id}`,
+      CLIENT_UPLOAD_RULE,
+    ))
+  ) {
     return Response.json({ error: "rate_limited" }, { status: 429 })
   }
 
