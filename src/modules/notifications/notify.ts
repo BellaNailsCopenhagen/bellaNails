@@ -10,6 +10,7 @@ export type OwnerNotificationKind =
   | "media_consent_withdrawn"
   | "media_consent_restored"
   | "media_consent_offered"
+  | "data_consent_withdrawn"
   | "shared_image_deleted"
   | "booking_request"
   | "design_request"

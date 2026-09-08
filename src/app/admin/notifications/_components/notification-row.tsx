@@ -20,6 +20,11 @@ const PURPOSE_LABEL: Record<string, string> = {
   website: "website",
   social: "social",
   education: "teaching",
+  // The data-use purposes — a client's NAME or their WORDS, per surface.
+  name_site: "their name on the website",
+  name_some: "their name on social",
+  testimonial_site: "their words on the website",
+  testimonial_some: "their words on social",
 }
 
 /** What happened, and what it wants — one entry per kind so a booking request
@@ -77,6 +82,14 @@ function copyFor(n: OwnerNotification): { line: string; helper?: string; warn?: 
           helper: "The website copy has been removed automatically.",
         }
   }
+  if (n.kind === "data_consent_withdrawn") {
+    return {
+      line: `withdrew permission for ${where}`,
+      helper:
+        "Stop using it anywhere you have put it by hand; the website looks after itself.",
+      warn: true,
+    }
+  }
   if (n.kind === "media_consent_restored") {
     return { ...COPY.media_consent_restored, line: `allowed ${where} again` }
   }
@@ -103,6 +116,8 @@ const FALLBACK: Record<string, string> = {
   design_reply: routes.admin.home,
   testimonial_submitted: routes.admin.testimonials,
   media_consent_restored: routes.admin.assets,
+  // No single item to focus — the client's page is where consent state lives.
+  data_consent_withdrawn: routes.admin.clients,
   media_consent_offered: routes.admin.assets,
 }
 
