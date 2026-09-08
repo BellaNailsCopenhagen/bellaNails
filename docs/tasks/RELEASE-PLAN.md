@@ -13,13 +13,17 @@ Counts are what is still **open** — struck rows below are done.
 
 | | Human | Code | Total |
 | --- | --- | --- | --- |
-| **Must** | 9 | 2 | 11 |
-| **Should** | 6 | 11 | 17 |
+| **Must** | 6 | — | 6 |
+| **Should** | 6 | 12 | 18 |
 | **Could** | 2 | 11 | 13 |
 | **Won't (this release)** | — | 5 | 5 |
 
 H17 is excluded (test data you're clearing before release), and the
 environment variables have their own table below rather than a row each.
+
+**H5, H6 and H7 are done** — hours are correct in the admin, and the duplicate
+services and the cartoon on `/gallery` were mock data. C2 and C3 are waiting on
+images and copy rather than on code, so Must-code is empty.
 
 ---
 
@@ -60,18 +64,19 @@ because of it.
 | H2 | **Set `NEXT_PUBLIC_SITE_URL` to the live domain in Vercel** | It currently holds **`https://test.bellanails.dk`**. Every canonical, hreflang, the sitemap and the robots `Sitemap:` line are built from it, so until it is `https://bellanails.dk` the site deploys as a staging copy — which the code now handles by refusing crawlers entirely (`Disallow: /` + `noindex`). Nothing is indexable until this changes. | Vercel → Env |
 | H3 | **Run `pnpm deploy:prod`** | `deploy` is **25 commits** behind `main` — the whole QA remediation is unreleased. The command is classifier-blocked for me. | terminal |
 | H4 | **Publish real terms + privacy (v2)** | Both documents currently open by telling the reader they are drafts, and clients are recorded as accepting them at step 03. This is the one item with legal exposure. Old acceptances keep pointing at the text they agreed to. | `/admin/terms` |
-| H5 | **Confirm the opening hours** | Mon–Fri closed, Sat–Sun 10:00–18:00. Every bookable slot, the JSON-LD Google reads, and the hours page all derive from it. | `/admin/hours` |
-| H6 | **Resolve the duplicate services** | *Klassisk Manicure* 350 vs *Den Klassiske Manicure* 320, and *Gel Lak* 450 vs *Shellac / BIAB* 420 — same category, same duration, both live. A client choosing between two prices for one thing. | `/admin/services` |
-| H7 | **Remove the cartoon published as client work** | It is on the public `/gallery` as a real client's set. `/admin/assets` → *test · Classic Manicure, 30 Aug* → remove the placement, then confirm takedown so the public copy is deleted. | `/admin/assets` |
+
 | H8 | **Test Google sign-in end to end** | The provider + redirect URI have never been exercised. If it is misconfigured, "Continue with Google" fails for every client — and it is the first button on the login screen. | Supabase → Providers |
 | H9 | **Fill the service detail pages, or say to drop the link** | Every service links "læs mere" to a page with no sections, no gallery and no reviews. Five near-empty pages reachable from the menu. Content is yours; dropping the link is C3. | `/admin/services/[id]` |
 
 ## Must · Code
 
+Both remaining Must-code items turned out to be content, not code — kept here
+so the gate is honest about what is still missing from R1.
+
 | # | What | Why it matters | Effort |
 | --- | --- | --- | --- |
-| C2 | **`/gallery` is empty and now in the sitemap** | `gallery_items` has 0 rows, so a main-nav page renders a heading over blank space — and QA-12 just offered it to crawlers. Either hide the nav entry + drop it from `indexableRoutes` while empty, or wait for content. Hiding is the safe default. | Small |
-| C3 | **Drop "læs mere" while the detail pages are empty** | The other half of H9, and the one that does not wait on content. If H9 lands first, skip this. | Trivial |
+| C2 | **`/gallery` — waiting on images, not on code** | Images are coming before launch, so it is not hidden. Worth knowing: while `gallery_items` is empty the page is a heading over blank space and it IS in the sitemap. Harmless today because the staging host refuses crawlers; revisit only if launch arrives with the table still empty. | — |
+| C3 | **Service detail pages — waiting on images + copy** | Same: content is coming, so "læs mere" stays. The pages render sections, a gallery and reviews the moment there are any. | — |
 
 ---
 
@@ -103,6 +108,7 @@ because of it.
 | C12 | **Owner reschedule doesn't clear `no_show_at`** | A no-show row keeps an active status, so a moved appointment still renders "no-show". | Trivial |
 | C13 | **Reschedule end vs price drift** | The new `end` comes from *live* duration while `total_price_cents` stays as-booked. If a service's duration changed, a moved appointment's length and price disagree. Use the as-booked snapshot. | Small |
 | C14 | **Root locale: make `/` always `/da`** | Needs H-side confirmation first (see D1). Today `/` negotiates from Accept-Language, so an English browser lands on `/en` — defensible, but this is a Danish-first studio. | Trivial |
+| C27 | **A share card that says what was shared** | One generic Open Graph card lives at `[locale]/opengraph-image.tsx` and Next inherits it everywhere, so sharing a service link into a chat shows "Where craft becomes art" rather than the service. The pages people actually paste are the service detail ones — give them a card carrying the service name, price and duration. | Small |
 | C26 | **Mark required fields in the rest of the admin** | Done for the seven forms whose actions refuse without them. The schedule-rule stepper, the gallery sheet, the section manager and the blocklist have no *unmarked* required field today, but if one gains one it needs `FieldLabel required` — the pattern is in `components/admin/field-label.tsx`. | Trivial |
 
 ---
