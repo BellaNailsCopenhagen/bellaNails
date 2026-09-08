@@ -263,7 +263,7 @@ plan). The code half is that a control which cannot work must not look like one 
 
 ## Batch F — hardening and tidy
 
-- [ ] ### QA-16 · Add-on incompatibility is enforced in the UI only **[code]**
+- [x] ### QA-16 · Add-on incompatibility is enforced in the UI only **[code]**
 
   The customiser disables clashing pairs and the page re-sanitises a hand-edited
   `?addons=`, but `prepareBooking` sums the add-ons without ever consulting
@@ -529,3 +529,21 @@ work items either.
   greeting with it. It now uses the stored name like the admin card and the
   confirmation do. For a brand-new client the stored name IS the one they
   typed, so there is one code path, not two.
+- **QA-16 was already false when it was written — no fix was needed.** The item
+  says "`prepareBooking` sums the add-ons without ever consulting
+  `incompatiblePairs`". There is no `prepareBooking` anywhere in the repo; the
+  function is `buildBookingDraft`, and it has consulted them since 946263b
+  (29 Aug, nine days before the pass). `booking-draft.ts:52-69` calls
+  `listIncompatiblePairsAmong` and refuses on a clash — and refuses on a read
+  error too, so it fails closed either way. Every path that inserts a booking
+  goes through it, except accept, which builds from a request snapshot that was
+  itself validated there at creation.
+
+  So the rule is enforced in **three** places, not one: the customizer's
+  checkbox locking, `sanitizeSelectedAddonIds` for a hand-edited `?addons=`,
+  and the persist-time refusal. Verified against the live project: the two
+  configured pairs (Extra Massage × Nail Art, Colour × Extra Massage) make the
+  guard's own query return a clash, and a compatible pair returns none.
+
+  What WAS missing is a test — `sanitizeSelectedAddonIds` is a pure rule with
+  none, so this item shipped six instead of a redundant guard.
