@@ -17,6 +17,7 @@ import {
 } from "@/modules/studio/conflicts"
 import { SCHEDULE_KINDS, type ScheduleKind } from "@/shared/schedule"
 import { dayNumberForIso, isoForDayNumber } from "@/shared/studio-hours"
+import { isFeatureFlagKey } from "@/shared/feature-flags"
 import { routes } from "@/shared/routes"
 
 // A dated span can't exceed this many days — guards against a runaway From/To.
@@ -148,6 +149,10 @@ export async function setFeatureFlag(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
+
+  // TypeScript erases the union, so this is the only thing standing between a
+  // hand-made call and a `feature_flags` row nothing will ever read.
+  if (!isFeatureFlagKey(key)) return { ok: false, error: "Unknown setting." }
 
   const saved = await upsertFeatureFlag(supabase, key, enabled)
   if (!saved.ok) return { ok: false, error: "Couldn’t update the setting." }

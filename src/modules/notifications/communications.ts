@@ -5,6 +5,7 @@ import {
   listCommunicationsForClient,
 } from "@/db/communications"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * The transactional-message log. `recordCommunication` is best-effort — a log
@@ -100,10 +101,9 @@ export async function getClientCommunications(
   clientId: string,
 ): Promise<CommunicationView[]> {
   try {
-    const rows = await listCommunicationsForClient(
-      createSupabaseServiceRoleClient(),
-      clientId,
-    )
+    const db = await requireOwner()
+    if (!db) return []
+    const rows = await listCommunicationsForClient(db, clientId)
     return rows.map((r) => ({
       id: r.id,
       kind: r.kind as CommunicationKind,

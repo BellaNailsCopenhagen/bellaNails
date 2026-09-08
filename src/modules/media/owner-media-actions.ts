@@ -28,6 +28,7 @@ import {
 import { bookingRef } from "@/shared/media-release"
 import { routes } from "@/shared/routes"
 import { formatStudioDate } from "@/shared/studio-time"
+import { isDataConsentPurpose } from "@/shared/data-consent"
 
 /**
  * Owner-side media + consent management: record a client's image, and REQUEST the
@@ -204,14 +205,18 @@ export async function requestMediaRelease(
 /** Ask the client to consent to using their data (name / testimonial). */
 export async function requestDataConsent(
   clientId: string,
-  purpose:
-    | "testimonial_site"
-    | "testimonial_some"
-    | "name_site"
-    | "name_some",
+  purpose: string,
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
+
+  // The union was hand-written here and erased at runtime, so a hand-made call
+  // could store any string as a consent purpose — a row the client centre would
+  // never show and nothing would ever satisfy. `shared/data-consent.ts` already
+  // owned the set and the narrowing; this just asks it.
+  if (!isDataConsentPurpose(purpose)) {
+    return { ok: false, error: "Unknown consent purpose." }
+  }
 
   const saved = await upsertDataConsent(supabase, {
     client_id: clientId,

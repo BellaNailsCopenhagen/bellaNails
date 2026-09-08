@@ -23,6 +23,7 @@ import { getBookingMediaThumbs } from "./booking-media"
 import type { BookingThumb } from "@/shared/booking-view"
 import { toDisplayBookings } from "./booking-view"
 import type { DisplayBooking } from "@/shared/booking-view"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * The page-facing reads: one call per surface, returning everything that
@@ -200,9 +201,24 @@ export async function getMyBookingForManage(id: string) {
   return getBookingForManage(db, id)
 }
 
-/** The same, read as the studio — no ownership constraint. */
-export async function getBookingForManageAsOwner(id: string) {
+/**
+ * The same booking read with no ownership constraint, for a caller holding a
+ * VERIFIED signed link — the emailed manage page. The token is the
+ * authorization, which is why this one takes no owner check; the name says so
+ * rather than leaving the next caller to guess.
+ *
+ * Only call this after `verifyBookingToken` has returned an id.
+ */
+export async function getBookingForSignedToken(id: string) {
   return getBookingForManage(createSupabaseServiceRoleClient(), id)
+}
+
+/** The same, read as the studio. Owner-gated: no token is involved, so this
+    one carries its own check rather than trusting the surface. */
+export async function getBookingForManageAsOwner(id: string) {
+  const db = await requireOwner()
+  if (!db) return null
+  return getBookingForManage(db, id)
 }
 
 const messageOf = (error: unknown) =>

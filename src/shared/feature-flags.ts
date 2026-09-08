@@ -9,6 +9,12 @@ export const FEATURE_FLAGS = {
 
 export type FeatureFlagKey = (typeof FEATURE_FLAGS)[keyof typeof FEATURE_FLAGS]
 
+/** Is this a flag that exists? The union above is erased at runtime, so an
+    action taking a `FeatureFlagKey` still receives whatever a caller sends —
+    and `feature_flags` would happily store a row nothing ever reads. */
+export const isFeatureFlagKey = (value: string): value is FeatureFlagKey =>
+  (Object.values(FEATURE_FLAGS) as string[]).includes(value)
+
 /** Static metadata for one flag — the key (identifier, also a translation key),
     its category, and the admin-facing label + description. */
 export type FeatureFlagDef = {

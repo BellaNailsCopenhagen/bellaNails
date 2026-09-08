@@ -286,7 +286,7 @@ plan). The code half is that a control which cannot work must not look like one 
   - Manual approval is the backstop, which is why this is hardening and not a blocker.
   - **Verify:** an `outside_hours` request for 11:00 on a Saturday is refused.
 
-- [ ] ### QA-18 · Nine admin page-reads bypass RLS with no owner check **[code]**
+- [x] ### QA-18 · Nine admin page-reads bypass RLS with no owner check **[code]**
 
   Every one of the 60+ admin *mutations* calls `requireOwner()` — that audit came back
   clean. Several page-backing reads build a service-role client and rely entirely on
@@ -561,3 +561,21 @@ work items either.
   usual way", and the booking flow will tell them it is taken. That is correct
   but slightly circular. A third kind (`slot_taken`) would let them ask for a
   time the studio might squeeze in — a product decision, not a bug.
+- **QA-18 · `requestDataConsent`'s purpose set already had a narrowing
+  predicate.** `shared/data-consent.ts` exports `isDataConsentPurpose`, and the
+  action had hand-written the same union inline instead of using it — so the
+  registry and the action could drift as well as the value being unchecked.
+  Now it asks the registry.
+- **QA-18 · eleven more module files build a service-role client without a
+  gate, and most of them should.** `ensure-user`, `availability`,
+  `identity/server`, `clients/contacts`, `release-actions`, `release-reads`
+  (token-validated, same class as the new `getBookingForSignedToken`),
+  `data-export-actions` (the client's own, gated by session) and the rest are
+  public or client-authenticated paths by design. They were not in this item's
+  list and each needs its own judgement, so none was touched. Worth a pass of
+  its own before anyone assumes "service-role" means "admin".
+- **QA-18 · `studio/conflicts.ts` defaults its client to service-role.**
+  `getScheduleSnapshot(db = createSupabaseServiceRoleClient())` — every real
+  caller passes a `requireOwner()` client, so it is gated in practice, but the
+  default is a gate-bypass waiting for a caller who forgets. Making the
+  parameter required would close it.

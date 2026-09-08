@@ -7,8 +7,8 @@ import {
 } from "@/db/gallery-items"
 import {
   createSupabaseServerClient,
-  createSupabaseServiceRoleClient,
 } from "@/platform/supabase/server"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /** How many home-page Studio slots exist (sort_order 1–5). */
 const PREVIEW_SLOTS = 5
@@ -42,7 +42,9 @@ export async function getStudioGalleryItems(): Promise<{
   loadError: boolean
 }> {
   try {
-    const rows = await listGalleryItems(createSupabaseServiceRoleClient())
+    const db = await requireOwner()
+    if (!db) return { items: [], loadError: false }
+    const rows = await listGalleryItems(db)
     return { items: rows.map(toStudioGalleryImage), loadError: false }
   } catch (error) {
     console.error("[studio-gallery] read failed", error)

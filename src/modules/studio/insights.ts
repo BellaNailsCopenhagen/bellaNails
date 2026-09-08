@@ -9,7 +9,6 @@ import {
   type InsightsMonthRow,
 } from "@/db/insights-months"
 import { getSchedule } from "@/modules/studio/hours"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { addMonths, monthStartDayNumber } from "@/shared/month-grid"
 import {
   capacityMins,
@@ -29,6 +28,7 @@ import {
   studioYearMonth,
 } from "@/shared/studio-time"
 import type { Schedule } from "@/shared/schedule"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * How the studio is doing, month by month — the read behind /admin/insights.
@@ -155,7 +155,8 @@ export async function getStudioInsights(
   monthCount = INSIGHTS_MONTHS,
 ): Promise<StudioInsights> {
   try {
-    const db = createSupabaseServiceRoleClient()
+    const db = await requireOwner()
+    if (!db) return EMPTY_INSIGHTS
     const base = studioYearMonth(now)
     const first = addMonths(base.year, base.month, -(monthCount - 1))
     const currentKey = monthKey(base.year, base.month)

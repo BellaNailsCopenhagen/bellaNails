@@ -1,7 +1,7 @@
 import "server-only"
 
 import { countUnread, listNotifications } from "@/db/owner-notifications"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * Owner notification reads (service-role, owner-gated route). Degrade-safe: a
@@ -21,11 +21,15 @@ export type OwnerNotification = {
 }
 
 export async function getUnreadNotificationCount(): Promise<number> {
-  return countUnread(createSupabaseServiceRoleClient())
+  const db = await requireOwner()
+  if (!db) return 0
+  return countUnread(db)
 }
 
 export async function getNotifications(limit = 50): Promise<OwnerNotification[]> {
-  const data = await listNotifications(createSupabaseServiceRoleClient(), limit)
+  const db = await requireOwner()
+  if (!db) return []
+  const data = await listNotifications(db, limit)
   return data.map((n) => ({
     id: n.id,
     kind: n.kind,

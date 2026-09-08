@@ -9,7 +9,7 @@ import {
   listAdminServices,
   type AdminServiceRow,
 } from "@/db/services"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * The whole catalog for admin management — categories, services, and add-ons
@@ -30,7 +30,8 @@ export type AdminCatalog = {
 }
 
 export async function getAdminCatalog(): Promise<AdminCatalog> {
-  const db = createSupabaseServiceRoleClient()
+  const db = await requireOwner()
+  if (!db) return { categories: [], uncategorized: [] }
   const [categoryRows, services] = await Promise.all([
     listAdminCategories(db),
     listAdminServices(db),
@@ -59,12 +60,14 @@ export async function getAdminCatalog(): Promise<AdminCatalog> {
 
 /** Every add-on (standalone, reusable) — for the Add-ons tab + service picker. */
 export async function getAllAddons(): Promise<AdminAddon[]> {
-  return listAllAddons(createSupabaseServiceRoleClient())
+  const db = await requireOwner()
+  return db ? listAllAddons(db) : []
 }
 
 /** All incompatible add-on pairs (global). */
 export async function getAllIncompatibilities(): Promise<[string, string][]> {
-  return listAllIncompatiblePairs(createSupabaseServiceRoleClient())
+  const db = await requireOwner()
+  return db ? listAllIncompatiblePairs(db) : []
 }
 
 export type ServiceDetail = {
@@ -85,7 +88,8 @@ export type ServiceDetail = {
 export async function getServiceDetail(
   id: string,
 ): Promise<ServiceDetail | null> {
-  const db = createSupabaseServiceRoleClient()
+  const db = await requireOwner()
+  if (!db) return null
 
   const service = await getAdminService(db, id)
   if (!service) return null

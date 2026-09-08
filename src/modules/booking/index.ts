@@ -14,6 +14,7 @@ export {
   getAdminQueue,
   getAdminFocus,
   getBookingForManageAsOwner,
+  getBookingForSignedToken,
   getMyBookingForManage,
   getClientBookingHistory,
   getMyBookings,

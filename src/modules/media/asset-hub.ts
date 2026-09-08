@@ -6,10 +6,10 @@ import { listAssetsForMedia } from "@/db/assets"
 import { listHubMedia } from "@/db/client-media"
 import { listReleasesForBookings } from "@/db/media-releases"
 import { signedViewUrl, storageConfigured } from "@/platform/storage/supabase"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { metaOf } from "@/shared/booking-policy"
 import { deriveAssetState, type AssetState } from "@/shared/asset-state"
 import { bookingRef, RELEASE_PURPOSES } from "@/shared/media-release"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 /**
  * The asset hub's read model — every client image/video across all clients,
@@ -47,7 +47,10 @@ export type HubAsset = {
 }
 
 export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
-  const supabase = createSupabaseServiceRoleClient()
+  // Every client's private photos, with freshly signed URLs. The sharpest read
+  // in the app to leave ungated.
+  const supabase = await requireOwner()
+  if (!supabase) return []
 
   const media = await listHubMedia(supabase, clientId)
   if (!media.length) return []
@@ -174,8 +177,10 @@ export async function getHubAppointments(
     else byBooking.set(key, [asset])
   }
 
+  const db = await requireOwner()
+  if (!db) return []
   const labels = await listBookingLabelsByIds(
-    createSupabaseServiceRoleClient(),
+    db,
     [...byBooking.keys()].filter((key) => !key.startsWith("unlinked:")),
   )
   const labelById = new Map(labels.map((b) => [b.id, b]))

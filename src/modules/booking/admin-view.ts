@@ -9,13 +9,13 @@ import {
   type NoteRow,
 } from "@/db/notes"
 import { fetchClientContacts } from "@/modules/clients/contacts"
-import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import type { ClientContact } from "@/shared/contact"
 import { groupReleasesByBooking } from "@/shared/media-release"
 import { toNoteView, type NoteView } from "@/shared/notes"
 import { ADMIN_LOCALE } from "@/config/admin"
 import { toDisplayBookings } from "./booking-view"
 import type { DisplayBooking } from "@/shared/booking-view"
+import { requireOwner } from "@/modules/identity/require-owner"
 
 // Group note rows by a chosen key into NoteViews (feed order preserved).
 function groupNotes(
@@ -49,9 +49,11 @@ export async function resolveAdminBookings(
 }> {
   const bookingIds = rows.map((row) => row.id)
   const clientIds = rows.map((row) => row.client_id)
-  // Notes are owner-only (RLS denies the authed client), so read them with
-  // service-role — this resolve only ever runs on owner-gated admin surfaces.
-  const noteDb = createSupabaseServiceRoleClient()
+  // Notes are owner-only (RLS denies the authed client), so they need
+  // service-role — but ask for it through the gate rather than assuming the
+  // surface was gated. Null just means no notes, which every caller degrades
+  // around already.
+  const noteDb = await requireOwner()
   const [
     bookings,
     contacts,
@@ -70,9 +72,10 @@ export async function resolveAdminBookings(
       return {}
     }),
     listReleasesForBookings(supabase, bookingIds).catch(() => []),
-    // Notes degrade independently — a missing table never takes the list down.
-    listNotesForBookings(noteDb, bookingIds).catch(() => []),
-    listClientLevelNotes(noteDb, clientIds).catch(() => []),
+    // Notes degrade independently — a missing table, or a caller that turns
+    // out not to be the owner, never takes the list down.
+    noteDb ? listNotesForBookings(noteDb, bookingIds).catch(() => []) : [],
+    noteDb ? listClientLevelNotes(noteDb, clientIds).catch(() => []) : [],
   ])
 
   // Attach the media-release state + artist notes per booking (a booking shows its

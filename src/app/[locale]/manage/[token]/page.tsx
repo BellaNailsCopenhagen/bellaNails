@@ -10,7 +10,7 @@ import { BodySm } from "@/components/ui/typography"
 import { ManageBooking } from "@/app/[locale]/manage/[token]/_components/manage-booking"
 import {
   getSlotsForDuration,
-  getBookingForManageAsOwner,
+  getBookingForSignedToken,
   getMaxAdvanceDays,
   verifyBookingToken,
 } from "@/modules/booking"
@@ -52,7 +52,7 @@ export default async function ManagePage({
   const id = verifyBookingToken(token)
   if (!id) notFound()
 
-  const booking = await getBookingForManageAsOwner(id)
+  const booking = await getBookingForSignedToken(id)
   if (!booking) notFound()
 
   const [t, maxAdvanceDays] = await Promise.all([
