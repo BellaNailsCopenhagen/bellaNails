@@ -11,8 +11,8 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 
 | | Human | Code | Total |
 | --- | --- | --- | --- |
-| **Must** | 9 | 3 | 12 |
-| **Should** | 8 | 11 | 19 |
+| **Must** | 9 | 2 | 11 |
+| **Should** | 9 | 11 | 20 |
 | **Could** | 1 | 11 | 12 |
 | **Won't (this release)** | — | 5 | 5 |
 
@@ -67,6 +67,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | H14 | **Add the social URLs** | All three blank, so the footer shows no social column and the JSON-LD carries no `sameAs`. | `/admin/business` |
 | H15 | **Give me the phone number + geo coordinates** | Deliberately omitted from the `NailSalon` schema rather than guessed — Google *displays* a telephone from structured data, so a placeholder is worse than none. | — |
 | H16 | **Apply `supabase/gallery-surface-cleanup.sql`** | Retires the `testimonial` asset surface. The delete is a no-op (live `asset_usages` holds one row, surface `clients_gallery`); the value is the constraint that stops new ones. | SQL editor |
+| H18 | **Apply `supabase/drop-dead-columns.sql`** | Five columns live carries that nothing reads (`services.cal_event_slug`, four on `feature_flags`). Applying it makes a fresh `schema.sql` bootstrap and the live project the same shape — the only difference between them today. Regenerate `types.ts` after. | SQL editor |
 | H17 | **Two clients called Raul, and the QA leftovers** | Two rows, 2 and 3 bookings, separate emails. Plus one cancelled 12 Sep booking left by the pass. Notifications are already cleared. | `/admin/clients` |
 
 ## Should · Code
