@@ -47,6 +47,20 @@
     "rowLearnMore": "Learn more"
   },
   "booking": {
+    "request": {
+      "overTitle": "Booking not completed",
+      "overBody": "You already have 2 active bookings (the maximum). If you'd like, you can request this time instead \u2014 it's not guaranteed, and the studio will review and approve it manually.",
+      "mySpaceLink": "Check your active bookings in My Space",
+      "outsideTitle": "Request a time outside our hours",
+      "outsideBody": "Pick a time outside our normal hours. It's not guaranteed \u2014 the studio will review and approve it manually.",
+      "messageLabel": "Message (optional)",
+      "send": "Send request",
+      "sending": "Sending\u2026",
+      "notGuaranteed": "not guaranteed",
+      "genericError": "Something went wrong \u2014 please try again.",
+      "outsideAdvanceNote": "These times are outside our normal hours \u2014 not guaranteed.",
+      "cantFindTime": "Can't find a time? Request one outside our hours"
+    },
     "metaTitle": "Book Online – Nail Salon in Ørestad, Copenhagen",
     "metaDescription": "Book your nail appointment online: classic manicure, gel extensions, Shellac and BIAB at Bella Nails — a private nail salon in Ørestad, Copenhagen.",
     "eyebrow": "Online booking · Ørestad, Copenhagen",

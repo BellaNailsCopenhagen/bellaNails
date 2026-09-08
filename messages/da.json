@@ -47,6 +47,20 @@
     "rowLearnMore": "Læs mere"
   },
   "booking": {
+    "request": {
+      "overTitle": "Booking ikke gennemf\u00f8rt",
+      "overBody": "Du har allerede 2 aktive bookinger (det maksimale). Hvis du vil, kan du anmode om denne tid i stedet \u2014 den er ikke garanteret, og salonen gennemg\u00e5r og godkender den manuelt.",
+      "mySpaceLink": "Se dine aktive bookinger i Mit rum",
+      "outsideTitle": "Anmod om en tid uden for \u00e5bningstiden",
+      "outsideBody": "V\u00e6lg en tid uden for vores normale \u00e5bningstid. Den er ikke garanteret \u2014 salonen gennemg\u00e5r og godkender den manuelt.",
+      "messageLabel": "Besked (valgfrit)",
+      "send": "Send anmodning",
+      "sending": "Sender\u2026",
+      "notGuaranteed": "ikke garanteret",
+      "genericError": "Noget gik galt \u2014 pr\u00f8v igen.",
+      "outsideAdvanceNote": "Disse tider er uden for normal \u00e5bningstid \u2014 ikke garanteret.",
+      "cantFindTime": "Finder du ikke et tidspunkt? Anmod om en tid uden for \u00e5bningstiden"
+    },
     "metaTitle": "Book tid online – neglesalon i Ørestad, København",
     "metaDescription": "Book din negletid online: klassisk manicure, geleforlængelse, Shellac og BIAB hos Bella Nails — en privat neglesalon i Ørestad, København.",
     "eyebrow": "Online tidsbestilling · Ørestad, København",

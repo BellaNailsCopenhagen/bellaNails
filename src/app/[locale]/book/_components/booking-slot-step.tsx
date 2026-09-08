@@ -51,6 +51,7 @@ export function BookingSlotStep({
   humanLabels: HumanCheckLabels | null
 }) {
   const t = useTranslations("booking")
+  const tRequest = useTranslations("booking.request")
   const locale = useLocale()
   const router = useRouter()
   const [capStart, setCapStart] = useState<string | null>(null)
@@ -77,12 +78,9 @@ export function BookingSlotStep({
   // confirm/advance wording so it never reads as a confirmed reservation.
   const outsideLabels = {
     ...slotLabels,
-    confirm: locale === "en" ? "Send request" : "Send anmodning",
-    confirming: locale === "en" ? "Sending…" : "Sender…",
-    advanceNote:
-      locale === "en"
-        ? "These times are outside our normal hours — not guaranteed."
-        : "Disse tider er uden for normal åbningstid — ikke garanteret.",
+    confirm: tRequest("send"),
+    confirming: tRequest("sending"),
+    advanceNote: tRequest("outsideAdvanceNote"),
   }
 
   const onConfirm = async (start: string): Promise<SlotPickerOutcome> => {
@@ -176,9 +174,7 @@ export function BookingSlotStep({
             size="sm"
             onClick={() => setShowOutside(true)}
           >
-            {locale === "en"
-              ? "Can't find a time? Request one outside our hours"
-              : "Finder du ikke et tidspunkt? Anmod om en tid uden for åbningstiden"}
+            {tRequest("cantFindTime")}
           </Button>
         )
       ) : null}

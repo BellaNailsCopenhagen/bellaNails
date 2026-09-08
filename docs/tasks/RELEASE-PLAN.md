@@ -102,7 +102,6 @@ so the gate is honest about what is still missing from R1.
 | C5 | **Media performance baseline** | Feature M's premise is out of date: storage is **Supabase Storage**, not Scaleway, and pre-sizing already happens in the browser on upload (`optimizeImage` / `optimizeVideo`). What is left is an actual LCP/TTFB measurement of the photo-heavy pages, and then a decision on whether Supabase's image transforms are worth turning on. Measure before building anything. | Small |
 | C6 | **A11y + Lighthouse pass, no-flicker** | Part of launch hardening (L). Cheap to do once, expensive to retrofit. | Medium |
 
-| C9 | **Booking-request copy into the catalogue** | `booking-request-form.tsx` + `booking-slot-step.tsx` use a hand-rolled bilingual map instead of `t()`. The copy is correct da/en, so this is drift risk rather than a visible bug — the last client-facing text outside the catalogues after QA-13. | Small |
 | C10 | **Audit the other 11 service-role callers** | QA-18 gated the nine reads it named. Eleven more module files build a service-role client without a gate and **most of them should** (`ensure-user`, `availability`, token-validated reads). Each needs its own judgement before anyone assumes service-role means admin. | Medium |
 
 | C14 | **Root locale: make `/` always `/da`** | Needs H-side confirmation first (see D1). Today `/` negotiates from Accept-Language, so an English browser lands on `/en` — defensible, but this is a Danish-first studio. | Trivial |

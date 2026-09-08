@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition, type ComponentProps } from "react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Link, useRouter } from "@/i18n/navigation"
@@ -14,37 +14,6 @@ import { routes } from "@/config/routes"
 import type { Slot } from "@/shared/booking-slots"
 import type { BookingContact } from "@/shared/contact-validation"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
-
-const COPY = {
-  da: {
-    overTitle: "Booking ikke gennemført",
-    overBody:
-      "Du har allerede 2 aktive bookinger (det maksimale). Hvis du vil, kan du anmode om denne tid i stedet — den er ikke garanteret, og salonen gennemgår og godkender den manuelt.",
-    mySpaceLink: "Se dine aktive bookinger i Mit rum",
-    outsideTitle: "Anmod om en tid uden for åbningstiden",
-    outsideBody:
-      "Vælg en tid uden for vores normale åbningstid. Den er ikke garanteret — salonen gennemgår og godkender den manuelt.",
-    messageLabel: "Besked (valgfrit)",
-    send: "Send anmodning",
-    sending: "Sender…",
-    notGuaranteed: "ikke garanteret",
-    genericError: "Noget gik galt — prøv igen.",
-  },
-  en: {
-    overTitle: "Booking not completed",
-    overBody:
-      "You already have 2 active bookings (the maximum). If you'd like, you can request this time instead — it's not guaranteed, and the studio will review and approve it manually.",
-    mySpaceLink: "Check your active bookings in My Space",
-    outsideTitle: "Request a time outside our hours",
-    outsideBody:
-      "Pick a time outside our normal hours. It's not guaranteed — the studio will review and approve it manually.",
-    messageLabel: "Message (optional)",
-    send: "Send request",
-    sending: "Sending…",
-    notGuaranteed: "not guaranteed",
-    genericError: "Something went wrong — please try again.",
-  },
-}
 
 /**
  * The client's booking-REQUEST form. `over_limit`: the time they picked is fixed
@@ -79,7 +48,7 @@ export function BookingRequestForm({
   onProofSpent: () => void
 }) {
   const locale = useLocale()
-  const copy = locale === "en" ? COPY.en : COPY.da
+  const copy = useTranslations("booking.request")
   const router = useRouter()
   // A successful send navigates to /request-sent, so we own the transition here
   // rather than useActionRunner (whose success path also refreshes the route).
@@ -116,10 +85,10 @@ export function BookingRequestForm({
     <TintedCard className="space-y-4 p-5">
       <div className="space-y-1">
         <Eyebrow as="h3">
-          {kind === "over_limit" ? copy.overTitle : copy.outsideTitle}
+          {kind === "over_limit" ? copy("overTitle") : copy("outsideTitle")}
         </Eyebrow>
         <BodySm className="text-muted-foreground">
-          {kind === "over_limit" ? copy.overBody : copy.outsideBody}
+          {kind === "over_limit" ? copy("overBody") : copy("outsideBody")}
         </BodySm>
         {kind === "over_limit" ? (
           <BodySm className="text-muted-foreground">
@@ -129,7 +98,7 @@ export function BookingRequestForm({
               rel="noopener noreferrer"
               className="underline underline-offset-2 hover:text-foreground"
             >
-              {copy.mySpaceLink}
+              {copy("mySpaceLink")}
             </Link>
           </BodySm>
         ) : null}
@@ -137,7 +106,7 @@ export function BookingRequestForm({
 
       <label className="block space-y-1">
         <span className="font-functional text-xs text-muted-foreground">
-          {copy.messageLabel}
+          {copy("messageLabel")}
         </span>
         <textarea
           value={message}
@@ -152,18 +121,18 @@ export function BookingRequestForm({
         <>
           <BodySm className="text-sm text-foreground">
             {formatStudioDate(fixedStart, locale)} ·{" "}
-            {formatStudioTime(fixedStart, locale)} · {copy.notGuaranteed}
+            {formatStudioTime(fixedStart, locale)} · {copy("notGuaranteed")}
           </BodySm>
           <Button
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
                 const res = await sendRequest(fixedStart)
-                if (!res.ok) toast.error(res.error || copy.genericError)
+                if (!res.ok) toast.error(res.error || copy("genericError"))
               })
             }
           >
-            {pending ? copy.sending : copy.send}
+            {pending ? copy("sending") : copy("send")}
           </Button>
         </>
       ) : kind === "outside_hours" && slots && slotLabels ? (
