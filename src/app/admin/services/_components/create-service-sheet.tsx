@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { CategorySelect } from "@/components/admin/category-select"
 import { createService } from "@/modules/catalog/service-actions"
 import { fieldLabel } from "@/components/admin/field-label"
+import { parseKroner } from "@/shared/money"
 import { routes } from "@/shared/routes"
 
 const DURATION_STEP = 15
@@ -33,12 +34,19 @@ export function CreateServiceSheet({
   const [durationMins, setDurationMins] = useState(45)
   const [categoryId, setCategoryId] = useState("")
 
-  const create = () =>
+  // `Number("")` is 0 and 0 was a valid price, so an empty box submitted a free
+  // service onto the public menu. Parse the STRING: missing stays missing, and
+  // Danish grouping ("1.200") reads as 1200 rather than 1.2.
+  const price = parseKroner(priceKr)
+  const priceOk = price !== null && price > 0
+
+  const create = () => {
+    if (price === null || price <= 0) return
     startTransition(async () => {
       const result = await createService({
         nameEn,
         nameDa,
-        priceKr: Number(priceKr),
+        priceKr: price,
         durationMins,
         categoryId: categoryId || null,
       })
@@ -50,6 +58,7 @@ export function CreateServiceSheet({
         toast.error(result.error || "Couldn’t create.")
       }
     })
+  }
 
   return (
     <>
@@ -103,7 +112,13 @@ export function CreateServiceSheet({
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
+                aria-invalid={priceKr.trim() !== "" && !priceOk}
               />
+              {priceKr.trim() !== "" && !priceOk ? (
+                <p className="font-functional text-xs text-destructive">
+                  Enter an amount above 0.
+                </p>
+              ) : null}
             </div>
             <div className="space-y-1">
               <Label className={fieldLabel}>Duration</Label>
@@ -141,7 +156,7 @@ export function CreateServiceSheet({
           />
 
           <div className="flex justify-end">
-            <Button size="sm" disabled={pending} onClick={create}>
+            <Button size="sm" disabled={pending || !priceOk} onClick={create}>
               {pending ? "Creating…" : "Create service"}
             </Button>
           </div>

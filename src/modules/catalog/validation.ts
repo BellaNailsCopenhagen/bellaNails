@@ -7,10 +7,30 @@ import { listActiveServiceNames, type CatalogName } from "@/db/services"
 
 /** Catalog input rules shared by the service, add-on and category writers. */
 
-/** kr (as typed) → integer cents. Rejects negatives / non-finite. */
+/** kr (as typed) → integer cents. Rejects negatives / non-finite. Zero passes:
+    a free ADD-ON is ordinary (a bundled extra at no charge), which is why its
+    duration may be zero too. See `serviceCents` for the service rule. */
 export function krToCents(kr: number): number | null {
   if (!Number.isFinite(kr) || kr < 0) return null
   return Math.round(kr * 100)
+}
+
+/**
+ * A SERVICE's price in cents, or null if it isn't one.
+ *
+ * Zero is refused, and the asymmetry with add-ons is deliberate. `Number("")`
+ * is 0 and 0 was a valid price, so an empty field and a deliberate "free"
+ * arrived at the action as the same value — and a blank price put a 0 kr
+ * service on the public menu and into the booking flow, where a client could
+ * book it.
+ *
+ * A genuinely free service would be a product decision (an intro offer, a
+ * make-good) and it needs its own affordance rather than inheriting an empty
+ * box. Until it has one, a service costs something.
+ */
+export function serviceCents(kr: number): number | null {
+  const cents = krToCents(kr)
+  return cents !== null && cents > 0 ? cents : null
 }
 
 const NAME_READERS = {

@@ -36,3 +36,11 @@ test("anything unreadable is refused, never guessed at", () => {
   assert.equal(parseKroner("kr 400"), null)
   assert.equal(parseKroner("-50"), null)
 })
+
+// QA-09: the reason the catalog sheets must parse the STRING, not Number().
+test("an empty box is missing, not free — the QA-09 trap", () => {
+  assert.equal(Number(""), 0) // what the sheets used to send
+  assert.equal(parseKroner(""), null) // what they send now
+  // And a deliberate zero still reads as zero, which a free add-on needs.
+  assert.equal(parseKroner("0"), 0)
+})

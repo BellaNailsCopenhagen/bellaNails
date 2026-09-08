@@ -14,6 +14,7 @@ import { BodySm } from "@/components/ui/typography"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { linkAddon, saveAddon, setAddonCompatibility } from "@/modules/catalog/addon-actions"
 import { fieldLabel } from "@/components/admin/field-label"
+import { parseKroner } from "@/shared/money"
 
 const sectionLabel =
   "font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground"
@@ -69,12 +70,19 @@ export function EditAddonSheet({
 
   const incompatible = new Set(incompatibleIds)
 
-  const save = () =>
+  // Same empty-field trap as a service, one rule apart: zero IS a real add-on
+  // price (a bundled extra at no charge), so only a missing or unparseable
+  // amount is refused — never turned into 0 by `Number("")`.
+  const price = parseKroner(priceKr)
+  const priceOk = price !== null
+
+  const save = () => {
+    if (price === null) return
     startTransition(async () => {
       const result = await saveAddon(addon?.id ?? null, {
         nameEn,
         nameDa,
-        priceKr: Number(priceKr),
+        priceKr: price,
         durationMins,
       })
       if (!result.ok) {
@@ -89,6 +97,7 @@ export function EditAddonSheet({
       setOpen(false)
       router.refresh()
     })
+  }
 
   const toggleIncompatible = (otherId: string, makeIncompatible: boolean) =>
     startTransition(async () => {
@@ -146,7 +155,13 @@ export function EditAddonSheet({
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
+                aria-invalid={!priceOk}
               />
+              {priceOk ? null : (
+                <p className="font-functional text-xs text-destructive">
+                  Enter an amount — 0 is allowed for a free add-on.
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label className={fieldLabel}>Extra time</Label>
@@ -213,7 +228,7 @@ export function EditAddonSheet({
           ) : null}
 
           <div className="flex justify-end">
-            <Button size="sm" disabled={pending} onClick={save}>
+            <Button size="sm" disabled={pending || !priceOk} onClick={save}>
               {pending ? "Saving…" : "Save"}
             </Button>
           </div>

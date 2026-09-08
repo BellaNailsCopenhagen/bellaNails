@@ -16,6 +16,7 @@ import {
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { archiveService, updateService } from "@/modules/catalog/service-actions"
 import { fieldLabel } from "@/components/admin/field-label"
+import { parseKroner } from "@/shared/money"
 
 const DURATION_STEP = 15
 
@@ -52,14 +53,21 @@ export function EditServiceSheet({
 
   const archived = Boolean(service.archived_at)
 
-  const save = () =>
+  // `Number("")` is 0 and 0 was a valid price, so clearing the box saved a free
+  // service onto the public menu. Parse the STRING: missing stays missing, and
+  // Danish grouping ("1.200") reads as 1200 rather than 1.2.
+  const price = parseKroner(priceKr)
+  const priceOk = price !== null && price > 0
+
+  const save = () => {
+    if (price === null || price <= 0) return
     startTransition(async () => {
       const result = await updateService(service.id, {
         nameEn,
         nameDa,
         descriptionEn,
         descriptionDa,
-        priceKr: Number(priceKr),
+        priceKr: price,
         durationMins,
         categoryId: categoryId || null,
       })
@@ -74,6 +82,7 @@ export function EditServiceSheet({
         )
       }
     })
+  }
 
   const toggleArchive = () =>
     startTransition(async () => {
@@ -138,7 +147,13 @@ export function EditServiceSheet({
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
+                aria-invalid={!priceOk}
               />
+              {priceOk ? null : (
+                <p className="font-functional text-xs text-destructive">
+                  Enter an amount above 0.
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label className={fieldLabel}>Duration</Label>
@@ -210,7 +225,7 @@ export function EditServiceSheet({
             >
               {archived ? "Restore" : "Archive"}
             </Button>
-            <Button size="sm" disabled={pending} onClick={save}>
+            <Button size="sm" disabled={pending || !priceOk} onClick={save}>
               {pending ? "Saving…" : "Save changes"}
             </Button>
           </div>

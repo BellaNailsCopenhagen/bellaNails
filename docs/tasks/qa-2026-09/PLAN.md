@@ -148,7 +148,7 @@ plan). The code half is that a control which cannot work must not look like one 
   - **Verify:** empty editor → Publish is disabled; a whitespace-only body is refused
     server-side too.
 
-- [ ] ### QA-09 · An empty price field silently creates a 0 DKK service **[code]**
+- [x] ### QA-09 · An empty price field silently creates a 0 DKK service **[code]**
 
   `Number("")` is `0` and `krToCents` accepts it, so only literal gibberish is rejected.
   A 0 kr service goes straight onto the public menu and into the booking flow.
@@ -465,3 +465,10 @@ work items either.
   not restored. Making an old version current again is a one-line reuse of
   `setTermsCurrent` — deliberately not done here, because "which version were
   they shown" needs thinking about before history can move.
+- **QA-09 · the design offer has a worse version of the same bug.**
+  `design-request-card.tsx:312` does `Math.round(Number(priceInput) * 100)`. As
+  well as the empty-is-zero trap, `Number("1.200")` is 1.2 — so a 1.200 kr offer
+  typed the Danish way is sent to the client as **1,20 kr**. That is precisely
+  the bug `parseKroner` was written to fix, and this is the one caller still not
+  using it. Not touched here: a design offer is a different flow with its own
+  semantics, and it deserves its own item. It is the sharpest thing on this list.

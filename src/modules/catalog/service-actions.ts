@@ -19,7 +19,7 @@ import type {
   ServiceCreateInput,
   ServiceEditInput,
 } from "./types"
-import { krToCents, nameTaken } from "./validation"
+import { nameTaken, serviceCents } from "./validation"
 
 /**
  * Owner-managed service writes. Every action re-verifies the owner role (the UI
@@ -71,8 +71,10 @@ export async function createService(
   const nameEn = input.nameEn.trim()
   if (nameEn.length < 2) return { ok: false, error: "Name is required." }
   const nameDk = input.nameDa.trim() || nameEn
-  const cents = krToCents(input.priceKr)
-  if (cents === null) return { ok: false, error: "Price is invalid." }
+  const cents = serviceCents(input.priceKr)
+  if (cents === null) {
+    return { ok: false, error: "Enter a price above 0 kr." }
+  }
   if (!Number.isInteger(input.durationMins) || input.durationMins <= 0) {
     return { ok: false, error: "Duration is invalid." }
   }
@@ -104,8 +106,10 @@ export async function updateService(
   const nameEn = input.nameEn.trim()
   if (nameEn.length < 2) return { ok: false, error: "Name is required." }
   const nameDk = input.nameDa.trim() || nameEn
-  const cents = krToCents(input.priceKr)
-  if (cents === null) return { ok: false, error: "Price is invalid." }
+  const cents = serviceCents(input.priceKr)
+  if (cents === null) {
+    return { ok: false, error: "Enter a price above 0 kr." }
+  }
   if (!Number.isInteger(input.durationMins) || input.durationMins <= 0) {
     return { ok: false, error: "Duration is invalid." }
   }
