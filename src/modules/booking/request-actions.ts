@@ -393,14 +393,22 @@ export async function rejectBookingRequest(
     reject_reason: reason?.trim() || null,
     decided_at: new Date().toISOString(),
   })
-  // Only once it is actually stored — a failed flip leaves the request pending,
-  // and a pending request still needs her.
-  if (flipped.ok) {
-    await dismissOwnerNotifications(db, {
-      kind: "booking_request",
-      targetId: requestId,
-    })
+  // The decline email is irreversible and the queue is not: tell her it failed
+  // and leave the request pending, rather than telling the client no about a
+  // request that still looks undecided to the studio.
+  if (!flipped.ok) {
+    console.error(
+      `[booking-request] request ${requestId} not marked rejected:`,
+      flipped.message,
+    )
+    return { ok: false, error: "Couldn’t decline the request — please try again." }
   }
+
+  // Decided, so it has stopped being a question.
+  await dismissOwnerNotifications(db, {
+    kind: "booking_request",
+    targetId: requestId,
+  })
 
   const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
   if (contact?.email) {

@@ -160,7 +160,7 @@ plan). The code half is that a control which cannot work must not look like one 
     legitimate; if it is, make it a deliberate choice rather than an empty field.
   - **Verify:** blank price → a clear field error, no row written.
 
-- [ ] ### QA-10 · Rejecting a request emails the client even when the write failed **[code]**
+- [x] ### QA-10 · Rejecting a request emails the client even when the write failed **[code]**
 
   `rejectBookingRequest` discards the result of `updateBookingRequest` and returns
   `{ok:true}` regardless. If the flip fails, the client is told no while the request sits
