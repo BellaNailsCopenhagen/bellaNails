@@ -14,9 +14,43 @@ import { getBusinessProfile } from "@/modules/business/profile"
 import { oneLineAddress } from "@/shared/business-profile"
 
 /**
+ * No `?id` — a stale bookmark, a back-button return, a link passed on. Nothing
+ * was reserved, so nothing here may imply it was. Calm, same furniture, and the
+ * two ways on: the menu, and My Space for an appointment they already have.
+ */
+async function BookingNotFound() {
+  const t = await getTranslations("confirmation")
+  return (
+    <Section>
+      <Container className="max-w-4xl">
+        <PageHeader
+          eyebrow={t("missingEyebrow")}
+          lead={t("missingHeadingLine1")}
+          muted={t("missingHeadingLine2")}
+          intro={t("missingIntro")}
+        />
+        <div className="flex flex-wrap gap-4">
+          <Button nativeButton={false} render={<Link href={routes.services} />}>
+            {t("missingBrowseServices")}
+          </Button>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={routes.appointments} />}
+          >
+            {t("viewBookings")}
+          </Button>
+        </div>
+      </Container>
+    </Section>
+  )
+}
+
+/**
  * Confirmation — the branded post-booking success page. The recap is fetched by
- * booking id, and signed-in visitors get the "view my bookings" CTA. A direct
- * hit without an id renders a calm generic confirmed state — never an error.
+ * booking id, and signed-in visitors get the "view my bookings" CTA. Without an
+ * id there is nothing to confirm, so the page says so rather than reassuring
+ * someone about a booking that was never made.
  *
  * The signed-OUT branch is no longer reachable from a fresh booking (booking
  * requires a session), only from an old link or a lapsed one — so it offers a
@@ -24,6 +58,8 @@ import { oneLineAddress } from "@/shared/business-profile"
  * have had to carry through the URL to get here.
  */
 export async function Confirmation({ id }: { id: string | null }) {
+  if (!id) return <BookingNotFound />
+
   const [t, profile] = await Promise.all([
     getTranslations("confirmation"),
     getBusinessProfile(),
@@ -32,12 +68,10 @@ export async function Confirmation({ id }: { id: string | null }) {
   // Sign a token so the (possibly guest) client can pre-approve the media release
   // for this booking. Guarded — a missing token secret just hides the opt-in.
   let releaseToken: string | null = null
-  if (id) {
-    try {
-      releaseToken = signBookingToken(id)
-    } catch {
-      releaseToken = null
-    }
+  try {
+    releaseToken = signBookingToken(id)
+  } catch {
+    releaseToken = null
   }
 
   return (
@@ -56,7 +90,7 @@ export async function Confirmation({ id }: { id: string | null }) {
             account card and the summary can't share a row without overlapping.
             `lg:flex-row-reverse` keeps desktop as recap right, content left. */}
         <div className="flex flex-col gap-12 lg:flex-row-reverse lg:items-start lg:justify-between lg:gap-16">
-          {id ? <ConfirmationRecap id={id} /> : null}
+          <ConfirmationRecap id={id} />
 
           <div className="w-full min-w-0 flex-1 space-y-10">
             <div className="space-y-2">

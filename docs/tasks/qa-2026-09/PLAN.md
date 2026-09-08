@@ -50,7 +50,7 @@ reading the source, not triggered.
     same query; switching keeps the summary and the step. Repeat on `/confirmation?id=`
     and `/appointments?tab=permissions`.
 
-- [ ] ### QA-03 · A blank `/confirmation` tells anyone their session is reserved **[live]**
+- [x] ### QA-03 · A blank `/confirmation` tells anyone their session is reserved **[live]**
 
   `/da/confirmation` with no `?id` renders the full success state — *"Din session er
   reserveret … En bekræftelse er på vej til din e-mail."* Nothing was booked. A stale

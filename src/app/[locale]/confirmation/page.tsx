@@ -9,14 +9,15 @@ import { singleParam } from "@/shared/search-params"
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ locale: string }>
-}): Promise<Metadata> {
-  const { locale } = await params
+  searchParams,
+}: PageProps<"/[locale]/confirmation">): Promise<Metadata> {
+  const [{ locale }, query] = await Promise.all([params, searchParams])
   if (!hasLocale(routing.locales, locale)) notFound()
   const t = await getTranslations({ locale, namespace: "confirmation" })
+  // The tab title is part of the claim: without an id nothing is confirmed.
+  const confirmed = singleParam(query.id) != null
   return {
-    title: t("metaTitle"),
+    title: confirmed ? t("metaTitle") : t("missingMetaTitle"),
     description: t("metaDescription"),
     // Personal post-booking page — never in a search index.
     robots: { index: false, follow: false },
