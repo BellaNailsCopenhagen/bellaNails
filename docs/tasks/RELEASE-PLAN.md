@@ -1,4 +1,9 @@
-# Release plan — everything still outstanding (8 Sep 2026)
+# Release plan — the 8 Sep sweep (superseded)
+
+> **This file is the record, not the list.** The open items moved to
+> [TODO.md](TODO.md) once the code side was worked through. Kept because the
+> commits reference its ids and because the "Shipped since" and "Already done"
+> sections are the audit of what was true on 8 September.
 
 One list, gathered from every planning doc in the repo, the live database and the
 live environment, then checked against the code. Supersedes the scattered todo
