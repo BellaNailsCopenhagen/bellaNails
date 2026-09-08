@@ -14,11 +14,12 @@ Counts are what is still **open** — struck rows below are done.
 | | Human | Code | Total |
 | --- | --- | --- | --- |
 | **Must** | 9 | 2 | 11 |
-| **Should** | 8 | 11 | 19 |
+| **Should** | 6 | 11 | 17 |
 | **Could** | 2 | 11 | 13 |
 | **Won't (this release)** | — | 5 | 5 |
 
-H17 is excluded — test data you're clearing before release.
+H17 is excluded (test data you're clearing before release), and the
+environment variables have their own table below rather than a row each.
 
 ---
 
@@ -29,6 +30,23 @@ H17 is excluded — test data you're clearing before release.
 | **R1** | **A stranger can book, safely** | The domain is live, the legal text is real, the menu has no duplicates, and nothing a client can reach is empty or lying. |
 | **R2** | **Strangers can find her** | The off-page half of the SEO plan: Google Business Profile, citations, a review habit. Code-side this is mostly done. |
 | **R3** | **Growth** | Push, card-hold, waitlist. None of it blocks a paying client. |
+
+---
+
+## Environment — what Vercel has, and what it's missing
+
+Audited today: every `process.env.*` the code reads against the nine variables
+on the project. Nothing here blocks a deploy; two things are switched off
+because of it.
+
+| Variable | State | Effect |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://test.bellanails.dk` | **H2.** Every canonical, the sitemap and robots.txt derive from it. While it is not `https://bellanails.dk` the deploy is a staging copy, and the code now refuses crawlers entirely rather than competing with the real domain. |
+| `HUMAN_CHECK_SECRET` | **missing** | **H10.** Bot protection cannot run: the box is never shown and bookings are never asked for a proof. App settings and the boot log both say so. |
+| `GOOGLE_REVIEW_URL` | **missing** | **H11.** "Request review" renders as an inert control instead of a button. |
+| `BOOKING_TOKEN_SECRET` | **missing**, falls back to `SUPABASE_SERVICE_ROLE_KEY` | **H20.** Signed links work — but rotating the service-role key would invalidate every outstanding manage, approve, offer and testimonial link at once. Worth its own secret before that matters. |
+| `BUSINESS_ADDRESS_LINE_1` `_2`, `BUSINESS_CONTACT_EMAIL`, `BUSINESS_BOOKING_FROM_EMAIL`, `BUSINESS_ALERT_EMAIL` | missing | Fine. These are only the fallback for a blank `business_profile` field, and the live row is filled in. |
+| `NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL` | set, **read by nothing** | **H19.** A leftover from the retired storage migration — storage is Supabase Storage, and there is not one Scaleway or S3 reference left in `src/`. Delete it; it is the only thing still claiming otherwise. |
 
 ---
 
@@ -52,7 +70,6 @@ H17 is excluded — test data you're clearing before release.
 
 | # | What | Why it matters | Effort |
 | --- | --- | --- | --- |
-| ~~C1~~ | ~~**The design offer sends the wrong price**~~ — **FIXED 8 Sep** — `design-request-card.tsx:312` | `Number("1.200")` is `1.2`, so a **1.200 kr offer reaches the client as 1,20 kr**. Only Danish thousands-grouping-without-decimals is affected (the empty case is already guarded, and `1.200,50` becomes NaN and is refused). `parseKroner` exists for exactly this and is the one caller not using it. Real money, real client. | Trivial |
 | C2 | **`/gallery` is empty and now in the sitemap** | `gallery_items` has 0 rows, so a main-nav page renders a heading over blank space — and QA-12 just offered it to crawlers. Either hide the nav entry + drop it from `indexableRoutes` while empty, or wait for content. Hiding is the safe default. | Small |
 | C3 | **Drop "læs mere" while the detail pages are empty** | The other half of H9, and the one that does not wait on content. If H9 lands first, skip this. | Trivial |
 
@@ -64,16 +81,13 @@ H17 is excluded — test data you're clearing before release.
 
 | # | What | Why it matters | Where |
 | --- | --- | --- | --- |
-| H10 | **Set `HUMAN_CHECK_SECRET`** | Bot protection is off. The screen and the boot log now say so plainly, so this is honest rather than silent — but the booking form is still unguarded against a script. | Vercel → Env |
-| H11 | **Set `GOOGLE_REVIEW_URL`** | Until then "Request review" renders as an inert control. Reviews are the highest-leverage local-ranking activity in the SEO plan, so this unlocks R2. | Vercel → Env |
+
 | H12 | **Claim + fill the Google Business Profile** | The single biggest local ranking factor is the primary category "Neglesalon". On-page work only makes her *eligible* to rank; GBP is what puts her in the local pack. | Google |
 | H13 | **Submit core citations with identical NAP** | Krak.dk, De Gule Sider, Trustpilot, Facebook, Instagram, Apple Maps, Bing Places. Consistency is the ranking signal. | external |
 | H14 | **Add the social URLs** | All three blank, so the footer shows no social column and the JSON-LD carries no `sameAs`. | `/admin/business` |
+| H20 | **Give `BOOKING_TOKEN_SECRET` its own value** | It falls back to the service-role key today, so every emailed manage / approve / offer / testimonial link is signed with it. Rotating that key — which you'd want to be able to do freely — would kill every outstanding link. Any long random string fixes it, before there are links in the wild worth keeping. | Vercel → Env |
 | H15 | **Give me the phone number + geo coordinates** | Deliberately omitted from the `NailSalon` schema rather than guessed — Google *displays* a telephone from structured data, so a placeholder is worse than none. | — |
-| ~~H16~~ | ~~**Apply `supabase/gallery-surface-cleanup.sql`**~~ — **DONE 8 Sep**, verified: `surface='testimonial'` is now refused (check violation) | Retires the `testimonial` asset surface. The delete is a no-op (live `asset_usages` holds one row, surface `clients_gallery`); the value is the constraint that stops new ones. | SQL editor |
-| ~~H18~~ | ~~**Apply `supabase/drop-dead-columns.sql`**~~ — **DONE 8 Sep**, verified: all five gone, and a fresh `schema.sql` bootstrap now matches live **exactly** (292 columns, zero drift) | Five columns live carries that nothing reads (`services.cal_event_slug`, four on `feature_flags`). Applying it makes a fresh `schema.sql` bootstrap and the live project the same shape — the only difference between them today. Regenerate `types.ts` after. | SQL editor |
 | H17 | **Two clients called Raul, and the QA leftovers** | Two rows, 2 and 3 bookings, separate emails. Plus one cancelled 12 Sep booking left by the pass. Notifications already cleared. **Your call — being cleaned before release, so not tracked here.** | `/admin/clients` |
-| H19 | **Drop `NEXT_PUBLIC_SCALEWAY_PUBLIC_BASE_URL` from Vercel** | A leftover from the retired storage migration. Storage is Supabase Storage — there is not one Scaleway or S3 reference left in `src/`. Harmless but misleading about which vendor the app uses. | Vercel → Env |
 
 ## Should · Code
 
