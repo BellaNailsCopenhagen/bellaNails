@@ -80,19 +80,21 @@ export async function getSlotsForDuration(
 export async function getBookingSlots(
   ref: SubjectRef,
   db: Db = createSupabaseServerClient(),
-): Promise<{ normal: Slot[]; outside: Slot[]; outsideEnabled: boolean }> {
-  const empty = { normal: [], outside: [], outsideEnabled: false }
+): Promise<{ normal: Slot[]; outsideEnabled: boolean }> {
+  const empty = { normal: [], outsideEnabled: false }
   try {
     const durationMins = await durationFor(ref, db)
     if (durationMins === null) return empty
     const inputs = await loadSlotInputs(durationMins, db)
     if (!inputs) return empty
-    // The flag drives the UI affordance (independent of whether slots exist now).
-    const outsideEnabled = inputs.outsideEnabled
     return {
       normal: generateFor(inputs, {}),
-      outside: outsideEnabled ? generateFor(inputs, { outsideHours: true }) : [],
-      outsideEnabled,
+      // The flag drives the UI affordance, independent of whether outside slots
+      // exist right now. The slots themselves are NOT returned here: they back
+      // a picker behind a "Can't find a time?" button, so shipping them to
+      // every booking visitor sends a calendar almost nobody opens. See
+      // `getOutsideSlots`.
+      outsideEnabled: inputs.outsideEnabled,
     }
   } catch (error) {
     logSlotError(error)
@@ -105,6 +107,31 @@ export async function getBookingSlots(
  * studio hours / no-work / lead time ignored, but still MINUS existing bookings
  * so the artist can only pick a genuinely free slot. Owner-gate at the caller.
  */
+/**
+ * The outside-hours calendar, fetched only once the visitor asks for it.
+ *
+ * Split out of `getBookingSlots` because it backs a picker behind a "Can't find
+ * a time?" button: bundling it into the page meant every booking visitor
+ * downloaded a calendar almost none of them would open, and the size grows with
+ * however generously the artist draws her requestable blocks. Returns [] when
+ * the feature is off, so the caller needs no second check.
+ */
+export async function getOutsideSlots(
+  ref: SubjectRef,
+  db: Db = createSupabaseServerClient(),
+): Promise<Slot[]> {
+  try {
+    const durationMins = await durationFor(ref, db)
+    if (durationMins === null) return []
+    const inputs = await loadSlotInputs(durationMins, db)
+    if (!inputs?.outsideEnabled) return []
+    return generateFor(inputs, { outsideHours: true })
+  } catch (error) {
+    logSlotError(error)
+    return []
+  }
+}
+
 export async function getOverrideSlots(
   ref: SubjectRef,
   db: Db,

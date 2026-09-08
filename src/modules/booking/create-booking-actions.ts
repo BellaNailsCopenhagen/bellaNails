@@ -11,6 +11,7 @@ import { updateClientCommunicationLocale } from "@/db/clients"
 import { resolveLocale, type Locale } from "@/i18n/routing"
 import {
   getAvailableSlots,
+  getOutsideSlots,
   getOverrideSlots,
 } from "@/modules/booking/availability"
 import {
@@ -405,6 +406,19 @@ export async function createBookingAsOwner(
   revalidatePath(revalidatePatterns.adminClient, "page")
   revalidatePath(revalidatePatterns.publicAppointments, "page")
   return { ok: true, id: result.id }
+}
+
+/**
+ * The outside-hours calendar for the public booking flow, on demand.
+ *
+ * Public like the rest of the booking read — it lists free times, not anyone's
+ * data — and reached from the client step the moment the visitor opens "Can't
+ * find a time?", so the page itself never carries it.
+ */
+export async function getOutsideSlotsForBooking(
+  ref: SubjectRef,
+): Promise<Slot[]> {
+  return getOutsideSlots(ref)
 }
 
 /**

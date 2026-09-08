@@ -43,7 +43,7 @@ export async function BookingConfirm({
     getBookingSlots(serviceRef(service.id, selectedAddonIds)),
     getMaxAdvanceDays(),
   ])
-  const { normal: slots, outside: outsideSlots, outsideEnabled } = calendars
+  const { normal: slots, outsideEnabled } = calendars
 
   const { service: localizedService, addons: selectedAddons } =
     localizeSelection(service, addons, locale, selectedAddonIds)
@@ -106,7 +106,6 @@ export async function BookingConfirm({
               maxAdvanceDays={maxAdvanceDays}
               prefill={prefill}
               outsideEnabled={outsideEnabled}
-              outsideSlots={outsideSlots}
             />
 
             <BodySm className="text-xs">

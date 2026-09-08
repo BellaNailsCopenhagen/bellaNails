@@ -98,7 +98,7 @@ so the gate is honest about what is still missing from R1.
 
 | # | What | Why it matters | Effort |
 | --- | --- | --- | --- |
-| C4 | **Lazy-load the outside-hours calendar** | When outside-hours is on, the whole outside calendar (closed weekdays yield the entire window each day — roughly 1–2k slots over the horizon) ships in the RSC payload for **every** booking visitor, though it is only revealed after clicking "Request one". This is the main funnel, and speed is a local ranking factor. | Medium |
+
 | C5 | **Media performance baseline** | Feature M's premise is out of date: storage is **Supabase Storage**, not Scaleway, and pre-sizing already happens in the browser on upload (`optimizeImage` / `optimizeVideo`). What is left is an actual LCP/TTFB measurement of the photo-heavy pages, and then a decision on whether Supabase's image transforms are worth turning on. Measure before building anything. | Small |
 | C6 | **A11y + Lighthouse pass, no-flicker** | Part of launch hardening (L). Cheap to do once, expensive to retrofit. | Medium |
 

@@ -14,8 +14,12 @@ import {
   HumanCheck,
   type HumanCheckLabels,
 } from "@/components/booking/human-check"
-import { createBooking } from "@/modules/booking/create-booking-actions"
+import {
+  createBooking,
+  getOutsideSlotsForBooking,
+} from "@/modules/booking/create-booking-actions"
 import type { Slot } from "@/shared/booking-slots"
+import { serviceRef } from "@/shared/booking-subject"
 import type { BookingContact } from "@/shared/contact-validation"
 import { routes } from "@/config/routes"
 
@@ -34,7 +38,6 @@ export function BookingSlotStep({
   maxAdvanceDays,
   prefill,
   outsideEnabled,
-  outsideSlots,
   signInReturnPath,
   humanLabels,
 }: {
@@ -44,7 +47,6 @@ export function BookingSlotStep({
   maxAdvanceDays: number
   prefill: BookingContact
   outsideEnabled: boolean
-  outsideSlots: Slot[]
   /** Where to return after sign-in if the session lapsed mid-flow. */
   signInReturnPath: string
   /** Null → the check is off (or unconfigured), so no box and no proof. */
@@ -56,6 +58,18 @@ export function BookingSlotStep({
   const router = useRouter()
   const [capStart, setCapStart] = useState<string | null>(null)
   const [showOutside, setShowOutside] = useState(false)
+  // Fetched when she opens it, not shipped with the page — the calendar can be
+  // large and almost nobody opens it. null = not asked for yet.
+  const [outsideSlots, setOutsideSlots] = useState<Slot[] | null>(null)
+
+  const openOutside = () => {
+    setShowOutside(true)
+    if (outsideSlots === null) {
+      getOutsideSlotsForBooking(serviceRef(serviceId, addonIds))
+        .then(setOutsideSlots)
+        .catch(() => setOutsideSlots([]))
+    }
+  }
   // Null until the box is ticked. The server decides whether it is required —
   // the flag lives there — so this is sent as-is either way.
   const [humanProof, setHumanProof] = useState<string | null>(null)
@@ -165,14 +179,21 @@ export function BookingSlotStep({
             addonIds={addonIds}
             prefill={prefill}
             kind="outside_hours"
-            slots={outsideSlots}
-            slotLabels={outsideLabels}
+            slots={outsideSlots ?? []}
+            // While the fetch is in flight there are no slots to show, but
+            // "no available times" would be a claim rather than a state — so
+            // the empty line says we are still looking.
+            slotLabels={
+              outsideSlots === null
+                ? { ...outsideLabels, empty: t("embedLoading") }
+                : outsideLabels
+            }
           />
         ) : (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowOutside(true)}
+            onClick={openOutside}
           >
             {tRequest("cantFindTime")}
           </Button>
