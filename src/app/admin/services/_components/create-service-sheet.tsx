@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { CategorySelect } from "@/components/admin/category-select"
 import { createService } from "@/modules/catalog/service-actions"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 import { routes } from "@/shared/routes"
 
@@ -81,11 +81,12 @@ export function CreateServiceSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="new-en" className={fieldLabel}>
+              <FieldLabel htmlFor="new-en" required>
                 Name · EN
-              </Label>
+              </FieldLabel>
               <Input
                 id="new-en"
+                aria-required="true"
                 value={nameEn}
                 onValueChange={setNameEn}
               />
@@ -104,11 +105,12 @@ export function CreateServiceSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="new-price" className={fieldLabel}>
+              <FieldLabel htmlFor="new-price" required>
                 Price · DKK
-              </Label>
+              </FieldLabel>
               <Input
                 id="new-price"
+                aria-required="true"
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
@@ -155,7 +157,8 @@ export function CreateServiceSheet({
             onChange={setCategoryId}
           />
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3">
+            <RequiredLegend />
             <Button size="sm" disabled={pending || !priceOk} onClick={create}>
               {pending ? "Creating…" : "Create service"}
             </Button>

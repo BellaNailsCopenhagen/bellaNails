@@ -13,7 +13,7 @@ import { BodySm } from "@/components/ui/typography"
 import { ImagePicker, type PickedImage } from "@/components/admin/image-picker"
 import { publishStudioImageUrl } from "@/modules/catalog/image-actions"
 import { saveCategory } from "@/modules/catalog/category-actions"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
 
 export type EditableCategory = {
   id: string
@@ -102,9 +102,9 @@ export function EditCategorySheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="category-en" className={fieldLabel}>
+              <FieldLabel htmlFor="category-en" required>
                 Name · EN
-              </Label>
+              </FieldLabel>
               <Input id="category-en" value={nameEn} onValueChange={setNameEn} />
             </div>
             <div className="space-y-1">
@@ -157,6 +157,9 @@ export function EditCategorySheet({
               list. File services under it from each service’s Edit sheet.
             </BodySm>
           ) : null}
+
+          <RequiredLegend />
+
 
           <div className="flex justify-end">
             <Button size="sm" disabled={pending} onClick={save}>

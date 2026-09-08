@@ -71,7 +71,7 @@
     "fields": {
       "fullName": "Fulde navn",
       "fullNamePlaceholder": "f.eks. Anna Jensen",
-      "phone": "Telefonnummer",
+      "phone": "Telefonnummer (valgfrit)",
       "phonePlaceholder": "+45 12 34 56 78",
       "notes": "Noter til sessionen (valgfrit)",
       "notesPlaceholder": "Noget vi bør vide før din session",

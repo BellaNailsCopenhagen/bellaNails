@@ -15,7 +15,7 @@ import {
 } from "@/components/admin/category-select"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { archiveService, updateService } from "@/modules/catalog/service-actions"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 
 const DURATION_STEP = 15
@@ -116,11 +116,12 @@ export function EditServiceSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="name-en" className={fieldLabel}>
+              <FieldLabel htmlFor="name-en" required>
                 Name · EN
-              </Label>
+              </FieldLabel>
               <Input
                 id="name-en"
+                aria-required="true"
                 value={nameEn}
                 onValueChange={setNameEn}
               />
@@ -139,11 +140,12 @@ export function EditServiceSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="price" className={fieldLabel}>
+              <FieldLabel htmlFor="price" required>
                 Price · DKK
-              </Label>
+              </FieldLabel>
               <Input
                 id="price"
+                aria-required="true"
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
@@ -214,6 +216,8 @@ export function EditServiceSheet({
           />
 
           <PriceHistoryPanel entityType="service" entityId={service.id} />
+
+          <RequiredLegend />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button

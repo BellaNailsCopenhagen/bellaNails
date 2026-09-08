@@ -112,15 +112,25 @@ export function bookingFlowQuery(input: {
   return query
 }
 
-/** True when the flow has everything the create call needs. The email is only
-    part of that when sign-in is off — otherwise the session supplies it. */
+/**
+ * True when the flow has everything the create call needs.
+ *
+ * A name, and an email only when sign-in is off — otherwise the session
+ * supplies it.
+ *
+ * **Phone is optional.** There is no SMS or calling flow yet, so a number the
+ * studio cannot use must not stand between a client and a booking. One that IS
+ * given still has to look like a number, because a typo helps nobody: the
+ * point is that blank is allowed, not that anything is.
+ */
 export function isCompleteContact(
   contact: BookingContact,
   { requireEmail = false }: { requireEmail?: boolean } = {},
 ): boolean {
+  const phone = contact.phone?.trim()
   return (
     (contact.name?.trim().length ?? 0) >= 2 &&
-    PHONE_PATTERN.test(contact.phone ?? "") &&
+    (!phone || PHONE_PATTERN.test(phone)) &&
     (!requireEmail || EMAIL_PATTERN.test(contact.email ?? ""))
   )
 }

@@ -6,7 +6,6 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +14,7 @@ import { saveTermsVersion } from "@/modules/terms/actions"
 import type { TermsKind, TermsRecord } from "@/modules/terms/terms"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, RequiredLegend } from "@/components/admin/field-label"
 import { termsProblem } from "@/shared/terms-validation"
 
 /**
@@ -141,21 +140,23 @@ export function TermsEditor({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor={`${kind}-title-en`} className={fieldLabel}>
+              <FieldLabel htmlFor={`${kind}-title-en`} required>
                 Title · EN
-              </Label>
+              </FieldLabel>
               <Input
                 id={`${kind}-title-en`}
+                aria-required="true"
                 value={titleEn}
                 onValueChange={setTitleEn}
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor={`${kind}-title-da`} className={fieldLabel}>
+              <FieldLabel htmlFor={`${kind}-title-da`} required>
                 Title · DA
-              </Label>
+              </FieldLabel>
               <Input
                 id={`${kind}-title-da`}
+                aria-required="true"
                 value={titleDk}
                 onValueChange={setTitleDk}
               />
@@ -163,22 +164,24 @@ export function TermsEditor({
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor={`${kind}-body-en`} className={fieldLabel}>
+            <FieldLabel htmlFor={`${kind}-body-en`} required>
               Body · EN
-            </Label>
+            </FieldLabel>
             <Textarea
               id={`${kind}-body-en`}
+                aria-required="true"
               value={bodyEn}
               onChange={(e) => setBodyEn(e.target.value)}
               className="min-h-48"
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor={`${kind}-body-da`} className={fieldLabel}>
+            <FieldLabel htmlFor={`${kind}-body-da`} required>
               Body · DA
-            </Label>
+            </FieldLabel>
             <Textarea
               id={`${kind}-body-da`}
+                aria-required="true"
               value={bodyDk}
               onChange={(e) => setBodyDk(e.target.value)}
               className="min-h-48"
@@ -191,6 +194,7 @@ export function TermsEditor({
           </BodySm>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
+            <RequiredLegend className="mr-auto" />
             {problem ? (
               <BodySm className="text-xs text-destructive">
                 {problem.message}

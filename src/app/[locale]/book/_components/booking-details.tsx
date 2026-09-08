@@ -30,6 +30,8 @@ type Field = {
   minLength?: number
   pattern?: string
   defaultValue?: string
+  /** Phone is the one field the studio can't act on yet — see below. */
+  optional?: boolean
 }
 
 /**
@@ -68,9 +70,10 @@ export async function BookingDetails({
   const defaults = {
     name: prefill.name ?? user?.name ?? undefined,
     email: prefill.email ?? user?.email ?? undefined,
-    // A signed-in client's saved phone wins; otherwise seed the +45 country code
-    // so they enter a full E.164 number (toE164 still backstops mis-entries).
-    phone: prefill.phone ?? user?.phone ?? "+45 ",
+    // Their saved number, or nothing. The "+45 " seed this used to carry made
+    // an OPTIONAL field fail its own pattern for anyone who left it alone —
+    // two digits is not a phone number. The placeholder shows the format.
+    phone: prefill.phone ?? user?.phone ?? undefined,
     notes: prefill.notes,
   }
 
@@ -84,10 +87,15 @@ export async function BookingDetails({
   // No add-ons on this service → the customise step is skipped; back = picker.
   const hasAddons = addons.length > 0
 
-  // Every field shown is required — enforced natively here (required/type/
-  // pattern, browser-localized messages) and again at the /book routing gate
-  // (`isCompleteContact`), using the same patterns so they can't disagree.
-  // Email only appears when the session isn't supplying it.
+  // Enforced natively here (required/type/pattern, browser-localized messages)
+  // and again at the /book routing gate (`isCompleteContact`), using the same
+  // patterns so they can't disagree. Email only appears when the session isn't
+  // supplying it.
+  //
+  // Phone is OPTIONAL: nothing in the studio sends an SMS or places a call yet,
+  // so a number we cannot use is not worth blocking a booking for. It is still
+  // asked for — she wants it the day someone needs reaching — and still has to
+  // look like a number if given.
   const fields: Field[] = [
     {
       id: "name",
@@ -113,6 +121,7 @@ export async function BookingDetails({
         ]),
     {
       id: "phone",
+      optional: true,
       label: t("fields.phone"),
       placeholder: t("fields.phonePlaceholder"),
       type: "tel",
@@ -256,7 +265,7 @@ export async function BookingDetails({
                   type={field.type}
                   autoComplete={field.autoComplete}
                   placeholder={field.placeholder}
-                  required
+                  required={!field.optional}
                   minLength={field.minLength}
                   pattern={field.pattern}
                   defaultValue={field.defaultValue}

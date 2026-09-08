@@ -71,7 +71,7 @@
     "fields": {
       "fullName": "Full name",
       "fullNamePlaceholder": "e.g. Anna Jensen",
-      "phone": "Phone number",
+      "phone": "Phone number (optional)",
       "phonePlaceholder": "+45 12 34 56 78",
       "notes": "Session notes (optional)",
       "notesPlaceholder": "Anything we should know before your session",

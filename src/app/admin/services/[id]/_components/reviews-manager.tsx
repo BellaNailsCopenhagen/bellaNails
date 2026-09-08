@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { addReview, deleteReview } from "@/modules/catalog/review-actions"
 import type { Review } from "@/modules/catalog"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel } from "@/components/admin/field-label"
 
 /** Owner manager for a service's client reviews ("what clients say"). */
 export function ReviewsManager({
@@ -119,11 +119,12 @@ export function ReviewsManager({
           </div>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="review-body" className={fieldLabel}>
+          <FieldLabel htmlFor="review-body" required>
             Review
-          </Label>
+          </FieldLabel>
           <Textarea
             id="review-body"
+            aria-required="true"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             className="min-h-20"

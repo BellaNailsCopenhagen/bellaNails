@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BodySm, Caption } from "@/components/ui/typography"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel } from "@/components/admin/field-label"
 import { matchesClientSearch } from "@/shared/client-search"
 import { EMAIL_PATTERN } from "@/shared/contact-validation"
 
@@ -44,9 +44,10 @@ export function ClientStep({ clients, onSelect }: {
       <div className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="new-name" className={fieldLabel}>Name</Label>
+            <FieldLabel htmlFor="new-name" required>Name</FieldLabel>
             <Input
               id="new-name"
+                aria-required="true"
               value={name}
               onValueChange={setName}
               placeholder="Full name"
@@ -54,9 +55,10 @@ export function ClientStep({ clients, onSelect }: {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="new-email" className={fieldLabel}>Email</Label>
+            <FieldLabel htmlFor="new-email" required>Email</FieldLabel>
             <Input
               id="new-email"
+                aria-required="true"
               type="email"
               value={email}
               onValueChange={setEmail}

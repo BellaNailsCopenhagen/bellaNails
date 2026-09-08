@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { BodySm } from "@/components/ui/typography"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
 import { linkAddon, saveAddon, setAddonCompatibility } from "@/modules/catalog/addon-actions"
-import { fieldLabel } from "@/components/admin/field-label"
+import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 
 const sectionLabel =
@@ -132,9 +132,9 @@ export function EditAddonSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="addon-en" className={fieldLabel}>
+              <FieldLabel htmlFor="addon-en" required>
                 Name · EN
-              </Label>
+              </FieldLabel>
               <Input id="addon-en" value={nameEn} onValueChange={setNameEn} />
             </div>
             <div className="space-y-1">
@@ -147,11 +147,12 @@ export function EditAddonSheet({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="addon-price" className={fieldLabel}>
+              <FieldLabel htmlFor="addon-price" required>
                 Extra price · DKK
-              </Label>
+              </FieldLabel>
               <Input
                 id="addon-price"
+                aria-required="true"
                 inputMode="decimal"
                 value={priceKr}
                 onValueChange={setPriceKr}
@@ -227,7 +228,8 @@ export function EditAddonSheet({
             </BodySm>
           ) : null}
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-3">
+            <RequiredLegend className="mr-auto" />
             <Button size="sm" disabled={pending || !priceOk} onClick={save}>
               {pending ? "Saving…" : "Save"}
             </Button>
