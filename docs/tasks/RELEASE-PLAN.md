@@ -12,7 +12,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | | Human | Code | Total |
 | --- | --- | --- | --- |
 | **Must** | 9 | 2 | 11 |
-| **Should** | 9 | 11 | 20 |
+| **Should** | 9 | 12 | 21 |
 | **Could** | 1 | 11 | 12 |
 | **Won't (this release)** | — | 5 | 5 |
 
@@ -85,6 +85,7 @@ Priority is MoSCoW **for the next release**, not forever. `R1` is the gate.
 | C12 | **Owner reschedule doesn't clear `no_show_at`** | A no-show row keeps an active status, so a moved appointment still renders "no-show". | Trivial |
 | C13 | **Reschedule end vs price drift** | The new `end` comes from *live* duration while `total_price_cents` stays as-booked. If a service's duration changed, a moved appointment's length and price disagree. Use the as-booked snapshot. | Small |
 | C14 | **Root locale: make `/` always `/da`** | Needs H-side confirmation first (see D1). Today `/` negotiates from Accept-Language, so an English browser lands on `/en` — defensible, but this is a Danish-first studio. | Trivial |
+| C26 | **Mark required fields in the rest of the admin** | Done for the seven forms whose actions refuse without them. The schedule-rule stepper, the gallery sheet, the section manager and the blocklist have no *unmarked* required field today, but if one gains one it needs `FieldLabel required` — the pattern is in `components/admin/field-label.tsx`. | Trivial |
 
 ---
 
@@ -149,3 +150,23 @@ Checked against the code and the live database today:
 | `docs/tasks/storage-scaleway-migration.md` | **Record.** Says so itself; paths predate the restructure. |
 | `docs/tasks/in-house/ROADMAP.md` | **Mostly current** for features A–M, but A/B/E/I/J are further along than it says. |
 | `docs/tasks/FOLLOWUPS.md` | **Current, minus the closed items listed above.** |
+
+---
+
+## Shipped since this plan was written (8 Sep)
+
+- **C1 · the design offer price** — `parseKroner` instead of `Number()`, so
+  1.200 kr is 1.200 kr. Pinned by a test. The only item on the list that was
+  costing money while it sat.
+- **The database is one file again.** `supabase/schema.sql` had drifted to 12 of
+  35 tables, carried a retired table, and had an ordering bug that meant it had
+  never once run. Rebuilt by replaying every migration against an empty
+  Postgres and dumping the result, then verified by restoring into a second
+  empty database and diffing the catalogs — 662 objects, identical. Runbook:
+  [DATABASE.md](DATABASE.md). Added H18 (five dead columns to drop) as the only
+  remaining difference between live and a clean bootstrap.
+- **Phone is no longer required to book.** Nothing sends an SMS or places a
+  call, so a number the studio cannot use was blocking bookings. Still asked
+  for, still validated if given.
+- **The admin says which fields are required.** Marked from what each action
+  actually refuses, across seven forms, with `aria-required` on the inputs.
