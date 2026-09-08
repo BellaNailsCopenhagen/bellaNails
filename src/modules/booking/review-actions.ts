@@ -7,15 +7,15 @@ import {
   recordCommunication,
   statusFromEmailResult,
 } from "@/modules/notifications/communications"
-import { STUDIO_NAME } from "@/config/studio"
-import { mailFrom } from "@/modules/notifications/sender"
-import { sendEmail } from "@/platform/email/client"
+import { sendReviewRequestEmail } from "@/modules/notifications/review-email"
+import { reviewUrl } from "@/modules/booking/review-link"
+import { canRequestReview } from "@/shared/booking-policy"
 
 /**
- * Admin-triggered "ask for a review" — emails the client our external review
- * link (Google) and logs it. Env-gated: with GOOGLE_REVIEW_URL unset the button
- * reports it's not configured rather than sending a broken link, so it lights up
- * the moment the studio has a Google Business profile. On-site reviews stay a
+ * Admin-triggered "ask for a review" — emails the client the studio's external
+ * review link (Google) and logs it. Env-gated: with GOOGLE_REVIEW_URL unset
+ * there is nothing to send, so the action refuses and the card renders the
+ * control as unavailable rather than as a button. On-site reviews stay a
  * separate, studio-entered path.
  */
 export type ReviewRequestResult = { ok: true; note?: string } | { ok: false; error: string }
@@ -24,36 +24,29 @@ export async function requestReview(bookingId: string): Promise<ReviewRequestRes
   const supabase = await requireOwner()
   if (!supabase) return { ok: false, error: "unauthorized" }
 
-  const url = process.env.GOOGLE_REVIEW_URL
+  const url = reviewUrl()
   if (!url) return { ok: false, error: "Review link isn’t set up yet." }
 
   const booking = await getBookingOwner(supabase, bookingId)
   if (!booking) return { ok: false, error: "Booking not found." }
 
+  // The card only offers this from 30 min before the end, but a card is not a
+  // guard — re-apply the rule here so it holds for any caller.
+  if (!canRequestReview(booking, Date.now())) {
+    return {
+      ok: false,
+      error: "Too early to ask for a review — wait until the appointment is nearly done.",
+    }
+  }
+
   const contact = (await fetchClientContacts([booking.client_id]))[booking.client_id]
   if (!contact?.email) return { ok: false, error: "No email on file." }
 
-  const isEn = contact.communicationLocale === "en"
-  const greeting = contact.firstName
-    ? isEn
-      ? `Hi ${contact.firstName},`
-      : `Hej ${contact.firstName},`
-    : isEn
-      ? "Hi,"
-      : "Hej,"
-  const line = isEn
-    ? `Thank you for visiting ${STUDIO_NAME}. If you enjoyed it, a quick review would mean a lot:`
-    : `Tak fordi du besøgte ${STUDIO_NAME}. Hvis du var glad for det, vil en hurtig anmeldelse betyde meget:`
-  const cta = isEn ? "Leave a review" : "Skriv en anmeldelse"
-
-  const res = await sendEmail({
-    ...(await mailFrom("booking")),
+  const res = await sendReviewRequestEmail({
     to: contact.email,
-    subject: isEn
-      ? `How was your visit to ${STUDIO_NAME}?`
-      : `Hvordan var dit besøg hos ${STUDIO_NAME}?`,
-    html: `<p>${greeting}</p><p>${line}</p><p><a href="${url}">${cta}</a></p>`,
-    text: `${greeting}\n\n${line}\n${cta}: ${url}`,
+    firstName: contact.firstName,
+    locale: contact.communicationLocale,
+    reviewUrl: url,
   })
 
   await recordCommunication({

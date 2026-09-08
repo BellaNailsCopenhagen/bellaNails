@@ -115,11 +115,18 @@ export async function getBookingOwner(
   bookingId: string,
 ): Promise<Pick<
   Row<"bookings">,
-  "id" | "client_id" | "selected_addons" | "start_time"
+  | "id"
+  | "client_id"
+  | "selected_addons"
+  | "start_time"
+  // `status` + `end_time` so a caller can re-apply a timing policy server-side
+  // rather than trusting the card that offered the button.
+  | "end_time"
+  | "status"
 > | null> {
   const { data } = await db
     .from("bookings")
-    .select("id, client_id, selected_addons, start_time")
+    .select("id, client_id, selected_addons, start_time, end_time, status")
     .eq("id", bookingId)
     .maybeSingle()
   return data ?? null

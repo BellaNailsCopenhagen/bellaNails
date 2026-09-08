@@ -20,7 +20,11 @@ import {
 } from "@/modules/notifications/communications"
 import { sendMediaReleaseRequestEmail } from "@/modules/notifications/release-email"
 import { objectUrl } from "@/platform/storage/supabase"
-import { localizedBookingNames, metaOf } from "@/shared/booking-policy"
+import {
+  canRequestMediaConsent,
+  localizedBookingNames,
+  metaOf,
+} from "@/shared/booking-policy"
 import { bookingRef } from "@/shared/media-release"
 import { routes } from "@/shared/routes"
 import { formatStudioDate } from "@/shared/studio-time"
@@ -154,6 +158,15 @@ export async function requestMediaRelease(
 
   const booking = await getBookingOwner(supabase, bookingId)
   if (!booking) return { ok: false, error: "Booking not found." }
+
+  // The card only offers this from 30 min before the start, but a card is not a
+  // guard — re-apply the rule here so it holds for any caller.
+  if (!canRequestMediaConsent(booking, Date.now())) {
+    return {
+      ok: false,
+      error: "Too early to ask for photo permission — wait until the appointment starts.",
+    }
+  }
 
   // Only ask for what's still open: skip purposes the client already GRANTED
   // (e.g. pre-approved at booking) — re-requesting must never reset a grant.

@@ -100,7 +100,7 @@ plan). The code half is that a control which cannot work must not look like one 
   - **Verify:** with the secret unset, App settings says so; with it set, the box renders
     at step 03 and a booking without a solved proof is refused.
 
-- [ ] ### QA-06 · "Request review" is a live-looking button that always errors **[live]**
+- [x] ### QA-06 · "Request review" is a live-looking button that always errors **[live]**
 
   `GOOGLE_REVIEW_URL` is unset → every press returns *"Review link isn't set up yet."*
   The button is identical to the ones that work, on every completed appointment card.
@@ -439,3 +439,9 @@ work items either.
   warns once per server start about `HUMAN_CHECK_SECRET`. Every other
   env-guarded integration degrades just as quietly (`GOOGLE_REVIEW_URL`,
   the manage-token secret, SMTP) and each is one line here.
+- **QA-06 · `GOOGLE_REVIEW_URL` is in no `.env.example`.** The one thing that
+  would have told anyone the variable exists. Belongs with QA-20's env tidy.
+- **QA-06 · `src/components/admin/deployment-capabilities.tsx` is the place for
+  the next one of these.** A context read once in the admin layout, defaults all
+  false. QA-05's human-check availability is still threaded as a prop because it
+  had one render site; if a second appears, move it here.

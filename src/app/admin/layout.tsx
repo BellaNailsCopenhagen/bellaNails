@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next"
 
 import { Toaster } from "@/components/ui/sonner"
 import { AdminShell } from "@/app/admin/_components/admin-shell"
+import { DeploymentCapabilitiesProvider } from "@/components/admin/deployment-capabilities"
+import { reviewLinkConfigured } from "@/modules/booking/review-link"
 import { BRAND } from "@/config/brand"
 import { fontVariables } from "@/config/fonts"
 import "../globals.css"
@@ -46,7 +48,12 @@ export default function AdminLayout({
   return (
     <html lang="en" className={`${fontVariables} h-full antialiased`}>
       <body className="min-h-full" suppressHydrationWarning>
-        <AdminShell>{children}</AdminShell>
+        {/* Read once per request, here, so no card has to be handed it. */}
+        <DeploymentCapabilitiesProvider
+          value={{ reviewLink: reviewLinkConfigured() }}
+        >
+          <AdminShell>{children}</AdminShell>
+        </DeploymentCapabilitiesProvider>
         <Toaster />
       </body>
     </html>
