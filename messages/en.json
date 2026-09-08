@@ -347,6 +347,9 @@
     "viewBookings": "View my appointments"
   },
   "login": {
+    "alreadyTitle": "You\u2019re already signed in",
+    "alreadyBody": "Signed in as {email}. Carry on, or sign in as someone else below.",
+    "alreadyContinue": "Continue",
     "metaTitle": "Sign in",
     "title": "Sign in",
     "intro": "Continue with Google or your email.",

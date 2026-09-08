@@ -347,6 +347,9 @@
     "viewBookings": "Se mine tider"
   },
   "login": {
+    "alreadyTitle": "Du er allerede logget ind",
+    "alreadyBody": "Logget ind som {email}. Forts\u00e6t, eller log ind som en anden nedenfor.",
+    "alreadyContinue": "Forts\u00e6t",
     "metaTitle": "Log ind",
     "title": "Log ind",
     "intro": "Forts\u00e6t med Google eller din e-mail.",

@@ -26,9 +26,15 @@ import {
 export function AdminCancelButton({
   id,
   clientName,
+  when,
+  service,
 }: {
   id: string
   clientName: string
+  /** Date + time, already formatted — with three bookings for one client on
+      screen, the name alone made this dialog a coin flip. */
+  when: string
+  service: string
 }) {
   const [open, setOpen] = React.useState(false)
   const [pending, startTransition] = React.useTransition()
@@ -66,6 +72,9 @@ export function AdminCancelButton({
       <AlertDialogContent>
         <AlertDialogTitle>Cancel this appointment?</AlertDialogTitle>
         <AlertDialogDescription>
+          <span className="block font-medium text-foreground">
+            {when} · {service}
+          </span>
           {clientName}’s appointment will be cancelled and the time released.
           This can’t be undone.
         </AlertDialogDescription>

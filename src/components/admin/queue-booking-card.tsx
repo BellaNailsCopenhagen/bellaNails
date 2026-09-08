@@ -24,7 +24,10 @@ import type { DisplayBooking } from "@/shared/booking-view"
 import { RELEASE_PURPOSES } from "@/shared/media-release"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { routes } from "@/shared/routes"
-import { formatStudioTime } from "@/shared/studio-time"
+import {
+  formatStudioDayMonth,
+  formatStudioTime,
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 // Keep only digits and a leading "+", so odd separators (dots, spaces, 00…)
@@ -331,7 +334,15 @@ export function QueueBookingCard({
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border pt-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {canCancel ? (
-              <AdminCancelButton id={row.id} clientName={clientName} />
+              <AdminCancelButton
+                id={row.id}
+                clientName={clientName}
+                when={`${formatStudioDayMonth(
+                  new Date(row.start_time).getTime(),
+                  ADMIN_LOCALE,
+                )} · ${formatStudioTime(row.start_time, ADMIN_LOCALE)}`}
+                service={booking.serviceName ?? "Session"}
+              />
             ) : null}
             {canToggleNoShow ? (
               <AdminNoShowButton id={row.id} marked={isNoShow} />

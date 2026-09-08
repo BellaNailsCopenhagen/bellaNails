@@ -317,7 +317,7 @@ plan). The code half is that a control which cannot work must not look like one 
     on today, and a legible empty state for a closed day.
   - **Verify:** tapping a position adds a block at the time the axis says it will.
 
-- [ ] ### QA-20 · Small UX and dead code **[live + code]**
+- [x] ### QA-20 · Small UX and dead code **[live + code]**
 
   - **Cancel dialog doesn't name the appointment.** *"test's appointment will be
     cancelled"* — with three bookings for one client on screen, that is a coin flip. Put
@@ -590,3 +590,19 @@ work items either.
   "off the axis" and drew nothing at all rather than drawing something wrong.
   It uses `studioWallTimeToInstant(day, "00:00")` now, which is DST-correct.
   Verified numerically against the real helper: 10:15 local → 26.6% down.
+- **QA-20 · the inline-comment trap was on four lines, not one.** The item named
+  `ZOHO_SMTP_USER`, but `ZOHO_SMTP_HOST`, `ZOHO_SMTP_PORT` and — the one that
+  matters — `ZOHO_SMTP_PASS` all had a real value followed by a run of spaces
+  and a `#` comment. All four comments moved onto their own line; every resolved
+  value verified byte-identical before and after.
+- **QA-20 · `.env.local` is gitignored, so that half of the fix is on this
+  machine only.** The duplicate `NEXT_PUBLIC_SITE_URL` and the four comment
+  lines are fixed locally and are NOT in the commit. Vercel's env needs the same
+  care — and `NEXT_PUBLIC_SITE_URL` there has to be the live domain for QA-12's
+  canonicals to mean anything.
+- **QA-20 · `GOOGLE_REVIEW_URL` was in no `.env.example`.** An audit of
+  `process.env.*` against the template found it the only undocumented variable
+  the code reads. Documented now, with what its absence does.
+- **QA-20 · `MoreItem.href` is required now.** It was optional with a `"#"`
+  fallback, which is the shape that let "Messages" point at `/admin` — an entry
+  that goes nowhere can no longer typecheck.

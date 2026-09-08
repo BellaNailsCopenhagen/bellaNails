@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import {
   AlignLeft,
-  ArrowUpRight,
   BarChart3,
   Bell,
   CalendarRange,
@@ -31,10 +30,9 @@ type MoreItem = {
   label: string
   description: string
   icon: LucideIcon
-  /** Internal route, external URL, or neither (a not-yet-built entry). */
-  href?: string
-  external?: boolean
-  soon?: boolean
+  /** Internal route. Required: an entry that goes nowhere is a promise the
+      app doesn't keep, which is how "Messages" ended up pointing at /admin. */
+  href: string
 }
 
 // The hub for everything that isn't a primary tab. Agenda graduated to the tab
@@ -48,8 +46,11 @@ const ITEMS: MoreItem[] = [
     href: routes.admin.notifications,
   },
   {
-    label: "Messages",
-    description: "Design requests waiting on an answer",
+    // Named for where it actually goes. There is no messages page; the design
+    // requests waiting on an answer live in Today, which is where the badge
+    // count comes from.
+    label: "Design requests",
+    description: "Waiting on an answer, in Today",
     icon: MessageSquare,
     href: routes.admin.home,
   },
@@ -130,24 +131,14 @@ function ItemBody({ item, count = 0 }: { item: MoreItem; count?: number }) {
           </span>
         </span>
       </span>
-      {item.soon ? (
-        <Badge variant="outline" size="xs">
-          Soon
-        </Badge>
-      ) : (
-        <span className="flex items-center gap-2">
-          {count > 0 ? (
-            <Badge variant="warning" size="xs">
-              {count}
-            </Badge>
-          ) : null}
-          {item.external ? (
-            <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-          )}
-        </span>
-      )}
+      <span className="flex items-center gap-2">
+        {count > 0 ? (
+          <Badge variant="warning" size="xs">
+            {count}
+          </Badge>
+        ) : null}
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </span>
     </>
   )
 }
@@ -170,27 +161,12 @@ export default async function AdminMorePage() {
       <ul className="border-t border-border">
         {ITEMS.map((item) => (
           <li key={item.label} className="border-b border-border">
-            {item.soon ? (
-              <div className="flex items-center justify-between gap-3 py-3 opacity-60">
-                <ItemBody item={item} count={countFor(item)} />
-              </div>
-            ) : item.external ? (
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 py-3"
-              >
-                <ItemBody item={item} count={countFor(item)} />
-              </a>
-            ) : (
-              <Link
-                href={item.href ?? "#"}
-                className="flex items-center justify-between gap-3 py-3"
-              >
-                <ItemBody item={item} count={countFor(item)} />
-              </Link>
-            )}
+            <Link
+              href={item.href}
+              className="flex items-center justify-between gap-3 py-3"
+            >
+              <ItemBody item={item} count={countFor(item)} />
+            </Link>
           </li>
         ))}
       </ul>
