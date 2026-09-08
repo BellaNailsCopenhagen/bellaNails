@@ -4,6 +4,8 @@ import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
+import { alternatesFor } from "@/config/site"
+import { routes } from "@/config/routes"
 import { TermsView } from "@/components/legal/terms-view"
 import { getCurrentTerms, localizeTerms, type TermsKind } from "@/modules/terms/terms"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
@@ -20,6 +22,10 @@ export async function legalMetadata(
   return {
     title: t(`${kind}.metaTitle`),
     description: t(`${kind}.metaDescription`),
+    alternates: alternatesFor(
+      locale,
+      kind === "service" ? routes.terms : routes.privacy,
+    ),
   }
 }
 

@@ -2,7 +2,11 @@ import { notFound } from "next/navigation"
 import { hasLocale } from "next-intl"
 import { setRequestLocale } from "next-intl/server"
 
+import type { Metadata } from "next"
+
 import { routing } from "@/i18n/routing"
+import { alternatesFor } from "@/config/site"
+import { routes } from "@/config/routes"
 import { Hero } from "@/app/[locale]/_components/hero"
 import { RequestsBanner } from "@/app/[locale]/_components/requests-banner"
 import { NextAppointment } from "@/app/[locale]/_components/next-appointment"
@@ -13,6 +17,22 @@ import { StudioGallery } from "@/components/gallery/studio-gallery"
 import { Showcase } from "@/app/[locale]/_components/showcase"
 import { Testimonials } from "@/app/[locale]/_components/testimonials"
 import { FindUs } from "@/app/[locale]/_components/find-us"
+import { LocalBusinessSchema } from "@/app/[locale]/_components/local-business-schema"
+
+/**
+ * Title and description come from the locale layout — this is the page they
+ * were written for. Only the canonical pair is per-page, and the home page had
+ * none, so /da and /en read as duplicates of each other.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  if (!hasLocale(routing.locales, locale)) notFound()
+  return { alternates: alternatesFor(locale, routes.home) }
+}
 
 export default async function Home({
   params,
@@ -27,6 +47,7 @@ export default async function Home({
 
   return (
     <main className="flex flex-1 flex-col">
+      <LocalBusinessSchema locale={locale} />
       {/* Signed-in clients with pending consent requests get a banner here;
           everyone else renders nothing (client-side, so the page stays static). */}
       <RequestsBanner />

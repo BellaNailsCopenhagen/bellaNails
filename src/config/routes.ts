@@ -27,6 +27,54 @@ export const routes = {
 
 export type Route = (typeof routes)[keyof typeof routes]
 
+/**
+ * The pages a search engine should know about: every permanent public
+ * destination, and nothing else. Drives `sitemap.ts` and is where a page earns
+ * a canonical + hreflang pair.
+ *
+ * Listed explicitly rather than derived from the route table, because a
+ * sitemap's failure mode is *including* something — a checkout step, one
+ * client's token link, a signed-in page — so each entry should be a decision.
+ * Typed as `Route`, so renaming a route breaks the build here rather than
+ * quietly dropping a page out of the index.
+ *
+ * Deliberately left out:
+ * - `/book`, `/confirmation`, `/request-sent` — steps inside a flow, and a
+ *   confirmation belongs to one booking.
+ * - `/appointments` and its reschedule route — signed in only.
+ * - `/login` — nothing to rank.
+ * - `/ask` — a personal enquiry form, and already `robots: index: false`.
+ *   Listing a noindex page is a contradiction a crawler will report back.
+ * - `/approve`, `/manage`, `/offer`, `/testimonial` — one person's signed link.
+ * - `/services/[id]` — the detail pages have no sections, gallery or reviews
+ *   yet, so indexing them would submit five thin near-duplicates of the menu.
+ *   They belong here the day they have content.
+ * - `/styleguide` — internal.
+ */
+export const indexableRoutes: Route[] = [
+  routes.home,
+  routes.services,
+  routes.gallery,
+  routes.hours,
+  routes.terms,
+  routes.privacy,
+]
+
+/** Paths no crawler should follow: the studio's own tool, and the signed links
+    that belong to one client. Prefix matches — `/offer` covers `/offer/<token>`. */
+export const disallowedPaths: string[] = [
+  "/admin",
+  "/api",
+  "/da/approve",
+  "/en/approve",
+  "/da/manage",
+  "/en/manage",
+  "/da/offer",
+  "/en/offer",
+  "/da/testimonial",
+  "/en/testimonial",
+]
+
 /** The booking funnel. Its chrome is stripped to the wordmark + locale so the
     visitor isn't offered a way out mid-flow. */
 const checkoutRoutes: string[] = [

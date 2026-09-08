@@ -4,6 +4,8 @@ import { hasLocale } from "next-intl"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { routing } from "@/i18n/routing"
+import { alternatesFor } from "@/config/site"
+import { routes } from "@/config/routes"
 import { ServiceMenu } from "@/app/[locale]/services/_components/service-menu"
 
 export async function generateMetadata({
@@ -20,6 +22,7 @@ export async function generateMetadata({
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: alternatesFor(locale, routes.services),
   }
 }
 

@@ -188,7 +188,7 @@ plan). The code half is that a control which cannot work must not look like one 
 
 ## Batch D — the SEO surface
 
-- [ ] ### QA-12 · No sitemap, robots, canonical, hreflang or LocalBusiness schema **[live]**
+- [x] ### QA-12 · No sitemap, robots, canonical, hreflang or LocalBusiness schema **[live]**
 
   `/sitemap.xml` and `/robots.txt` both 404. The rendered head of `/da` has no canonical,
   no `hreflang` alternates and no JSON-LD. Titles, descriptions and OG images *are*
@@ -472,3 +472,18 @@ work items either.
   the bug `parseKroner` was written to fix, and this is the one caller still not
   using it. Not touched here: a design offer is a different flow with its own
   semantics, and it deserves its own item. It is the sharpest thing on this list.
+- **QA-12 · all of this is only as right as `NEXT_PUBLIC_SITE_URL`.** Every
+  canonical, every hreflang, the sitemap and the robots `Sitemap:` line are
+  built from it. It is `http://localhost:3000` in `.env.local` and
+  `https://bellanails.dk` in `.env.example`, so the production value has to be
+  the live domain before any of it means anything — and per
+  [[domain-not-on-vercel]] the domain still points at the old host. Nothing to
+  submit to Search Console until then.
+- **QA-12 · the schema still owes a phone number and geo coordinates.** Both are
+  open items in `docs/seo-plan.md` §7 and both are omitted rather than guessed —
+  Google displays a telephone from structured data, so a placeholder would be
+  worse than none. `areaServed` and the address are live.
+- **QA-12 · `/gallery` is in the sitemap but has no content.** `gallery_items`
+  has 0 rows, so it is currently a heading over blank space being offered to a
+  crawler. It is a permanent main-nav page so it belongs in the sitemap; the
+  emptiness is the content item already in § Not in this plan.

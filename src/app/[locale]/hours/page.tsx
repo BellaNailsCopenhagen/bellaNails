@@ -5,6 +5,7 @@ import { getLocale, getTranslations, setRequestLocale } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
+import { alternatesFor } from "@/config/site"
 import { OpeningHours } from "@/app/[locale]/_components/opening-hours"
 import { Container, Section } from "@/components/layout/container"
 import { ArrowLink } from "@/components/ui/arrow-link"
@@ -47,7 +48,11 @@ export async function generateMetadata({
   const { locale } = await params
   if (!hasLocale(routing.locales, locale)) notFound()
   const t = await getTranslations({ locale, namespace: "hours" })
-  return { title: t("metaTitle"), description: t("metaDescription") }
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    alternates: alternatesFor(locale, routes.hours),
+  }
 }
 
 /**
