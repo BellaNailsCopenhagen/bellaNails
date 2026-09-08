@@ -16,11 +16,16 @@ import type { TermsKind, TermsRecord } from "@/modules/terms/terms"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 import { fieldLabel } from "@/components/admin/field-label"
+import { termsProblem } from "@/shared/terms-validation"
 
 /**
  * Owner editor for one terms document. Editing always publishes the NEXT
  * version (history is immutable so acceptance records keep their meaning); the
- * version history is shown read-only beneath.
+ * version history is shown beneath and any past version can be read.
+ *
+ * Publish is disabled until the document is complete in both languages, on the
+ * same rule the action refuses with — publishing makes it current immediately,
+ * and there is no rollback.
  */
 export function TermsEditor({
   kind,
@@ -35,6 +40,7 @@ export function TermsEditor({
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [reading, setReading] = useState<TermsRecord | null>(null)
   const [pending, startTransition] = useTransition()
 
   const [titleEn, setTitleEn] = useState(current?.titleEn ?? "")
@@ -51,6 +57,10 @@ export function TermsEditor({
     setBodyDk(current?.bodyDk ?? "")
     setOpen(true)
   }
+
+  // The same function the action refuses with, so the button and the server can
+  // never disagree about what "complete" means.
+  const problem = termsProblem({ titleEn, titleDk, bodyEn, bodyDk })
 
   const save = () =>
     startTransition(async () => {
@@ -99,10 +109,18 @@ export function TermsEditor({
         <ul className="flex flex-wrap gap-1.5">
           {versions.map((v) => (
             <li key={v.id}>
-              <Badge variant={v.isCurrent ? "success" : "outline"} size="xs">
-                v{v.version}
-                {v.isCurrent ? " · current" : ""}
-              </Badge>
+              {/* An immutable history nobody can read is not a history. */}
+              <button
+                type="button"
+                onClick={() => setReading(v)}
+                title={`Read v${v.version}`}
+                className="cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                <Badge variant={v.isCurrent ? "success" : "outline"} size="xs">
+                  v{v.version}
+                  {v.isCurrent ? " · current" : ""}
+                </Badge>
+              </button>
             </li>
           ))}
         </ul>
@@ -168,15 +186,72 @@ export function TermsEditor({
           </div>
 
           <BodySm className="text-xs text-muted-foreground">
-            Saving publishes a new current version. Separate paragraphs with a
-            blank line.
+            Saving publishes a new current version, live on the public page at
+            once. Separate paragraphs with a blank line.
           </BodySm>
 
-          <div className="flex justify-end">
-            <Button size="sm" disabled={pending} onClick={save}>
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {problem ? (
+              <BodySm className="text-xs text-destructive">
+                {problem.message}
+              </BodySm>
+            ) : null}
+            <Button
+              size="sm"
+              disabled={pending || problem !== null}
+              onClick={save}
+            >
               {pending ? "Publishing…" : "Publish version"}
             </Button>
           </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Read-only: a past version is what somebody agreed to, so it cannot be
+          edited here. Publishing a correction means a new version. */}
+      <Sheet open={reading !== null} onOpenChange={(o) => !o && setReading(null)}>
+        <SheetContent className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+            <SheetTitle>
+              {label} · v{reading?.version}
+              {reading?.isCurrent ? " · current" : ""}
+            </SheetTitle>
+            <button
+              type="button"
+              onClick={() => setReading(null)}
+              className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Close
+            </button>
+          </div>
+
+          {reading ? (
+            <>
+              <BodySm className="text-xs text-muted-foreground">
+                Published{" "}
+                {formatStudioDayMonthYear(
+                  new Date(reading.createdAt).getTime(),
+                  ADMIN_LOCALE,
+                )}
+                . Read-only — publish a new version to change anything.
+              </BodySm>
+              {(
+                [
+                  ["Title · EN", reading.titleEn],
+                  ["Title · DA", reading.titleDk],
+                  ["Body · EN", reading.bodyEn],
+                  ["Body · DA", reading.bodyDk],
+                ] as const
+              ).map(([heading, value]) => (
+                <div key={heading} className="space-y-1">
+                  <Eyebrow as="h4">{heading}</Eyebrow>
+                  <BodySm className="text-xs whitespace-pre-wrap">
+                    {value?.trim() || "— empty —"}
+                  </BodySm>
+                </div>
+              ))}
+            </>
+          ) : null}
         </SheetContent>
       </Sheet>
     </section>

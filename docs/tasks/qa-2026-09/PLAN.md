@@ -132,7 +132,7 @@ plan). The code half is that a control which cannot work must not look like one 
   - **Verify:** point the read at a bad table name locally → the page shows an error and
     offers no Save, rather than an empty form.
 
-- [ ] ### QA-08 · Publishing empty terms replaces the live public document **[code]**
+- [x] ### QA-08 · Publishing empty terms replaces the live public document **[code]**
 
   `saveTermsVersion` does `trim() || null` with no validation. An accidental Publish on
   an empty editor creates a new *current* version with all-NULL text, which is
@@ -455,3 +455,13 @@ work items either.
   correct — the footer and the email senders must degrade to the compiled
   defaults rather than fail a page. The asymmetry is deliberate: that read only
   displays, this one backs a form that writes.
+- **QA-08 · both live documents still open by calling themselves drafts.** v1 of
+  `service` and `data` are the seeded placeholders (verified on the live
+  project — /da/terms reads "Disse betingelser er et udkast"), and clients are
+  recorded as accepting them at step 03. Both pass the new publish rule
+  comfortably, so replacing them is now just a matter of writing v2. Already in
+  § Not in this plan, and still yours.
+- **QA-08 · rollback is still not possible.** A past version can now be read but
+  not restored. Making an old version current again is a one-line reuse of
+  `setTermsCurrent` — deliberately not done here, because "which version were
+  they shown" needs thinking about before history can move.

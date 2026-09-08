@@ -11,15 +11,11 @@ import {
 import { requireOwner } from "@/modules/identity/require-owner"
 import { isTermsKind, type TermsKind } from "@/modules/terms/terms"
 import { routes } from "@/shared/routes"
+import { termsProblem, type TermsFields } from "@/shared/terms-validation"
 
 export type TermsActionResult = { ok: true } | { ok: false; error: string }
 
-export type TermsInput = {
-  titleEn: string
-  titleDk: string
-  bodyEn: string
-  bodyDk: string
-}
+export type TermsInput = TermsFields
 
 /**
  * Publish a new current version of a terms document. Saving always creates the
@@ -36,15 +32,24 @@ export async function saveTermsVersion(
   if (!supabase) return { ok: false, error: "unauthorized" }
   if (!isTermsKind(kind)) return { ok: false, error: "Unknown terms type." }
 
+  // Before the insert, because the insert IS the publish: the new version
+  // becomes current and /terms and /privacy serve it at once. The editor
+  // disables Publish on the same rule; this is the one that holds for any
+  // caller.
+  const problem = termsProblem(input)
+  if (problem) {
+    return { ok: false, error: `${problem.message} Terms have to be complete in both languages.` }
+  }
+
   const nextVersion = (await getLatestVersion(supabase, kind)) + 1
 
   const inserted = await insertTerms(supabase, {
     kind,
     version: nextVersion,
-    title_en: input.titleEn.trim() || null,
-    title_dk: input.titleDk.trim() || null,
-    body_en: input.bodyEn.trim() || null,
-    body_dk: input.bodyDk.trim() || null,
+    title_en: input.titleEn.trim(),
+    title_dk: input.titleDk.trim(),
+    body_en: input.bodyEn.trim(),
+    body_dk: input.bodyDk.trim(),
     is_current: false,
   })
   if (!inserted.ok) return { ok: false, error: "Couldn’t save the terms." }
