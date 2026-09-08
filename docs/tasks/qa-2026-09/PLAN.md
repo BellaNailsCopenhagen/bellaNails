@@ -118,7 +118,7 @@ plan). The code half is that a control which cannot work must not look like one 
 
 ## Batch C — data-safety bugs
 
-- [ ] ### QA-07 · A failed read on `/admin/business` turns Save into a wipe **[code]**
+- [x] ### QA-07 · A failed read on `/admin/business` turns Save into a wipe **[code]**
 
   `getBusinessProfileForAdmin` catches any error and returns a blank profile, and the
   page has no error state — a transient read failure renders a form indistinguishable
@@ -445,3 +445,13 @@ work items either.
   the next one of these.** A context read once in the admin layout, defaults all
   false. QA-05's human-check availability is still threaded as a prop because it
   had one render site; if a second appears, move it here.
+- **QA-07 · this item's own Verify step does not test the fix.** "Point the read
+  at a bad table name" returns PostgREST `PGRST205`, which the pre-existing
+  `isMissingTable()` classes as "not migrated". Measured against the live
+  project: a bad *table* gives `PGRST205`, a bad *column* gives `42703`. So the
+  recipe exercises the benign branch. To see the error state, break a column
+  name, not the table.
+- **QA-07 · `getBusinessProfile()` (the public read) still swallows.** That is
+  correct — the footer and the email senders must degrade to the compiled
+  defaults rather than fail a page. The asymmetry is deliberate: that read only
+  displays, this one backs a form that writes.

@@ -109,6 +109,30 @@ function reportReadFailure(error: unknown): void {
   )
 }
 
+export type BusinessProfileAdminView = {
+  values: BusinessProfileInput
+  mapImageUrl: string
+  heroBackground: HeroBackground
+  /**
+   * The read failed, so we cannot say what is currently stored.
+   *
+   * It matters because `saveBusinessProfile` maps every empty string to null by
+   * design ("blank means use the default"). A failed read renders a form
+   * indistinguishable from "nothing configured yet", so one keystroke and a
+   * Save would clear the address, all three mailboxes and all three social
+   * links in a single upsert.
+   *
+   * True for ANY failure, including a missing table. That case looks benign —
+   * blanks really are the state before the migration — but PostgREST answers a
+   * stale schema cache on an EXISTING table with the same PGRST205, so
+   * "probably not migrated" and "temporarily cannot see your data" are the same
+   * error. The form was never usable pre-migration anyway: the upsert behind
+   * Save would fail against a table that isn't there. Unlike the public site,
+   * which still degrades to the compiled defaults, this screen writes.
+   */
+  loadError: boolean
+}
+
 /**
  * Everything the admin form needs, from ONE read: the raw stored values, and
  * the map picture actually in use.
@@ -118,11 +142,7 @@ function reportReadFailure(error: unknown): void {
  * the first save — quietly ending the "blank means use the default" contract.
  * The defaults belong in the field's placeholder instead.
  */
-export async function getBusinessProfileForAdmin(): Promise<{
-  values: BusinessProfileInput
-  mapImageUrl: string
-  heroBackground: HeroBackground
-}> {
+export async function getBusinessProfileForAdmin(): Promise<BusinessProfileAdminView> {
   const blank: BusinessProfileInput = {
     contactEmail: "",
     bookingFromEmail: "",
@@ -140,6 +160,7 @@ export async function getBusinessProfileForAdmin(): Promise<{
         values: blank,
         mapImageUrl: DEFAULT_MAP_IMAGE,
         heroBackground: DEFAULT_HERO_BACKGROUND,
+        loadError: false,
       }
     }
     return {
@@ -157,14 +178,16 @@ export async function getBusinessProfileForAdmin(): Promise<{
         (row.map_image_key?.trim() ? objectUrl(row.map_image_key.trim()) : null) ??
         DEFAULT_MAP_IMAGE,
       heroBackground: resolveHero(row.hero_asset_key),
+      loadError: false,
     }
   } catch (error) {
-    // The page still renders; she just sees blanks and can fill them in.
+    // Logs which of the two it was; the screen only needs to stop offering Save.
     reportReadFailure(error)
     return {
       values: blank,
       mapImageUrl: DEFAULT_MAP_IMAGE,
       heroBackground: DEFAULT_HERO_BACKGROUND,
+      loadError: true,
     }
   }
 }
