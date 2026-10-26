@@ -48,8 +48,12 @@ export async function addClientMedia(input: {
   caption?: string | null
 }): Promise<MediaActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!input.storageKey) return { ok: false, error: "No file uploaded." }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!input.storageKey) {
+    return { ok: false, error: "No file uploaded." }
+  }
 
   // Optional booking link: verify it's this client's booking, and inherit its
   // service so the image also associates to the product. A mismatched/unknown
@@ -80,11 +84,15 @@ export async function addClientMedia(input: {
   })
   if (!saved.ok) {
     console.error("[addClientMedia] insert failed:", saved.message)
+
     return { ok: false, error: "Couldn’t add the image." }
   }
 
   revalidatePath(routes.admin.client(input.clientId))
-  if (serviceId) revalidatePath(routes.admin.service(serviceId))
+  if (serviceId) {
+    revalidatePath(routes.admin.service(serviceId))
+  }
+
   return { ok: true }
 }
 
@@ -118,12 +126,19 @@ async function emailReleaseRequest(
   purposes: ReleasePurpose[],
 ): Promise<void> {
   const contact = (await fetchClientContacts([clientId]))[clientId]
-  if (!contact?.email) return
+  if (!contact?.email) {
+    return
+  }
   const locale = contact.communicationLocale
   const approveUrl = approveUrlFor(locale, bookingId)
-  if (!approveUrl) return
+  if (!approveUrl) {
+    return
+  }
 
-  const { serviceName } = localizedBookingNames(metaOf({ selected_addons: selectedAddons }), locale)
+  const { serviceName } = localizedBookingNames(
+    metaOf({ selected_addons: selectedAddons }),
+    locale,
+  )
   const when = startIso ? formatStudioDate(startIso, locale) : ""
 
   const res = await sendMediaReleaseRequestEmail({
@@ -154,18 +169,25 @@ export async function requestMediaRelease(
   purposes: ReleasePurpose[],
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (purposes.length === 0) return { ok: true }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (purposes.length === 0) {
+    return { ok: true }
+  }
 
   const booking = await getBookingOwner(supabase, bookingId)
-  if (!booking) return { ok: false, error: "Booking not found." }
+  if (!booking) {
+    return { ok: false, error: "Booking not found." }
+  }
 
   // The card only offers this from 30 min before the start, but a card is not a
   // guard — re-apply the rule here so it holds for any caller.
   if (!canRequestMediaConsent(booking, Date.now())) {
     return {
       ok: false,
-      error: "Too early to ask for photo permission — wait until the appointment starts.",
+      error:
+        "Too early to ask for photo permission — wait until the appointment starts.",
     }
   }
 
@@ -176,7 +198,9 @@ export async function requestMediaRelease(
     existing.filter((r) => r.status === "granted").map((r) => r.purpose),
   )
   const toRequest = purposes.filter((p) => !granted.has(p))
-  if (toRequest.length === 0) return { ok: true } // all purposes already granted
+  if (toRequest.length === 0) {
+    return { ok: true }
+  } // all purposes already granted
 
   // The approval link already lists every currently-requested purpose, so if a
   // request is pending we skip a second email — the existing link covers the
@@ -187,7 +211,9 @@ export async function requestMediaRelease(
     supabase,
     toRequest.map((p) => requestedReleaseRow(bookingId, booking.client_id, p)),
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t request the release." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t request the release." }
+  }
 
   revalidatePath(routes.admin.client(booking.client_id))
   if (!alreadyPending) {
@@ -199,6 +225,7 @@ export async function requestMediaRelease(
       toRequest,
     )
   }
+
   return { ok: true }
 }
 
@@ -208,7 +235,9 @@ export async function requestDataConsent(
   purpose: string,
 ): Promise<MediaActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // The union was hand-written here and erased at runtime, so a hand-made call
   // could store any string as a consent purpose — a row the client centre would
@@ -227,8 +256,11 @@ export async function requestDataConsent(
     declined_at: null,
     // See above — a withdrawal timestamp survives a fresh request.
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t request consent." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t request consent." }
+  }
 
   revalidatePath(routes.admin.client(clientId))
+
   return { ok: true }
 }

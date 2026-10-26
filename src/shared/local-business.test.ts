@@ -45,7 +45,13 @@ test("the opening hours come from the schedule, not from prose", () => {
 test("an off-hours block inside a working day is subtracted, as on the page", () => {
   // The visible table shows two ranges here, so the markup must too.
   const withLunch: Schedule = [
-    { kind: "standard", weekday: 0, onDate: null, start: "09:00", end: "17:00" },
+    {
+      kind: "standard",
+      weekday: 0,
+      onDate: null,
+      start: "09:00",
+      end: "17:00",
+    },
     { kind: "no_work", weekday: 0, onDate: null, start: "12:00", end: "13:00" },
   ]
   const spec = build(withLunch).openingHoursSpecification as {
@@ -75,7 +81,12 @@ test("nothing is claimed that isn't set", () => {
   const bare = localBusinessSchema({
     name: "Bella Nails",
     url: "https://bellanails.dk/da",
-    profile: { ...profile, addressLine1: "", addressLine2: "", contactEmail: "" },
+    profile: {
+      ...profile,
+      addressLine1: "",
+      addressLine2: "",
+      contactEmail: "",
+    },
     schedule: [],
     areaServed: [],
   })

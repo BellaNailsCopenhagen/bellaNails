@@ -10,5 +10,6 @@ export function assertEnv(value: string | undefined, name: string): string {
       `Missing required environment variable: ${name}. See .env.example.`,
     )
   }
+
   return value
 }

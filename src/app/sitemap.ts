@@ -18,8 +18,11 @@ import { routing } from "@/i18n/routing"
 export default function sitemap(): MetadataRoute.Sitemap {
   const languages = (path: string) => {
     const map: Record<string, string> = {}
-    for (const locale of routing.locales) map[locale] = localeUrl(locale, path)
+    for (const locale of routing.locales) {
+      map[locale] = localeUrl(locale, path)
+    }
     map["x-default"] = localeUrl(routing.defaultLocale, path)
+
     return map
   }
 

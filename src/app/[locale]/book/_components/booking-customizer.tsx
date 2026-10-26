@@ -44,9 +44,14 @@ export function BookingCustomizer({
   /** The addon in `selection` that `addonId` clashes with, if any. */
   const blockerFor = (addonId: string, selection: ReadonlySet<string>) => {
     for (const [a, b] of incompatiblePairs) {
-      if (a === addonId && selection.has(b)) return addonById.get(b)
-      if (b === addonId && selection.has(a)) return addonById.get(a)
+      if (a === addonId && selection.has(b)) {
+        return addonById.get(b)
+      }
+      if (b === addonId && selection.has(a)) {
+        return addonById.get(a)
+      }
     }
+
     return undefined
   }
 
@@ -61,6 +66,7 @@ export function BookingCustomizer({
         // checkbox — checking the snapshot would let an incompatible pair in.
         next.add(addonId)
       }
+
       return next
     })
   }
@@ -77,6 +83,7 @@ export function BookingCustomizer({
               const blocker = isSelected
                 ? undefined
                 : blockerFor(addon.id, selected)
+
               return (
                 <li key={addon.id}>
                   <label

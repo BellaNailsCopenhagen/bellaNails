@@ -28,7 +28,9 @@ export function AddBookingMediaButton({
 
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
-    if (!file) return
+    if (!file) {
+      return
+    }
     setUploading(true)
     try {
       const up = await uploadMedia(file, file.type)
@@ -42,6 +44,7 @@ export function AddBookingMediaButton({
                 ? "That image couldn’t be read."
                 : "Upload failed.",
         )
+
         return
       }
       const result = await addClientMedia({
@@ -58,7 +61,9 @@ export function AddBookingMediaButton({
       }
     } finally {
       setUploading(false)
-      if (inputRef.current) inputRef.current.value = ""
+      if (inputRef.current) {
+        inputRef.current.value = ""
+      }
     }
   }
 

@@ -26,7 +26,9 @@ export async function ServicesPreview() {
 
   const services = await getFeaturedServices()
 
-  if (!services.length) return null
+  if (!services.length) {
+    return null
+  }
 
   return (
     <Section>
@@ -52,6 +54,7 @@ export async function ServicesPreview() {
                 service.description_en,
                 service.description_dk,
               ) ?? ""
+
             return (
               <li key={service.id} className="border-t border-border">
                 {/* Whole row deep-links into the booking flow with the

@@ -16,7 +16,10 @@ export async function insertBookingRequest(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -29,6 +32,7 @@ export async function listPendingBookingRequests(
     .select("*")
     .eq("status", "pending")
     .order("created_at", { ascending: true })
+
   return data ?? []
 }
 
@@ -37,6 +41,7 @@ export async function countPendingBookingRequests(db: Db): Promise<number> {
     .from("booking_requests")
     .select("id", { count: "exact", head: true })
     .eq("status", "pending")
+
   return count ?? 0
 }
 
@@ -52,7 +57,10 @@ export async function countPendingBookingRequestsForClient(
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId)
     .eq("status", "pending")
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return count ?? 0
 }
 
@@ -66,6 +74,7 @@ export async function getBookingRequest(
     .select("*")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -74,7 +83,11 @@ export async function updateBookingRequest(
   id: string,
   values: Update<"booking_requests">,
 ): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await db.from("booking_requests").update(values).eq("id", id)
+  const { error } = await db
+    .from("booking_requests")
+    .update(values)
+    .eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -88,6 +101,7 @@ export async function listBookingRequestsForClient(
     .select("*")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
+
   return data ?? []
 }
 
@@ -101,5 +115,6 @@ export async function deleteBookingRequestsForClient(
     .from("booking_requests")
     .delete()
     .eq("client_id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

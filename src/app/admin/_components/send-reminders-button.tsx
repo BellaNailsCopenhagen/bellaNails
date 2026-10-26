@@ -11,6 +11,7 @@ import { sendReminders } from "@/modules/booking/reminder-actions"
  */
 export function SendRemindersButton() {
   const { pending, run } = useActionRunner()
+
   return (
     <Button
       variant="outline"

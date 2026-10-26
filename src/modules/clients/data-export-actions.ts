@@ -28,12 +28,15 @@ import { metaOf } from "@/shared/booking-policy"
  */
 
 export type DataExportResult =
-  | { ok: true; filename: string; json: string }
-  | { ok: false; error: string }
+  { ok: true; filename: string; json: string } | { ok: false; error: string }
 
-export async function requestMyDataExport(locale: string): Promise<DataExportResult> {
+export async function requestMyDataExport(
+  locale: string,
+): Promise<DataExportResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   try {
     const db = createSupabaseServiceRoleClient()
@@ -84,6 +87,7 @@ export async function requestMyDataExport(locale: string): Promise<DataExportRes
         : null,
       bookings: bookings.map((b) => {
         const meta = metaOf(b)
+
         return {
           start: b.start_time,
           end: b.end_time,
@@ -103,6 +107,7 @@ export async function requestMyDataExport(locale: string): Promise<DataExportRes
       })),
       bookingRequests: requests.map((r) => {
         const meta = metaOf(r)
+
         return {
           kind: r.kind,
           requestedStart: r.start_time,
@@ -173,12 +178,14 @@ export async function requestMyDataExport(locale: string): Promise<DataExportRes
     }
 
     const filename = `bella-nails-my-data-${data.exportedAt.slice(0, 10)}.json`
+
     return { ok: true, filename, json: JSON.stringify(data, null, 2) }
   } catch (error) {
     console.error(
       "[data-export] failed —",
       error instanceof Error ? error.message : error,
     )
+
     return { ok: false, error: await exportError(locale) }
   }
 }
@@ -189,5 +196,6 @@ async function exportError(locale: string): Promise<string> {
     locale: resolveLocale(locale),
     namespace: "account",
   })
+
   return t("errExport")
 }

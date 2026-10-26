@@ -21,7 +21,9 @@ export async function getServicePublicGallery(
   db: Db = createSupabaseServerClient(),
 ): Promise<ServiceGallery> {
   const media = await listMediaForService(db, serviceId)
-  if (!media.length) return []
+  if (!media.length) {
+    return []
+  }
 
   const assets = await listWebsiteAssetsForMedia(
     db,

@@ -35,6 +35,7 @@ export async function getMaxAdvanceDays(
   db: Db = createSupabaseServerClient(),
 ): Promise<number> {
   const settings = await getBookingSettings(db).catch(() => null)
+
   return settings?.max_advance_days ?? DEFAULT_MAX_ADVANCE_DAYS
 }
 
@@ -52,7 +53,10 @@ export async function getAvailableSlots(
   opts?: { ignoreLeadTime?: boolean },
 ): Promise<Slot[]> {
   const durationMins = await durationFor(ref, db)
-  if (durationMins === null) return []
+  if (durationMins === null) {
+    return []
+  }
+
   return getSlotsForDuration(durationMins, db, {
     ignoreLeadTime: opts?.ignoreLeadTime,
   })
@@ -69,7 +73,9 @@ export async function getSlotsForDuration(
   db: Db = createSupabaseServerClient(),
   opts?: { ignoreLeadTime?: boolean },
 ): Promise<Slot[]> {
-  return computeSlots(durationMins, db, { ignoreLeadTime: opts?.ignoreLeadTime })
+  return computeSlots(durationMins, db, {
+    ignoreLeadTime: opts?.ignoreLeadTime,
+  })
 }
 
 /**
@@ -84,9 +90,14 @@ export async function getBookingSlots(
   const empty = { normal: [], outsideEnabled: false }
   try {
     const durationMins = await durationFor(ref, db)
-    if (durationMins === null) return empty
+    if (durationMins === null) {
+      return empty
+    }
     const inputs = await loadSlotInputs(durationMins, db)
-    if (!inputs) return empty
+    if (!inputs) {
+      return empty
+    }
+
     return {
       normal: generateFor(inputs, {}),
       // The flag drives the UI affordance, independent of whether outside slots
@@ -98,6 +109,7 @@ export async function getBookingSlots(
     }
   } catch (error) {
     logSlotError(error)
+
     return empty
   }
 }
@@ -122,12 +134,18 @@ export async function getOutsideSlots(
 ): Promise<Slot[]> {
   try {
     const durationMins = await durationFor(ref, db)
-    if (durationMins === null) return []
+    if (durationMins === null) {
+      return []
+    }
     const inputs = await loadSlotInputs(durationMins, db)
-    if (!inputs?.outsideEnabled) return []
+    if (!inputs?.outsideEnabled) {
+      return []
+    }
+
     return generateFor(inputs, { outsideHours: true })
   } catch (error) {
     logSlotError(error)
+
     return []
   }
 }
@@ -137,7 +155,10 @@ export async function getOverrideSlots(
   db: Db,
 ): Promise<Slot[]> {
   const durationMins = await durationFor(ref, db)
-  if (durationMins === null) return []
+  if (durationMins === null) {
+    return []
+  }
+
   return getOverrideSlotsForDuration(durationMins, db)
 }
 
@@ -154,6 +175,7 @@ export async function getOverrideSlotsForDuration(
     withdrawn/expired offer) — callers degrade to "no times". */
 async function durationFor(ref: SubjectRef, db: Db): Promise<number | null> {
   const resolved = await resolveBookingSubject(db, ref).catch(() => null)
+
   return resolved?.ok ? resolved.subject.durationMins : null
 }
 
@@ -170,12 +192,18 @@ async function computeSlots(
 ): Promise<Slot[]> {
   try {
     const inputs = await loadSlotInputs(durationMins, db)
-    if (!inputs) return []
+    if (!inputs) {
+      return []
+    }
     // Outside-hours requests only exist when the artist has enabled them.
-    if (opts.outsideHours && !inputs.outsideEnabled) return []
+    if (opts.outsideHours && !inputs.outsideEnabled) {
+      return []
+    }
+
     return generateFor(inputs, opts)
   } catch (error) {
     logSlotError(error)
+
     return []
   }
 }
@@ -202,7 +230,9 @@ async function loadSlotInputs(
     getSchedule(db),
     isFeatureEnabled(FEATURE_FLAGS.outsideHoursRequests, db),
   ])
-  if (!settings) return null
+  if (!settings) {
+    return null
+  }
 
   const now = Date.now()
   const maxAdvance = settings.max_advance_days

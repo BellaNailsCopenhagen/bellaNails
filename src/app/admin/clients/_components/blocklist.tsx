@@ -53,6 +53,7 @@ export function Blocklist({ entries }: { entries: BlockedIdentityView[] }) {
         setValue("")
         setReason("")
       }
+
       return result
     })
 

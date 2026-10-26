@@ -11,6 +11,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+
   return legalMetadata(locale, "data")
 }
 
@@ -21,5 +22,6 @@ export default async function PrivacyPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+
   return <LegalPage locale={locale} kind="data" />
 }

@@ -58,7 +58,10 @@ const hasHappened = (booking: IncomeBooking, now: number): boolean =>
  * at its booked price.
  */
 export function countsAsEarned(booking: IncomeBooking, now: number): boolean {
-  if (isIncomeAdjusted(booking)) return true
+  if (isIncomeAdjusted(booking)) {
+    return true
+  }
+
   return hasHappened(booking, now) && booking.no_show_at === null
 }
 
@@ -82,16 +85,23 @@ export function countsAsOccupied(booking: IncomeBooking, now: number): boolean {
  * is a full one — measuring duration alone would report spare capacity that
  * cannot be sold.
  */
-export function footprintMins(booking: IncomeBooking, bufferMins: number): number {
+export function footprintMins(
+  booking: IncomeBooking,
+  bufferMins: number,
+): number {
   const booked = bookedDurationMins(booking)
   const span =
     (Date.parse(booking.end_time) - Date.parse(booking.start_time)) / 60000
   const duration = booked > 0 ? booked : Math.max(0, Math.round(span))
+
   return duration + bufferMins
 }
 
 const rangeMins = (ranges: TimeRange[]): number =>
-  ranges.reduce((total, [from, to]) => total + (toMinutes(to) - toMinutes(from)), 0)
+  ranges.reduce(
+    (total, [from, to]) => total + (toMinutes(to) - toMinutes(from)),
+    0,
+  )
 
 /**
  * Open minutes across a run of days — occupancy's denominator, straight from the
@@ -113,13 +123,17 @@ export function capacityMins(
     .filter((day) => day <= todayDayNumber)
     .reduce((total, day) => {
       const { ranges } = dayRanges(schedule, day, "standard")
-      if (day < todayDayNumber) return total + rangeMins(ranges)
+      if (day < todayDayNumber) {
+        return total + rangeMins(ranges)
+      }
+
       // Today: clamp every open range to the part already behind us.
       return (
         total +
         ranges.reduce((mins, [from, to]) => {
           const start = toMinutes(from)
           const end = Math.min(toMinutes(to), minutesIntoToday)
+
           return mins + Math.max(0, end - start)
         }, 0)
       )
@@ -138,7 +152,10 @@ export function occupancyPercent(
   bookedMins: number,
   openMins: number | null,
 ): number | null {
-  if (openMins === null || openMins <= 0) return null
+  if (openMins === null || openMins <= 0) {
+    return null
+  }
+
   return Math.round((bookedMins / openMins) * 100)
 }
 
@@ -154,7 +171,10 @@ export const monthKey = (year: number, month: number): number =>
 export function computeSpan(
   keysToCompute: number[],
 ): { fromKey: number; toKey: number } | null {
-  if (!keysToCompute.length) return null
+  if (!keysToCompute.length) {
+    return null
+  }
+
   return {
     fromKey: Math.min(...keysToCompute),
     toKey: Math.max(...keysToCompute),

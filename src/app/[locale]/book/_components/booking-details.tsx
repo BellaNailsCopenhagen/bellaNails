@@ -150,7 +150,9 @@ export async function BookingDetails({
             current={1}
             skipCustomise={!hasAddons}
             backHref={
-              hasAddons ? { pathname: routes.book, query: backQuery } : routes.book
+              hasAddons
+                ? { pathname: routes.book, query: backQuery }
+                : routes.book
             }
             backLabel={hasAddons ? t("backToCustomise") : t("back")}
             eyebrow={t("eyebrow")}
@@ -196,7 +198,9 @@ export async function BookingDetails({
           current={1}
           skipCustomise={!hasAddons}
           backHref={
-            hasAddons ? { pathname: routes.book, query: backQuery } : routes.book
+            hasAddons
+              ? { pathname: routes.book, query: backQuery }
+              : routes.book
           }
           backLabel={hasAddons ? t("backToCustomise") : t("back")}
           eyebrow={t("eyebrow")}

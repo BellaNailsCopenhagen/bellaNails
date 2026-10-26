@@ -35,13 +35,16 @@ export async function takeDurableToken(
   })
   if (error) {
     console.error("[rate-limit] check failed, allowing:", error.code)
+
     return true
   }
+
   return data !== false
 }
 
 /** Drop keys whose window closed long ago — hygiene, from housekeeping. */
 export async function purgeExpiredRateLimits(db: Db): Promise<number> {
   const { data, error } = await db.rpc("purge_expired_rate_limits", {})
+
   return error ? 0 : (data ?? 0)
 }

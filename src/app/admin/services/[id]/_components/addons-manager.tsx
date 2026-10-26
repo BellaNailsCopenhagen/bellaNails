@@ -28,7 +28,9 @@ export function AddonsManager({
   const { pending, run } = useActionRunner()
 
   const linkedIds = new Set(addons.map((a) => a.id))
-  const linkable = allAddons.filter((a) => !a.archived_at && !linkedIds.has(a.id))
+  const linkable = allAddons.filter(
+    (a) => !a.archived_at && !linkedIds.has(a.id),
+  )
 
   return (
     <section className="space-y-2 pl-2">
@@ -95,7 +97,9 @@ export function AddonsManager({
             disabled={pending}
             onChange={(e) => {
               const id = e.target.value
-              if (id) run(() => linkAddon(serviceId, id))
+              if (id) {
+                run(() => linkAddon(serviceId, id))
+              }
               e.target.value = ""
             }}
             className="rounded-sm border border-border bg-transparent px-3 py-1.5 font-functional text-xs text-muted-foreground"

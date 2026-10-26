@@ -12,8 +12,7 @@ const badgeVariants = cva(
         // Semantic states — tinted washes over the token colors.
         success: "border-success/25 bg-success/10 text-success",
         warning: "border-warning/25 bg-warning/10 text-warning",
-        destructive:
-          "border-destructive/25 bg-destructive/10 text-destructive",
+        destructive: "border-destructive/25 bg-destructive/10 text-destructive",
       },
       size: {
         default: "px-4 py-2.5 text-xs font-medium tracking-widest-lux",

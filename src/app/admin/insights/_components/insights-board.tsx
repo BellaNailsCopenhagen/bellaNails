@@ -12,7 +12,10 @@ import { cn } from "@/shared/cn"
 function asHours(mins: number): string {
   const hours = Math.floor(mins / 60)
   const rest = mins % 60
-  if (!hours) return `${rest} min`
+  if (!hours) {
+    return `${rest} min`
+  }
+
   return rest ? `${hours} h ${rest}` : `${hours} h`
 }
 
@@ -82,24 +85,31 @@ export function InsightsBoard({
             <table className="w-full min-w-[34rem] border-collapse">
               <thead>
                 <tr className="border-b border-border text-left">
-                  {["Month", "Done", "Brought in", "Booked", "Of open hours"].map(
-                    (heading, index) => (
-                      <th
-                        key={heading}
-                        className={cn(
-                          "pb-2 font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground",
-                          index > 0 && "text-right",
-                        )}
-                      >
-                        {heading}
-                      </th>
-                    ),
-                  )}
+                  {[
+                    "Month",
+                    "Done",
+                    "Brought in",
+                    "Booked",
+                    "Of open hours",
+                  ].map((heading, index) => (
+                    <th
+                      key={heading}
+                      className={cn(
+                        "pb-2 font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground",
+                        index > 0 && "text-right",
+                      )}
+                    >
+                      {heading}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {withActivity.map((month) => (
-                  <tr key={month.key} className="border-b border-border last:border-b-0">
+                  <tr
+                    key={month.key}
+                    className="border-b border-border last:border-b-0"
+                  >
                     <td className="py-3 font-functional text-sm text-foreground">
                       {formatStudioMonthYear(month.atMs, ADMIN_LOCALE)}
                       {month.inProgress ? (
@@ -150,22 +160,24 @@ export function InsightsBoard({
         <BodySm className="text-xs text-muted-foreground">
           &ldquo;Booked&rdquo; counts each appointment&rsquo;s length plus the{" "}
           {bufferMins} minutes your calendar keeps free after it — that time is
-          spoken for, so it counts as used. A missed appointment counts as booked
-          time but earns nothing, unless you record what you charged for it.
+          spoken for, so it counts as used. A missed appointment counts as
+          booked time but earns nothing, unless you record what you charged for
+          it.
         </BodySm>
         <BodySm className="text-xs text-muted-foreground">
           A month keeps the opening hours it actually had, so changing your week
-          now leaves last winter as it was rather than re-dividing it by the week
-          you keep today. A month showing no percentage is one nobody was
-          watching — it ended before this was kept — and it stays that way rather
-          than being given a figure worked out from the wrong week. This month is
-          measured against the days and hours that have actually passed.
+          now leaves last winter as it was rather than re-dividing it by the
+          week you keep today. A month showing no percentage is one nobody was
+          watching — it ended before this was kept — and it stays that way
+          rather than being given a figure worked out from the wrong week. This
+          month is measured against the days and hours that have actually
+          passed.
         </BodySm>
         {snapshotsUnavailable ? (
           <BodySm className="text-xs text-warning">
-            Months aren&rsquo;t being kept yet — every figure here was worked out
-            just now. Apply <code>supabase/insights-months.sql</code> and they
-            will settle.
+            Months aren&rsquo;t being kept yet — every figure here was worked
+            out just now. Apply <code>supabase/insights-months.sql</code> and
+            they will settle.
           </BodySm>
         ) : null}
       </div>

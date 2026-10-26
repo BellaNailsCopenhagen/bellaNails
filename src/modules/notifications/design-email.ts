@@ -89,8 +89,12 @@ export async function sendDesignRequestArtistEmail(d: {
 }): Promise<EmailResult> {
   const rows: [string, string][] = [
     ["Client", d.clientName],
-    ...(d.clientPhone ? ([["Phone", d.clientPhone]] as [string, string][]) : []),
-    ...(d.clientEmail ? ([["Email", d.clientEmail]] as [string, string][]) : []),
+    ...(d.clientPhone
+      ? ([["Phone", d.clientPhone]] as [string, string][])
+      : []),
+    ...(d.clientEmail
+      ? ([["Email", d.clientEmail]] as [string, string][])
+      : []),
     ["About", TOPIC_LABEL[d.topic] ?? d.topic],
     ...(d.preferredWindow
       ? ([["Wants it", d.preferredWindow]] as [string, string][])
@@ -260,9 +264,7 @@ export async function sendDesignRequestDeclinedEmail(
   d: Base & { reason: string | null },
 ): Promise<EmailResult> {
   const isEn = d.locale === "en"
-  const heading = isEn
-    ? "About your message"
-    : "Om din besked"
+  const heading = isEn ? "About your message" : "Om din besked"
   const intro = isEn
     ? "We aren't able to take this one on."
     : "Vi kan desværre ikke tage denne opgave."
@@ -328,6 +330,7 @@ async function send(msg: {
 }): Promise<EmailResult> {
   try {
     const { from, replyTo } = await mailFrom("contact")
+
     return await sendEmail({
       from,
       replyTo: msg.replyTo ?? replyTo,
@@ -337,6 +340,9 @@ async function send(msg: {
       text: msg.text,
     })
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.name : "send_failed" }
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_failed",
+    }
   }
 }

@@ -46,7 +46,10 @@ export async function getPublishedTestimonials(
   try {
     // Inside the try: assertEnv throws, and a missing key must not take the
     // prerendered home page down.
-    const rows = await listVisibleTestimonials(db ?? createSupabaseServerClient())
+    const rows = await listVisibleTestimonials(
+      db ?? createSupabaseServerClient(),
+    )
+
     return rows.flatMap((row) =>
       row.author_name && row.body
         ? [
@@ -61,6 +64,7 @@ export async function getPublishedTestimonials(
     )
   } catch (error) {
     console.error("[testimonials] load failed", errorOf(error))
+
     return []
   }
 }
@@ -75,13 +79,18 @@ export async function getTestimonialInviteByToken(
   token: string,
 ): Promise<{ status: TestimonialStatus; answered: boolean } | null> {
   const id = verifyTestimonialToken(token)
-  if (!id) return null
-  const row = await getTestimonial(
-    createSupabaseServiceRoleClient(),
-    id,
-  ).catch(() => null)
+  if (!id) {
+    return null
+  }
+  const row = await getTestimonial(createSupabaseServiceRoleClient(), id).catch(
+    () => null,
+  )
+
   return row
-    ? { status: asTestimonialStatus(row.status), answered: Boolean(row.submitted_at) }
+    ? {
+        status: asTestimonialStatus(row.status),
+        answered: Boolean(row.submitted_at),
+      }
     : null
 }
 
@@ -122,7 +131,9 @@ export async function getTestimonialsForAdmin(): Promise<{
 }> {
   const empty = { submitted: [], pending: [], contacts: {} }
   const db = await requireOwner()
-  if (!db) return empty
+  if (!db) {
+    return empty
+  }
   try {
     const [submitted, pending] = await Promise.all([
       listWrittenTestimonials(db),
@@ -131,6 +142,7 @@ export async function getTestimonialsForAdmin(): Promise<{
     const contacts = await fetchClientContacts([
       ...new Set([...submitted, ...pending].map((r) => r.client_id)),
     ])
+
     return {
       submitted: submitted.map(toAdmin),
       pending: pending.map(toAdmin),
@@ -138,6 +150,7 @@ export async function getTestimonialsForAdmin(): Promise<{
     }
   } catch (error) {
     console.error("[testimonials] admin load failed", errorOf(error))
+
     return empty
   }
 }
@@ -165,13 +178,18 @@ export async function getMyTestimonialSpace(): Promise<{
 }> {
   const empty = { invite: null, items: [] }
   const user = await getCurrentUser()
-  if (!user) return empty
+  if (!user) {
+    return empty
+  }
   try {
     const db = await createAuthedSupabaseServerClient()
     const rows = await listTestimonialsForClient(db, user.id)
     const open = rows.find((row) => row.status === "requested")
+
     return {
-      invite: open ? { id: open.id, token: signTestimonialToken(open.id) } : null,
+      invite: open
+        ? { id: open.id, token: signTestimonialToken(open.id) }
+        : null,
       // `submitted_at` is the honest test for "they wrote something": an
       // invitation the studio withdrew before it was answered has none, and
       // must not appear as a testimonial with nothing in it.
@@ -187,6 +205,7 @@ export async function getMyTestimonialSpace(): Promise<{
     }
   } catch (error) {
     console.error("[testimonials] my space load failed", errorOf(error))
+
     return empty
   }
 }

@@ -19,8 +19,11 @@ export function MarkAllReadButton() {
       onClick={() =>
         startTransition(async () => {
           const result = await markAllNotificationsRead()
-          if (result.ok) router.refresh()
-          else toast.error(result.error || "Couldn’t update.")
+          if (result.ok) {
+            router.refresh()
+          } else {
+            toast.error(result.error || "Couldn’t update.")
+          }
         })
       }
     >

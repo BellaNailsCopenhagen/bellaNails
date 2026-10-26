@@ -15,7 +15,9 @@ export async function optimizeImage(
   file: Blob,
   { maxDim, quality }: ImagePolicy,
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
+  const bitmap = await createImageBitmap(file, {
+    imageOrientation: "from-image",
+  })
   const { width, height } = bitmap
 
   // Fit within maxDim on the longest side; keep aspect ratio. Never upscale.
@@ -27,7 +29,9 @@ export async function optimizeImage(
   canvas.width = dw
   canvas.height = dh
   const ctx = canvas.getContext("2d")
-  if (!ctx) throw new Error("Canvas unsupported")
+  if (!ctx) {
+    throw new Error("Canvas unsupported")
+  }
   ctx.drawImage(bitmap, 0, 0, dw, dh)
   bitmap.close()
 

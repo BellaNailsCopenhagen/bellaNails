@@ -20,11 +20,17 @@ export type SignedToken = {
 
 function secret(): string {
   const key = process.env.BOOKING_TOKEN_SECRET
-  if (!key) throw new Error("no BOOKING_TOKEN_SECRET — set it to a long random string (e.g., openssl rand -hex 32)")
+  if (!key) {
+    throw new Error(
+      "no BOOKING_TOKEN_SECRET — set it to a long random string (e.g., openssl rand -hex 32)",
+    )
+  }
+
   return key
 }
 
-const b64url = (input: Buffer | string) => Buffer.from(input).toString("base64url")
+const b64url = (input: Buffer | string) =>
+  Buffer.from(input).toString("base64url")
 
 export function signedToken(namespace: string): SignedToken {
   const hmac = (id: string) =>
@@ -35,12 +41,17 @@ export function signedToken(namespace: string): SignedToken {
     verify: (token) => {
       try {
         const [idPart, sigPart] = token.split(".")
-        if (!idPart || !sigPart) return null
+        if (!idPart || !sigPart) {
+          return null
+        }
         const id = Buffer.from(idPart, "base64url").toString("utf8")
         const sig = Buffer.from(sigPart, "base64url")
         const expected = hmac(id)
         // Guard length first — timingSafeEqual throws on a mismatch.
-        if (sig.length !== expected.length) return null
+        if (sig.length !== expected.length) {
+          return null
+        }
+
         return crypto.timingSafeEqual(sig, expected) ? id : null
       } catch {
         return null
@@ -53,5 +64,6 @@ export function signedToken(namespace: string): SignedToken {
     — callers treat it as optional so an email degrades to no button. */
 export function tokenUrl(path: string): string | undefined {
   const site = process.env.NEXT_PUBLIC_SITE_URL
+
   return site ? `${site}${path}` : undefined
 }

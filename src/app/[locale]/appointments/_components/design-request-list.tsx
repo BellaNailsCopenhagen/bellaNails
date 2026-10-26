@@ -34,23 +34,28 @@ function displayStatus(request: DesignRequestView): DesignStatus {
   if (request.status === "offered" && state && state !== "live") {
     return state === "used" ? "booked" : "expired"
   }
+
   return request.status
 }
 
-const STATUS_VARIANT: Record<DesignStatus, "outline" | "success" | "warning"> = {
-  open: "outline",
-  offered: "warning",
-  booked: "success",
-  declined: "outline",
-  expired: "outline",
-}
+const STATUS_VARIANT: Record<DesignStatus, "outline" | "success" | "warning"> =
+  {
+    open: "outline",
+    offered: "warning",
+    booked: "success",
+    declined: "outline",
+    expired: "outline",
+  }
 
 /** The newest studio answer across the rendered threads, or null if there is
     nothing to mark read. */
 function newestAnswer(requests: DesignRequestView[]): string | null {
   return requests.reduce<string | null>((newest, request) => {
     const at = request.lastArtistReplyAt
-    if (!at) return newest
+    if (!at) {
+      return newest
+    }
+
     return !newest || Date.parse(at) > Date.parse(newest) ? at : newest
   }, null)
 }
@@ -117,12 +122,17 @@ export async function DesignRequestList({
           // conversation open, and `addDesignMessage` checks the same column.
           const open = isActionableDesignStatus(request.status)
           const offerName = offer
-            ? (pickLocalized(locale, offer.nameEn, offer.nameDk) ?? offer.nameEn)
+            ? (pickLocalized(locale, offer.nameEn, offer.nameDk) ??
+              offer.nameEn)
             : null
           const liveOffer = offer?.state === "live" && offerName && token
 
           return (
-            <TintedCard as="li" key={request.id} className="space-y-5 p-5 sm:p-6">
+            <TintedCard
+              as="li"
+              key={request.id}
+              className="space-y-5 p-5 sm:p-6"
+            >
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline" size="xs">

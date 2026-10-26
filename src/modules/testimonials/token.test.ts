@@ -3,9 +3,8 @@ import { test } from "node:test"
 
 process.env.BOOKING_TOKEN_SECRET ??= "test-secret-for-testimonial-tokens"
 
-const { signTestimonialToken, verifyTestimonialToken } = await import(
-  "@/modules/testimonials/token"
-)
+const { signTestimonialToken, verifyTestimonialToken } =
+  await import("@/modules/testimonials/token")
 const { signOfferToken } = await import("@/modules/design/offer-token")
 const { signBookingToken } = await import("@/modules/booking/manage-token")
 
@@ -18,11 +17,15 @@ test("a signed testimonial token round-trips", () => {
 test("tampering with either half is rejected", () => {
   const [id, sig] = signTestimonialToken(ID).split(".")
   assert.equal(
-    verifyTestimonialToken(`${Buffer.from("other").toString("base64url")}.${sig}`),
+    verifyTestimonialToken(
+      `${Buffer.from("other").toString("base64url")}.${sig}`,
+    ),
     null,
   )
   assert.equal(
-    verifyTestimonialToken(`${id}.${Buffer.from("nope").toString("base64url")}`),
+    verifyTestimonialToken(
+      `${id}.${Buffer.from("nope").toString("base64url")}`,
+    ),
     null,
   )
 })

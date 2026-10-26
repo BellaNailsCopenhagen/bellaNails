@@ -12,10 +12,13 @@ export async function generateMetadata({
   searchParams,
 }: PageProps<"/[locale]/confirmation">): Promise<Metadata> {
   const [{ locale }, query] = await Promise.all([params, searchParams])
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "confirmation" })
   // The tab title is part of the claim: without an id nothing is confirmed.
   const confirmed = singleParam(query.id) != null
+
   return {
     title: confirmed ? t("metaTitle") : t("missingMetaTitle"),
     description: t("metaDescription"),
@@ -29,7 +32,9 @@ export default async function ConfirmationPage({
   searchParams,
 }: PageProps<"/[locale]/confirmation">) {
   const [{ locale }, query] = await Promise.all([params, searchParams])
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const id = singleParam(query.id) ?? null

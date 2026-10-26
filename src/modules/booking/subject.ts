@@ -40,8 +40,7 @@ export type BookingSubject = {
 }
 
 export type SubjectResult =
-  | { ok: true; subject: BookingSubject }
-  | { ok: false; error: string }
+  { ok: true; subject: BookingSubject } | { ok: false; error: string }
 
 export async function resolveBookingSubject(
   db: Db,
@@ -59,7 +58,9 @@ async function resolveService(
   addonIds: string[],
 ): Promise<SubjectResult> {
   const service = await getBookableService(db, serviceId).catch(() => null)
-  if (!service) return { ok: false, error: "Service not found." }
+  if (!service) {
+    return { ok: false, error: "Service not found." }
+  }
 
   const addons = service.service_addons
     .map((sa) => sa.addons)
@@ -96,7 +97,9 @@ async function resolveOffer(
   opts: { requireClientId?: string; now?: number },
 ): Promise<SubjectResult> {
   const offer = await getOffer(db, offerId).catch(() => null)
-  if (!offer) return { ok: false, error: "This offer no longer exists." }
+  if (!offer) {
+    return { ok: false, error: "This offer no longer exists." }
+  }
 
   const state = offerState(offer, opts.now ?? Date.now())
   if (state !== "live") {

@@ -49,7 +49,10 @@ export type BlockKind = (typeof BLOCK_KINDS)[number]
     a lookup is always an equality test on a value stored the same way. */
 export function normalizeBlockValue(kind: BlockKind, raw: string): string {
   const value = raw.trim().toLowerCase()
-  if (kind === "domain") return value.replace(/^.*@/, "").replace(/^\.+/, "")
+  if (kind === "domain") {
+    return value.replace(/^.*@/, "").replace(/^\.+/, "")
+  }
+
   return value
 }
 
@@ -72,7 +75,12 @@ export function blockLookupsFor(input: {
     { kind: "email", value: email },
   ]
   const domain = email.split("@")[1]
-  if (domain) lookups.push({ kind: "domain", value: domain })
-  if (input.ip) lookups.push({ kind: "ip", value: input.ip.trim().toLowerCase() })
+  if (domain) {
+    lookups.push({ kind: "domain", value: domain })
+  }
+  if (input.ip) {
+    lookups.push({ kind: "ip", value: input.ip.trim().toLowerCase() })
+  }
+
   return lookups
 }

@@ -15,10 +15,7 @@ import {
   CalendarView,
   type DayStateCounts,
 } from "@/components/admin/calendar-view"
-import {
-  bookingState,
-  canMarkNoShow,
-} from "@/shared/booking-policy"
+import { bookingState, canMarkNoShow } from "@/shared/booking-policy"
 import type { AgendaWeek } from "@/shared/booking-agenda"
 import type { ClientContact } from "@/shared/contact"
 import { routes } from "@/shared/routes"
@@ -39,19 +36,32 @@ const VIEWS = [
 ] as const
 
 function weekLabel(week: AgendaWeek): string {
-  if (week.offset === 0) return "This week"
-  if (week.offset === 1) return "Next week"
+  if (week.offset === 0) {
+    return "This week"
+  }
+  if (week.offset === 1) {
+    return "Next week"
+  }
+
   return `Week of ${formatStudioDayMonth(dayNumberToMs(week.weekStartDay), ADMIN_LOCALE)}`
 }
 
 function dayLabel(dayNumber: number, nowDay: number): string {
-  if (dayNumber === nowDay) return "Today"
-  if (dayNumber === nowDay + 1) return "Tomorrow"
+  if (dayNumber === nowDay) {
+    return "Today"
+  }
+  if (dayNumber === nowDay + 1) {
+    return "Tomorrow"
+  }
+
   return formatStudioWeekday(dayNumberToMs(dayNumber), ADMIN_LOCALE)
 }
 
 function countLabel(count: number): string {
-  if (count === 0) return "open"
+  if (count === 0) {
+    return "open"
+  }
+
   return `${count} ${count === 1 ? "appointment" : "appointments"}`
 }
 
@@ -104,14 +114,19 @@ export function AdminQueue({
         counts.set(day.dayNumber, perState)
       }
     }
+
     return counts
   }, [weeks, now])
 
   const toggleWeek = (weekStartDay: number) =>
     setOpen((prev) => {
       const next = new Set(prev)
-      if (next.has(weekStartDay)) next.delete(weekStartDay)
-      else next.add(weekStartDay)
+      if (next.has(weekStartDay)) {
+        next.delete(weekStartDay)
+      } else {
+        next.add(weekStartDay)
+      }
+
       return next
     })
 
@@ -125,7 +140,9 @@ export function AdminQueue({
   }
 
   useEffect(() => {
-    if (view !== "agenda" || scrollTargetRef.current === null) return
+    if (view !== "agenda" || scrollTargetRef.current === null) {
+      return
+    }
     const dayNumber = scrollTargetRef.current
     scrollTargetRef.current = null
     document
@@ -156,22 +173,22 @@ export function AdminQueue({
           </Link>
           <div className="flex items-center gap-0.5 rounded-sm border border-border p-0.5">
             {VIEWS.map(([value, Icon, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setView(value)}
-              aria-pressed={view === value}
-              aria-label={label}
-              className={cn(
-                "flex size-8 items-center justify-center rounded-[2px] transition-colors",
-                view === value
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" />
-            </button>
-          ))}
+              <button
+                key={value}
+                type="button"
+                onClick={() => setView(value)}
+                aria-pressed={view === value}
+                aria-label={label}
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-[2px] transition-colors",
+                  view === value
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -198,6 +215,7 @@ export function AdminQueue({
         <div className="space-y-4">
           {weeks.map((week) => {
             const isOpen = open.has(week.weekStartDay)
+
             return (
               <section key={week.weekStartDay}>
                 <button

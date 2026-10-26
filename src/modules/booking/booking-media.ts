@@ -14,7 +14,9 @@ export async function getBookingMediaThumbs(
   bookingIds: string[],
 ): Promise<Record<string, BookingThumb[]>> {
   const data = await listMediaForBookings(supabase, bookingIds)
-  if (!data.length) return {}
+  if (!data.length) {
+    return {}
+  }
 
   // Resolve presigned view URLs in parallel (private objects), then group.
   const configured = storageConfigured()
@@ -23,20 +25,26 @@ export async function getBookingMediaThumbs(
       let url = m.url
       if (configured && m.storage_key) {
         const signed = await signedViewUrl(m.storage_key)
-        if (signed.ok) url = signed.data.url
+        if (signed.ok) {
+          url = signed.data.url
+        }
       }
+
       return { bookingId: m.booking_id, id: m.id, url, kind: m.kind }
     }),
   )
 
   const byBooking: Record<string, BookingThumb[]> = {}
   for (const m of resolved) {
-    if (!m.bookingId) continue
+    if (!m.bookingId) {
+      continue
+    }
     ;(byBooking[m.bookingId] ??= []).push({
       id: m.id,
       url: m.url,
       kind: m.kind,
     })
   }
+
   return byBooking
 }

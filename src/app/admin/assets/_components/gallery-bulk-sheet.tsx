@@ -39,16 +39,23 @@ export function GalleryBulkSheet({
         appointment.photos.flatMap((asset) => {
           // Everything here starts SELECTED, so anything she would not want
           // published has to be gone before she taps Add.
-          if (asset.setAside) return []
+          if (asset.setAside) {
+            return []
+          }
           // Only appointments the client released for the website qualify.
-          if (asset.releases.website !== "granted") return []
+          if (asset.releases.website !== "granted") {
+            return []
+          }
           const websitePublished = asset.published.find(
             (p) => p.purpose === "website",
           )
           const onGallery = (websitePublished?.usages ?? []).some(
             (u) => u.surface === "clients_gallery",
           )
-          if (onGallery) return []
+          if (onGallery) {
+            return []
+          }
+
           return [{ asset }]
         }),
       ),
@@ -63,15 +70,22 @@ export function GalleryBulkSheet({
   const toggle = (id: string) =>
     setDeselected((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+
       return next
     })
 
   const submit = () =>
     run(async () => {
       const result = await bulkAddToGallery(chosen.map((c) => c.asset.mediaId))
-      if (result.ok) onOpenChange(false)
+      if (result.ok) {
+        onOpenChange(false)
+      }
+
       return result
     })
 
@@ -95,6 +109,7 @@ export function GalleryBulkSheet({
             <ul className="grid max-h-[46vh] grid-cols-3 gap-1.5 overflow-y-auto">
               {shown.map(({ asset }) => {
                 const on = !deselected.has(asset.mediaId)
+
                 return (
                   <li key={asset.mediaId}>
                     <button
@@ -102,7 +117,9 @@ export function GalleryBulkSheet({
                       onClick={() => toggle(asset.mediaId)}
                       className={cn(
                         "relative block w-full overflow-hidden rounded-sm border-2 transition-colors",
-                        on ? "border-foreground" : "border-transparent opacity-60",
+                        on
+                          ? "border-foreground"
+                          : "border-transparent opacity-60",
                       )}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -124,12 +141,16 @@ export function GalleryBulkSheet({
 
             <BodySm className="text-xs text-muted-foreground">
               <span className="text-foreground">{chosen.length}</span> photo
-              {chosen.length === 1 ? "" : "s"} → website gallery. All are released
-              for the website and appear right away.
+              {chosen.length === 1 ? "" : "s"} → website gallery. All are
+              released for the website and appear right away.
             </BodySm>
 
             <div className="flex justify-end">
-              <Button size="sm" disabled={pending || !chosen.length} onClick={submit}>
+              <Button
+                size="sm"
+                disabled={pending || !chosen.length}
+                onClick={submit}
+              >
                 {pending ? "Adding…" : `Add ${chosen.length} to gallery`}
               </Button>
             </div>

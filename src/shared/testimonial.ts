@@ -80,9 +80,16 @@ export function testimonialState(row: {
   visible: boolean
   content_erased_at?: string | null
 }): TestimonialState {
-  if (row.content_erased_at) return "erased"
-  if (row.status === "withdrawn") return "takenDown"
-  if (row.status === "declined") return "removed"
+  if (row.content_erased_at) {
+    return "erased"
+  }
+  if (row.status === "withdrawn") {
+    return "takenDown"
+  }
+  if (row.status === "declined") {
+    return "removed"
+  }
+
   return row.visible && row.status === "submitted" ? "showing" : "waiting"
 }
 
@@ -132,15 +139,21 @@ export function validateTestimonial(input: {
       is not a thing we store. */
   consent: boolean
 }): TestimonialValidation {
-  if (!input.consent) return { ok: false, field: "consent", reason: "missing" }
+  if (!input.consent) {
+    return { ok: false, field: "consent", reason: "missing" }
+  }
   const authorName = input.authorName.trim()
-  if (!authorName) return { ok: false, field: "authorName", reason: "missing" }
+  if (!authorName) {
+    return { ok: false, field: "authorName", reason: "missing" }
+  }
   if (authorName.length > TESTIMONIAL_MAX_NAME) {
     return { ok: false, field: "authorName", reason: "tooLong" }
   }
 
   const body = input.body.trim()
-  if (!body) return { ok: false, field: "body", reason: "missing" }
+  if (!body) {
+    return { ok: false, field: "body", reason: "missing" }
+  }
   if (body.length < TESTIMONIAL_MIN_BODY) {
     return { ok: false, field: "body", reason: "tooShort" }
   }
@@ -149,7 +162,8 @@ export function validateTestimonial(input: {
   }
 
   // Optional by design — plenty of people won't want to state one.
-  const occupation = input.occupation?.trim().slice(0, TESTIMONIAL_MAX_OCCUPATION) || null
+  const occupation =
+    input.occupation?.trim().slice(0, TESTIMONIAL_MAX_OCCUPATION) || null
 
   return { ok: true, value: { authorName, occupation, body } }
 }

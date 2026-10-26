@@ -20,9 +20,9 @@ export function InsightsDisclaimer() {
         </p>
         <BodySm className="max-w-prose text-xs text-muted-foreground">
           These come from your booked prices and any amounts you&rsquo;ve
-          corrected yourself. They don&rsquo;t know about card fees, VAT, tips, or
-          anything settled outside the app. Useful for a sense of how things are
-          going; not something to file.
+          corrected yourself. They don&rsquo;t know about card fees, VAT, tips,
+          or anything settled outside the app. Useful for a sense of how things
+          are going; not something to file.
         </BodySm>
       </div>
     </div>

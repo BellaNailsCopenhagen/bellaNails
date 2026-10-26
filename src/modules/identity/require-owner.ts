@@ -22,6 +22,9 @@ import type { Database } from "@/platform/supabase/types"
  */
 export async function requireOwner(): Promise<SupabaseClient<Database> | null> {
   const user = await getAuthUser()
-  if (!isOwnerUser(user)) return null
+  if (!isOwnerUser(user)) {
+    return null
+  }
+
   return createSupabaseServiceRoleClient()
 }

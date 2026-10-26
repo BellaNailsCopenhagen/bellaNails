@@ -35,7 +35,9 @@ export async function setBookingAccessLevel(
   level: string,
 ): Promise<ProtectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   if (!(BOOKING_ACCESS_LEVELS as readonly string[]).includes(level)) {
     return { ok: false, error: "Unknown protection level." }
@@ -45,14 +47,18 @@ export async function setBookingAccessLevel(
   if (!isSelectableLevel(level as BookingAccessLevel)) {
     return {
       ok: false,
-      error: "Card on file needs card payments set up first — not available yet.",
+      error:
+        "Card on file needs card payments set up first — not available yet.",
     }
   }
 
   const saved = await upsertBookingProtection(db, { access_level: level })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save that." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save that." }
+  }
 
   revalidateProtection()
+
   return { ok: true }
 }
 
@@ -60,12 +66,17 @@ export async function setBookingHumanCheck(
   enabled: boolean,
 ): Promise<ProtectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await upsertBookingProtection(db, { human_check: enabled })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save that." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save that." }
+  }
 
   revalidateProtection()
+
   return { ok: true }
 }
 
@@ -75,17 +86,23 @@ export async function blockIdentity(input: {
   reason: string
 }): Promise<ProtectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   if (!(BLOCK_KINDS as readonly string[]).includes(input.kind)) {
     return { ok: false, error: "Pick what you're blocking." }
   }
   const kind = input.kind as BlockKind
   const value = normalizeBlockValue(kind, input.value).slice(0, MAX_VALUE)
-  if (!value) return { ok: false, error: "Enter what to block." }
+  if (!value) {
+    return { ok: false, error: "Enter what to block." }
+  }
   // A comma or a paren would break the PostgREST `or` filter the lookup builds,
   // and no legitimate address, domain or IP contains one.
-  if (/[(),\s]/.test(value)) return { ok: false, error: "That doesn't look valid." }
+  if (/[(),\s]/.test(value)) {
+    return { ok: false, error: "That doesn't look valid." }
+  }
   if (kind === "email" && !EMAIL_PATTERN.test(value)) {
     return { ok: false, error: "Enter a full email address." }
   }
@@ -96,11 +113,16 @@ export async function blockIdentity(input: {
   const reason = input.reason.trim().slice(0, MAX_REASON)
   // Required by the table too. A blocklist nobody can explain later is a list
   // nobody dares remove from.
-  if (!reason) return { ok: false, error: "Say why — you'll want to know later." }
+  if (!reason) {
+    return { ok: false, error: "Say why — you'll want to know later." }
+  }
 
   const saved = await insertBlockedIdentity(db, { kind, value, reason })
   if (!saved.ok) {
-    const duplicate = /duplicate key|unique constraint/i.test(saved.message ?? "")
+    const duplicate = /duplicate key|unique constraint/i.test(
+      saved.message ?? "",
+    )
+
     return {
       ok: false,
       error: duplicate ? "That's already blocked." : "Couldn’t block that.",
@@ -108,17 +130,23 @@ export async function blockIdentity(input: {
   }
 
   revalidateProtection()
+
   return { ok: true }
 }
 
 export async function unblockIdentity(id: string): Promise<ProtectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const removed = await deleteBlockedIdentity(db, id)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove that." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove that." }
+  }
 
   revalidateProtection()
+
   return { ok: true }
 }
 

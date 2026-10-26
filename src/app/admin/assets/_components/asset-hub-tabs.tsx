@@ -1,7 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { EyeOff, Images, Info, Sparkles, Star, TriangleAlert } from "lucide-react"
+import {
+  EyeOff,
+  Images,
+  Info,
+  Sparkles,
+  Star,
+  TriangleAlert,
+} from "lucide-react"
 
 import { TabBar } from "@/components/ui/tab-bar"
 import { Button } from "@/components/ui/button"
@@ -65,8 +72,12 @@ export function AssetHubTabs({
         setAsideCount++
         continue
       }
-      if (photo.favorited) favCount++
-      if (isAwaitingUse(photo, now)) newCount++
+      if (photo.favorited) {
+        favCount++
+      }
+      if (isAwaitingUse(photo, now)) {
+        newCount++
+      }
     }
   }
 
@@ -87,6 +98,7 @@ export function AssetHubTabs({
     const photos = forced
       ? appointment.photos
       : appointment.photos.filter(keepPhoto)
+
     return photos.length ? [{ ...appointment, photos }] : []
   })
 
@@ -101,12 +113,19 @@ export function AssetHubTabs({
   const shown = visible.filter((a) => tab === "all" || a.state === tab)
 
   useEffect(() => {
-    if (!highlight) return
+    if (!highlight) {
+      return
+    }
+
     return flashHighlight(`media-${highlight}`)
   }, [highlight, tab, favoritesOnly, newOnly, showSetAside])
 
   const tabs = [
-    { value: "all" as HubFilter, label: "All", count: visible.length || undefined },
+    {
+      value: "all" as HubFilter,
+      label: "All",
+      count: visible.length || undefined,
+    },
     ...ASSET_STATE_ORDER.map((state) => ({
       value: state as HubFilter,
       label: ASSET_STATE_LABEL[state],
@@ -196,12 +215,13 @@ export function AssetHubTabs({
         <SheetContent className="space-y-4">
           <SheetTitle>What the states mean</SheetTitle>
           <p className="font-functional text-xs text-muted-foreground">
-            A state describes an APPOINTMENT, not a photo. The client answers once
-            per appointment and that answer covers every photo taken at it.
+            A state describes an APPOINTMENT, not a photo. The client answers
+            once per appointment and that answer covers every photo taken at it.
           </p>
           <ul className="space-y-3">
             {[...ASSET_STATE_ORDER, "takedown" as const].map((state) => {
               const { Icon, className } = STATE_ICON[state]
+
               return (
                 <li key={state} className="flex items-start gap-3">
                   <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-border">

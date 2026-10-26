@@ -11,7 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { CategorySelect } from "@/components/admin/category-select"
 import { createService } from "@/modules/catalog/service-actions"
-import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
+import {
+  FieldLabel,
+  fieldLabel,
+  RequiredLegend,
+} from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 import { routes } from "@/shared/routes"
 
@@ -41,7 +45,9 @@ export function CreateServiceSheet({
   const priceOk = price !== null && price > 0
 
   const create = () => {
-    if (price === null || price <= 0) return
+    if (price === null || price <= 0) {
+      return
+    }
     startTransition(async () => {
       const result = await createService({
         nameEn,
@@ -95,11 +101,7 @@ export function CreateServiceSheet({
               <Label htmlFor="new-da" className={fieldLabel}>
                 Name · DA
               </Label>
-              <Input
-                id="new-da"
-                value={nameDa}
-                onValueChange={setNameDa}
-              />
+              <Input id="new-da" value={nameDa} onValueChange={setNameDa} />
             </div>
           </div>
 
@@ -129,7 +131,9 @@ export function CreateServiceSheet({
                   type="button"
                   aria-label="Less time"
                   onClick={() =>
-                    setDurationMins((d) => Math.max(DURATION_STEP, d - DURATION_STEP))
+                    setDurationMins((d) =>
+                      Math.max(DURATION_STEP, d - DURATION_STEP),
+                    )
                   }
                   className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
                 >

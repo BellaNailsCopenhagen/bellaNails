@@ -35,7 +35,12 @@ export {
   type ServiceDetail,
 } from "./admin-catalog"
 
-export { getServiceSections, getConsentedAssets, type ServiceSection, type PickableAsset } from "./sections"
+export {
+  getServiceSections,
+  getConsentedAssets,
+  type ServiceSection,
+  type PickableAsset,
+} from "./sections"
 export { getServiceReviews, type Review } from "./reviews"
 export {
   getServicePublicGallery,

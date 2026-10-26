@@ -22,13 +22,18 @@ export async function getReleaseRequestForToken(
   token: string,
 ): Promise<ReleaseRequestCard | null> {
   const bookingId = verifyBookingToken(token)
-  if (!bookingId) return null
+  if (!bookingId) {
+    return null
+  }
 
   const db = createSupabaseServiceRoleClient()
   const rows = await listReleasesForBookings(db, [bookingId])
-  if (!rows.length) return null
+  if (!rows.length) {
+    return null
+  }
 
   const [label] = await listBookingLabelsByIds(db, [bookingId])
+
   return toReleaseCard(
     bookingId,
     label ? metaOf(label) : {},

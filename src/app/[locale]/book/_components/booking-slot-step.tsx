@@ -116,11 +116,13 @@ export function BookingSlotStep({
       // the next step, not a failure.
       if (result.code === "cap") {
         setCapStart(start)
+
         return { ok: true }
       }
       // A spent or missing proof: clear it so ticking again mints a fresh one.
       if (result.code === "human") {
         setHumanProof(null)
+
         return { ok: false, error: result.error }
       }
       // A session that lapsed between the details step and this tap — send them
@@ -130,11 +132,14 @@ export function BookingSlotStep({
           pathname: routes.signIn,
           query: { next: signInReturnPath },
         })
+
         return { ok: false, error: result.error }
       }
+
       return { ok: false, error: result.error }
     }
     router.replace({ pathname: routes.confirmation, query: { id: result.id } })
+
     return { ok: true }
   }
 
@@ -190,11 +195,7 @@ export function BookingSlotStep({
             }
           />
         ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={openOutside}
-          >
+          <Button variant="ghost" size="sm" onClick={openOutside}>
             {tRequest("cantFindTime")}
           </Button>
         )

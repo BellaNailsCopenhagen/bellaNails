@@ -50,6 +50,7 @@ export default async function AdminNewPage({
 
   const clients: ClientOption[] = roster.map((entry) => {
     const { contact } = entry
+
     return {
       id: entry.id,
       name: contactDisplayName(contact),
@@ -71,7 +72,11 @@ export default async function AdminNewPage({
       name: c.name_en,
       services: active(c.services),
     })),
-    { id: "uncategorized", name: "Other", services: active(catalog.uncategorized) },
+    {
+      id: "uncategorized",
+      name: "Other",
+      services: active(catalog.uncategorized),
+    },
   ].filter((group) => group.services.length > 0)
 
   const initialClient =

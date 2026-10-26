@@ -29,6 +29,7 @@ export function ClientEmailLanguage({
       <div className="flex gap-2">
         {OPTIONS.map((option) => {
           const active = option.locale === locale
+
           return (
             <button
               key={option.locale}

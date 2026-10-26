@@ -13,9 +13,9 @@ import type { SlotPickerLabels } from "@/components/booking/slot-picker"
  * `override` is the "ignore hours & days off" variant — the only line that
  * differs between the two, and the reason it is a function.
  */
-export function adminSlotLabels(
-  { override = false }: { override?: boolean } = {},
-): SlotPickerLabels {
+export function adminSlotLabels({
+  override = false,
+}: { override?: boolean } = {}): SlotPickerLabels {
   return {
     chooseDate: "Choose a date",
     chooseTime: "Choose a time",

@@ -102,8 +102,11 @@ export async function getClientCommunications(
 ): Promise<CommunicationView[]> {
   try {
     const db = await requireOwner()
-    if (!db) return []
+    if (!db) {
+      return []
+    }
     const rows = await listCommunicationsForClient(db, clientId)
+
     return rows.map((r) => ({
       id: r.id,
       kind: r.kind as CommunicationKind,
@@ -117,6 +120,7 @@ export async function getClientCommunications(
       "[communications] read failed —",
       error instanceof Error ? error.message : error,
     )
+
     return []
   }
 }

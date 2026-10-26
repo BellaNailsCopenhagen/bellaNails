@@ -83,10 +83,14 @@ function requestDurationMs(request: {
   selected_addons: unknown
 }): number {
   const mins = metaOf(request).totalDurationMins
-  if (mins != null) return mins * MIN
+  if (mins != null) {
+    return mins * MIN
+  }
+
   return Math.max(
     0,
-    new Date(request.end_time).getTime() - new Date(request.start_time).getTime(),
+    new Date(request.end_time).getTime() -
+      new Date(request.start_time).getTime(),
   )
 }
 
@@ -116,7 +120,11 @@ export type CreateRequestInput = {
  */
 async function requestReasonProblem(
   db: Db,
-  input: { kind: "outside_hours" | "over_limit"; clientId: string; startIso: string },
+  input: {
+    kind: "outside_hours" | "over_limit"
+    clientId: string
+    startIso: string
+  },
 ): Promise<string | null> {
   const startMs = new Date(input.startIso).getTime()
 
@@ -133,6 +141,7 @@ async function requestReasonProblem(
     } catch {
       return null
     }
+
     return null
   }
 
@@ -148,6 +157,7 @@ async function requestReasonProblem(
   } catch {
     return null
   }
+
   return null
 }
 
@@ -167,7 +177,9 @@ export async function createBookingRequest(
   | { ok: true; id: string }
   | { ok: false; error: string; code?: "auth" | "human" }
 > {
-  if (input.honeypot?.trim()) return { ok: false, error: "Couldn't send the request." }
+  if (input.honeypot?.trim()) {
+    return { ok: false, error: "Couldn't send the request." }
+  }
 
   const db = createSupabaseServiceRoleClient()
 
@@ -216,12 +228,17 @@ export async function createBookingRequest(
   if (when === "tooFar") {
     return { ok: false, error: "That's too far ahead — pick a nearer date." }
   }
-  if (when) return { ok: false, error: "Pick a time in the future." }
+  if (when) {
+    return { ok: false, error: "Pick a time in the future." }
+  }
 
   const ip = await callerIp()
   const blocked = await checkBlocked(db, { email, ip })
   if (blocked.blocked) {
-    return { ok: false, error: "We can't take this request online — please contact the studio." }
+    return {
+      ok: false,
+      error: "We can't take this request online — please contact the studio.",
+    }
   }
 
   const prepared = await buildBookingDraft(
@@ -233,7 +250,9 @@ export async function createBookingRequest(
     },
     { checkSlot: false },
   )
-  if (!prepared.ok) return prepared
+  if (!prepared.ok) {
+    return prepared
+  }
   const { draft } = prepared
 
   let clientId: string
@@ -241,10 +260,15 @@ export async function createBookingRequest(
     clientId = await ensureUser({
       email,
       name: input.name.trim() || undefined,
-      phone: input.phone ? (toE164(input.phone) ?? input.phone.trim()) : undefined,
+      phone: input.phone
+        ? (toE164(input.phone) ?? input.phone.trim())
+        : undefined,
     })
   } catch {
-    return { ok: false, error: "Couldn't save your details — please try again." }
+    return {
+      ok: false,
+      error: "Couldn't save your details — please try again.",
+    }
   }
 
   // A request says WHY the normal flow can't serve it. Neither reason was ever
@@ -258,7 +282,9 @@ export async function createBookingRequest(
     clientId,
     startIso: input.start,
   })
-  if (unjustified) return { ok: false, error: unjustified }
+  if (unjustified) {
+    return { ok: false, error: unjustified }
+  }
 
   // One person could queue five conflicting asks an hour under the rate limit
   // alone. A cap on UNDECIDED requests bounds what she has to work through.
@@ -277,12 +303,15 @@ export async function createBookingRequest(
   // Last thing before the write, so a rejected time costs no quota. Keyed on
   // the connection too when there is no session — see createBooking.
   const buckets = [`booking:request:${clientId}`]
-  if (!user && ip) buckets.push(`booking:request:ip:${ip}`)
+  if (!user && ip) {
+    buckets.push(`booking:request:ip:${ip}`)
+  }
   for (const bucket of buckets) {
     if (!(await takeDurableToken(db, bucket, REQUEST_RULE))) {
       return {
         ok: false,
-        error: "That's a lot of requests in a short time — please contact the studio.",
+        error:
+          "That's a lot of requests in a short time — please contact the studio.",
       }
     }
   }
@@ -308,7 +337,9 @@ export async function createBookingRequest(
     total_price_cents: draft.subject.priceCents,
     message: input.message?.trim() || null,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn't save the request — please try again." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn't save the request — please try again." }
+  }
 
   const locale = resolveLocale(input.locale)
   // Remember the site locale, exactly as createBooking does. Without it this
@@ -377,6 +408,7 @@ export async function createBookingRequest(
   })
 
   revalidatePath(routes.admin.home)
+
   return { ok: true, id: saved.id }
 }
 
@@ -398,13 +430,19 @@ export async function getOwnerSlotsForRequest(
   override = false,
 ): Promise<Slot[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
 
   const request = await getBookingRequest(db, requestId)
-  if (!request) return []
+  if (!request) {
+    return []
+  }
 
   const mins = Math.round(requestDurationMs(request) / MIN)
-  if (mins <= 0) return []
+  if (mins <= 0) {
+    return []
+  }
 
   return override
     ? getOverrideSlotsForDuration(mins, db)
@@ -419,10 +457,14 @@ export async function acceptBookingRequest(
   opts?: { startIso?: string },
 ): Promise<{ ok: true; bookingId: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const request = await getBookingRequest(db, requestId)
-  if (!request) return { ok: false, error: "Request not found." }
+  if (!request) {
+    return { ok: false, error: "Request not found." }
+  }
   if (request.status !== "pending") {
     return { ok: false, error: "This request was already decided." }
   }
@@ -439,7 +481,9 @@ export async function acceptBookingRequest(
   if (when === "tooFar") {
     return { ok: false, error: "That's too far ahead — pick a nearer date." }
   }
-  if (when) return { ok: false, error: "Pick a valid time." }
+  if (when) {
+    return { ok: false, error: "Pick a valid time." }
+  }
   const startMs = new Date(startIso).getTime()
   const endIso = new Date(startMs + requestDurationMs(request)).toISOString()
 
@@ -485,7 +529,9 @@ export async function acceptBookingRequest(
   }
 
   // Confirmation to the client (best-effort) — a real booking now exists.
-  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  const contact = (await fetchClientContacts([request.client_id]))[
+    request.client_id
+  ]
   if (contact?.email) {
     const locale = contact.communicationLocale
     const { serviceName, addonNames } = localizedBookingNames(meta, locale)
@@ -516,6 +562,7 @@ export async function acceptBookingRequest(
   revalidatePath(routes.admin.home)
   revalidatePath(routes.admin.appointments)
   revalidatePath(routes.admin.notifications)
+
   return { ok: true, bookingId: result.id }
 }
 
@@ -526,10 +573,14 @@ export async function rejectBookingRequest(
   reason?: string,
 ): Promise<RequestActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const request = await getBookingRequest(db, requestId)
-  if (!request) return { ok: false, error: "Request not found." }
+  if (!request) {
+    return { ok: false, error: "Request not found." }
+  }
   if (request.status !== "pending") {
     return { ok: false, error: "This request was already decided." }
   }
@@ -547,7 +598,11 @@ export async function rejectBookingRequest(
       `[booking-request] request ${requestId} not marked rejected:`,
       flipped.message,
     )
-    return { ok: false, error: "Couldn’t decline the request — please try again." }
+
+    return {
+      ok: false,
+      error: "Couldn’t decline the request — please try again.",
+    }
   }
 
   // Decided, so it has stopped being a question.
@@ -556,7 +611,9 @@ export async function rejectBookingRequest(
     targetId: requestId,
   })
 
-  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  const contact = (await fetchClientContacts([request.client_id]))[
+    request.client_id
+  ]
   if (contact?.email) {
     const locale = contact.communicationLocale
     const { serviceName } = localizedBookingNames(metaOf(request), locale)
@@ -580,5 +637,6 @@ export async function rejectBookingRequest(
 
   revalidatePath(routes.admin.home)
   revalidatePath(routes.admin.notifications)
+
   return { ok: true }
 }

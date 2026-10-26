@@ -41,6 +41,7 @@ export async function BookingServicePicker() {
           const name =
             pickLocalized(locale, category.name_en, category.name_dk) ??
             category.name_en
+
           return (
             <Fragment key={category.id}>
               <section className="py-16 sm:py-20">

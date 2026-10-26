@@ -28,16 +28,22 @@ export function takeToken(
   if (!entry || entry.resetAt <= now) {
     state.set(key, { count: 1, resetAt: now + rule.windowMs })
     sweep(state, now)
+
     return true
   }
-  if (entry.count >= rule.limit) return false
+  if (entry.count >= rule.limit) {
+    return false
+  }
   entry.count += 1
+
   return true
 }
 
 // Bounded work: only runs when a window rolls over, and only for dead keys.
 function sweep(state: RateLimitState, now: number): void {
   for (const [key, entry] of state) {
-    if (entry.resetAt <= now) state.delete(key)
+    if (entry.resetAt <= now) {
+      state.delete(key)
+    }
   }
 }

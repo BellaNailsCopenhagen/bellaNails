@@ -24,17 +24,22 @@ export function AdminReviewBanner() {
     let active = true
     const load = async () => {
       const count = await countUnread(supabase)
-      if (active) setUnread(count)
+      if (active) {
+        setUnread(count)
+      }
     }
     load()
     const id = setInterval(load, 60_000)
+
     return () => {
       active = false
       clearInterval(id)
     }
   }, [supabase, pathname])
 
-  if (unread <= 0 || pathname === routes.admin.notifications) return null
+  if (unread <= 0 || pathname === routes.admin.notifications) {
+    return null
+  }
 
   return (
     <Link

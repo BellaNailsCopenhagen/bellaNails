@@ -2,7 +2,10 @@ import type { Metadata } from "next"
 
 import { BackToMore } from "@/components/admin/back-to-more"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
-import { AssetHubTabs, type HubFilter } from "@/app/admin/assets/_components/asset-hub-tabs"
+import {
+  AssetHubTabs,
+  type HubFilter,
+} from "@/app/admin/assets/_components/asset-hub-tabs"
 import { getHubAppointments } from "@/modules/media/asset-hub"
 import { ASSET_STATE_ORDER } from "@/shared/asset-state"
 import { fetchClientContacts } from "@/modules/clients/contacts"
@@ -30,7 +33,9 @@ export default async function AdminAssetsPage({
   const ids = [...new Set(appointments.map((a) => a.clientId))]
   const contacts = ids.length ? await fetchClientContacts(ids) : {}
   const clientNames: Record<string, string> = {}
-  for (const id of ids) clientNames[id] = contactDisplayName(contacts[id])
+  for (const id of ids) {
+    clientNames[id] = contactDisplayName(contacts[id])
+  }
 
   // A deep link from a booking thumbnail or a withdrawal alert lands on that
   // photo's own tab; otherwise honour a valid ?tab=; otherwise All. It no longer
@@ -40,7 +45,8 @@ export default async function AdminAssetsPage({
     ? appointments.find((a) => a.photos.some((p) => p.mediaId === highlight))
     : undefined
   const isKnownTab = (value: string) =>
-    value === "takedown" || (ASSET_STATE_ORDER as readonly string[]).includes(value)
+    value === "takedown" ||
+    (ASSET_STATE_ORDER as readonly string[]).includes(value)
   const defaultTab: HubFilter = highlighted
     ? highlighted.state
     : isKnownTab(tab ?? "")

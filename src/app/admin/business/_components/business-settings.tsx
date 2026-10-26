@@ -117,8 +117,8 @@ export function BusinessSettings({
   return (
     <section className="space-y-6">
       <BodySm className="text-xs">
-        Anything you leave blank falls back to the built-in setting, and a social
-        account you don’t fill in simply isn’t shown.
+        Anything you leave blank falls back to the built-in setting, and a
+        social account you don’t fill in simply isn’t shown.
       </BodySm>
 
       <div className="space-y-5">
@@ -151,7 +151,10 @@ export function BusinessSettings({
             const result = await saveBusinessProfile(form)
             // A handle is stored as a full URL, so show back what was SAVED —
             // otherwise the form stays "dirty" against text it no longer holds.
-            if (result.ok) setForm(result.saved)
+            if (result.ok) {
+              setForm(result.saved)
+            }
+
             return result
           })
         }

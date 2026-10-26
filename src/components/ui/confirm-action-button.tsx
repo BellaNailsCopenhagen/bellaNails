@@ -56,8 +56,11 @@ export function ConfirmActionButton({
     startTransition(async () => {
       try {
         const result = await action()
-        if (result.ok) router.refresh()
-        else toast.error(result.error || labels.failed)
+        if (result.ok) {
+          router.refresh()
+        } else {
+          toast.error(result.error || labels.failed)
+        }
       } catch {
         toast.error(labels.failed)
       } finally {
@@ -69,7 +72,9 @@ export function ConfirmActionButton({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger render={trigger} />

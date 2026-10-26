@@ -30,17 +30,29 @@ test("an unknown stored level falls back to the safe default, never to open", ()
 })
 
 test("a domain block accepts a whole address and keeps only the domain", () => {
-  assert.equal(normalizeBlockValue("domain", "  Someone@Mailinator.COM "), "mailinator.com")
-  assert.equal(normalizeBlockValue("domain", "MAILINATOR.com"), "mailinator.com")
-  assert.equal(normalizeBlockValue("email", " Someone@Example.com "), "someone@example.com")
+  assert.equal(
+    normalizeBlockValue("domain", "  Someone@Mailinator.COM "),
+    "mailinator.com",
+  )
+  assert.equal(
+    normalizeBlockValue("domain", "MAILINATOR.com"),
+    "mailinator.com",
+  )
+  assert.equal(
+    normalizeBlockValue("email", " Someone@Example.com "),
+    "someone@example.com",
+  )
 })
 
 test("one booker is checked against their address, its domain and their IP", () => {
-  assert.deepEqual(blockLookupsFor({ email: "A@Example.com", ip: "203.0.113.9" }), [
-    { kind: "email", value: "a@example.com" },
-    { kind: "domain", value: "example.com" },
-    { kind: "ip", value: "203.0.113.9" },
-  ])
+  assert.deepEqual(
+    blockLookupsFor({ email: "A@Example.com", ip: "203.0.113.9" }),
+    [
+      { kind: "email", value: "a@example.com" },
+      { kind: "domain", value: "example.com" },
+      { kind: "ip", value: "203.0.113.9" },
+    ],
+  )
 })
 
 test("no IP is not a match — local dev must still be able to book", () => {

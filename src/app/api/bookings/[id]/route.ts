@@ -14,8 +14,7 @@ import type { BookingLineItem } from "@/shared/booking-totals"
  * client_id, no PII (we store none here).
  */
 
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type BookingRecap = {
   status: string
@@ -45,6 +44,7 @@ export async function GET(
     booking = await getBookingRecap(supabase, id)
   } catch (error) {
     console.error("[bookings-recap] read failed", messageOf(error))
+
     return Response.json({ error: "unavailable" }, { status: 500 })
   }
   if (!booking) {
@@ -84,6 +84,7 @@ export async function GET(
     endTime: booking.end_time,
     selection,
   }
+
   return Response.json(recap)
 }
 

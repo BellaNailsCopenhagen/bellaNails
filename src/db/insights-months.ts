@@ -28,9 +28,14 @@ export async function listInsightsMonths(
     .gte("month_key", fromKey)
     .lte("month_key", toKey)
   if (error) {
-    console.warn("[insights] snapshots unavailable — computing live:", error.message)
+    console.warn(
+      "[insights] snapshots unavailable — computing live:",
+      error.message,
+    )
+
     return null
   }
+
   return data ?? []
 }
 
@@ -39,10 +44,13 @@ export async function upsertInsightsMonths(
   db: Db,
   rows: Insert<"insights_months">[],
 ): Promise<{ ok: boolean; message?: string }> {
-  if (!rows.length) return { ok: true }
+  if (!rows.length) {
+    return { ok: true }
+  }
   const { error } = await db
     .from("insights_months")
     .upsert(rows, { onConflict: "month_key" })
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -63,9 +71,14 @@ export async function markInsightsMonthStale(
     .update({ stale: true })
     .eq("month_key", monthKey)
   if (error) {
-    console.error(`[insights] couldn't mark month ${monthKey} stale:`, error.message)
+    console.error(
+      `[insights] couldn't mark month ${monthKey} stale:`,
+      error.message,
+    )
+
     return { ok: false, message: error.message }
   }
+
   return { ok: true }
 }
 
@@ -84,7 +97,9 @@ export async function clearInsightsMonths(
     .gte("month_key", 0)
   if (error) {
     console.error("[insights] couldn't clear snapshots:", error.message)
+
     return { ok: false, message: error.message }
   }
+
   return { ok: true }
 }

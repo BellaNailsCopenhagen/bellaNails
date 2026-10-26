@@ -5,9 +5,7 @@ import {
   type GalleryItemRow,
   type GalleryPreviewItem,
 } from "@/db/gallery-items"
-import {
-  createSupabaseServerClient,
-} from "@/platform/supabase/server"
+import { createSupabaseServerClient } from "@/platform/supabase/server"
 import { requireOwner } from "@/modules/identity/require-owner"
 
 /** How many home-page Studio slots exist (sort_order 1–5). */
@@ -43,11 +41,15 @@ export async function getStudioGalleryItems(): Promise<{
 }> {
   try {
     const db = await requireOwner()
-    if (!db) return { items: [], loadError: false }
+    if (!db) {
+      return { items: [], loadError: false }
+    }
     const rows = await listGalleryItems(db)
+
     return { items: rows.map(toStudioGalleryImage), loadError: false }
   } catch (error) {
     console.error("[studio-gallery] read failed", error)
+
     return { items: [], loadError: true }
   }
 }
@@ -75,4 +77,3 @@ function toStudioGalleryImage(row: GalleryItemRow): StudioGalleryImage {
     slot: row.sort_order,
   }
 }
-

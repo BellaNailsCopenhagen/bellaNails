@@ -64,13 +64,17 @@ export function dayRanges(
   // Standard is exactly standardDay().effective — one definition of "bookable".
   if (mode === "standard") {
     const ranges = standardDay(schedule, dayNumber).effective
+
     return { closed: ranges.length === 0, ranges }
   }
   const applies = schedule.filter((r) => ruleAppliesOn(r, dayNumber))
   const noWork = rangesOf(applies.filter((r) => r.kind === "no_work"))
-  const outside = unionRanges(rangesOf(applies.filter((r) => r.kind === "outside")))
+  const outside = unionRanges(
+    rangesOf(applies.filter((r) => r.kind === "outside")),
+  )
   const standard = rangesOf(applies.filter((r) => r.kind === "standard"))
   const ranges = subtractRanges(outside, [...noWork, ...standard])
+
   return { closed: ranges.length === 0, ranges }
 }
 
@@ -85,8 +89,11 @@ export function standardDay(
   dayNumber: number,
 ): { raw: TimeRange[]; effective: TimeRange[] } {
   const applies = schedule.filter((r) => ruleAppliesOn(r, dayNumber))
-  const raw = unionRanges(rangesOf(applies.filter((r) => r.kind === "standard")))
+  const raw = unionRanges(
+    rangesOf(applies.filter((r) => r.kind === "standard")),
+  )
   const noWork = rangesOf(applies.filter((r) => r.kind === "no_work"))
+
   return { raw, effective: subtractRanges(raw, noWork) }
 }
 
@@ -104,6 +111,7 @@ export function isWithinStandardHours(
   atMs: number,
 ): boolean {
   const { ranges } = dayRanges(schedule, dayNumber, "standard")
+
   return ranges.some(
     ([open, close]) =>
       atMs >= studioWallTimeToInstant(dayNumber, open) &&

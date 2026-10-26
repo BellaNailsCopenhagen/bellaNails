@@ -15,6 +15,7 @@ export function flattenServiceAddons<T>(
   const addons = (serviceAddons ?? [])
     .map((link) => link.addons)
     .filter((addon): addon is T => Boolean(addon))
+
   return opts.dropArchived
     ? addons.filter(
         (addon) => !(addon as { archived_at?: string | null }).archived_at,
@@ -37,6 +38,7 @@ export async function listAddonsForService(
     .from("service_addons")
     .select("addons(id, extra_duration_mins, archived_at)")
     .eq("service_id", serviceId)
+
   return flattenServiceAddons<LinkedAddonDuration>(
     data as unknown as { addons: LinkedAddonDuration | null }[],
     { dropArchived: true },
@@ -54,6 +56,7 @@ export async function linkAddonToService(
       { service_id: serviceId, addon_id: addonId },
       { onConflict: "service_id,addon_id" },
     )
+
   return { ok: !error }
 }
 
@@ -67,5 +70,6 @@ export async function unlinkAddonFromService(
     .delete()
     .eq("service_id", serviceId)
     .eq("addon_id", addonId)
+
   return { ok: !error }
 }

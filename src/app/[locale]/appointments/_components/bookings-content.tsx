@@ -109,7 +109,9 @@ function PastSection({
 }) {
   const t = useTranslations("bookings")
 
-  if (bookings.length === 0) return null
+  if (bookings.length === 0) {
+    return null
+  }
 
   return (
     <div className="space-y-2">

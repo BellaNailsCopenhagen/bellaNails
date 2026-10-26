@@ -39,7 +39,9 @@ const sign = (key: string, value: string): string =>
 /** A fresh challenge, or null when unconfigured. */
 export async function issueHumanChallenge(): Promise<HumanChallenge | null> {
   const key = secret()
-  if (!key) return null
+  if (!key) {
+    return null
+  }
 
   // The salt carries its own expiry, so the signature covers it and nothing has
   // to be stored between issuing and verifying.
@@ -60,7 +62,10 @@ export type HumanCheckOutcome =
   | { ok: true }
   /** `unavailable` = no secret configured. The caller decides whether that is
       fatal; every other reason is a real failure. */
-  | { ok: false; reason: "unavailable" | "missing" | "invalid" | "expired" | "reused" }
+  | {
+      ok: false
+      reason: "unavailable" | "missing" | "invalid" | "expired" | "reused"
+    }
 
 /**
  * Is this proof genuine? Three things have to hold, cheapest first, so a junk
@@ -80,8 +85,12 @@ export async function verifyHumanProof(
   encoded: string | undefined,
 ): Promise<HumanCheckOutcome> {
   const key = secret()
-  if (!key) return { ok: false, reason: "unavailable" }
-  if (!encoded?.trim()) return { ok: false, reason: "missing" }
+  if (!key) {
+    return { ok: false, reason: "unavailable" }
+  }
+  if (!encoded?.trim()) {
+    return { ok: false, reason: "missing" }
+  }
 
   const proof = decodeHumanProof(encoded)
   if (!proof || proof.algorithm !== HUMAN_CHECK_ALGORITHM) {
@@ -89,10 +98,14 @@ export async function verifyHumanProof(
   }
 
   const expected = sign(key, proof.challenge)
-  if (!equalHex(expected, proof.signature)) return { ok: false, reason: "invalid" }
+  if (!equalHex(expected, proof.signature)) {
+    return { ok: false, reason: "invalid" }
+  }
 
   const expires = expiryFromSalt(proof.salt)
-  if (expires === null || expires < Date.now()) return { ok: false, reason: "expired" }
+  if (expires === null || expires < Date.now()) {
+    return { ok: false, reason: "expired" }
+  }
 
   if (proof.number < 0 || proof.number > HUMAN_CHECK_MAX_NUMBER) {
     return { ok: false, reason: "invalid" }
@@ -121,12 +134,15 @@ export async function spendHumanProof(
 ): Promise<HumanCheckOutcome> {
   const proof = encoded ? decodeHumanProof(encoded) : null
   // Unverifiable here means it never passed verification either.
-  if (!proof) return { ok: false, reason: "invalid" }
+  if (!proof) {
+    return { ok: false, reason: "invalid" }
+  }
 
   const fresh = await takeDurableToken(db, `human:${proof.salt}`, {
     limit: 1,
     window: "20 minutes",
   })
+
   return fresh ? { ok: true } : { ok: false, reason: "reused" }
 }
 
@@ -141,9 +157,14 @@ const HEX_DIGEST = /^[0-9a-f]+$/i
  * rejection.
  */
 function equalHex(a: string, b: string): boolean {
-  if (a.length !== b.length || !HEX_DIGEST.test(b)) return false
+  if (a.length !== b.length || !HEX_DIGEST.test(b)) {
+    return false
+  }
   const left = Buffer.from(a, "hex")
   const right = Buffer.from(b, "hex")
-  if (left.length !== right.length) return false
+  if (left.length !== right.length) {
+    return false
+  }
+
   return timingSafeEqual(left, right)
 }

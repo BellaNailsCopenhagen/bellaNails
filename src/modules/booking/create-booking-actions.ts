@@ -89,9 +89,9 @@ async function sendConfirmation(
   const res = await sendBookingConfirmationEmail({
     to,
     firstName,
-    serviceName: isEn ? subject.nameEn : subject.nameDk ?? subject.nameEn,
+    serviceName: isEn ? subject.nameEn : (subject.nameDk ?? subject.nameEn),
     addonNames: subject.addons.map((a) =>
-      isEn ? a.name_en : a.name_dk ?? a.name_en,
+      isEn ? a.name_en : (a.name_dk ?? a.name_en),
     ),
     startIso,
     endIso: draft.endIso,
@@ -129,10 +129,13 @@ const draftInputFor = (input: {
 
 /** Why the box didn't pass, in words a client can act on. */
 function humanCheckMessage(reason: string): string {
-  if (reason === "missing") return "Please tick the “I'm not a robot” box first."
+  if (reason === "missing") {
+    return "Please tick the “I'm not a robot” box first."
+  }
   if (reason === "expired" || reason === "reused") {
     return "That check has expired — tick the box again and retry."
   }
+
   return "That check didn't pass — tick the box again and retry."
 }
 
@@ -162,7 +165,9 @@ export async function createBooking(
 ): Promise<CreateBookingResult> {
   // Honeypot — a hidden field only a bot fills. Reject generically (don't reveal
   // the trap), same message as a create failure.
-  if (input.honeypot?.trim()) return { ok: false, error: "Couldn't create the booking." }
+  if (input.honeypot?.trim()) {
+    return { ok: false, error: "Couldn't create the booking." }
+  }
 
   const db = createSupabaseServiceRoleClient()
 
@@ -178,7 +183,11 @@ export async function createBooking(
   if (humanCheckOn) {
     const human = await verifyHumanProof(input.humanProof)
     if (!human.ok) {
-      return { ok: false, code: "human", error: humanCheckMessage(human.reason) }
+      return {
+        ok: false,
+        code: "human",
+        error: humanCheckMessage(human.reason),
+      }
     }
   }
 
@@ -190,7 +199,8 @@ export async function createBooking(
     return {
       ok: false,
       code: "auth",
-      error: "Please sign in to book — it takes a moment and confirms your email.",
+      error:
+        "Please sign in to book — it takes a moment and confirms your email.",
     }
   }
 
@@ -212,13 +222,18 @@ export async function createBooking(
   const ip = await callerIp()
   const blocked = await checkBlocked(db, { email, ip })
   if (blocked.blocked) {
-    return { ok: false, error: "We can't take this booking online — please contact the studio." }
+    return {
+      ok: false,
+      error: "We can't take this booking online — please contact the studio.",
+    }
   }
 
   const prepared = await buildBookingDraft(db, draftInputFor(input), {
     checkSlot: true,
   })
-  if (!prepared.ok) return prepared
+  if (!prepared.ok) {
+    return prepared
+  }
   const { draft } = prepared
 
   let clientId: string
@@ -230,10 +245,15 @@ export async function createBooking(
       name: input.name.trim() || undefined,
       // Store a clean E.164 number; fall back to the trimmed input if it can't
       // be normalised (it already passed the phone-pattern gate).
-      phone: input.phone ? (toE164(input.phone) ?? input.phone.trim()) : undefined,
+      phone: input.phone
+        ? (toE164(input.phone) ?? input.phone.trim())
+        : undefined,
     })
   } catch {
-    return { ok: false, error: "Couldn't save your details — please try again." }
+    return {
+      ok: false,
+      error: "Couldn't save your details — please try again.",
+    }
   }
 
   // Cap active bookings per client (hands + feet). Beyond that, point them at the
@@ -265,12 +285,15 @@ export async function createBooking(
   // addresses hands out a fresh bucket every time. The IP is the only stable
   // thing left at the `open` level.
   const buckets = [`booking:create:${clientId}`]
-  if (!user && ip) buckets.push(`booking:create:ip:${ip}`)
+  if (!user && ip) {
+    buckets.push(`booking:create:ip:${ip}`)
+  }
   for (const bucket of buckets) {
     if (!(await takeDurableToken(db, bucket, CREATE_RULE))) {
       return {
         ok: false,
-        error: "That's a lot of bookings in a short time — please contact the studio.",
+        error:
+          "That's a lot of bookings in a short time — please contact the studio.",
       }
     }
   }
@@ -281,7 +304,11 @@ export async function createBooking(
   if (humanCheckOn) {
     const spent = await spendHumanProof(db, input.humanProof)
     if (!spent.ok) {
-      return { ok: false, code: "human", error: humanCheckMessage(spent.reason) }
+      return {
+        ok: false,
+        code: "human",
+        error: humanCheckMessage(spent.reason),
+      }
     }
   }
 
@@ -294,8 +321,13 @@ export async function createBooking(
     /* booking proceeds regardless */
   }
 
-  const result = await insertBooking(db, { client_id: clientId, ...draft.values })
-  if (!result.ok) return { ok: false, error: overlapMessage(result.reason) }
+  const result = await insertBooking(db, {
+    client_id: clientId,
+    ...draft.values,
+  })
+  if (!result.ok) {
+    return { ok: false, error: overlapMessage(result.reason) }
+  }
 
   await recordTermsAcceptance(db, {
     clientId,
@@ -315,6 +347,7 @@ export async function createBooking(
   )
 
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true, id: result.id }
 }
 
@@ -344,13 +377,17 @@ export async function createBookingAsOwner(
   input: OwnerCreateBookingInput,
 ): Promise<CreateBookingResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const prepared = await buildBookingDraft(db, draftInputFor(input), {
     checkSlot: !input.ignoreLimits,
     ignoreLeadTime: true,
   })
-  if (!prepared.ok) return prepared
+  if (!prepared.ok) {
+    return prepared
+  }
   const { draft } = prepared
 
   // Resolve the client + who to email: an existing client, else a new one. An
@@ -368,23 +405,35 @@ export async function createBookingAsOwner(
     emailLocale = contact?.communicationLocale ?? bookedLocale
   } else {
     const email = input.email?.trim().toLowerCase() ?? ""
-    if (!EMAIL_PATTERN.test(email)) return { ok: false, error: "Enter a valid client email." }
+    if (!EMAIL_PATTERN.test(email)) {
+      return { ok: false, error: "Enter a valid client email." }
+    }
     try {
       clientId = await ensureUser({
         email,
         name: input.name?.trim() || undefined,
-        phone: input.phone ? (toE164(input.phone) ?? input.phone.trim()) : undefined,
+        phone: input.phone
+          ? (toE164(input.phone) ?? input.phone.trim())
+          : undefined,
       })
     } catch {
-      return { ok: false, error: "Couldn't save the client — please try again." }
+      return {
+        ok: false,
+        error: "Couldn't save the client — please try again.",
+      }
     }
     recipientEmail = email
     firstName = input.name?.trim().split(/\s+/)[0] || null
     emailLocale = bookedLocale
   }
 
-  const result = await insertBooking(db, { client_id: clientId, ...draft.values })
-  if (!result.ok) return { ok: false, error: overlapMessage(result.reason) }
+  const result = await insertBooking(db, {
+    client_id: clientId,
+    ...draft.values,
+  })
+  if (!result.ok) {
+    return { ok: false, error: overlapMessage(result.reason) }
+  }
 
   // No service-terms record: the client didn't accept terms in an owner-placed
   // booking (unlike the public flow).
@@ -405,6 +454,7 @@ export async function createBookingAsOwner(
   revalidatePath(routes.admin.appointments)
   revalidatePath(revalidatePatterns.adminClient, "page")
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true, id: result.id }
 }
 
@@ -428,7 +478,10 @@ export async function getOutsideSlotsForBooking(
  */
 export async function getOwnerSlots(ref: SubjectRef): Promise<Slot[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
+
   return getAvailableSlots(ref, undefined, { ignoreLeadTime: true })
 }
 
@@ -439,6 +492,9 @@ export async function getOwnerSlots(ref: SubjectRef): Promise<Slot[]> {
  */
 export async function getOwnerOverrideSlots(ref: SubjectRef): Promise<Slot[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
+
   return getOverrideSlots(ref, db)
 }

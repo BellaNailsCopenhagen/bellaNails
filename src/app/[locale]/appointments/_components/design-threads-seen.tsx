@@ -16,7 +16,9 @@ import { markDesignThreadsSeen } from "@/modules/design/request-actions"
  */
 export function DesignThreadsSeen({ seenAt }: { seenAt: string | null }) {
   useEffect(() => {
-    if (!seenAt) return
+    if (!seenAt) {
+      return
+    }
     markDesignThreadsSeen(seenAt).catch(() => {
       /* a read-marker that doesn't stick is not worth telling anyone about */
     })

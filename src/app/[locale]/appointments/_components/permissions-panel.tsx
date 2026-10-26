@@ -3,7 +3,10 @@ import { MediaReleaseCards } from "@/app/[locale]/appointments/_components/media
 import { MyTestimonials } from "@/app/[locale]/appointments/_components/my-testimonials"
 import { ReleaseExplainer } from "@/app/[locale]/appointments/_components/release-explainer"
 import { TestimonialInviteCard } from "@/app/[locale]/appointments/_components/testimonial-invite-card"
-import type { ClientMediaItem, DataConsentItem } from "@/modules/media/client-gallery"
+import type {
+  ClientMediaItem,
+  DataConsentItem,
+} from "@/modules/media/client-gallery"
 import type { MyTestimonial } from "@/modules/testimonials"
 import { getTranslations } from "next-intl/server"
 
@@ -37,7 +40,9 @@ export async function PermissionsPanel({
   const t = await getTranslations("account")
   const mediaCountByBooking: Record<string, number> = {}
   for (const item of media) {
-    if (!item.bookingId) continue
+    if (!item.bookingId) {
+      continue
+    }
     mediaCountByBooking[item.bookingId] =
       (mediaCountByBooking[item.bookingId] ?? 0) + 1
   }

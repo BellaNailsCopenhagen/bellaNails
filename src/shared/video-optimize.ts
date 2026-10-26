@@ -29,7 +29,10 @@ const STALL_CHECK_MS = 5000
 /** The container this browser will give us, or null if it will not encode at
     all — in which case the caller keeps the original file. */
 export function videoEncoding(): (typeof CANDIDATES)[number] | null {
-  if (typeof MediaRecorder === "undefined") return null
+  if (typeof MediaRecorder === "undefined") {
+    return null
+  }
+
   return CANDIDATES.find((c) => MediaRecorder.isTypeSupported(c.record)) ?? null
 }
 
@@ -62,6 +65,7 @@ export function targetSize(
 ): { width: number; height: number } {
   const scale = Math.min(1, maxDim / Math.max(width, height))
   const even = (n: number) => Math.max(2, Math.round((n * scale) / 2) * 2)
+
   return { width: even(width), height: even(height) }
 }
 
@@ -71,7 +75,9 @@ export async function optimizeVideo(
   onProgress?: (fraction: number) => void,
 ): Promise<{ blob: Blob; type: "video/mp4" | "video/webm" }> {
   const encoding = videoEncoding()
-  if (!encoding) throw new Error("This browser can't re-encode video")
+  if (!encoding) {
+    throw new Error("This browser can't re-encode video")
+  }
 
   const url = URL.createObjectURL(file)
   const video = document.createElement("video")
@@ -104,10 +110,7 @@ export async function optimizeVideo(
     // Duration is not guaranteed at `loadedmetadata`: a WebM without it in the
     // header reads Infinity or NaN. Unknown means unchecked — telling her a
     // six-second clip is too long would be worse than not checking.
-    if (
-      Number.isFinite(video.duration) &&
-      video.duration > policy.maxSeconds
-    ) {
+    if (Number.isFinite(video.duration) && video.duration > policy.maxSeconds) {
       throw new VideoTooLongError(Math.round(video.duration))
     }
 
@@ -116,7 +119,9 @@ export async function optimizeVideo(
     canvas.width = size.width
     canvas.height = size.height
     const ctx = canvas.getContext("2d")
-    if (!ctx) throw new Error("Canvas unsupported")
+    if (!ctx) {
+      throw new Error("Canvas unsupported")
+    }
 
     stream = canvas.captureStream(policy.fps)
     recorder = new MediaRecorder(stream, {
@@ -126,7 +131,9 @@ export async function optimizeVideo(
     const active = recorder
     const chunks: Blob[] = []
     active.ondataavailable = (event) => {
-      if (event.data.size) chunks.push(event.data)
+      if (event.data.size) {
+        chunks.push(event.data)
+      }
     }
     const stopped = new Promise<void>((resolve) => {
       active.onstop = () => resolve()
@@ -143,9 +150,13 @@ export async function optimizeVideo(
     onVisibility = () => {
       if (document.hidden) {
         video.pause()
-        if (active.state === "recording") active.pause()
+        if (active.state === "recording") {
+          active.pause()
+        }
       } else {
-        if (active.state === "paused") active.resume()
+        if (active.state === "paused") {
+          active.resume()
+        }
         void video.play()
       }
     }
@@ -157,7 +168,10 @@ export async function optimizeVideo(
       if (onProgress && Number.isFinite(video.duration) && video.duration > 0) {
         // Whole percents only: this fires per animation frame, and the caller
         // puts it in React state.
-        const percent = Math.min(100, Math.round((video.currentTime / video.duration) * 100))
+        const percent = Math.min(
+          100,
+          Math.round((video.currentTime / video.duration) * 100),
+        )
         if (percent !== lastPercent) {
           lastPercent = percent
           onProgress(percent / 100)
@@ -172,9 +186,12 @@ export async function optimizeVideo(
     const stalled = new Promise<never>((_, reject) => {
       let seen = -1
       watchdog = setInterval(() => {
-        if (video.paused) return
+        if (video.paused) {
+          return
+        }
         if (video.currentTime === seen) {
           reject(new Error("Re-encoding stalled"))
+
           return
         }
         seen = video.currentTime
@@ -193,14 +210,21 @@ export async function optimizeVideo(
     active.stop()
     await stopped
 
-    return { blob: new Blob(chunks, { type: encoding.stored }), type: encoding.stored }
+    return {
+      blob: new Blob(chunks, { type: encoding.stored }),
+      type: encoding.stored,
+    }
   } finally {
-    if (frame) cancelAnimationFrame(frame)
+    if (frame) {
+      cancelAnimationFrame(frame)
+    }
     clearInterval(watchdog)
     if (onVisibility) {
       document.removeEventListener("visibilitychange", onVisibility)
     }
-    if (recorder && recorder.state !== "inactive") recorder.stop()
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop()
+    }
     stream?.getTracks().forEach((track) => track.stop())
     video.pause()
     video.removeAttribute("src")

@@ -48,7 +48,9 @@ export async function StudioGallery() {
     getGalleryPreviewItems(),
   ])
 
-  if (!items.length) return null
+  if (!items.length) {
+    return null
+  }
 
   const leadItem = items[0]
   const supportingItems = items.slice(1)

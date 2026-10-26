@@ -16,7 +16,10 @@ export async function getCurrentTerms(
     .eq("kind", kind)
     .eq("is_current", true)
     .maybeSingle()
-  if (error) return null
+  if (error) {
+    return null
+  }
+
   return data ?? null
 }
 
@@ -30,7 +33,10 @@ export async function listTermsVersions(
     .select("*")
     .eq("kind", kind)
     .order("version", { ascending: false })
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return data ?? []
 }
 
@@ -43,6 +49,7 @@ export async function getLatestVersion(db: Db, kind: string): Promise<number> {
     .order("version", { ascending: false })
     .limit(1)
     .maybeSingle()
+
   return data?.version ?? 0
 }
 
@@ -65,7 +72,10 @@ export async function insertTerms(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -79,6 +89,7 @@ export async function clearCurrentTerms(
     .update({ is_current: false })
     .eq("kind", kind)
     .eq("is_current", true)
+
   return { ok: !error }
 }
 
@@ -91,5 +102,6 @@ export async function setTermsCurrent(
     .from("terms")
     .update({ is_current: true })
     .eq("id", id)
+
   return { ok: !error }
 }

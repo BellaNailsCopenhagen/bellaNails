@@ -3,10 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useTranslations } from "next-intl"
 
-import {
-  AttentionBanner,
-  bannerBar,
-} from "@/components/ui/attention-banner"
+import { AttentionBanner, bannerBar } from "@/components/ui/attention-banner"
 import { unreadStudioReplyCount } from "@/modules/design/unread"
 import { pendingRequestCount } from "@/modules/media/consent-requests"
 import { useCurrentUser } from "@/hooks/use-current-user"
@@ -38,7 +35,9 @@ export function RequestsBanner() {
     enabled: Boolean(clientId),
   })
 
-  if (!clientId) return null
+  if (!clientId) {
+    return null
+  }
 
   // The two lines now land on different tabs — an answer to your own thread is
   // in Ask, a permission the studio wants is in Permissions.

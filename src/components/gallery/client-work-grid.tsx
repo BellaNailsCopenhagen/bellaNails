@@ -38,7 +38,9 @@ export function ClientWorkGrid({
 }) {
   const [active, setActive] = useState<PublicAsset | null>(null)
 
-  if (!assets.length) return null
+  if (!assets.length) {
+    return null
+  }
 
   return (
     <>

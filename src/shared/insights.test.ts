@@ -73,7 +73,10 @@ test("an override earns money without taking time", () => {
   assert.equal(countsAsOccupied(deposit, NOW), false)
 
   // A fee on a cancelled slot: the hour was freed and is sellable again.
-  const cancelledFee = booking({ status: "cancelled", income_override_cents: 15000 })
+  const cancelledFee = booking({
+    status: "cancelled",
+    income_override_cents: 15000,
+  })
   assert.equal(countsAsEarned(cancelledFee, NOW), true)
   assert.equal(countsAsOccupied(cancelledFee, NOW), false)
 })
@@ -126,7 +129,9 @@ test("capacity counts only days that have already happened", () => {
   // Three Mondays. Derived, not written down: a day-number is days since the
   // epoch and 1970-01-01 was a Thursday, so a hand-picked one is a coin flip.
   let monday = 20700
-  while (weekdayIndexForDayNumber(monday) !== 0) monday++
+  while (weekdayIndexForDayNumber(monday) !== 0) {
+    monday++
+  }
   const mondays = [monday, monday + 7, monday + 14]
 
   // Standing on the second Monday at 13:00: the first Monday in full (480), and
@@ -139,7 +144,10 @@ test("capacity counts only days that have already happened", () => {
 test("today counts only as far as the clock has got", () => {
   const monday = (() => {
     let d = 20700
-    while (weekdayIndexForDayNumber(d) !== 0) d++
+    while (weekdayIndexForDayNumber(d) !== 0) {
+      d++
+    }
+
     return d
   })()
   // Before opening, none of today is behind us.
@@ -162,7 +170,10 @@ test("no open hours is not nought per cent — it is not a question", () => {
 test("the read covers only the months that need it", () => {
   // The steady state — one month of appointments instead of a year of them.
   assert.deepEqual(computeSpan([24312]), { fromKey: 24312, toKey: 24312 })
-  assert.deepEqual(computeSpan([24305, 24312]), { fromKey: 24305, toKey: 24312 })
+  assert.deepEqual(computeSpan([24305, 24312]), {
+    fromKey: 24305,
+    toKey: 24312,
+  })
   // Nothing to do means no booking read at all.
   assert.equal(computeSpan([]), null)
 })

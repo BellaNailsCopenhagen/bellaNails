@@ -24,8 +24,7 @@ export default async function AdminNotificationsPage() {
   const contacts = ids.length ? await fetchClientContacts(ids) : {}
   const unread = notifications.filter((n) => !n.readAt)
   const earlier = notifications.filter((n) => n.readAt)
-  const nameOf = (clientId: string) =>
-    contactDisplayName(contacts[clientId])
+  const nameOf = (clientId: string) => contactDisplayName(contacts[clientId])
 
   return (
     <div className="space-y-8">

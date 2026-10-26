@@ -28,9 +28,12 @@ export type EmailResult = { ok: boolean; skipped?: boolean; error?: string }
 function config() {
   const user = process.env.ZOHO_SMTP_USER
   const pass = process.env.ZOHO_SMTP_PASS
-  if (!user || !pass) return null
+  if (!user || !pass) {
+    return null
+  }
   const host = process.env.ZOHO_SMTP_HOST || "smtp.zoho.eu"
   const port = Number(process.env.ZOHO_SMTP_PORT) || 465
+
   return { host, port, user, pass }
 }
 
@@ -49,6 +52,7 @@ function transport(cfg: NonNullable<ReturnType<typeof config>>): Transporter {
       }),
     }
   }
+
   return cached.transport
 }
 
@@ -61,6 +65,7 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
       console.warn("[email] ZOHO_SMTP_USER/PASS unset — emails are a no-op")
       warned = true
     }
+
     return { ok: false, skipped: true }
   }
 
@@ -80,6 +85,7 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
           }
         : undefined,
     })
+
     return { ok: true }
   } catch (error) {
     // Log the failure shape only, never `.message` — an SMTP rejection can echo
@@ -91,6 +97,7 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
           ? error.name
           : "unknown"
     console.error("[email] send failed —", info)
+
     return { ok: false, error: String(info) }
   }
 }

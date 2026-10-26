@@ -156,6 +156,7 @@ export function HubPhotoTile({
           {PUBLISHABLE_PURPOSES.map((purpose) => {
             const status = releases[purpose] ?? "none"
             const published = photo.published.find((c) => c.purpose === purpose)
+
             return (
               <div
                 key={purpose}
@@ -174,7 +175,9 @@ export function HubPhotoTile({
                       size="sm"
                       variant="destructive"
                       disabled={pending}
-                      onClick={() => run(() => confirmTakedown(published.assetId))}
+                      onClick={() =>
+                        run(() => confirmTakedown(published.assetId))
+                      }
                     >
                       Confirm taken down
                     </Button>

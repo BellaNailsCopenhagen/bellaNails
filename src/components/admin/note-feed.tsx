@@ -66,15 +66,23 @@ export function NoteFeed({
       const result = editing
         ? await updateNote(editing.id, body)
         : await addNote({ clientId, bookingId, body })
-      if (result.ok) setOpen(false)
+      if (result.ok) {
+        setOpen(false)
+      }
+
       return result
     })
 
   const remove = () =>
     run(async () => {
-      if (!editing) return { ok: true }
+      if (!editing) {
+        return { ok: true }
+      }
       const result = await deleteNote(editing.id)
-      if (result.ok) setOpen(false)
+      if (result.ok) {
+        setOpen(false)
+      }
+
       return result
     })
 
@@ -83,7 +91,11 @@ export function NoteFeed({
       <div className="flex items-center justify-between gap-3">
         <Eyebrow as="h3">{title}</Eyebrow>
         {editable ? (
-          <button type="button" onClick={() => start(null)} className={rowAction}>
+          <button
+            type="button"
+            onClick={() => start(null)}
+            className={rowAction}
+          >
             Add
           </button>
         ) : null}
@@ -125,7 +137,9 @@ export function NoteFeed({
         <AlertDialog
           open={open}
           onOpenChange={(next) => {
-            if (!pending) setOpen(next)
+            if (!pending) {
+              setOpen(next)
+            }
           }}
         >
           <AlertDialogContent>
@@ -155,7 +169,9 @@ export function NoteFeed({
               )}
               <div className="flex flex-wrap gap-3">
                 <AlertDialogClose
-                  render={<Button variant="ghost" size="sm" disabled={pending} />}
+                  render={
+                    <Button variant="ghost" size="sm" disabled={pending} />
+                  }
                 >
                   Cancel
                 </AlertDialogClose>

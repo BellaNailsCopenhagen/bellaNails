@@ -41,8 +41,18 @@ test("bookedDurationMins ignores a non-positive or non-numeric snapshot", () => 
 test("bookedDurationMins returns 0 when nothing is derivable", () => {
   // A zero-length or inverted row yields 0, and every caller guards on > 0
   // rather than generating slots for a zero-minute appointment.
-  assert.equal(bookedDurationMins(booking({}, "2026-09-01T10:00:00.000Z", "2026-09-01T10:00:00.000Z")), 0)
-  assert.equal(bookedDurationMins(booking({}, "2026-09-01T11:00:00.000Z", "2026-09-01T10:00:00.000Z")), 0)
+  assert.equal(
+    bookedDurationMins(
+      booking({}, "2026-09-01T10:00:00.000Z", "2026-09-01T10:00:00.000Z"),
+    ),
+    0,
+  )
+  assert.equal(
+    bookedDurationMins(
+      booking({}, "2026-09-01T11:00:00.000Z", "2026-09-01T10:00:00.000Z"),
+    ),
+    0,
+  )
 })
 
 // The two request rules are enforced server-side as well as on the card, so
@@ -56,8 +66,14 @@ const appt = (status = "confirmed") => ({
 })
 
 test("media consent opens 30 min before the start, not before", () => {
-  assert.equal(canRequestMediaConsent(appt(), START - MEDIA_REQUEST_LEAD_MS - 1), false)
-  assert.equal(canRequestMediaConsent(appt(), START - MEDIA_REQUEST_LEAD_MS), true)
+  assert.equal(
+    canRequestMediaConsent(appt(), START - MEDIA_REQUEST_LEAD_MS - 1),
+    false,
+  )
+  assert.equal(
+    canRequestMediaConsent(appt(), START - MEDIA_REQUEST_LEAD_MS),
+    true,
+  )
   assert.equal(canRequestMediaConsent(appt(), END + 86_400_000), true)
 })
 
@@ -93,7 +109,10 @@ test("the past is refused — this is accepting a stale Adjust-time sheet", () =
 })
 
 test("beyond the horizon is refused, and the boundary is inclusive", () => {
-  assert.equal(requestTimeProblem(iso(NOW + REQUEST_HORIZON_DAYS * DAY), NOW), null)
+  assert.equal(
+    requestTimeProblem(iso(NOW + REQUEST_HORIZON_DAYS * DAY), NOW),
+    null,
+  )
   assert.equal(
     requestTimeProblem(iso(NOW + REQUEST_HORIZON_DAYS * DAY + 1), NOW),
     "tooFar",

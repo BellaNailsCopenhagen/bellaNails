@@ -29,8 +29,12 @@ export async function saveTermsVersion(
   input: TermsInput,
 ): Promise<TermsActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!isTermsKind(kind)) return { ok: false, error: "Unknown terms type." }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!isTermsKind(kind)) {
+    return { ok: false, error: "Unknown terms type." }
+  }
 
   // Before the insert, because the insert IS the publish: the new version
   // becomes current and /terms and /privacy serve it at once. The editor
@@ -38,7 +42,10 @@ export async function saveTermsVersion(
   // caller.
   const problem = termsProblem(input)
   if (problem) {
-    return { ok: false, error: `${problem.message} Terms have to be complete in both languages.` }
+    return {
+      ok: false,
+      error: `${problem.message} Terms have to be complete in both languages.`,
+    }
   }
 
   const nextVersion = (await getLatestVersion(supabase, kind)) + 1
@@ -52,17 +59,24 @@ export async function saveTermsVersion(
     body_dk: input.bodyDk.trim(),
     is_current: false,
   })
-  if (!inserted.ok) return { ok: false, error: "Couldn’t save the terms." }
+  if (!inserted.ok) {
+    return { ok: false, error: "Couldn’t save the terms." }
+  }
 
   // Swap current: clear the old, then promote the new (never two at once — the
   // partial unique index forbids it). Both are error-checked so a half-done swap
   // is reported rather than silently leaving the kind with no current version.
   const cleared = await clearCurrentTerms(supabase, kind)
-  if (!cleared.ok) return { ok: false, error: "Couldn’t publish the terms." }
+  if (!cleared.ok) {
+    return { ok: false, error: "Couldn’t publish the terms." }
+  }
 
   const promoted = await setTermsCurrent(supabase, inserted.id)
-  if (!promoted.ok) return { ok: false, error: "Couldn’t publish the terms." }
+  if (!promoted.ok) {
+    return { ok: false, error: "Couldn’t publish the terms." }
+  }
 
   revalidatePath(routes.admin.terms)
+
   return { ok: true }
 }

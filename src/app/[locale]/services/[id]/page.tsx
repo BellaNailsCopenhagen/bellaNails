@@ -10,10 +10,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { Eyebrow } from "@/components/ui/typography"
 import { ClientWorkGrid } from "@/components/gallery/client-work-grid"
 import { FloatingBookButton } from "@/app/[locale]/services/[id]/_components/floating-book-button"
-import {
-  getPublicService,
-  getServicePublicGallery,
-} from "@/modules/catalog"
+import { getPublicService, getServicePublicGallery } from "@/modules/catalog"
 import { getServiceSections } from "@/modules/catalog"
 import { getServiceReviews } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
@@ -26,10 +23,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>
 }): Promise<Metadata> {
   const { locale, id } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const service = await getPublicService(id)
-  if (!service) return {}
+  if (!service) {
+    return {}
+  }
   const name = pickLocalized(locale, service.nameEn, service.nameDk)
+
   return { title: name ?? service.nameEn }
 }
 
@@ -39,14 +41,18 @@ export default async function ServiceDetailPage({
   params: Promise<{ locale: string; id: string }>
 }) {
   const { locale, id } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const [t, service] = await Promise.all([
     getTranslations("serviceDetail"),
     getPublicService(id),
   ])
-  if (!service) notFound()
+  if (!service) {
+    notFound()
+  }
 
   const [sections, gallery, reviews] = await Promise.all([
     getServiceSections(id),
@@ -54,7 +60,8 @@ export default async function ServiceDetailPage({
     getServiceReviews(id),
   ])
 
-  const name = pickLocalized(locale, service.nameEn, service.nameDk) ?? service.nameEn
+  const name =
+    pickLocalized(locale, service.nameEn, service.nameDk) ?? service.nameEn
   const description = pickLocalized(
     locale,
     service.descriptionEn,
@@ -65,7 +72,11 @@ export default async function ServiceDetailPage({
     <main className="flex flex-1 flex-col pb-24">
       <Section className="pb-0">
         <Container className="max-w-3xl space-y-4">
-          <PageHeader eyebrow={t("eyebrow")} lead={name} intro={description ?? undefined} />
+          <PageHeader
+            eyebrow={t("eyebrow")}
+            lead={name}
+            intro={description ?? undefined}
+          />
           <div className="flex items-baseline gap-4">
             <PriceTag cents={service.basePriceCents} className="text-2xl" />
             <span className="font-functional text-sm text-muted-foreground">
@@ -79,8 +90,13 @@ export default async function ServiceDetailPage({
         <Section className="pt-10">
           <Container className="max-w-3xl space-y-14">
             {sections.map((section) => {
-              const title = pickLocalized(locale, section.titleEn, section.titleDk)
+              const title = pickLocalized(
+                locale,
+                section.titleEn,
+                section.titleDk,
+              )
               const body = pickLocalized(locale, section.bodyEn, section.bodyDk)
+
               return (
                 <article key={section.id} className="space-y-4">
                   {section.imageUrl ? (

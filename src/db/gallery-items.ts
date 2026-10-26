@@ -34,9 +34,13 @@ export async function listGalleryPreviewItems(
     title_dk: string | null
     primary_asset: { url: string } | { url: string }[] | null
   }
+
   return ((data ?? []) as Raw[]).flatMap((row) => {
     const asset = firstOf(row.primary_asset)
-    if (!asset?.url) return []
+    if (!asset?.url) {
+      return []
+    }
+
     return [
       {
         id: row.id,
@@ -58,6 +62,7 @@ export async function deleteGalleryItemsForAsset(
     .from("gallery_items")
     .delete()
     .eq("primary_asset_id", assetId)
+
   return { ok: !error }
 }
 
@@ -80,11 +85,14 @@ export async function listGalleryItems(db: Db): Promise<GalleryItemRow[]> {
     )
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false })
-  if (error) throw new Error(`Failed to load gallery items: ${error.message}`)
+  if (error) {
+    throw new Error(`Failed to load gallery items: ${error.message}`)
+  }
 
   type Raw = Omit<GalleryItemRow, "asset_url"> & {
     primary_asset: { url: string } | { url: string }[] | null
   }
+
   return ((data ?? []) as Raw[]).map((row) => ({
     id: row.id,
     title_en: row.title_en,
@@ -106,7 +114,10 @@ export async function insertGalleryItem(
     .insert(values)
     .select("id")
     .single()
-  return error ? { ok: false, message: error.message } : { ok: true, id: data.id }
+
+  return error
+    ? { ok: false, message: error.message }
+    : { ok: true, id: data.id }
 }
 
 export async function updateGalleryItem(
@@ -115,6 +126,7 @@ export async function updateGalleryItem(
   values: Update<"gallery_items">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("gallery_items").update(values).eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -129,6 +141,7 @@ export async function getGalleryItemAsset(
     .select("primary_asset_id")
     .eq("id", id)
     .maybeSingle()
+
   return data?.primary_asset_id ?? null
 }
 
@@ -137,6 +150,7 @@ export async function deleteGalleryItem(
   id: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("gallery_items").delete().eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -154,7 +168,10 @@ export async function clearGallerySlot(
     .eq("sort_order", slot)
     .neq("id", exceptId || "00000000-0000-0000-0000-000000000000")
     .select("id")
-  if (error) return { ok: false, displacedId: null }
+  if (error) {
+    return { ok: false, displacedId: null }
+  }
+
   return { ok: true, displacedId: data?.[0]?.id ?? null }
 }
 
@@ -174,12 +191,16 @@ export async function countGalleryItemsUsingAsset(
       .from("gallery_items")
       .select("id", { count: "exact", head: true })
       .eq(column, assetId)
-    if (error) throw new Error(`Failed to count gallery items: ${error.message}`)
+    if (error) {
+      throw new Error(`Failed to count gallery items: ${error.message}`)
+    }
+
     return count ?? 0
   }
   const [primary, before] = await Promise.all([
     countBy("primary_asset_id"),
     countBy("before_asset_id"),
   ])
+
   return primary + before
 }

@@ -12,8 +12,16 @@ import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { BodySm } from "@/components/ui/typography"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
-import { linkAddon, saveAddon, setAddonCompatibility } from "@/modules/catalog/addon-actions"
-import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
+import {
+  linkAddon,
+  saveAddon,
+  setAddonCompatibility,
+} from "@/modules/catalog/addon-actions"
+import {
+  FieldLabel,
+  fieldLabel,
+  RequiredLegend,
+} from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 
 const sectionLabel =
@@ -77,7 +85,9 @@ export function EditAddonSheet({
   const priceOk = price !== null
 
   const save = () => {
-    if (price === null) return
+    if (price === null) {
+      return
+    }
     startTransition(async () => {
       const result = await saveAddon(addon?.id ?? null, {
         nameEn,
@@ -87,11 +97,14 @@ export function EditAddonSheet({
       })
       if (!result.ok) {
         toast.error(result.error || "Couldn’t save.")
+
         return
       }
       if (!addon && linkToServiceId) {
         const link = await linkAddon(linkToServiceId, result.id)
-        if (!link.ok) toast.error("Saved, but couldn’t link to the service.")
+        if (!link.ok) {
+          toast.error("Saved, but couldn’t link to the service.")
+        }
       }
       toast.success("Add-on saved")
       setOpen(false)
@@ -101,14 +114,19 @@ export function EditAddonSheet({
 
   const toggleIncompatible = (otherId: string, makeIncompatible: boolean) =>
     startTransition(async () => {
-      if (!addon) return
+      if (!addon) {
+        return
+      }
       const result = await setAddonCompatibility(
         addon.id,
         otherId,
         makeIncompatible,
       )
-      if (!result.ok) toast.error(result.error || "Couldn’t save.")
-      else router.refresh()
+      if (!result.ok) {
+        toast.error(result.error || "Couldn’t save.")
+      } else {
+        router.refresh()
+      }
     })
 
   return (
@@ -199,6 +217,7 @@ export function EditAddonSheet({
               <ul className="space-y-2">
                 {otherAddons.map((other) => {
                   const inc = incompatible.has(other.id)
+
                   return (
                     <li key={other.id}>
                       <label className="flex items-center gap-2 font-functional text-sm text-foreground">

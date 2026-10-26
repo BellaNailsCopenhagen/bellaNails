@@ -21,5 +21,6 @@ export function createSupabaseSessionBrowserClient(): SupabaseClient<Database> {
       "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     ),
   )
+
   return browserClient
 }

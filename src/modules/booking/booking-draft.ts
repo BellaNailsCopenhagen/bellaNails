@@ -46,7 +46,9 @@ export async function buildBookingDraft(
   const { checkSlot = true, ignoreLeadTime = false } = opts
 
   const resolved = await resolveBookingSubject(db, input.ref, { now: opts.now })
-  if (!resolved.ok) return resolved
+  if (!resolved.ok) {
+    return resolved
+  }
   const { subject } = resolved
 
   // Fail closed on an incompatible combo — the picker disables clashers, but the
@@ -60,23 +62,32 @@ export async function buildBookingDraft(
       if (clashes.length > 0) {
         return {
           ok: false,
-          error: "Those add-ons can’t be combined — please adjust your selection.",
+          error:
+            "Those add-ons can’t be combined — please adjust your selection.",
         }
       }
     } catch {
-      return { ok: false, error: "Couldn’t validate the add-ons — please try again." }
+      return {
+        ok: false,
+        error: "Couldn’t validate the add-ons — please try again.",
+      }
     }
   }
 
   const startMs = new Date(input.start).getTime()
-  if (!Number.isFinite(startMs)) return { ok: false, error: "Pick a valid time." }
+  if (!Number.isFinite(startMs)) {
+    return { ok: false, error: "Pick a valid time." }
+  }
 
   if (checkSlot) {
     const slots = await getSlotsForDuration(subject.durationMins, db, {
       ignoreLeadTime,
     })
     if (!slots.some((s) => new Date(s.start).getTime() === startMs)) {
-      return { ok: false, error: "That time isn't available — please pick another." }
+      return {
+        ok: false,
+        error: "That time isn't available — please pick another.",
+      }
     }
   }
   const endIso = new Date(startMs + subject.durationMins * MIN).toISOString()
@@ -107,6 +118,7 @@ function snapshotOf(subject: BookingSubject, locale: string | undefined) {
     ref.kind === "offer"
       ? { serviceId: null, offerId: ref.offerId, addonIds: [] as string[] }
       : { serviceId: ref.serviceId, offerId: null, addonIds: ref.addonIds }
+
   return {
     ...ids,
     totalDurationMins: subject.durationMins,

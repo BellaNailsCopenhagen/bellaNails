@@ -81,8 +81,12 @@ export function AdminNewBooking({
     prefill ? prefill.service : null,
   )
   const [addons, setAddons] = useState<ServiceAddon[]>([])
-  const [incompatiblePairs, setIncompatiblePairs] = useState<[string, string][]>([])
-  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set())
+  const [incompatiblePairs, setIncompatiblePairs] = useState<
+    [string, string][]
+  >([])
+  const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(
+    new Set(),
+  )
   const [notes, setNotes] = useState("")
   const [slots, setSlots] = useState<Slot[]>([])
   // "Ignore all limits" — swap in the override slots (any day, hours ignored,
@@ -100,7 +104,9 @@ export function AdminNewBooking({
     setService(chosen)
     startTransition(async () => {
       try {
-        const { addons, incompatiblePairs } = await getServiceAddonsForOwner(chosen.id)
+        const { addons, incompatiblePairs } = await getServiceAddonsForOwner(
+          chosen.id,
+        )
         setAddons(addons)
         setIncompatiblePairs(incompatiblePairs)
         // Keep preselected add-ons still on offer, greedily dropping any that
@@ -108,11 +114,16 @@ export function AdminNewBooking({
         const live = new Set(addons.map((a) => a.id))
         const kept: string[] = []
         for (const id of preselectIds) {
-          if (!live.has(id)) continue
+          if (!live.has(id)) {
+            continue
+          }
           const clashes = incompatiblePairs.some(
-            ([a, b]) => (a === id && kept.includes(b)) || (b === id && kept.includes(a)),
+            ([a, b]) =>
+              (a === id && kept.includes(b)) || (b === id && kept.includes(a)),
           )
-          if (!clashes) kept.push(id)
+          if (!clashes) {
+            kept.push(id)
+          }
         }
         setSelectedAddonIds(new Set(kept))
         setStep("addons")
@@ -127,7 +138,9 @@ export function AdminNewBooking({
 
   // Rebook deep link: preload the prefilled service's add-ons once on mount.
   useEffect(() => {
-    if (bootstrapped.current || !prefill) return
+    if (bootstrapped.current || !prefill) {
+      return
+    }
     bootstrapped.current = true
     enterService(prefill.service, prefill.addonIds)
     setBootstrapping(false)
@@ -137,20 +150,28 @@ export function AdminNewBooking({
   const toggleAddon = (id: string) =>
     setSelectedAddonIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+
       return next
     })
 
   const goToTime = () => {
-    if (!service) return
+    if (!service) {
+      return
+    }
     // Re-entering the time step (e.g. after changing add-ons) resets the override
     // toggle + its cached slots, so a stale duration can't linger.
     setIgnoreLimits(false)
     setOverrideSlots(null)
     startTransition(async () => {
       try {
-        setSlots(await getOwnerSlots(serviceRef(service.id, [...selectedAddonIds])))
+        setSlots(
+          await getOwnerSlots(serviceRef(service.id, [...selectedAddonIds])),
+        )
         setStep("time")
       } catch {
         toast.error("Couldn’t load available times — try again.")
@@ -162,10 +183,16 @@ export function AdminNewBooking({
   // ignored, existing bookings still excluded).
   const toggleIgnore = (next: boolean) => {
     setIgnoreLimits(next)
-    if (!next || overrideSlots !== null || !service) return
+    if (!next || overrideSlots !== null || !service) {
+      return
+    }
     startTransition(async () => {
       try {
-        setOverrideSlots(await getOwnerOverrideSlots(serviceRef(service.id, [...selectedAddonIds])))
+        setOverrideSlots(
+          await getOwnerOverrideSlots(
+            serviceRef(service.id, [...selectedAddonIds]),
+          ),
+        )
       } catch {
         setOverrideSlots([])
         toast.error("Couldn’t load times — try again.")
@@ -174,11 +201,17 @@ export function AdminNewBooking({
   }
 
   const confirm = async (start: string): Promise<SlotPickerOutcome> => {
-    if (!clientRef || !service) return { ok: false, error: "Missing selection." }
+    if (!clientRef || !service) {
+      return { ok: false, error: "Missing selection." }
+    }
     const clientFields =
       clientRef.kind === "existing"
         ? { clientId: clientRef.id }
-        : { email: clientRef.email, name: clientRef.name, phone: clientRef.phone }
+        : {
+            email: clientRef.email,
+            name: clientRef.name,
+            phone: clientRef.phone,
+          }
     const result = await createBookingAsOwner({
       ...clientFields,
       serviceId: service.id,
@@ -187,10 +220,13 @@ export function AdminNewBooking({
       notes: notes.trim() || undefined,
       ignoreLimits,
     })
-    if (!result.ok) return { ok: false, error: result.error }
+    if (!result.ok) {
+      return { ok: false, error: result.error }
+    }
     toast.success("Booking created")
     router.push(routes.admin.home)
     router.refresh()
+
     return { ok: true }
   }
 
@@ -198,8 +234,12 @@ export function AdminNewBooking({
   const summary = useMemo(
     () =>
       [
-        stepIndex > 0 && clientRef ? { label: "Client", value: clientRef.name } : null,
-        stepIndex > 1 && service ? { label: "Service", value: service.name } : null,
+        stepIndex > 0 && clientRef
+          ? { label: "Client", value: clientRef.name }
+          : null,
+        stepIndex > 1 && service
+          ? { label: "Service", value: service.name }
+          : null,
       ].filter((row): row is { label: string; value: string } => row !== null),
     [stepIndex, clientRef, service],
   )
@@ -225,7 +265,10 @@ export function AdminNewBooking({
       {summary.length ? (
         <div className="space-y-1">
           {summary.map((row) => (
-            <p key={row.label} className="font-functional text-sm text-muted-foreground">
+            <p
+              key={row.label}
+              className="font-functional text-sm text-muted-foreground"
+            >
               <span className="text-foreground">{row.label}:</span> {row.value}
             </p>
           ))}

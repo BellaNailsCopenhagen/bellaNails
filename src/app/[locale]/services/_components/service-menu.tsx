@@ -7,10 +7,7 @@ import { ServiceRow } from "@/components/booking/service-row"
 import { PageHeader } from "@/components/ui/page-header"
 import { Separator } from "@/components/ui/separator"
 import { BodySm, Caption, Eyebrow, H2 } from "@/components/ui/typography"
-import {
-  getServiceMenu,
-  type MenuCategory,
-} from "@/modules/catalog"
+import { getServiceMenu, type MenuCategory } from "@/modules/catalog"
 import { pickLocalized } from "@/shared/localized"
 
 async function CategorySection({

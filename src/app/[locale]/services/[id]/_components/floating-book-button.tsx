@@ -29,6 +29,7 @@ export function FloatingBookButton({
     update()
     window.addEventListener("scroll", update, { passive: true })
     window.addEventListener("resize", update)
+
     return () => {
       window.removeEventListener("scroll", update)
       window.removeEventListener("resize", update)

@@ -7,7 +7,11 @@ import { routing } from "@/i18n/routing"
 import { alternatesFor } from "@/config/site"
 import { routes } from "@/config/routes"
 import { TermsView } from "@/components/legal/terms-view"
-import { getCurrentTerms, localizeTerms, type TermsKind } from "@/modules/terms/terms"
+import {
+  getCurrentTerms,
+  localizeTerms,
+  type TermsKind,
+} from "@/modules/terms/terms"
 import { formatStudioDayMonthYear } from "@/shared/studio-time"
 
 // The terms `kind` doubles as the `legal` message subkey (service.* / data.*),
@@ -17,8 +21,11 @@ export async function legalMetadata(
   locale: string,
   kind: TermsKind,
 ): Promise<Metadata> {
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "legal" })
+
   return {
     title: t(`${kind}.metaTitle`),
     description: t(`${kind}.metaDescription`),
@@ -37,7 +44,9 @@ export async function LegalPage({
   locale: string
   kind: TermsKind
 }) {
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const t = await getTranslations("legal")

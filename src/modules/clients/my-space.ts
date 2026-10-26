@@ -96,11 +96,13 @@ export async function getMySpace(clientId: string): Promise<MySpace> {
       getClientDataConsents(db, clientId).catch(() => []),
       getPermissionCards(db, clientId, Date.now()).catch((error) => {
         console.error("[my-space] permissions read failed", error)
+
         return null
       }),
       pendingRequestCount(db, clientId).catch(() => 0),
       getClientProfile(db, clientId).catch(() => null),
     ])
+
   return {
     media,
     dataConsents,
@@ -121,5 +123,6 @@ export async function getClientPrivacyRecord(clientId: string): Promise<{
     getClientDataConsents(db, clientId).catch(() => []),
     getTermsAcceptances(db, clientId).catch(() => []),
   ])
+
   return { dataConsents, terms }
 }

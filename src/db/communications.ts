@@ -13,6 +13,7 @@ export async function insertCommunication(
   values: Insert<"communications">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("communications").insert(values)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -29,7 +30,10 @@ export async function listCommunicationsForClient(
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
     .limit(100)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -41,14 +45,19 @@ export async function listSentReminders(
   db: Db,
   bookingIds: string[],
 ): Promise<{ bookingId: string; reminderFor: string | null }[]> {
-  if (bookingIds.length === 0) return []
+  if (bookingIds.length === 0) {
+    return []
+  }
   const { data, error } = await db
     .from("communications")
     .select("booking_id, reminder_for")
     .eq("kind", "reminder")
     .eq("status", "sent")
     .in("booking_id", bookingIds)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return (data ?? [])
     .filter((r): r is { booking_id: string; reminder_for: string | null } =>
       Boolean(r.booking_id),
@@ -66,5 +75,6 @@ export async function scrubCommunicationsForClient(
     .from("communications")
     .update({ recipient: redactedEmail(clientId) })
     .eq("client_id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

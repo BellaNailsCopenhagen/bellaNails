@@ -28,7 +28,10 @@ test("the solver finds the number the challenge hides", async () => {
 })
 
 test("a challenge whose answer is out of range doesn't hang — it fails", async () => {
-  const challenge = { ...(await challengeFor("abc?expires=1", 137)), maxNumber: 10 }
+  const challenge = {
+    ...(await challengeFor("abc?expires=1", 137)),
+    maxNumber: 10,
+  }
   assert.equal(await solveHumanChallenge(challenge), null)
 })
 
@@ -49,7 +52,15 @@ test("junk decodes to null rather than throwing at the caller", () => {
   // A non-integer number would sail past a plain typeof check.
   assert.equal(
     decodeHumanProof(
-      btoa(JSON.stringify({ algorithm: "SHA-256", challenge: "a", salt: "b", signature: "c", number: 1.5 })),
+      btoa(
+        JSON.stringify({
+          algorithm: "SHA-256",
+          challenge: "a",
+          salt: "b",
+          signature: "c",
+          number: 1.5,
+        }),
+      ),
     ),
     null,
   )

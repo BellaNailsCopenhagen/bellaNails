@@ -59,7 +59,9 @@ export async function sendBookingRequestReceivedEmail(
       : "Vi har modtaget din anmodning — vi gennemgår den og vender tilbage for at bekræfte et tidspunkt. Dette er ikke en bookingbekræftelse."
     const rows: [string, string][] = [
       [isEn ? "Service" : "Behandling", d.serviceName],
-      ...(addons ? ([[isEn ? "Add-ons" : "Tillæg", addons]] as [string, string][]) : []),
+      ...(addons
+        ? ([[isEn ? "Add-ons" : "Tillæg", addons]] as [string, string][])
+        : []),
       [isEn ? "Requested time" : "Ønsket tid", when],
       [isEn ? "Estimated price" : "Anslået pris", formatPrice(d.priceCents)],
     ]
@@ -108,8 +110,15 @@ ${noteHtml}
       text,
     })
   } catch (error) {
-    console.error("[request-email] received failed —", error instanceof Error ? error.message : error)
-    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
+    console.error(
+      "[request-email] received failed —",
+      error instanceof Error ? error.message : error,
+    )
+
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_error",
+    }
   }
 }
 
@@ -140,8 +149,12 @@ export async function sendBookingRequestArtistEmail(
     const when = `${formatStudioDate(d.startIso, "en")} · ${formatStudioTime(d.startIso, "en")}`
     const rows: [string, string][] = [
       ["Client", d.clientName],
-      ...(d.clientPhone ? ([["Phone", d.clientPhone]] as [string, string][]) : []),
-      ...(d.clientEmail ? ([["Email", d.clientEmail]] as [string, string][]) : []),
+      ...(d.clientPhone
+        ? ([["Phone", d.clientPhone]] as [string, string][])
+        : []),
+      ...(d.clientEmail
+        ? ([["Email", d.clientEmail]] as [string, string][])
+        : []),
       ["Service", d.serviceName],
       ["Requested", when],
       [
@@ -179,7 +192,9 @@ ${noteHtml}${linkHtml}`
       ...rows.map(([l, v]) => `${l}: ${v}`),
       d.message ? `\nClient note: ${d.message}` : "",
       "",
-      reviewUrl ? `Review: ${reviewUrl}` : "Review it in the admin — Requests on the home.",
+      reviewUrl
+        ? `Review: ${reviewUrl}`
+        : "Review it in the admin — Requests on the home.",
     ].join("\n")
 
     return await sendEmail({
@@ -201,7 +216,11 @@ ${noteHtml}${linkHtml}`
       "[request-email] artist alert failed —",
       error instanceof Error ? error.message : error,
     )
-    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
+
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_error",
+    }
   }
 }
 
@@ -233,9 +252,7 @@ export async function sendBookingRequestDeclinedEmail(
     return await sendEmail({
       ...(await mailFrom("booking")),
       to: d.to,
-      subject: isEn
-        ? `About your booking request`
-        : `Om din booking-anmodning`,
+      subject: isEn ? `About your booking request` : `Om din booking-anmodning`,
       html: shell({
         eyebrow: isEn ? "Booking request" : "Booking-anmodning",
         heading: isEn ? "Request update" : "Opdatering",
@@ -245,7 +262,14 @@ export async function sendBookingRequestDeclinedEmail(
       text,
     })
   } catch (error) {
-    console.error("[request-email] declined failed —", error instanceof Error ? error.message : error)
-    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
+    console.error(
+      "[request-email] declined failed —",
+      error instanceof Error ? error.message : error,
+    )
+
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_error",
+    }
   }
 }

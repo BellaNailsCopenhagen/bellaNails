@@ -16,14 +16,18 @@ test("allows up to the limit, then refuses", () => {
 
 test("keys are independent", () => {
   const state: RateLimitState = new Map()
-  for (let i = 0; i < 3; i++) takeToken(state, "a", T0, RULE)
+  for (let i = 0; i < 3; i++) {
+    takeToken(state, "a", T0, RULE)
+  }
   assert.equal(takeToken(state, "a", T0, RULE), false)
   assert.equal(takeToken(state, "b", T0, RULE), true)
 })
 
 test("the window rolls over", () => {
   const state: RateLimitState = new Map()
-  for (let i = 0; i < 3; i++) takeToken(state, "a", T0, RULE)
+  for (let i = 0; i < 3; i++) {
+    takeToken(state, "a", T0, RULE)
+  }
   assert.equal(takeToken(state, "a", T0 + 999, RULE), false)
   assert.equal(takeToken(state, "a", T0 + 1000, RULE), true)
 })

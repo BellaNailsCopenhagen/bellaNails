@@ -11,7 +11,8 @@ import {
 import { requireOwner } from "@/modules/identity/require-owner"
 import { routes } from "@/shared/routes"
 
-export type NotificationActionResult = { ok: true } | { ok: false; error: string }
+export type NotificationActionResult =
+  { ok: true } | { ok: false; error: string }
 
 function revalidateNotifications(): void {
   revalidatePath(routes.admin.notifications)
@@ -21,12 +22,17 @@ function revalidateNotifications(): void {
 /** Mark every unread owner notification read (from the notifications page). */
 export async function markAllNotificationsRead(): Promise<NotificationActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await markAllRead(supabase)
-  if (!saved.ok) return { ok: false, error: "Couldn’t update notifications." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update notifications." }
+  }
 
   revalidateNotifications()
+
   return { ok: true }
 }
 
@@ -36,12 +42,17 @@ export async function setNotificationRead(
   read: boolean,
 ): Promise<NotificationActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await setNotificationReadRow(supabase, id, read)
-  if (!saved.ok) return { ok: false, error: "Couldn’t update the notification." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update the notification." }
+  }
 
   revalidateNotifications()
+
   return { ok: true }
 }
 
@@ -49,12 +60,17 @@ export async function setNotificationRead(
     the feed empties itself once everything has been looked at. */
 export async function clearReadNotifications(): Promise<NotificationActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const cleared = await deleteReadNotifications(supabase)
-  if (!cleared.ok) return { ok: false, error: "Couldn’t clear those." }
+  if (!cleared.ok) {
+    return { ok: false, error: "Couldn’t clear those." }
+  }
 
   revalidateNotifications()
+
   return { ok: true }
 }
 
@@ -64,11 +80,16 @@ export async function dismissNotification(
   id: string,
 ): Promise<NotificationActionResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await deleteNotification(supabase, id)
-  if (!saved.ok) return { ok: false, error: "Couldn’t remove the notification." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t remove the notification." }
+  }
 
   revalidateNotifications()
+
   return { ok: true }
 }

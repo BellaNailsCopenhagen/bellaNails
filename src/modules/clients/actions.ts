@@ -10,7 +10,10 @@ import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { getCurrentUser } from "@/modules/identity/server"
 import { requireOwner } from "@/modules/identity/require-owner"
-import { updateClientCommunicationLocale, updateClientProfile } from "@/db/clients"
+import {
+  updateClientCommunicationLocale,
+  updateClientProfile,
+} from "@/db/clients"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { revalidatePatterns } from "@/shared/routes"
 
@@ -27,7 +30,9 @@ export async function updateMyProfile(input: {
   locale: string
 }): Promise<ProfileResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "not signed in" }
+  if (!user) {
+    return { ok: false, error: "not signed in" }
+  }
 
   const t = await getTranslations({
     locale: resolveLocale(input.locale),
@@ -36,14 +41,25 @@ export async function updateMyProfile(input: {
 
   const name = input.name.trim()
   const phone = input.phone.trim()
-  if (name.length > MAX_NAME) return { ok: false, error: t("errNameTooLong") }
-  if (phone.length > MAX_PHONE) return { ok: false, error: t("errPhoneTooLong") }
+  if (name.length > MAX_NAME) {
+    return { ok: false, error: t("errNameTooLong") }
+  }
+  if (phone.length > MAX_PHONE) {
+    return { ok: false, error: t("errPhoneTooLong") }
+  }
 
-  const saved = await updateClientProfile(createSupabaseServiceRoleClient(), user.id, {
-    name: name || null,
-    phone: phone || null,
-  })
-  if (!saved.ok) return { ok: false, error: saved.message ?? "failed" }
+  const saved = await updateClientProfile(
+    createSupabaseServiceRoleClient(),
+    user.id,
+    {
+      name: name || null,
+      phone: phone || null,
+    },
+  )
+  if (!saved.ok) {
+    return { ok: false, error: saved.message ?? "failed" }
+  }
+
   return { ok: true }
 }
 
@@ -53,14 +69,19 @@ export async function setClientCommunicationLocale(
   locale: string,
 ): Promise<ProfileResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
   if (!hasLocale(routing.locales, locale)) {
     return { ok: false, error: "Invalid locale." }
   }
 
   const saved = await updateClientCommunicationLocale(db, clientId, locale)
-  if (!saved.ok) return { ok: false, error: "Couldn't save." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn't save." }
+  }
 
   revalidatePath(revalidatePatterns.adminClient, "page")
+
   return { ok: true }
 }

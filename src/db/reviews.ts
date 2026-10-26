@@ -16,7 +16,10 @@ export async function listReviewsForService(
     .select("id, author_name, body, rating, created_at")
     .eq("service_id", serviceId)
     .order("created_at", { ascending: false })
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return data ?? []
 }
 
@@ -30,6 +33,7 @@ export async function insertReview(
   },
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("reviews").insert(values)
+
   return { ok: !error }
 }
 
@@ -45,6 +49,9 @@ export async function deleteReview(
     .eq("id", reviewId)
     .select("service_id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, serviceId: data.service_id }
 }

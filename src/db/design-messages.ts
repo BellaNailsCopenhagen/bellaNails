@@ -14,7 +14,10 @@ export async function insertDesignMessage(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -28,6 +31,7 @@ export async function listDesignMessages(
     .select("*")
     .eq("request_id", requestId)
     .order("created_at", { ascending: true })
+
   return data ?? []
 }
 
@@ -37,11 +41,14 @@ export async function listDesignMessagesForRequests(
   db: Db,
   requestIds: string[],
 ): Promise<DesignMessageRow[]> {
-  if (!requestIds.length) return []
+  if (!requestIds.length) {
+    return []
+  }
   const { data } = await db
     .from("design_messages")
     .select("*")
     .in("request_id", requestIds)
     .order("created_at", { ascending: true })
+
   return data ?? []
 }

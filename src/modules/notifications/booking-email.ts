@@ -39,7 +39,6 @@ export type BookingEmailDetail = {
   locale: string
 }
 
-
 // The one place the label/value pairs are decided — HTML + text share it.
 function detailRows(
   d: BookingEmailDetail,
@@ -48,7 +47,9 @@ function detailRows(
 ): [string, string][] {
   const locale = d.locale
   const rows: [string, string][] = [[t.labels.service, d.serviceName]]
-  if (d.addonNames.length) rows.push([t.labels.addons, d.addonNames.join(", ")])
+  if (d.addonNames.length) {
+    rows.push([t.labels.addons, d.addonNames.join(", ")])
+  }
 
   if (kind === "moved" && d.previousStartIso) {
     rows.push([
@@ -73,9 +74,9 @@ function detailRows(
   if ((kind === "confirmed" || kind === "reminder") && d.priceCents != null) {
     rows.push([t.labels.price, formatPrice(d.priceCents)])
   }
+
   return rows
 }
-
 
 type RenderParts = {
   greeting: string
@@ -99,6 +100,7 @@ function renderHtml(opts: RenderParts): string {
         i < opts.rows.length - 1
           ? `border-bottom:1px solid ${BRAND.divider};`
           : ""
+
       return `<tr><td style="padding:14px 22px;${border}">
         <div style="font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:${BRAND.textSecondary};margin-bottom:4px;">${esc(label)}</div>
         <div style="font-size:15px;color:${BRAND.textPrimary};">${esc(value)}</div>
@@ -156,13 +158,18 @@ function renderText(opts: RenderParts): string {
     "",
     ...opts.rows.map(([label, value]) => `${label}: ${value}`),
   ]
-  if (opts.paymentNote) lines.push("", opts.paymentNote)
+  if (opts.paymentNote) {
+    lines.push("", opts.paymentNote)
+  }
   lines.push("", opts.policy)
   if (opts.manageUrl && opts.manageCta) {
     lines.push(`${opts.manageCta}: ${opts.manageUrl}`)
   }
-  if (opts.address) lines.push(`${opts.address} — ${opts.mapsUrl}`)
+  if (opts.address) {
+    lines.push(`${opts.address} — ${opts.mapsUrl}`)
+  }
   lines.push(opts.reply)
+
   return lines.join("\n")
 }
 
@@ -193,6 +200,7 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<EmailResult> {
       cancelled: kind === "cancelled",
       location: oneLineAddress(profile),
     })
+
     return await sendEmail({
       ...(await mailFrom("booking")),
       to: d.to,
@@ -213,8 +221,12 @@ async function send(d: BookingEmailDetail, kind: Kind): Promise<EmailResult> {
       `[booking-email] ${kind} failed —`,
       error instanceof Error ? error.message : error,
     )
+
     // Non-PII name only (an .ics/render throw here, not the SMTP message).
-    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_error",
+    }
   }
 }
 

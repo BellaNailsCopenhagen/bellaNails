@@ -19,14 +19,17 @@ import { routes } from "@/shared/routes"
  * truth and this sits beside it, so the two can always be compared and the
  * screen can mark the row as adjusted. Owner-only, service-role write.
  */
-export type IncomeResult = { ok: true; note?: string } | { ok: false; error: string }
+export type IncomeResult =
+  { ok: true; note?: string } | { ok: false; error: string }
 
 export async function setAppointmentIncome(
   bookingId: string,
   cents: number | null,
 ): Promise<IncomeResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // A negative figure is not a refund — it is a typo. Money given back is
   // recorded by lowering what the appointment earned, to zero if need be.
@@ -62,7 +65,11 @@ export async function setAppointmentIncome(
 
   revalidatePath(routes.admin.insights)
   revalidatePath(routes.admin.appointments)
-  return { ok: true, note: cents === null ? "Back to the booked price" : "Saved" }
+
+  return {
+    ok: true,
+    note: cents === null ? "Back to the booked price" : "Saved",
+  }
 }
 
 /**
@@ -76,7 +83,9 @@ export async function setAppointmentIncome(
  */
 export async function recalculateInsights(): Promise<IncomeResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const cleared = await clearInsightsMonths(db)
   if (!cleared.ok) {
@@ -86,5 +95,6 @@ export async function recalculateInsights(): Promise<IncomeResult> {
   }
 
   revalidatePath(routes.admin.insights)
+
   return { ok: true, note: "Worked out again from your appointments" }
 }

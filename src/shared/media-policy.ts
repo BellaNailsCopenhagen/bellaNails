@@ -52,7 +52,10 @@ export function uploadPolicy(owner: boolean): {
   maxBytes: number
 } {
   return owner
-    ? { allowedTypes: [...IMAGE_TYPES, ...VIDEO_TYPES], maxBytes: OWNER_MAX_BYTES }
+    ? {
+        allowedTypes: [...IMAGE_TYPES, ...VIDEO_TYPES],
+        maxBytes: OWNER_MAX_BYTES,
+      }
     : { allowedTypes: IMAGE_TYPES, maxBytes: CLIENT_MAX_BYTES }
 }
 
@@ -84,6 +87,7 @@ export function kindForType(contentType: string): "image" | "video" {
 export function kindForKey(key: string): "image" | "video" {
   const dot = key.lastIndexOf(".")
   const ext = dot >= 0 ? key.slice(dot).toLowerCase() : ""
+
   return VIDEO_TYPES.some((type) => EXT[type] === ext) ? "video" : "image"
 }
 
@@ -117,4 +121,3 @@ export const VIDEO: VideoPolicy = {
   maxSeconds: 30,
   maxBytes: 8 * 1024 * 1024,
 }
-

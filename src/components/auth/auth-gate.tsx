@@ -9,10 +9,12 @@ import { useCurrentUser } from "@/hooks/use-current-user"
  */
 export function SignedIn({ children }: { children: React.ReactNode }) {
   const { user } = useCurrentUser()
+
   return user ? <>{children}</> : null
 }
 
 export function SignedOut({ children }: { children: React.ReactNode }) {
   const { user, loading } = useCurrentUser()
+
   return !loading && !user ? <>{children}</> : null
 }

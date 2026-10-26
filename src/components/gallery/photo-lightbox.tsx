@@ -25,10 +25,15 @@ export function PhotoLightbox({
   // The popup stays mounted through its 200ms fade, so the photo has to outlive
   // `src` — dropping it on close blinks the image out mid-animation.
   const [shown, setShown] = useState(src)
-  if (src !== null && src !== shown) setShown(src)
+  if (src !== null && src !== shown) {
+    setShown(src)
+  }
 
   return (
-    <Dialog.Root open={src !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog.Root
+      open={src !== null}
+      onOpenChange={(open) => !open && onClose()}
+    >
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-foreground/70 backdrop-blur-[2px] transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0" />
         <Dialog.Popup

@@ -38,7 +38,8 @@ export function generateSlots(params: {
       still minus `busy` — free times only, any day. */
   fullDayWindow?: TimeRange
 }): Slot[] {
-  const { schedule, mode, durationMins, busy, rules, now, fullDayWindow } = params
+  const { schedule, mode, durationMins, busy, rules, now, fullDayWindow } =
+    params
   const earliest = now + rules.minLeadMins * MIN
   const buffer = rules.bufferMins * MIN
   const step = rules.slotIntervalMins * MIN
@@ -54,20 +55,26 @@ export function generateSlots(params: {
     const dayHours = fullDayWindow
       ? { closed: false as const, ranges: [fullDayWindow] }
       : dayRanges(schedule, day, mode)
-    if (dayHours.closed) continue
+    if (dayHours.closed) {
+      continue
+    }
 
     for (const [openStr, closeStr] of dayHours.ranges) {
       const open = studioWallTimeToInstant(day, openStr)
       const close = studioWallTimeToInstant(day, closeStr)
       // Step candidate starts; the booking itself must finish by close.
       for (let start = open; start + length <= close; start += step) {
-        if (start < earliest) continue
+        if (start < earliest) {
+          continue
+        }
         const end = start + length
         // A buffer-sized gap is required on both sides of every busy span.
         const clash = busy.some(
           (b) => start < b.end + buffer && b.start < end + buffer,
         )
-        if (clash) continue
+        if (clash) {
+          continue
+        }
         slots.push({
           start: new Date(start).toISOString(),
           end: new Date(end).toISOString(),
@@ -75,5 +82,6 @@ export function generateSlots(params: {
       }
     }
   }
+
   return slots
 }

@@ -18,7 +18,10 @@ export async function insertDesignRequest(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -31,6 +34,7 @@ export async function listActionableDesignRequests(
     .select("*")
     .in("status", ACTIONABLE)
     .order("created_at", { ascending: true })
+
   return data ?? []
 }
 
@@ -39,6 +43,7 @@ export async function countActionableDesignRequests(db: Db): Promise<number> {
     .from("design_requests")
     .select("id", { count: "exact", head: true })
     .in("status", ACTIONABLE)
+
   return count ?? 0
 }
 
@@ -51,6 +56,7 @@ export async function getDesignRequest(
     .select("*")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -60,6 +66,7 @@ export async function updateDesignRequest(
   values: Update<"design_requests">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("design_requests").update(values).eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -73,6 +80,7 @@ export async function listDesignRequestsForClient(
     .select("*")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
+
   return data ?? []
 }
 
@@ -86,6 +94,7 @@ export async function countActionableDesignRequestsForClient(
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId)
     .in("status", ACTIONABLE)
+
   return count ?? 0
 }
 
@@ -101,6 +110,7 @@ export async function listDesignReplyMarkersForClient(
     .select("client_seen_at, last_artist_reply_at")
     .eq("client_id", clientId)
     .not("last_artist_reply_at", "is", null)
+
   // The `not is null` filter is what makes the non-null assertion sound.
   return (data ?? []).map((row) => ({
     client_seen_at: row.client_seen_at,
@@ -119,6 +129,7 @@ export async function touchArtistReply(
     .from("design_requests")
     .update({ last_artist_reply_at: at })
     .eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -140,6 +151,7 @@ export async function markDesignRequestsSeenForClient(
     .update({ client_seen_at: seenAt })
     .eq("client_id", clientId)
     .lte("last_artist_reply_at", seenAt)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -150,6 +162,7 @@ export async function deleteDesignRequest(
   id: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("design_requests").delete().eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -163,5 +176,6 @@ export async function deleteDesignRequestsForClient(
     .from("design_requests")
     .delete()
     .eq("client_id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

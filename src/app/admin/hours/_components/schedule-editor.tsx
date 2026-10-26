@@ -5,13 +5,13 @@ import Link from "next/link"
 
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import {
-  deleteScheduleRule,
-  saveScheduleRule,
-} from "@/modules/studio/actions"
+import { deleteScheduleRule, saveScheduleRule } from "@/modules/studio/actions"
 import type { ScheduleConflict } from "@/modules/studio/conflicts"
 import type { Schedule } from "@/shared/schedule"
-import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
+import {
+  formatStudioDayMonthYear,
+  formatStudioTime,
+} from "@/shared/studio-time"
 import { routes } from "@/shared/routes"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -26,7 +26,10 @@ const CONFLICT_REASON: Record<ScheduleConflict["reason"], string> = {
 
 /** Non-blocking heads-up: existing bookings a schedule change would strand. */
 function ConflictsWarning({ conflicts }: { conflicts: ScheduleConflict[] }) {
-  if (!conflicts.length) return null
+  if (!conflicts.length) {
+    return null
+  }
+
   return (
     <div className="space-y-2 rounded-md border border-warning/50 bg-warning/10 p-4">
       <p className="font-functional text-sm font-medium text-foreground">
@@ -40,14 +43,19 @@ function ConflictsWarning({ conflicts }: { conflicts: ScheduleConflict[] }) {
             className="font-functional text-xs text-muted-foreground"
           >
             {c.clientName} ·{" "}
-            {formatStudioDayMonthYear(new Date(c.start).getTime(), ADMIN_LOCALE)} ·{" "}
-            {formatStudioTime(c.start, ADMIN_LOCALE)}–
-            {formatStudioTime(c.end, ADMIN_LOCALE)} · {CONFLICT_REASON[c.reason]}
+            {formatStudioDayMonthYear(
+              new Date(c.start).getTime(),
+              ADMIN_LOCALE,
+            )}{" "}
+            · {formatStudioTime(c.start, ADMIN_LOCALE)}–
+            {formatStudioTime(c.end, ADMIN_LOCALE)} ·{" "}
+            {CONFLICT_REASON[c.reason]}
           </li>
         ))}
       </ul>
       <p className="font-functional text-xs text-muted-foreground">
-        Nothing was cancelled — reschedule or contact them from the queue if needed.
+        Nothing was cancelled — reschedule or contact them from the queue if
+        needed.
       </p>
     </div>
   )
@@ -80,6 +88,7 @@ export function ScheduleEditor({
         setConflicts(res.conflicts ?? [])
         setSheet(null)
       }
+
       return res
     })
 
@@ -90,6 +99,7 @@ export function ScheduleEditor({
         setConflicts(res.conflicts ?? [])
         setSheet(null)
       }
+
       return res
     })
 

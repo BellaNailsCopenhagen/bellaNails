@@ -70,6 +70,9 @@ export async function sendTestimonialRequestEmail(d: {
       ].join("\n"),
     })
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.name : "send_failed" }
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_failed",
+    }
   }
 }

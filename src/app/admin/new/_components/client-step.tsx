@@ -20,7 +20,10 @@ const MAX_ROWS = 8
  * or toggle to a new client and capture name + email (+ optional phone). Selection
  * yields a ClientRef the flow hands straight to createBookingAsOwner.
  */
-export function ClientStep({ clients, onSelect }: {
+export function ClientStep({
+  clients,
+  onSelect,
+}: {
   clients: ClientOption[]
   onSelect: (ref: ClientRef) => void
 }) {
@@ -31,7 +34,10 @@ export function ClientStep({ clients, onSelect }: {
   const [phone, setPhone] = useState("")
 
   const matches = useMemo(() => {
-    if (!query.trim()) return clients.slice(0, MAX_ROWS)
+    if (!query.trim()) {
+      return clients.slice(0, MAX_ROWS)
+    }
+
     return clients
       .filter((c) => matchesClientSearch(c.search, query))
       .slice(0, MAX_ROWS)
@@ -44,10 +50,12 @@ export function ClientStep({ clients, onSelect }: {
       <div className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <FieldLabel htmlFor="new-name" required>Name</FieldLabel>
+            <FieldLabel htmlFor="new-name" required>
+              Name
+            </FieldLabel>
             <Input
               id="new-name"
-                aria-required="true"
+              aria-required="true"
               value={name}
               onValueChange={setName}
               placeholder="Full name"
@@ -55,10 +63,12 @@ export function ClientStep({ clients, onSelect }: {
             />
           </div>
           <div className="space-y-1.5">
-            <FieldLabel htmlFor="new-email" required>Email</FieldLabel>
+            <FieldLabel htmlFor="new-email" required>
+              Email
+            </FieldLabel>
             <Input
               id="new-email"
-                aria-required="true"
+              aria-required="true"
               type="email"
               value={email}
               onValueChange={setEmail}
@@ -67,7 +77,9 @@ export function ClientStep({ clients, onSelect }: {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="new-phone" className={fieldLabel}>Phone (optional)</Label>
+            <Label htmlFor="new-phone" className={fieldLabel}>
+              Phone (optional)
+            </Label>
             <Input
               id="new-phone"
               type="tel"
@@ -126,7 +138,11 @@ export function ClientStep({ clients, onSelect }: {
                 <button
                   type="button"
                   onClick={() =>
-                    onSelect({ kind: "existing", id: client.id, name: client.name })
+                    onSelect({
+                      kind: "existing",
+                      id: client.id,
+                      name: client.name,
+                    })
                   }
                   className="flex w-full items-center justify-between gap-3 py-3 text-left"
                 >

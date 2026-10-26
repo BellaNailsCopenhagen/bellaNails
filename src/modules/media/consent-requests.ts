@@ -17,5 +17,6 @@ export async function pendingRequestCount(
     countRequestedReleasesForClient(db, clientId),
     countRequestedDataConsents(db, clientId),
   ])
+
   return media + data
 }

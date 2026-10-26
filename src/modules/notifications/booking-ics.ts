@@ -1,4 +1,3 @@
-
 /**
  * A minimal RFC 5545 calendar invite for a booking, attached to booking emails
  * so the client can add the appointment in one tap (and drop it on cancel). The
@@ -11,8 +10,14 @@
 // ISO instant → the UTC "basic format" a VEVENT wants (20260822T103000Z).
 function icsUtc(iso: string): string | null {
   const ms = new Date(iso).getTime()
-  if (!Number.isFinite(ms)) return null
-  return new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")
+  if (!Number.isFinite(ms)) {
+    return null
+  }
+
+  return new Date(ms)
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z")
 }
 
 // Escape a TEXT value per RFC 5545 (backslash, semicolon, comma, newline).
@@ -43,6 +48,7 @@ function fold(line: string): string {
     }
   }
   out.push(cur)
+
   return out.join("\r\n ")
 }
 
@@ -62,7 +68,9 @@ export function buildBookingIcs(e: {
   const dtStart = icsUtc(e.startIso)
   const dtEnd = icsUtc(e.endIso)
   const dtStamp = icsUtc(new Date(nowMs).toISOString())
-  if (!dtStart || !dtEnd || !dtStamp) return undefined
+  if (!dtStart || !dtEnd || !dtStamp) {
+    return undefined
+  }
 
   return [
     "BEGIN:VCALENDAR",

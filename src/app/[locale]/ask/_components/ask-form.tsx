@@ -62,9 +62,12 @@ export function AskForm({
 
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
-    if (!file) return
+    if (!file) {
+      return
+    }
     if (photos.length >= MAX_REFS_PER_REQUEST) {
       toast.error(t("photoTooMany"))
+
       return
     }
     // Hold the File now: `take` resets the input, so `files` is empty after it.
@@ -72,6 +75,7 @@ export function AskForm({
     const key = await take(files)
     if (!key) {
       URL.revokeObjectURL(previewUrl)
+
       return
     }
     setPhotos((prev) => [...prev, { key, previewUrl }])
@@ -82,10 +86,15 @@ export function AskForm({
   // UI drops it either way — a failed delete is the sweep's problem, not the
   // client's. Refused mid-submit: the key is already on its way to a row.
   const removePhoto = (key: string) => {
-    if (sending) return
+    if (sending) {
+      return
+    }
     setPhotos((prev) => {
       const gone = prev.find((p) => p.key === key)
-      if (gone) URL.revokeObjectURL(gone.previewUrl)
+      if (gone) {
+        URL.revokeObjectURL(gone.previewUrl)
+      }
+
       return prev.filter((p) => p.key !== key)
     })
     discardUploadedRef(key).catch(() => {
@@ -95,7 +104,9 @@ export function AskForm({
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!message.trim() || sending) return
+    if (!message.trim() || sending) {
+      return
+    }
     setSending(true)
     try {
       const result = await createDesignRequest({
@@ -109,6 +120,7 @@ export function AskForm({
       })
       if (!result.ok) {
         toast.error(result.error || t("failed"))
+
         return
       }
       setSent(true)
@@ -256,7 +268,9 @@ export function AskForm({
         <Button type="submit" disabled={sending || !message.trim()}>
           {sending ? t("submitting") : t("submit")}
         </Button>
-        <BodySm className="text-xs text-muted-foreground">{t("replyTime")}</BodySm>
+        <BodySm className="text-xs text-muted-foreground">
+          {t("replyTime")}
+        </BodySm>
       </div>
     </form>
   )

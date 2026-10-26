@@ -64,6 +64,7 @@ async function resolveForAdmin(
       rows.map((r) => r.id),
     ),
   ])
+
   return { ...resolved, photosByBooking, loadError: false }
 }
 
@@ -82,9 +83,11 @@ export async function getAdminQueue(
       new Date(now).toISOString(),
     )
     const view = await resolveForAdmin(rows, "admin-queue", supabase)
+
     return { ...view, weeks: groupIntoAgenda(view.bookings, now) }
   } catch (error) {
     console.error("[admin-queue] read failed", messageOf(error))
+
     return { ...EMPTY, weeks: groupIntoAgenda([], now) }
   }
 }
@@ -112,6 +115,7 @@ export async function getAdminFocus(now: number): Promise<AdminFocus> {
     ])
     const rows = [currentRow, nextRow].filter((r) => r !== null)
     const view = await resolveForAdmin(rows, "admin-focus", supabase)
+
     return {
       current: view.bookings.find((b) => b.row.id === currentRow?.id) ?? null,
       next: view.bookings.find((b) => b.row.id === nextRow?.id) ?? null,
@@ -122,6 +126,7 @@ export async function getAdminFocus(now: number): Promise<AdminFocus> {
     }
   } catch (error) {
     console.error("[admin-focus] read failed", messageOf(error))
+
     return {
       current: null,
       next: null,
@@ -148,9 +153,15 @@ export async function getAdminAppointments(
       listBookingsFrom(supabase, nowIso),
       listBookingsBefore(supabase, nowIso, pastLimit),
     ])
-    return await resolveForAdmin([...upcoming, ...past], "admin-appointments", supabase)
+
+    return await resolveForAdmin(
+      [...upcoming, ...past],
+      "admin-appointments",
+      supabase,
+    )
   } catch (error) {
     console.error("[admin-appointments] read failed", messageOf(error))
+
     return EMPTY
   }
 }
@@ -162,9 +173,11 @@ export async function getClientBookingHistory(
   try {
     const supabase = await createAuthedSupabaseServerClient()
     const rows = await listBookingsForClient(supabase, clientId)
+
     return await resolveForAdmin(rows, "admin-client", supabase)
   } catch (error) {
     console.error("[admin-client] read failed", messageOf(error))
+
     return EMPTY
   }
 }
@@ -187,9 +200,11 @@ export async function getMyBookings(
       locale,
       "my-bookings",
     )
+
     return { bookings, loadError: false }
   } catch (error) {
     console.error("[my-bookings] read failed", messageOf(error))
+
     return { bookings: [], loadError: true }
   }
 }
@@ -198,6 +213,7 @@ export async function getMyBookings(
     row id (RLS proves ownership). Null when there is no such booking. */
 export async function getMyBookingForManage(id: string) {
   const db = await createAuthedSupabaseServerClient()
+
   return getBookingForManage(db, id)
 }
 
@@ -217,7 +233,10 @@ export async function getBookingForSignedToken(id: string) {
     one carries its own check rather than trusting the surface. */
 export async function getBookingForManageAsOwner(id: string) {
   const db = await requireOwner()
-  if (!db) return null
+  if (!db) {
+    return null
+  }
+
   return getBookingForManage(db, id)
 }
 

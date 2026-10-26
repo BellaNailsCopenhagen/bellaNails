@@ -157,6 +157,7 @@ function SectionEditor({
         : await addSection(serviceId, input)
       if (!result.ok) {
         toast.error(result.error || "Couldn’t save.")
+
         return
       }
       toast.success("Section saved")
@@ -166,10 +167,13 @@ function SectionEditor({
 
   const remove = () =>
     startTransition(async () => {
-      if (!section) return
+      if (!section) {
+        return
+      }
       const result = await deleteSection(section.id)
       if (!result.ok) {
         toast.error(result.error || "Couldn’t remove.")
+
         return
       }
       toast.success("Section removed")
@@ -181,7 +185,9 @@ function SectionEditor({
     <Sheet
       open
       onOpenChange={(next) => {
-        if (!next && !pending) onClose()
+        if (!next && !pending) {
+          onClose()
+        }
       }}
     >
       <SheetContent className="space-y-6">
@@ -211,13 +217,21 @@ function SectionEditor({
             <Label htmlFor="sec-title-en" className={fieldLabel}>
               Title · EN
             </Label>
-            <Input id="sec-title-en" value={titleEn} onValueChange={setTitleEn} />
+            <Input
+              id="sec-title-en"
+              value={titleEn}
+              onValueChange={setTitleEn}
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="sec-title-da" className={fieldLabel}>
               Title · DA
             </Label>
-            <Input id="sec-title-da" value={titleDk} onValueChange={setTitleDk} />
+            <Input
+              id="sec-title-da"
+              value={titleDk}
+              onValueChange={setTitleDk}
+            />
           </div>
         </div>
 

@@ -54,7 +54,10 @@ export async function listMediaForClient(
     .eq("client_id", clientId)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -64,14 +67,19 @@ export async function listMediaForBookings(
   bookingIds: string[],
 ): Promise<MediaThumbRow[]> {
   const ids = [...new Set(bookingIds.filter(Boolean))]
-  if (!ids.length) return []
+  if (!ids.length) {
+    return []
+  }
   const { data, error } = await db
     .from("client_media")
     .select("id, booking_id, url, storage_key, kind")
     .in("booking_id", ids)
     .is("archived_at", null)
     .order("created_at", { ascending: false })
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return data ?? []
 }
 
@@ -87,7 +95,10 @@ export async function listHubMedia(
   const { data, error } = await (
     clientId ? base.eq("client_id", clientId) : base
   ).order("created_at", { ascending: false })
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return (data ?? []) as HubMediaRow[]
 }
 
@@ -101,6 +112,7 @@ export async function listMediaForService(
     .select("id, source")
     .eq("service_id", serviceId)
     .is("archived_at", null)
+
   return data ?? []
 }
 
@@ -109,11 +121,14 @@ export async function listMediaOwners(
   db: Db,
   mediaIds: string[],
 ): Promise<Pick<Row<"client_media">, "id" | "client_id">[]> {
-  if (mediaIds.length === 0) return []
+  if (mediaIds.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("client_media")
     .select("id, client_id")
     .in("id", mediaIds)
+
   return data ?? []
 }
 
@@ -127,6 +142,7 @@ export async function listOwnUploadsForClient(
     .select("id, favorited_at")
     .eq("client_id", clientId)
     .eq("source", "client")
+
   return data ?? []
 }
 
@@ -139,6 +155,7 @@ export async function getMediaOwner(
     .select("client_id")
     .eq("id", mediaId)
     .maybeSingle()
+
   return data?.client_id ?? null
 }
 
@@ -151,6 +168,7 @@ export async function getMediaStorageKey(
     .select("storage_key")
     .eq("id", mediaId)
     .maybeSingle()
+
   return data?.storage_key ?? null
 }
 
@@ -163,6 +181,7 @@ export async function getMediaFile(
     .select("storage_key, kind")
     .eq("id", mediaId)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -178,11 +197,14 @@ export async function listMediaForPublish(
   mediaIds: string[],
 ): Promise<MediaPublishRow[]> {
   const ids = [...new Set(mediaIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("client_media")
     .select("id, client_id, booking_id, storage_key, kind")
     .in("id", ids)
+
   return data ?? []
 }
 
@@ -202,6 +224,7 @@ export async function insertMedia(
   values: MediaInsert,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("client_media").insert(values)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -214,6 +237,7 @@ export async function archiveMedia(
     .from("client_media")
     .update({ archived_at: new Date().toISOString() })
     .eq("id", mediaId)
+
   return { ok: !error }
 }
 
@@ -223,6 +247,7 @@ export async function deleteMedia(
   mediaId: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("client_media").delete().eq("id", mediaId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -235,6 +260,7 @@ export async function setMediaFavorited(
     .from("client_media")
     .update({ favorited_at: at })
     .eq("id", mediaId)
+
   return { ok: !error }
 }
 
@@ -249,5 +275,6 @@ export async function setMediaDismissed(
     .from("client_media")
     .update({ dismissed_at: at })
     .eq("id", mediaId)
+
   return { ok: !error }
 }

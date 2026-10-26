@@ -38,8 +38,11 @@ import {
     photo — the hero is the whole first screen and must never be empty. */
 function resolveHero(key: string | null | undefined): HeroBackground {
   const trimmed = key?.trim()
-  if (!trimmed) return DEFAULT_HERO_BACKGROUND
+  if (!trimmed) {
+    return DEFAULT_HERO_BACKGROUND
+  }
   const url = objectUrl(trimmed)
+
   return url ? { url, kind: kindForKey(trimmed) } : DEFAULT_HERO_BACKGROUND
 }
 
@@ -59,10 +62,14 @@ export const getBusinessProfile = cache(async (): Promise<BusinessProfile> => {
 
   try {
     const row = await getBusinessProfileRow(createSupabaseServerClient())
-    if (!row) return fallback
+    if (!row) {
+      return fallback
+    }
+
     return {
       contactEmail: row.contact_email?.trim() || fallback.contactEmail,
-      bookingFromEmail: row.booking_from_email?.trim() || fallback.bookingFromEmail,
+      bookingFromEmail:
+        row.booking_from_email?.trim() || fallback.bookingFromEmail,
       // Blank = wherever the contact address points, which is where these
       // alerts went before this field existed.
       alertEmail:
@@ -84,6 +91,7 @@ export const getBusinessProfile = cache(async (): Promise<BusinessProfile> => {
     }
   } catch (error) {
     reportReadFailure(error)
+
     return fallback
   }
 })
@@ -101,6 +109,7 @@ function reportReadFailure(error: unknown): void {
         "[business] no business_profile table — using the env defaults. Apply supabase/business-profile.sql, then fill in Admin → More → Business.",
       )
     }
+
     return
   }
   console.error(
@@ -163,6 +172,7 @@ export async function getBusinessProfileForAdmin(): Promise<BusinessProfileAdmin
         loadError: false,
       }
     }
+
     return {
       values: {
         contactEmail: row.contact_email ?? "",
@@ -175,14 +185,16 @@ export async function getBusinessProfileForAdmin(): Promise<BusinessProfileAdmin
         tiktokUrl: row.tiktok_url ?? "",
       },
       mapImageUrl:
-        (row.map_image_key?.trim() ? objectUrl(row.map_image_key.trim()) : null) ??
-        DEFAULT_MAP_IMAGE,
+        (row.map_image_key?.trim()
+          ? objectUrl(row.map_image_key.trim())
+          : null) ?? DEFAULT_MAP_IMAGE,
       heroBackground: resolveHero(row.hero_asset_key),
       loadError: false,
     }
   } catch (error) {
     // Logs which of the two it was; the screen only needs to stop offering Save.
     reportReadFailure(error)
+
     return {
       values: blank,
       mapImageUrl: DEFAULT_MAP_IMAGE,

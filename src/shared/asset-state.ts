@@ -60,7 +60,8 @@ export const ASSET_STATE_TOOLTIP: Record<AssetState, string> = {
   live: "In use on the website or on social",
   declined: "You asked and the client said no",
   retracted: "The client allowed it once and has since taken that back",
-  takedown: "Permission withdrawn while it was on social — remove the post, then confirm",
+  takedown:
+    "Permission withdrawn while it was on social — remove the post, then confirm",
 }
 
 /** One published public copy of an original, for one purpose. */
@@ -88,25 +89,45 @@ export function deriveAssetState(
       so there is no one to ask and no queue they belong in. */
   linked = true,
 ): AssetState {
-  if (!linked) return "unlinked"
-  if (published.some((copy) => copy.needsTakedown)) return "takedown"
-  if (published.some((copy) => copy.placements > 0)) return "live"
+  if (!linked) {
+    return "unlinked"
+  }
+  if (published.some((copy) => copy.needsTakedown)) {
+    return "takedown"
+  }
+  if (published.some((copy) => copy.placements > 0)) {
+    return "live"
+  }
 
   const answers = PUBLISHABLE_PURPOSES.map((p) => releases[p] ?? "none")
-  if (answers.includes("granted")) return "ready"
-  if (answers.includes("requested")) return "waiting"
+  if (answers.includes("granted")) {
+    return "ready"
+  }
+  if (answers.includes("requested")) {
+    return "waiting"
+  }
   // A permission taken back is not the same event as one never given: the photo
   // may have been public, and someone changed their mind about it. Kept apart so
   // the artist can see which is which without opening anything.
-  if (answers.includes("withdrawn")) return "retracted"
-  if (answers.includes("declined")) return "declined"
+  if (answers.includes("withdrawn")) {
+    return "retracted"
+  }
+  if (answers.includes("declined")) {
+    return "declined"
+  }
+
   return "to_ask"
 }
 
 /** Can permission be asked for (or asked again) for this purpose? Silence and a
     refusal are both askable; a live request or a standing grant are not. */
 export function canRequestRelease(status: string | undefined): boolean {
-  return !status || status === "none" || status === "declined" || status === "withdrawn"
+  return (
+    !status ||
+    status === "none" ||
+    status === "declined" ||
+    status === "withdrawn"
+  )
 }
 
 /** How long a photo counts as newly added. Long enough to survive a week of not
@@ -117,7 +138,10 @@ export const NEW_PHOTO_DAYS = 7
     without remembering which appointment she added it to. */
 export function isNewPhoto(createdAtIso: string, now: number): boolean {
   const added = Date.parse(createdAtIso)
-  if (Number.isNaN(added)) return false
+  if (Number.isNaN(added)) {
+    return false
+  }
+
   return now - added < NEW_PHOTO_DAYS * 24 * 60 * 60 * 1000
 }
 

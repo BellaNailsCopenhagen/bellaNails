@@ -17,11 +17,18 @@ const LOCALES = ["da", "en"]
 
 const catalog = (locale: string) =>
   JSON.parse(
-    readFileSync(new URL(`../../messages/${locale}.json`, import.meta.url), "utf8"),
+    readFileSync(
+      new URL(`../../messages/${locale}.json`, import.meta.url),
+      "utf8",
+    ),
   )
 
 /** One dynamic key site: which namespace, which group, which values. */
-const DYNAMIC_KEYS: [namespace: string, group: string, values: readonly string[]][] = [
+const DYNAMIC_KEYS: [
+  namespace: string,
+  group: string,
+  values: readonly string[],
+][] = [
   ["ask", "topic", DESIGN_TOPICS],
   ["designRequests", "status", DESIGN_STATUSES],
   ["offer", "blocked", OFFER_STATES_BLOCKED],
@@ -49,7 +56,10 @@ test("every dynamic message key has copy in both locales", () => {
 
 /** Every leaf path in an object, so a key added to one locale only is caught. */
 function leaves(value: unknown, prefix = ""): string[] {
-  if (value === null || typeof value !== "object") return [prefix]
+  if (value === null || typeof value !== "object") {
+    return [prefix]
+  }
+
   return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) =>
     leaves(v, prefix ? `${prefix}.${k}` : k),
   )

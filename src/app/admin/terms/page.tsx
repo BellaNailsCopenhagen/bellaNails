@@ -22,6 +22,7 @@ export default async function AdminTermsPage() {
   const kinds = await Promise.all(
     TERMS_KINDS.map(async (kind) => {
       const versions = await getTermsVersions(kind)
+
       return {
         kind,
         current: versions.find((v) => v.isCurrent) ?? null,

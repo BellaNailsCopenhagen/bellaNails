@@ -14,9 +14,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { cardActionDestructive } from "@/components/admin/card-action"
-import {
-  cancelBookingAsOwner,
-} from "@/modules/booking/actions"
+import { cancelBookingAsOwner } from "@/modules/booking/actions"
 
 /**
  * Owner cancel behind a confirm dialog. The server action re-verifies the owner
@@ -60,7 +58,9 @@ export function AdminCancelButton({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger

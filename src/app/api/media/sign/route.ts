@@ -2,7 +2,10 @@ import { getCurrentUser } from "@/modules/identity/server"
 import { takeDurableToken } from "@/db/rate-limits"
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
 import { extForType, imagePolicy, uploadPolicy } from "@/shared/media-policy"
-import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/supabase"
+import {
+  signedUploadUrl,
+  type SignedUploadTarget,
+} from "@/platform/storage/supabase"
 
 /**
  * Mints a one-shot signed upload target. Requires a signed-in caller; the role
@@ -30,7 +33,9 @@ import { signedUploadUrl, type SignedUploadTarget } from "@/platform/storage/sup
 const CLIENT_UPLOAD_RULE = { limit: 20, window: "1 hour" }
 export async function POST(req: Request) {
   const user = await getCurrentUser()
-  if (!user) return new Response("Unauthorized", { status: 401 })
+  if (!user) {
+    return new Response("Unauthorized", { status: 401 })
+  }
 
   // The artist is trusted; a client is not.
   if (
@@ -59,9 +64,11 @@ export async function POST(req: Request) {
   })
   if (!result.ok) {
     const status = result.error === "not_configured" ? 503 : 500
+
     return Response.json({ error: result.error }, { status })
   }
   const target: SignedUploadTarget = result.data
+
   // Where to PUT, plus how to prepare the image before PUTting it.
   return Response.json({ ...target, image: imagePolicy(user.isOwner) })
 }

@@ -60,6 +60,7 @@ type RawAdminService = Omit<AdminServiceRow, "addons"> & {
 
 function flattenAdminService(raw: RawAdminService): AdminServiceRow {
   const { service_addons, ...rest } = raw
+
   return { ...rest, addons: flattenServiceAddons<AddonRow>(service_addons) }
 }
 
@@ -76,6 +77,7 @@ export async function getPublicServiceRow(
     .eq("id", id)
     .is("archived_at", null)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -91,17 +93,16 @@ export async function listFeaturedServiceRows(
     .is("archived_at", null)
     .order("created_at", { ascending: true })
     .limit(limit)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
 export type BookableServiceRow = Pick<
   Row<"services">,
-  | "id"
-  | "name_en"
-  | "name_dk"
-  | "base_price_cents"
-  | "base_duration_mins"
+  "id" | "name_en" | "name_dk" | "base_price_cents" | "base_duration_mins"
 > & { service_addons: { addons: AddonRow | null }[] }
 
 /** An active service plus its add-ons — the booking customizer's source.
@@ -121,6 +122,7 @@ export async function getBookableService(
   if (error) {
     throw new Error(`Failed to load service add-ons: ${error.message}`)
   }
+
   return (data as unknown as BookableServiceRow | null) ?? null
 }
 
@@ -139,6 +141,7 @@ export async function getServiceNames(
     .select("name_en, name_dk, description_en, description_dk")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -164,13 +167,19 @@ export async function getServiceNameCatalog(
       ),
     ),
   ]
-  if (ids.length === 0) return new Map()
+  if (ids.length === 0) {
+    return new Map()
+  }
 
   const { data, error } = await db
     .from("services")
-    .select("id, name_en, name_dk, service_addons(addons(id, name_en, name_dk))")
+    .select(
+      "id, name_en, name_dk, service_addons(addons(id, name_en, name_dk))",
+    )
     .in("id", ids)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
 
   type Raw = {
     id: string
@@ -178,6 +187,7 @@ export async function getServiceNameCatalog(
     name_dk: string | null
     service_addons: { addons: ServiceNameEntry["addons"][number] | null }[]
   }
+
   return new Map(
     ((data ?? []) as unknown as Raw[]).map((entry) => [
       entry.id,
@@ -197,7 +207,10 @@ export async function listAdminServices(db: Db): Promise<AdminServiceRow[]> {
     .from("services")
     .select(ADMIN_COLUMNS)
     .order("name_en", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return ((data ?? []) as unknown as RawAdminService[]).map(flattenAdminService)
 }
 
@@ -211,7 +224,10 @@ export async function getAdminService(
     .select(ADMIN_COLUMNS)
     .eq("id", id)
     .maybeSingle()
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ? flattenAdminService(data as unknown as RawAdminService) : null
 }
 
@@ -220,16 +236,24 @@ export async function getAdminService(
 export async function getServicePricing(
   db: Db,
   id: string,
-): Promise<Pick<Row<"services">, "base_duration_mins" | "base_price_cents"> | null> {
+): Promise<Pick<
+  Row<"services">,
+  "base_duration_mins" | "base_price_cents"
+> | null> {
   const { data } = await db
     .from("services")
     .select("base_duration_mins, base_price_cents")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
-export type CatalogName = { id: string; name_en: string; name_dk: string | null }
+export type CatalogName = {
+  id: string
+  name_en: string
+  name_dk: string | null
+}
 
 /** Active names in both languages — the uniqueness check compares in JS. */
 export async function listActiveServiceNames(db: Db): Promise<CatalogName[]> {
@@ -237,6 +261,7 @@ export async function listActiveServiceNames(db: Db): Promise<CatalogName[]> {
     .from("services")
     .select("id, name_en, name_dk")
     .is("archived_at", null)
+
   return data ?? []
 }
 
@@ -253,7 +278,10 @@ export async function insertService(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -265,6 +293,7 @@ export async function updateService(
   values: ServiceUpdate,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("services").update(values).eq("id", id)
+
   return { ok: !error }
 }
 
@@ -278,5 +307,6 @@ export async function setServiceArchived(
     .from("services")
     .update({ archived_at: at })
     .eq("id", id)
+
   return { ok: !error }
 }

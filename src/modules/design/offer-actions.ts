@@ -70,10 +70,14 @@ export async function createOffer(
   input: CreateOfferInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const nameEn = input.nameEn.trim()
-  if (!nameEn) return { ok: false, error: "Give the offer a name." }
+  if (!nameEn) {
+    return { ok: false, error: "Give the offer a name." }
+  }
   if (!Number.isFinite(input.durationMins) || input.durationMins <= 0) {
     return { ok: false, error: "Set how long it takes." }
   }
@@ -84,7 +88,9 @@ export async function createOffer(
   const holdDays = clampHold(input.holdDays)
 
   const request = await getDesignRequest(db, input.requestId)
-  if (!request) return { ok: false, error: "Request not found." }
+  if (!request) {
+    return { ok: false, error: "Request not found." }
+  }
 
   // The one-live-offer index keys off `closed_at`, which only the (throttled)
   // sweep sets — so an offer that has merely run out of TIME still occupies the
@@ -98,8 +104,15 @@ export async function createOffer(
     // Falling through would trip the unique index and report "withdraw it
     // first" — the exact dead end this block exists to avoid.
     if (!closed.ok) {
-      console.error(`[design] could not close lapsed offer ${existing.id}:`, closed.message)
-      return { ok: false, error: "Couldn’t clear the previous offer — please try again." }
+      console.error(
+        `[design] could not close lapsed offer ${existing.id}:`,
+        closed.message,
+      )
+
+      return {
+        ok: false,
+        error: "Couldn’t clear the previous offer — please try again.",
+      }
     }
   }
 
@@ -117,7 +130,10 @@ export async function createOffer(
     // The partial unique index is the guard: one live offer per request. Any
     // other failure is a real error and must not be reported as that.
     const duplicate = /duplicate key|unique constraint/i.test(saved.message)
-    if (!duplicate) console.error("[design] offer insert failed:", saved.message)
+    if (!duplicate) {
+      console.error("[design] offer insert failed:", saved.message)
+    }
+
     return {
       ok: false,
       error: duplicate
@@ -135,13 +151,18 @@ export async function createOffer(
   // failed flip rather than failing the send — but log it, because a request
   // stuck on `open` with a live offer refuses the next "Make an offer".
   if (!marked.ok) {
-    console.error(`[design] offer ${saved.id} sent but request ${request.id} not marked offered:`, marked.message)
+    console.error(
+      `[design] offer ${saved.id} sent but request ${request.id} not marked offered:`,
+      marked.message,
+    )
   }
   // An offer IS the studio answering, so it raises the client's banner too.
   // Its own write, so a missed stamp costs a banner and not the status flip.
   await stampArtistReply(db, request.id, answeredAt)
 
-  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  const contact = (await fetchClientContacts([request.client_id]))[
+    request.client_id
+  ]
   if (contact?.email) {
     const locale = contact.communicationLocale
     const res = await sendOfferEmail({
@@ -167,17 +188,26 @@ export async function createOffer(
   }
 
   revalidatePath(routes.admin.home)
+
   return { ok: true, id: saved.id }
 }
 
 /** Pull an offer back. The request returns to the queue so it can be re-offered. */
-export async function withdrawOffer(offerId: string): Promise<OfferActionResult> {
+export async function withdrawOffer(
+  offerId: string,
+): Promise<OfferActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const offer = await getOffer(db, offerId)
-  if (!offer) return { ok: false, error: "Offer not found." }
-  if (offer.booking_id) return { ok: false, error: "That offer is already booked." }
+  if (!offer) {
+    return { ok: false, error: "Offer not found." }
+  }
+  if (offer.booking_id) {
+    return { ok: false, error: "That offer is already booked." }
+  }
 
   const now = new Date().toISOString()
   const done = await updateOffer(db, offerId, {
@@ -185,15 +215,21 @@ export async function withdrawOffer(offerId: string): Promise<OfferActionResult>
     // Frees the one-live-offer index so the studio can send a replacement.
     closed_at: now,
   })
-  if (!done.ok) return { ok: false, error: "Couldn’t withdraw it — please try again." }
+  if (!done.ok) {
+    return { ok: false, error: "Couldn’t withdraw it — please try again." }
+  }
 
   const reopened = await updateDesignRequest(db, offer.request_id, {
     status: "open",
   })
   if (!reopened.ok) {
-    console.error(`[design] offer ${offerId} withdrawn but request not reopened:`, reopened.message)
+    console.error(
+      `[design] offer ${offerId} withdrawn but request not reopened:`,
+      reopened.message,
+    )
   }
   revalidatePath(routes.admin.home)
+
   return { ok: true }
 }
 
@@ -208,12 +244,16 @@ export async function bookOfferByToken(input: {
   locale?: string
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const offerId = verifyOfferToken(input.token)
-  if (!offerId) return { ok: false, error: "This link isn’t valid." }
+  if (!offerId) {
+    return { ok: false, error: "This link isn’t valid." }
+  }
 
   const user = await getCurrentUser()
   const db = createSupabaseServiceRoleClient()
   const offer = await getOffer(db, offerId)
-  if (!offer) return { ok: false, error: "This offer no longer exists." }
+  if (!offer) {
+    return { ok: false, error: "This offer no longer exists." }
+  }
   if (user && !user.isOwner && user.id !== offer.client_id) {
     return { ok: false, error: "This offer belongs to someone else." }
   }
@@ -236,12 +276,19 @@ export async function bookOfferAsOwner(input: {
   ignoreLimits?: boolean
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const offer = await getOffer(db, input.offerId)
-  if (!offer) return { ok: false, error: "Offer not found." }
+  if (!offer) {
+    return { ok: false, error: "Offer not found." }
+  }
 
-  const contact = (await fetchClientContacts([offer.client_id]))[offer.client_id]
+  const contact = (await fetchClientContacts([offer.client_id]))[
+    offer.client_id
+  ]
+
   return bookOffer(db, offer, input.start, {
     locale: contact?.communicationLocale ?? "da",
     actor: "studio",
@@ -257,14 +304,18 @@ async function bookOffer(
   opts: { locale: string; actor: "client" | "studio"; checkSlot: boolean },
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const state = offerState(offer, Date.now())
-  if (state !== "live") return { ok: false, error: `This offer is ${state}.` }
+  if (state !== "live") {
+    return { ok: false, error: `This offer is ${state}.` }
+  }
 
   const prepared = await buildBookingDraft(
     db,
     { ref: offerRef(offer.id), start, locale: opts.locale },
     { checkSlot: opts.checkSlot, ignoreLeadTime: opts.actor === "studio" },
   )
-  if (!prepared.ok) return prepared
+  if (!prepared.ok) {
+    return prepared
+  }
   const { draft } = prepared
 
   const result = await insertBooking(db, {
@@ -295,6 +346,7 @@ async function bookOffer(
         undone.message,
       )
     }
+
     return { ok: false, error: "That offer was just booked — check My Space." }
   }
   const closed = await updateDesignRequest(db, offer.request_id, {
@@ -302,10 +354,15 @@ async function bookOffer(
     closed_at: new Date().toISOString(),
   })
   if (!closed.ok) {
-    console.error(`[design] booking ${result.id} made but request ${offer.request_id} not closed:`, closed.message)
+    console.error(
+      `[design] booking ${result.id} made but request ${offer.request_id} not closed:`,
+      closed.message,
+    )
   }
 
-  const contact = (await fetchClientContacts([offer.client_id]))[offer.client_id]
+  const contact = (await fetchClientContacts([offer.client_id]))[
+    offer.client_id
+  ]
   if (contact?.email) {
     const locale = contact.communicationLocale
     const { serviceName } = localizedBookingNames(
@@ -339,6 +396,7 @@ async function bookOffer(
   revalidatePath(routes.admin.home)
   revalidatePath(routes.admin.appointments)
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true, id: result.id }
 }
 
@@ -363,9 +421,13 @@ export async function runDesignHousekeeping(limit = 50): Promise<{
 }> {
   const idle = { offersExpired: 0, refsPurged: 0 }
   const db = await requireOwner()
-  if (!db) return idle
+  if (!db) {
+    return idle
+  }
   // Token AFTER the owner check, so a non-owner render can't spend the hour.
-  if (!takeToken(housekeeping, "design", Date.now(), HOUSEKEEPING_RULE)) return idle
+  if (!takeToken(housekeeping, "design", Date.now(), HOUSEKEEPING_RULE)) {
+    return idle
+  }
 
   const now = new Date().toISOString()
   const stale = await listExpiredLiveOffers(db, now, limit)
@@ -382,16 +444,19 @@ export async function runDesignHousekeeping(limit = 50): Promise<{
   const [refsPurged, orphansPurged] = await Promise.all([
     purgeExpiredDesignRefs(db, limit).catch((error) => {
       console.error("[design] ref purge failed", error)
+
       return 0
     }),
     purgeOrphanedRefObjects(db, { limit }).catch((error) => {
       console.error("[design] orphan sweep failed", error)
+
       return 0
     }),
     // Not design's business, but this is the only throttled sweep we have and
     // the rate-limit table has no other cleaner. Move both to the cron (D).
     purgeExpiredRateLimits(db).catch(() => 0),
   ])
+
   return { offersExpired: stale.length, refsPurged: refsPurged + orphansPurged }
 }
 
@@ -401,4 +466,4 @@ const clampHold = (days: number | undefined) =>
     : OFFER_DEFAULT_DAYS
 
 const pickName = (locale: string, en: string, dk: string | null) =>
-  locale === "en" ? en : dk ?? en
+  locale === "en" ? en : (dk ?? en)

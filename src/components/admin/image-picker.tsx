@@ -40,7 +40,9 @@ export function ImagePicker({
 
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
-    if (!file) return
+    if (!file) {
+      return
+    }
     setUploading(true)
     try {
       const up = await uploadMedia(file, file.type)
@@ -54,18 +56,22 @@ export function ImagePicker({
                 ? "That image couldn’t be read."
                 : "Upload failed.",
         )
+
         return
       }
       const published = await publish(up.key)
       if (!published.ok) {
         toast.error(published.error)
+
         return
       }
       onChange({ assetId: published.assetId, url: published.url })
       setShowGallery(false)
     } finally {
       setUploading(false)
-      if (inputRef.current) inputRef.current.value = ""
+      if (inputRef.current) {
+        inputRef.current.value = ""
+      }
     }
   }
 

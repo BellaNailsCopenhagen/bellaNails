@@ -42,7 +42,9 @@ export function TestimonialForm({ token }: { token: string }) {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!check.ok || sending) return
+    if (!check.ok || sending) {
+      return
+    }
     setSending(true)
     try {
       const result = await submitTestimonial({
@@ -55,6 +57,7 @@ export function TestimonialForm({ token }: { token: string }) {
       })
       if (!result.ok) {
         toast.error(result.error || t("failed"))
+
         return
       }
       setDone(true)

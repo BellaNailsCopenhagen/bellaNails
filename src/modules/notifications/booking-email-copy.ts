@@ -31,7 +31,8 @@ export const COPY = {
     intro: {
       confirmed: "Tak for din booking — din tid er hermed bekræftet.",
       cancelled: {
-        client: "Du har aflyst din tid. Du er altid velkommen til at booke en ny.",
+        client:
+          "Du har aflyst din tid. Du er altid velkommen til at booke en ny.",
         studio:
           "Salonen har aflyst din tid. Du er altid velkommen til at booke en ny.",
       },
@@ -39,7 +40,8 @@ export const COPY = {
         client: "Du har flyttet din tid — her er de nye detaljer.",
         studio: "Salonen har flyttet din tid. Her er de nye detaljer.",
       },
-      reminder: "En venlig påmindelse om din tid i morgen. Vi glæder os til at se dig.",
+      reminder:
+        "En venlig påmindelse om din tid i morgen. Vi glæder os til at se dig.",
     },
     payment: "Betaling foregår i salonen.",
     policy: "Ombooking eller aflysning kan ske indtil 24 timer før din tid.",
@@ -73,14 +75,17 @@ export const COPY = {
           "The studio has cancelled your appointment. You're always welcome to book a new time.",
       },
       moved: {
-        client: "You've rescheduled your appointment — here are the new details.",
-        studio: "The studio has rescheduled your appointment. Here are the new details.",
+        client:
+          "You've rescheduled your appointment — here are the new details.",
+        studio:
+          "The studio has rescheduled your appointment. Here are the new details.",
       },
       reminder:
         "A friendly reminder about your appointment tomorrow — we look forward to seeing you.",
     },
     payment: "Payment is collected at the studio.",
-    policy: "You can reschedule or cancel up to 24 hours before your appointment.",
+    policy:
+      "You can reschedule or cancel up to 24 hours before your appointment.",
     manageCta: "Reschedule or cancel your appointment",
     reply: "Questions? Just reply to this email.",
   },

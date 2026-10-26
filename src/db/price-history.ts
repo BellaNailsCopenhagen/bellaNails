@@ -18,6 +18,7 @@ export async function listPriceHistory(
     .eq("entity_type", entityType)
     .eq("entity_id", entityId)
     .order("changed_at", { ascending: false })
+
   return (data ?? []).map((r) => ({
     priceCents: r.price_cents,
     changedAt: r.changed_at,

@@ -24,7 +24,9 @@ export function QueueRealtime() {
     let debounce: ReturnType<typeof setTimeout> | undefined
 
     const refresh = () => {
-      if (debounce) clearTimeout(debounce)
+      if (debounce) {
+        clearTimeout(debounce)
+      }
       debounce = setTimeout(() => router.refresh(), REFRESH_DEBOUNCE_MS)
     }
 
@@ -42,7 +44,9 @@ export function QueueRealtime() {
       .subscribe()
 
     return () => {
-      if (debounce) clearTimeout(debounce)
+      if (debounce) {
+        clearTimeout(debounce)
+      }
       void supabase.removeChannel(channel)
     }
   }, [supabase, router])

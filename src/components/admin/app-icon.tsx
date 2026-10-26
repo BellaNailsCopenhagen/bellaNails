@@ -21,26 +21,28 @@ export function renderAppIcon(
   const radius = maskable ? 0 : Math.round(size * 0.22)
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: BRAND.cta,
+        color: BRAND.background,
+        borderRadius: radius,
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: BRAND.cta,
-          color: BRAND.background,
-          borderRadius: radius,
+          fontSize: letterSize,
+          fontWeight: 500,
+          letterSpacing: "0.02em",
         }}
       >
-        <div
-          style={{ fontSize: letterSize, fontWeight: 500, letterSpacing: "0.02em" }}
-        >
-          B
-        </div>
+        B
       </div>
-    ),
+    </div>,
     { width: size, height: size },
   )
 }

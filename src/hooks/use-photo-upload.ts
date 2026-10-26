@@ -52,7 +52,9 @@ export function usePhotoUpload(
 
   const take = async (files: FileList | null): Promise<string | null> => {
     const file = files?.[0]
-    if (!file) return null
+    if (!file) {
+      return null
+    }
     setUploading(true)
     try {
       // `uploadMedia` optimises — passing the file's own type lets the server
@@ -61,24 +63,35 @@ export function usePhotoUpload(
         video,
         onProgress: setProgress,
       })
-      if (up.ok) return up.key
+      if (up.ok) {
+        return up.key
+      }
 
       // Nothing was stored, so never say the message failed to send.
-      if (up.reason === "not_configured") toast.info(labels.notConfigured)
-      else if (up.reason === "rate_limited") toast.error(labels.rateLimited)
-      else if (up.reason === "unsupported") toast.error(labels.unsupported)
-      else if (up.reason === "process_failed") toast.error(labels.processFailed)
-      else if (up.reason === "too_long")
+      if (up.reason === "not_configured") {
+        toast.info(labels.notConfigured)
+      } else if (up.reason === "rate_limited") {
+        toast.error(labels.rateLimited)
+      } else if (up.reason === "unsupported") {
+        toast.error(labels.unsupported)
+      } else if (up.reason === "process_failed") {
+        toast.error(labels.processFailed)
+      } else if (up.reason === "too_long") {
         toast.error(labels.tooLong ?? labels.failed)
-      else if (up.reason === "too_large")
+      } else if (up.reason === "too_large") {
         toast.error(labels.tooLarge ?? labels.failed)
-      else toast.error(labels.failed)
+      } else {
+        toast.error(labels.failed)
+      }
+
       return null
     } finally {
       setUploading(false)
       setProgress(null)
       // Let the same file be re-picked after a failure.
-      if (inputRef.current) inputRef.current.value = ""
+      if (inputRef.current) {
+        inputRef.current.value = ""
+      }
     }
   }
 

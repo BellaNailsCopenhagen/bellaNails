@@ -36,9 +36,12 @@ export default async function AdminServiceDetailPage({
       "[admin-service] read failed",
       error instanceof Error ? error.message : error,
     )
+
     return null
   })
-  if (!detail) notFound()
+  if (!detail) {
+    notFound()
+  }
 
   const { service, category, categories, validBookings } = detail
   const activeAddons = service.addons.filter((a) => !a.archived_at)

@@ -57,13 +57,17 @@ export async function requestTestimonial(input: {
   { ok: true; id: string; emailed: boolean } | { ok: false; error: string }
 > {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   // Only attach a booking that is actually this client's.
   let bookingId: string | null = null
   if (input.bookingId) {
     const booking = await getBookingOwner(db, input.bookingId).catch(() => null)
-    if (booking?.client_id === input.clientId) bookingId = input.bookingId
+    if (booking?.client_id === input.clientId) {
+      bookingId = input.bookingId
+    }
   }
 
   const saved = await insertTestimonialRequest(db, {
@@ -74,11 +78,15 @@ export async function requestTestimonial(input: {
     // The partial unique index allows one OPEN ask per client — a second is a
     // nag, not a feature.
     const duplicate = /duplicate key|unique constraint/i.test(saved.message)
-    if (!duplicate) console.error("[testimonial] request insert failed:", saved.message)
+    if (!duplicate) {
+      console.error("[testimonial] request insert failed:", saved.message)
+    }
+
     return duplicate
       ? {
           ok: false,
-          error: "You've already asked this client — they still have an open invitation.",
+          error:
+            "You've already asked this client — they still have an open invitation.",
         }
       : failed("send the invitation")
   }
@@ -108,6 +116,7 @@ export async function requestTestimonial(input: {
 
   revalidatePath(revalidatePatterns.adminClient, "page")
   revalidatePath(routes.admin.testimonials)
+
   // The invitation exists either way — it shows in their My Space — but saying
   // "sent" when no mail went out would be a lie the studio acts on.
   return { ok: true, id: saved.id, emailed }
@@ -135,15 +144,21 @@ export async function submitTestimonial(input: {
   })
 
   const id = verifyTestimonialToken(input.token)
-  if (!id) return { ok: false, error: t("errLink") }
+  if (!id) {
+    return { ok: false, error: t("errLink") }
+  }
 
   const checked = validateTestimonial(input)
   // The form validates too; this is the boundary, not the message.
-  if (!checked.ok) return { ok: false, error: t("errFields") }
+  if (!checked.ok) {
+    return { ok: false, error: t("errFields") }
+  }
 
   const db = createSupabaseServiceRoleClient()
   const row = await getTestimonial(db, id)
-  if (!row) return { ok: false, error: t("errGone") }
+  if (!row) {
+    return { ok: false, error: t("errGone") }
+  }
   if (row.status !== "requested") {
     return { ok: false, error: t("errUsed") }
   }
@@ -166,7 +181,9 @@ export async function submitTestimonial(input: {
     // Stays invisible until the studio chooses it. Never set from this side.
     visible: false,
   })
-  if (!saved.ok) return { ok: false, error: t("errUsed") }
+  if (!saved.ok) {
+    return { ok: false, error: t("errUsed") }
+  }
 
   await notifyOwner(db, {
     kind: "testimonial_submitted",
@@ -175,6 +192,7 @@ export async function submitTestimonial(input: {
   })
   revalidatePath(routes.admin.testimonials)
   revalidatePath(routes.admin.home)
+
   return { ok: true }
 }
 
@@ -186,10 +204,14 @@ export async function setTestimonialVisible(
   visible: boolean,
 ): Promise<TestimonialResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const row = await getTestimonial(db, id)
-  if (!row) return { ok: false, error: "Not found." }
+  if (!row) {
+    return { ok: false, error: "Not found." }
+  }
   // A withdrawal is the client's right, so it is not the studio's to reverse.
   if (row.status === "withdrawn") {
     return {
@@ -198,23 +220,35 @@ export async function setTestimonialVisible(
     }
   }
   if (row.status !== "submitted") {
-    return { ok: false, error: "Nothing written yet — there's nothing to show." }
+    return {
+      ok: false,
+      error: "Nothing written yet — there's nothing to show.",
+    }
   }
 
   const saved = await updateTestimonial(db, id, { visible })
-  if (!saved.ok) return failed()
+  if (!saved.ok) {
+    return failed()
+  }
 
   revalidateTestimonialSurfaces()
+
   return { ok: true }
 }
 
 /** Close one out: an unanswered invitation, or words the studio won't be showing. */
-export async function declineTestimonial(id: string): Promise<TestimonialResult> {
+export async function declineTestimonial(
+  id: string,
+): Promise<TestimonialResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const row = await getTestimonial(db, id)
-  if (!row) return { ok: false, error: "Not found." }
+  if (!row) {
+    return { ok: false, error: "Not found." }
+  }
   // A withdrawn or erased row is already unpublished by the client's own choice;
   // overwriting it with a curation status would erase that distinction.
   if (row.status !== "requested" && row.status !== "submitted") {
@@ -227,9 +261,12 @@ export async function declineTestimonial(id: string): Promise<TestimonialResult>
     visible: false,
     decided_at: new Date().toISOString(),
   })
-  if (!saved.ok) return failed()
+  if (!saved.ok) {
+    return failed()
+  }
 
   revalidateTestimonialSurfaces()
+
   return { ok: true }
 }
 
@@ -242,10 +279,15 @@ async function ownTestimonial(
   { ok: true; db: Db; row: TestimonialRow } | { ok: false; error: string }
 > {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "Please sign in first." }
+  if (!user) {
+    return { ok: false, error: "Please sign in first." }
+  }
   const db = createSupabaseServiceRoleClient()
   const row = await getTestimonial(db, id)
-  if (!row || row.client_id !== user.id) return { ok: false, error: "Not found." }
+  if (!row || row.client_id !== user.id) {
+    return { ok: false, error: "Not found." }
+  }
+
   return { ok: true, db, row }
 }
 
@@ -257,9 +299,13 @@ async function ownTestimonial(
  * the publication we DID make was consented to. `eraseMyTestimonial` removes the
  * text for anyone who wants that too.
  */
-export async function withdrawTestimonial(id: string): Promise<TestimonialResult> {
+export async function withdrawTestimonial(
+  id: string,
+): Promise<TestimonialResult> {
   const found = await ownTestimonial(id)
-  if (!found.ok) return found
+  if (!found.ok) {
+    return found
+  }
   if (found.row.status !== "submitted") {
     return { ok: false, error: "Nothing to change here." }
   }
@@ -270,9 +316,12 @@ export async function withdrawTestimonial(id: string): Promise<TestimonialResult
     visible: false,
     withdrawn_at: new Date().toISOString(),
   })
-  if (!saved.ok) return failed()
+  if (!saved.ok) {
+    return failed()
+  }
 
   revalidateTestimonialSurfaces()
+
   return { ok: true }
 }
 
@@ -281,9 +330,13 @@ export async function withdrawTestimonial(id: string): Promise<TestimonialResult
  * control becomes a one-way door people hesitate to use. It returns to
  * `submitted` and stays INVISIBLE — publication is the studio's call, as before.
  */
-export async function restoreTestimonial(id: string): Promise<TestimonialResult> {
+export async function restoreTestimonial(
+  id: string,
+): Promise<TestimonialResult> {
   const found = await ownTestimonial(id)
-  if (!found.ok) return found
+  if (!found.ok) {
+    return found
+  }
   // Erased words can't come back: there is nothing left to publish.
   if (found.row.status !== "withdrawn" || found.row.content_erased_at) {
     return { ok: false, error: "There's nothing to put back." }
@@ -294,9 +347,12 @@ export async function restoreTestimonial(id: string): Promise<TestimonialResult>
     withdrawn_at: null,
     visible: false,
   })
-  if (!saved.ok) return failed()
+  if (!saved.ok) {
+    return failed()
+  }
 
   revalidateTestimonialSurfaces()
+
   return { ok: true }
 }
 
@@ -306,9 +362,13 @@ export async function restoreTestimonial(id: string): Promise<TestimonialResult>
  * consent record for the period we published still exists without keeping their
  * content. Implies withdrawal.
  */
-export async function eraseMyTestimonial(id: string): Promise<TestimonialResult> {
+export async function eraseMyTestimonial(
+  id: string,
+): Promise<TestimonialResult> {
   const found = await ownTestimonial(id)
-  if (!found.ok) return found
+  if (!found.ok) {
+    return found
+  }
   const { row } = found
   // Only words they actually wrote: erasing an unanswered invitation would
   // consume it, and erasing an already-erased row is a no-op worth refusing.
@@ -328,8 +388,11 @@ export async function eraseMyTestimonial(id: string): Promise<TestimonialResult>
     occupation: null,
     body: null,
   })
-  if (!saved.ok) return failed("erase that")
+  if (!saved.ok) {
+    return failed("erase that")
+  }
 
   revalidateTestimonialSurfaces()
+
   return { ok: true }
 }

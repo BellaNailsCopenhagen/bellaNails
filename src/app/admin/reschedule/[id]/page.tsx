@@ -18,8 +18,7 @@ export const metadata: Metadata = { title: "Reschedule" }
 
 export const dynamic = "force-dynamic"
 
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /**
  * Owner reschedule-on-behalf. The proxy gates /admin to the owner; the row is
@@ -33,10 +32,14 @@ export default async function AdminReschedulePage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  if (!UUID.test(id)) notFound()
+  if (!UUID.test(id)) {
+    notFound()
+  }
 
   const booking = await getBookingForManageAsOwner(id)
-  if (!booking || !isActiveBookingStatus(booking.status)) notFound()
+  if (!booking || !isActiveBookingStatus(booking.status)) {
+    notFound()
+  }
 
   // Owner picker mirrors rescheduleBookingAsOwner: no public 24 h lead time.
   const [slots, maxAdvanceDays] = await Promise.all([

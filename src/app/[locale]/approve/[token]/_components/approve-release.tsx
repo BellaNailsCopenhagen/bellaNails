@@ -60,6 +60,7 @@ export function ApproveRelease({
     const granted =
       done === "granted" ||
       (!done && card.purposes.some((p) => p.status === "granted"))
+
     return (
       <div className="space-y-3">
         <Eyebrow>{copy.heading}</Eyebrow>
@@ -79,8 +80,7 @@ export function ApproveRelease({
       const decisions = pendingPurposes.map((p) => ({
         purpose: p.purpose as ReleasePurpose,
         decision: (grant && checked[p.purpose] ? "granted" : "declined") as
-          | "granted"
-          | "declined",
+          "granted" | "declined",
       }))
       const result = await respondToReleaseToken(token, decisions)
       if (result.ok) {
@@ -90,6 +90,7 @@ export function ApproveRelease({
             : "declined",
         )
       }
+
       // The action answers with a code; saying it out loud is our job.
       return result.ok
         ? result
@@ -105,7 +106,9 @@ export function ApproveRelease({
         intro={
           <>
             {copy.appointment(serviceName, when, card.ref)}
-            <span className="mt-2 block text-muted-foreground">{copy.helper}</span>
+            <span className="mt-2 block text-muted-foreground">
+              {copy.helper}
+            </span>
           </>
         }
       />
@@ -118,6 +121,7 @@ export function ApproveRelease({
       <div className="space-y-3">
         {pendingPurposes.map(({ purpose }) => {
           const p = purpose as ReleasePurpose
+
           return (
             <TintedCard key={purpose} className="flex items-start gap-3 p-4">
               <Checkbox
@@ -128,7 +132,10 @@ export function ApproveRelease({
                 }
                 disabled={pending}
               />
-              <label htmlFor={`purpose-${purpose}`} className="min-w-0 flex-1 cursor-pointer">
+              <label
+                htmlFor={`purpose-${purpose}`}
+                className="min-w-0 flex-1 cursor-pointer"
+              >
                 <span className="block font-functional text-sm text-foreground">
                   {copy.purposes[p].label}
                 </span>
@@ -141,7 +148,9 @@ export function ApproveRelease({
         })}
       </div>
 
-      <BodySm className="text-xs text-muted-foreground">{copy.withdrawal}</BodySm>
+      <BodySm className="text-xs text-muted-foreground">
+        {copy.withdrawal}
+      </BodySm>
 
       {/* Save commits the ticked purposes; it's inert until something is chosen —
           "Decline all" (text button, right) is the path when nothing is wanted. */}

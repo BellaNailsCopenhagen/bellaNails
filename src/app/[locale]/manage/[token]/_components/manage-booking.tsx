@@ -16,7 +16,10 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm } from "@/components/ui/typography"
-import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
+import {
+  SlotPicker,
+  type SlotPickerOutcome,
+} from "@/components/booking/slot-picker"
 import {
   cancelBookingByToken,
   rescheduleBookingByToken,
@@ -49,7 +52,9 @@ export function ManageBooking({
   if (done) {
     return (
       <TintedCard>
-        <BodySm>{done === "cancelled" ? t("cancelDone") : t("rescheduleDone")}</BodySm>
+        <BodySm>
+          {done === "cancelled" ? t("cancelDone") : t("rescheduleDone")}
+        </BodySm>
       </TintedCard>
     )
   }
@@ -74,6 +79,7 @@ export function ManageBooking({
       }
     }
     setDone("moved")
+
     return { ok: true }
   }
 
@@ -81,9 +87,13 @@ export function ManageBooking({
     startTransition(async () => {
       try {
         const result = await cancelBookingByToken(token)
-        if (result.ok) setDone("cancelled")
-        else if (result.error === "within_policy") toast.error(t("within24h"))
-        else toast.error(t("cancelFailed"))
+        if (result.ok) {
+          setDone("cancelled")
+        } else if (result.error === "within_policy") {
+          toast.error(t("within24h"))
+        } else {
+          toast.error(t("cancelFailed"))
+        }
       } catch {
         // A thrown action must still resolve the UI, not leave it stuck.
         toast.error(t("cancelFailed"))
@@ -117,7 +127,9 @@ export function ManageBooking({
       <AlertDialog
         open={open}
         onOpenChange={(next) => {
-          if (!pending) setOpen(next)
+          if (!pending) {
+            setOpen(next)
+          }
         }}
       >
         <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
@@ -125,7 +137,9 @@ export function ManageBooking({
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogTitle>{t("cancelConfirm")}</AlertDialogTitle>
-          <AlertDialogDescription>{t("cancelDialogBody")}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {t("cancelDialogBody")}
+          </AlertDialogDescription>
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <AlertDialogClose
               render={<Button variant="ghost" size="sm" disabled={pending} />}

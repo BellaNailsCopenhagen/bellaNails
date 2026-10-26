@@ -44,10 +44,15 @@ export function MapImageField({ currentUrl }: { currentUrl: string }) {
 
   const onFile = async (files: FileList | null) => {
     const key = await take(files)
-    if (!key) return
+    if (!key) {
+      return
+    }
     run(async () => {
       const result = await setBusinessMapImage(key)
-      if (result.ok) toast.success("Map picture updated")
+      if (result.ok) {
+        toast.success("Map picture updated")
+      }
+
       return result
     })
   }
@@ -78,10 +83,13 @@ export function MapImageField({ currentUrl }: { currentUrl: string }) {
       </BodySm>
 
       <BodySm className="text-xs text-muted-foreground">
-        Best at <strong>{MAP_IMAGE_GUIDANCE.width} × {MAP_IMAGE_GUIDANCE.height}</strong>{" "}
+        Best at{" "}
+        <strong>
+          {MAP_IMAGE_GUIDANCE.width} × {MAP_IMAGE_GUIDANCE.height}
+        </strong>{" "}
         ({MAP_IMAGE_GUIDANCE.ratio}) — a wide band, not a square. Anything wider
-        is fine and gets scaled down to {PORTFOLIO_IMAGE.maxDim}px; anything much taller
-        will be cropped top and bottom. JPG, PNG or WebP.
+        is fine and gets scaled down to {PORTFOLIO_IMAGE.maxDim}px; anything
+        much taller will be cropped top and bottom. JPG, PNG or WebP.
       </BodySm>
 
       <div className="flex flex-wrap items-center gap-4">

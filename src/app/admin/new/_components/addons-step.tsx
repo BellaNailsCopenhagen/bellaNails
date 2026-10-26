@@ -42,9 +42,14 @@ export function AddonsStep({
   const blocked = useMemo(() => {
     const set = new Set<string>()
     for (const [a, b] of incompatiblePairs) {
-      if (selectedIds.has(a)) set.add(b)
-      if (selectedIds.has(b)) set.add(a)
+      if (selectedIds.has(a)) {
+        set.add(b)
+      }
+      if (selectedIds.has(b)) {
+        set.add(a)
+      }
     }
+
     return set
   }, [incompatiblePairs, selectedIds])
 
@@ -57,6 +62,7 @@ export function AddonsStep({
         durationMins += addon.extra_duration_mins
       }
     }
+
     return { priceCents, durationMins }
   }, [service, addons, selectedIds])
 
@@ -64,17 +70,22 @@ export function AddonsStep({
     <div className="space-y-8">
       {addons.length ? (
         <div className="space-y-2">
-          <Caption className="block text-[10px] tracking-widest-lux">Add-ons</Caption>
+          <Caption className="block text-[10px] tracking-widest-lux">
+            Add-ons
+          </Caption>
           <ul className="border-t border-border">
             {addons.map((addon) => {
               const checked = selectedIds.has(addon.id)
               const disabled = !checked && blocked.has(addon.id)
+
               return (
                 <li key={addon.id} className="border-b border-border">
                   <Label
                     className={cn(
                       "flex items-center justify-between gap-3 py-3 normal-case",
-                      disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+                      disabled
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer",
                     )}
                   >
                     <span className="flex items-center gap-3">
@@ -106,7 +117,9 @@ export function AddonsStep({
       )}
 
       <div className="space-y-1.5">
-        <Label htmlFor="booking-notes" className={fieldLabel}>Notes (optional)</Label>
+        <Label htmlFor="booking-notes" className={fieldLabel}>
+          Notes (optional)
+        </Label>
         <Textarea
           id="booking-notes"
           value={notes}

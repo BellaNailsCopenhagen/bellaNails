@@ -18,8 +18,7 @@ import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
  */
 
 export type StorageResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: "not_configured" | string }
+  { ok: true; data: T } | { ok: false; error: "not_configured" | string }
 
 /** Where an object lives. One area per distinct upload policy. */
 export type StorageArea = "private" | "refs" | "public"
@@ -42,6 +41,7 @@ const VIEW_TTL_SECONDS = 300
 function config() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
   return url && serviceRoleKey ? { url } : null
 }
 
@@ -52,8 +52,13 @@ export function storageConfigured(): boolean {
 /** The area a key belongs to, from its prefix. Unprefixed keys are private —
     fail closed, so a malformed key can never resolve to the public bucket. */
 export function areaOf(key: string): StorageArea {
-  if (key.startsWith(PREFIX.public)) return "public"
-  if (key.startsWith(PREFIX.refs)) return "refs"
+  if (key.startsWith(PREFIX.public)) {
+    return "public"
+  }
+  if (key.startsWith(PREFIX.refs)) {
+    return "refs"
+  }
+
   return "private"
 }
 
@@ -66,8 +71,11 @@ const bucketOf = (key: string) => BUCKETS[areaOf(key)]
  */
 export function objectUrl(key: string): string | null {
   const cfg = config()
-  if (!cfg) return null
+  if (!cfg) {
+    return null
+  }
   const base = cfg.url.replace(/\/$/, "")
+
   return `${base}/storage/v1/object/public/${bucketOf(key)}/${key}`
 }
 
@@ -83,7 +91,9 @@ export async function signedUploadUrl(input: {
   area: Exclude<StorageArea, "public">
   ext: string
 }): Promise<StorageResult<SignedUploadTarget>> {
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
 
   const bucket = BUCKETS[input.area]
   const key = `${PREFIX[input.area]}${randomUUID()}${input.ext}`
@@ -91,7 +101,10 @@ export async function signedUploadUrl(input: {
     const { data, error } = await createSupabaseServiceRoleClient()
       .storage.from(bucket)
       .createSignedUploadUrl(key)
-    if (error || !data) return { ok: false, error: message(error) }
+    if (error || !data) {
+      return { ok: false, error: message(error) }
+    }
+
     // The browser uploads through storage-js (`uploadToSignedUrl`), so it needs
     // the bucket + token rather than the assembled URL — that keeps the request
     // shape storage-js's problem, not ours.
@@ -105,12 +118,17 @@ export async function signedUploadUrl(input: {
 export async function signedViewUrl(
   key: string,
 ): Promise<StorageResult<{ url: string }>> {
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
   try {
     const { data, error } = await createSupabaseServiceRoleClient()
       .storage.from(bucketOf(key))
       .createSignedUrl(key, VIEW_TTL_SECONDS)
-    if (error || !data) return { ok: false, error: message(error) }
+    if (error || !data) {
+      return { ok: false, error: message(error) }
+    }
+
     return { ok: true, data: { url: data.signedUrl } }
   } catch (error) {
     return { ok: false, error: message(error) }
@@ -126,7 +144,9 @@ export async function signedViewUrl(
 export async function publishToPublic(
   privateKey: string,
 ): Promise<StorageResult<{ key: string; url: string }>> {
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
 
   const dot = privateKey.lastIndexOf(".")
   const ext = dot >= 0 ? privateKey.slice(dot) : ""
@@ -135,9 +155,14 @@ export async function publishToPublic(
     const { error } = await createSupabaseServiceRoleClient()
       .storage.from(bucketOf(privateKey))
       .copy(privateKey, publicKey, { destinationBucket: BUCKETS.public })
-    if (error) return { ok: false, error: message(error) }
+    if (error) {
+      return { ok: false, error: message(error) }
+    }
     const url = objectUrl(publicKey)
-    if (!url) return { ok: false, error: "not_configured" }
+    if (!url) {
+      return { ok: false, error: "not_configured" }
+    }
+
     return { ok: true, data: { key: publicKey, url } }
   } catch (error) {
     return { ok: false, error: message(error) }
@@ -154,7 +179,9 @@ export async function listObjects(
   limit = 100,
   offset = 0,
 ): Promise<StorageResult<{ key: string; createdAt: string }[]>> {
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
   try {
     const { data, error } = await createSupabaseServiceRoleClient()
       .storage.from(BUCKETS[area])
@@ -163,7 +190,10 @@ export async function listObjects(
         offset,
         sortBy: { column: "created_at", order: "asc" },
       })
-    if (error || !data) return { ok: false, error: message(error) }
+    if (error || !data) {
+      return { ok: false, error: message(error) }
+    }
+
     return {
       ok: true,
       data: data.map((object) => ({
@@ -178,12 +208,17 @@ export async function listObjects(
 
 /** Delete an object (private original or published copy) — the erasure primitive. */
 export async function deleteObject(key: string): Promise<StorageResult<null>> {
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
   try {
     const { error } = await createSupabaseServiceRoleClient()
       .storage.from(bucketOf(key))
       .remove([key])
-    if (error) return { ok: false, error: message(error) }
+    if (error) {
+      return { ok: false, error: message(error) }
+    }
+
     return { ok: true, data: null }
   } catch (error) {
     return { ok: false, error: message(error) }
@@ -192,14 +227,23 @@ export async function deleteObject(key: string): Promise<StorageResult<null>> {
 
 /** Delete many objects in ONE request; keys must share an area, since the bucket
     comes from the first. Callers needing per-key outcomes use `deleteObject`. */
-export async function deleteObjects(keys: string[]): Promise<StorageResult<null>> {
-  if (!keys.length) return { ok: true, data: null }
-  if (!storageConfigured()) return { ok: false, error: "not_configured" }
+export async function deleteObjects(
+  keys: string[],
+): Promise<StorageResult<null>> {
+  if (!keys.length) {
+    return { ok: true, data: null }
+  }
+  if (!storageConfigured()) {
+    return { ok: false, error: "not_configured" }
+  }
   try {
     const { error } = await createSupabaseServiceRoleClient()
       .storage.from(bucketOf(keys[0]))
       .remove(keys)
-    if (error) return { ok: false, error: message(error) }
+    if (error) {
+      return { ok: false, error: message(error) }
+    }
+
     return { ok: true, data: null }
   } catch (error) {
     return { ok: false, error: message(error) }
@@ -210,5 +254,6 @@ function message(error: unknown): string {
   if (error && typeof error === "object" && "message" in error) {
     return String((error as { message: unknown }).message)
   }
+
   return error instanceof Error ? error.message : "Supabase Storage unreachable"
 }

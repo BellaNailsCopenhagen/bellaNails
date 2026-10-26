@@ -16,7 +16,11 @@ import { GALLERY_SLOTS } from "@/shared/gallery-slots"
  * come first because their position is the thing most likely to be wrong — the
  * home page reads five fixed slots, and the grid should look like that page.
  */
-export function StudioGalleryManager({ items }: { items: StudioGalleryImage[] }) {
+export function StudioGalleryManager({
+  items,
+}: {
+  items: StudioGalleryImage[]
+}) {
   const [editing, setEditing] = useState<StudioGalleryImage | null>(null)
   const [adding, setAdding] = useState(false)
 
@@ -47,11 +51,7 @@ export function StudioGalleryManager({ items }: { items: StudioGalleryImage[] })
             />
           ) : null}
           {rest.length ? (
-            <Group
-              title="Gallery page only"
-              items={rest}
-              onEdit={setEditing}
-            />
+            <Group title="Gallery page only" items={rest} onEdit={setEditing} />
           ) : null}
         </div>
       ) : (

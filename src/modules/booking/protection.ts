@@ -3,7 +3,10 @@ import "server-only"
 import { headers } from "next/headers"
 
 import type { Db } from "@/db/client"
-import { findBlockedIdentity, listBlockedIdentities } from "@/db/blocked-identities"
+import {
+  findBlockedIdentity,
+  listBlockedIdentities,
+} from "@/db/blocked-identities"
 import { getBookingProtection } from "@/db/booking-protection"
 import { humanCheckConfigured } from "@/modules/identity/human-check"
 import { requireOwner } from "@/modules/identity/require-owner"
@@ -31,7 +34,10 @@ export async function getBookingProtectionSettings(
 ): Promise<BookingProtection> {
   try {
     const row = await getBookingProtection(db)
-    if (!row) return DEFAULT_BOOKING_PROTECTION
+    if (!row) {
+      return DEFAULT_BOOKING_PROTECTION
+    }
+
     return {
       accessLevel: asBookingAccessLevel(row.access_level),
       humanCheck: row.human_check,
@@ -41,6 +47,7 @@ export async function getBookingProtectionSettings(
       "[protection] settings read failed, using defaults:",
       error instanceof Error ? error.message : error,
     )
+
     return DEFAULT_BOOKING_PROTECTION
   }
 }
@@ -87,12 +94,16 @@ export async function callerIp(): Promise<string | null> {
   ]
   for (const candidate of candidates) {
     const value = candidate?.trim().toLowerCase()
-    if (value && IP_ADDRESS.test(value)) return value
+    if (value && IP_ADDRESS.test(value)) {
+      return value
+    }
   }
+
   return null
 }
 
-export type BlockOutcome = { blocked: false } | { blocked: true; kind: BlockKind }
+export type BlockOutcome =
+  { blocked: false } | { blocked: true; kind: BlockKind }
 
 /**
  * Is this booker on the blocklist — by address, by email domain, or by IP?
@@ -107,6 +118,7 @@ export async function checkBlocked(
 ): Promise<BlockOutcome> {
   try {
     const hit = await findBlockedIdentity(db, blockLookupsFor(input))
+
     return hit
       ? { blocked: true, kind: hit.kind as BlockKind }
       : { blocked: false }
@@ -115,6 +127,7 @@ export async function checkBlocked(
       "[protection] blocklist read failed, allowing:",
       error instanceof Error ? error.message : error,
     )
+
     return { blocked: false }
   }
 }
@@ -129,13 +142,20 @@ export async function getEmailBlock(
   email: string | null | undefined,
 ): Promise<BlockedIdentityView | null> {
   const value = email?.trim().toLowerCase()
-  if (!value) return null
+  if (!value) {
+    return null
+  }
   const db = await requireOwner()
-  if (!db) return null
-  const hit = await findBlockedIdentity(db, [
-    { kind: "email", value },
-  ]).catch(() => null)
-  if (!hit) return null
+  if (!db) {
+    return null
+  }
+  const hit = await findBlockedIdentity(db, [{ kind: "email", value }]).catch(
+    () => null,
+  )
+  if (!hit) {
+    return null
+  }
+
   return {
     id: hit.id,
     kind: hit.kind as BlockKind,
@@ -149,8 +169,11 @@ export async function getEmailBlock(
     the page is behind the proxy, but a read this specific re-checks anyway. */
 export async function getBlockedIdentities(): Promise<BlockedIdentityView[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
   const rows = await listBlockedIdentities(db).catch(() => [])
+
   return rows.map((row) => ({
     id: row.id,
     kind: row.kind as BlockKind,

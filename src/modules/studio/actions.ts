@@ -24,8 +24,7 @@ import { routes } from "@/shared/routes"
 const MAX_SPAN_DAYS = 366
 
 export type HoursResult =
-  | { ok: true; conflicts?: ScheduleConflict[] }
-  | { ok: false; error: string }
+  { ok: true; conflicts?: ScheduleConflict[] } | { ok: false; error: string }
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -46,29 +45,49 @@ export type ScheduleRuleInput = {
 // Returns an error message, or null when valid. Exactly one recurrence, a valid
 // weekday/date, and a start before the end.
 function validateRule(input: ScheduleRuleInput): string | null {
-  if (!SCHEDULE_KINDS.includes(input.kind)) return "Pick a type."
+  if (!SCHEDULE_KINDS.includes(input.kind)) {
+    return "Pick a type."
+  }
   const hasWeekday = input.weekday !== null && input.weekday !== undefined
   const hasDate = !!input.onDate
-  if (hasWeekday === hasDate) return "Pick either a weekday or a single date."
+  if (hasWeekday === hasDate) {
+    return "Pick either a weekday or a single date."
+  }
   if (
     hasWeekday &&
-    !(Number.isInteger(input.weekday) && input.weekday! >= 0 && input.weekday! <= 6)
+    !(
+      Number.isInteger(input.weekday) &&
+      input.weekday! >= 0 &&
+      input.weekday! <= 6
+    )
   ) {
     return "Invalid weekday."
   }
-  if (hasDate && !DATE.test(input.onDate!)) return "Invalid date."
+  if (hasDate && !DATE.test(input.onDate!)) {
+    return "Invalid date."
+  }
   if (input.onDateEnd) {
-    if (!DATE.test(input.onDateEnd)) return "Invalid end date."
+    if (!DATE.test(input.onDateEnd)) {
+      return "Invalid end date."
+    }
     if (!input.onDate || input.onDateEnd < input.onDate) {
       return "The end date is before the start."
     }
-    if (dayNumberForIso(input.onDateEnd) - dayNumberForIso(input.onDate) >= MAX_SPAN_DAYS) {
+    if (
+      dayNumberForIso(input.onDateEnd) - dayNumberForIso(input.onDate) >=
+      MAX_SPAN_DAYS
+    ) {
       return "That date range is too long — pick a shorter span."
     }
   }
-  if (!TIME.test(input.start) || !TIME.test(input.end) || input.start >= input.end) {
+  if (
+    !TIME.test(input.start) ||
+    !TIME.test(input.end) ||
+    input.start >= input.end
+  ) {
     return "Start must be before end."
   }
+
   return null
 }
 
@@ -79,10 +98,14 @@ export async function saveScheduleRule(
   input: ScheduleRuleInput,
 ): Promise<HoursResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const error = validateRule(input)
-  if (error) return { ok: false, error }
+  if (error) {
+    return { ok: false, error }
+  }
 
   const base = {
     kind: input.kind,
@@ -115,30 +138,38 @@ export async function saveScheduleRule(
       { ...base, on_date: input.onDate ?? null },
     ])
   }
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the rule." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the rule." }
+  }
 
   revalidatePath(routes.admin.hours)
   // The footer states these hours on every page, and /hours is a page of its
   // own — all prerendered, so the whole shell has to be told.
   revalidatePublicShell()
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
+
   return { ok: true, conflicts }
 }
 
 /** Remove one schedule rule — can strand a booking, so runs the conflict check. */
 export async function deleteScheduleRule(id: string): Promise<HoursResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const before = await getScheduleSnapshot(supabase)
   const removed = await deleteScheduleRuleRow(supabase, id)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove the rule." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove the rule." }
+  }
 
   revalidatePath(routes.admin.hours)
   // The footer states these hours on every page, and /hours is a page of its
   // own — all prerendered, so the whole shell has to be told.
   revalidatePublicShell()
   const conflicts = await getScheduleConflicts(before, supabase).catch(() => [])
+
   return { ok: true, conflicts }
 }
 
@@ -148,15 +179,22 @@ export async function setFeatureFlag(
   enabled: boolean,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // TypeScript erases the union, so this is the only thing standing between a
   // hand-made call and a `feature_flags` row nothing will ever read.
-  if (!isFeatureFlagKey(key)) return { ok: false, error: "Unknown setting." }
+  if (!isFeatureFlagKey(key)) {
+    return { ok: false, error: "Unknown setting." }
+  }
 
   const saved = await upsertFeatureFlag(supabase, key, enabled)
-  if (!saved.ok) return { ok: false, error: "Couldn’t update the setting." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update the setting." }
+  }
 
   revalidatePath(routes.admin.settings)
+
   return { ok: true }
 }

@@ -7,6 +7,7 @@ export type ScheduleRuleRow = Row<"schedule_rules">
 
 export async function listScheduleRules(db: Db): Promise<ScheduleRuleRow[]> {
   const { data } = await db.from("schedule_rules").select("*")
+
   return data ?? []
 }
 
@@ -26,6 +27,7 @@ export async function insertScheduleRules(
   rows: ScheduleRuleInsert[],
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("schedule_rules").insert(rows)
+
   return { ok: !error }
 }
 
@@ -35,6 +37,7 @@ export async function updateScheduleRule(
   values: Partial<ScheduleRuleInsert>,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("schedule_rules").update(values).eq("id", id)
+
   return { ok: !error }
 }
 
@@ -43,5 +46,6 @@ export async function deleteScheduleRule(
   id: string,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("schedule_rules").delete().eq("id", id)
+
   return { ok: !error }
 }

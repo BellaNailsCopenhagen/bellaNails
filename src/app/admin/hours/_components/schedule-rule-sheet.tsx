@@ -51,6 +51,7 @@ const segBtn = (active: boolean) =>
 function seed(state: SheetState) {
   if (state.mode === "edit") {
     const r = state.rule
+
     return {
       kind: r.kind,
       allDay: r.start === "00:00" && r.end === "23:59",
@@ -59,7 +60,9 @@ function seed(state: SheetState) {
       repeat: (r.onDate ? "date" : "weekly") as Repeat,
       // A dated rule derives its weekday from its date; a weekly rule has no date,
       // so a "switch to a single date" defaults to today (not the 1970 epoch).
-      weekday: r.onDate ? weekdayIndexForDayNumber(dayNumberForIso(r.onDate)) : (r.weekday ?? 0),
+      weekday: r.onDate
+        ? weekdayIndexForDayNumber(dayNumberForIso(r.onDate))
+        : (r.weekday ?? 0),
       onDate: r.onDate ?? todayIso(),
       onDateEnd: "",
       label: r.label ?? "",
@@ -69,6 +72,7 @@ function seed(state: SheetState) {
   // date (no position) keeps the old 10:00–18:00.
   const start = state.startAt ?? "10:00"
   const end = toClock(Math.min(toMinutes(start) + 8 * 60, 23 * 60 + 59))
+
   return {
     kind: "standard" as ScheduleKind,
     allDay: false,
@@ -113,11 +117,15 @@ function RuleStepper({
   // switching to "weekly" after changing the date uses the shown weekday.
   const changeDate = (value: string) => {
     setOnDate(value)
-    if (value) setWeekday(weekdayIndexForDayNumber(dayNumberForIso(value)))
+    if (value) {
+      setWeekday(weekdayIndexForDayNumber(dayNumberForIso(value)))
+    }
   }
 
   const submit = () => {
-    if (timeInvalid || rangeInvalid) return
+    if (timeInvalid || rangeInvalid) {
+      return
+    }
     onSave({
       id: isEdit ? state.rule.id : undefined,
       kind,
@@ -308,7 +316,11 @@ function RuleStepper({
             <Button variant="ghost" size="sm" onClick={() => setStep(2)}>
               Back
             </Button>
-            <Button size="sm" disabled={pending || rangeInvalid} onClick={submit}>
+            <Button
+              size="sm"
+              disabled={pending || rangeInvalid}
+              onClick={submit}
+            >
               {pending ? "Saving…" : "Save"}
             </Button>
           </div>

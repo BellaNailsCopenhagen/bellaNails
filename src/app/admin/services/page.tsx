@@ -31,7 +31,10 @@ function CategorySection({
       public menu — say so rather than showing an ordinary-looking section. */
   archived?: boolean
 }) {
-  if (services.length === 0) return null
+  if (services.length === 0) {
+    return null
+  }
+
   return (
     <section className="space-y-2 pl-2">
       <div className="flex items-center justify-between gap-3">
@@ -76,6 +79,7 @@ export default async function AdminServicesPage() {
       "[admin-services] read failed",
       error instanceof Error ? error.message : error,
     )
+
     return (
       <div className="space-y-10">
         <Header />
@@ -102,7 +106,10 @@ export default async function AdminServicesPage() {
 
   const servicesContent =
     servicesCount === 0 && archived.length === 0 ? (
-      <EmptyState title="No services yet" body="Your catalog will appear here." />
+      <EmptyState
+        title="No services yet"
+        body="Your catalog will appear here."
+      />
     ) : (
       <div className="space-y-14">
         {categories.map((category) => (
@@ -113,7 +120,10 @@ export default async function AdminServicesPage() {
             archived={Boolean(category.archived_at)}
           />
         ))}
-        <CategorySection label="Uncategorized" services={active(uncategorized)} />
+        <CategorySection
+          label="Uncategorized"
+          services={active(uncategorized)}
+        />
         <ArchivedServices services={archived} />
       </div>
     )

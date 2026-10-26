@@ -26,6 +26,7 @@ function BookingStatusBadge({
   className?: string
 }) {
   const t = useTranslations("bookings")
+
   return (
     <Badge variant={STATUS_VARIANT[status]} size={size} className={className}>
       {t(`status.${status}`)}

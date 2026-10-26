@@ -15,7 +15,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
+
   // A tokenized personal link — never in a search index.
   return {
     title: pickReleaseCopy(locale).heading,
@@ -37,7 +40,9 @@ export default async function ApprovePage({
   params: Promise<{ locale: string; token: string }>
 }) {
   const { locale, token } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const card = await getReleaseRequestForToken(token)

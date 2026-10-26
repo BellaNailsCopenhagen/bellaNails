@@ -20,7 +20,10 @@ export async function countUnread(db: Db): Promise<number> {
     .from("owner_notifications")
     .select("id", { count: "exact", head: true })
     .is("read_at", null)
-  if (error) return 0
+  if (error) {
+    return 0
+  }
+
   return count ?? 0
 }
 
@@ -33,7 +36,10 @@ export async function listNotifications(
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit)
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return data ?? []
 }
 
@@ -48,6 +54,7 @@ export async function insertNotification(
   },
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("owner_notifications").insert(values)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -56,6 +63,7 @@ export async function markAllRead(db: Db): Promise<{ ok: boolean }> {
     .from("owner_notifications")
     .update({ read_at: new Date().toISOString() })
     .is("read_at", null)
+
   return { ok: !error }
 }
 
@@ -69,17 +77,21 @@ export async function setNotificationRead(
     .from("owner_notifications")
     .update({ read_at: read ? new Date().toISOString() : null })
     .eq("id", id)
+
   return { ok: !error }
 }
 
 /** Delete EVERY read notification, not just the page's first 50 — the caller
     must say so and confirm. The feed is a to-do list, not history (that lives
     in `communications`). */
-export async function deleteReadNotifications(db: Db): Promise<{ ok: boolean }> {
+export async function deleteReadNotifications(
+  db: Db,
+): Promise<{ ok: boolean }> {
   const { error } = await db
     .from("owner_notifications")
     .delete()
     .not("read_at", "is", null)
+
   return { ok: !error }
 }
 
@@ -97,6 +109,7 @@ export async function deleteNotificationsForTarget(
     .delete()
     .eq("kind", kind)
     .eq("target_id", targetId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -106,5 +119,6 @@ export async function deleteNotification(
   id: string,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("owner_notifications").delete().eq("id", id)
+
   return { ok: !error }
 }

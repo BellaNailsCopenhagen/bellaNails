@@ -68,13 +68,15 @@ const ITEMS: MoreItem[] = [
   },
   {
     label: "Client photos",
-    description: "Ask permission per appointment, then choose where each photo is used",
+    description:
+      "Ask permission per appointment, then choose where each photo is used",
     icon: Images,
     href: routes.admin.assets,
   },
   {
     label: "Studio gallery",
-    description: "Your own work on the gallery and home pages — no permission needed",
+    description:
+      "Your own work on the gallery and home pages — no permission needed",
     icon: Camera,
     href: routes.admin.gallery,
   },
@@ -118,6 +120,7 @@ const ITEMS: MoreItem[] = [
 
 function ItemBody({ item, count = 0 }: { item: MoreItem; count?: number }) {
   const Icon = item.icon
+
   return (
     <>
       <span className="flex min-w-0 items-center gap-3">
@@ -149,8 +152,13 @@ export default async function AdminMorePage() {
     getOpenDesignRequestCount(),
   ])
   const countFor = (item: MoreItem) => {
-    if (item.href === routes.admin.notifications) return unread
-    if (item.href === routes.admin.home) return openDesign
+    if (item.href === routes.admin.notifications) {
+      return unread
+    }
+    if (item.href === routes.admin.home) {
+      return openDesign
+    }
+
     return 0
   }
 

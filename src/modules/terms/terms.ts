@@ -79,6 +79,7 @@ export async function getCurrentTerms(
   supabase: Client = createSupabaseServerClient(),
 ): Promise<TermsRecord | null> {
   const data = await getCurrentTermsRow(supabase, kind)
+
   return data ? toRecord(data) : null
 }
 
@@ -88,5 +89,6 @@ export async function getTermsVersions(
   supabase: Client = createSupabaseServerClient(),
 ): Promise<TermsRecord[]> {
   const data = await listTermsVersions(supabase, kind)
+
   return data.map(toRecord)
 }

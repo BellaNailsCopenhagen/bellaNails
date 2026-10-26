@@ -77,12 +77,14 @@ export default async function BookPage({
   // read is request-cached), and the picker / add-on steps shouldn't pay for a
   // lookup they never use.
   const signedIn =
-    step === "confirm" && signInRequired ? Boolean(await getCurrentUser()) : true
+    step === "confirm" && signInRequired
+      ? Boolean(await getCurrentUser())
+      : true
   const selection = service ? await getServiceWithAddons(service) : null
+  // Server-side counterpart of the customizer's checkbox locking: drop
+  // unknown ids and incompatible combinations a crafted URL could carry.
   const selectedAddonIds = selection
-    ? // Server-side counterpart of the customizer's checkbox locking: drop
-      // unknown ids and incompatible combinations a crafted URL could carry.
-      sanitizeSelectedAddonIds(
+    ? sanitizeSelectedAddonIds(
         singleParam(query.addons)?.split(",").filter(Boolean) ?? [],
         selection.addons,
         selection.incompatiblePairs,
@@ -91,7 +93,9 @@ export default async function BookPage({
 
   // HTML constraints are bypassable via a hand-edited GET URL — re-clamp here.
   const contact = {
-    name: sanitizeContactText(singleParam(query.name), MAX_NAME_LENGTH) ?? undefined,
+    name:
+      sanitizeContactText(singleParam(query.name), MAX_NAME_LENGTH) ??
+      undefined,
     // Only meaningful with the sign-in gate off — see BookingContact.
     email: singleParam(query.email)?.trim(),
     phone: singleParam(query.phone)?.trim(),
@@ -104,7 +108,9 @@ export default async function BookPage({
   }
 
   const renderStep = () => {
-    if (!selection) return <BookingServicePicker />
+    if (!selection) {
+      return <BookingServicePicker />
+    }
     // Confirm requires complete, well-formed contact data — a hand-edited URL
     // that skips the form degrades to the details step.
     // Sending a signed-out visitor to the time picker would only fail at the
@@ -145,6 +151,7 @@ export default async function BookPage({
         locale,
       })
     }
+
     return <BookingAddons {...selection} selectedAddonIds={selectedAddonIds} />
   }
 

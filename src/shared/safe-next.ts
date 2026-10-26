@@ -19,10 +19,15 @@ export function safeInternalPath(
   raw: string | null | undefined,
   fallback: string,
 ): string {
-  if (!raw || !raw.startsWith("/")) return fallback
+  if (!raw || !raw.startsWith("/")) {
+    return fallback
+  }
   try {
     const url = new URL(raw, BASE)
-    if (url.origin !== BASE) return fallback
+    if (url.origin !== BASE) {
+      return fallback
+    }
+
     return `${url.pathname}${url.search}${url.hash}`
   } catch {
     return fallback

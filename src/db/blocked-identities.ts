@@ -18,14 +18,18 @@ export async function findBlockedIdentity(
   db: Db,
   lookups: { kind: string; value: string }[],
 ): Promise<BlockedIdentityRow | null> {
-  if (!lookups.length) return null
+  if (!lookups.length) {
+    return null
+  }
   const filter = lookups
     // The values are normalised (lowercased, trimmed) and a comma or paren
     // would break out of PostgREST's `or` grammar, so refuse rather than escape.
     .filter((l) => !/[(),]/.test(l.value))
     .map((l) => `and(kind.eq.${l.kind},value.eq.${l.value})`)
     .join(",")
-  if (!filter) return null
+  if (!filter) {
+    return null
+  }
 
   const { data } = await db
     .from("blocked_identities")
@@ -33,6 +37,7 @@ export async function findBlockedIdentity(
     .or(filter)
     .limit(1)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -43,6 +48,7 @@ export async function listBlockedIdentities(
     .from("blocked_identities")
     .select("*")
     .order("created_at", { ascending: false })
+
   return data ?? []
 }
 
@@ -51,6 +57,7 @@ export async function insertBlockedIdentity(
   values: { kind: string; value: string; reason: string },
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("blocked_identities").insert(values)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -59,5 +66,6 @@ export async function deleteBlockedIdentity(
   id: string,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("blocked_identities").delete().eq("id", id)
+
   return { ok: !error }
 }

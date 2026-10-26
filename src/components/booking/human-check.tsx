@@ -63,15 +63,18 @@ export function HumanCheck({
       // rather than blocking a client on something they can't fix.
       if (!challenge) {
         setState("idle")
+
         return
       }
       const number = await solveHumanChallenge(challenge, (fraction) => {
         setProgress(fraction)
+
         // Yield so the spinner actually spins on a slow device.
         return new Promise((resolve) => setTimeout(resolve, 0))
       })
       if (number === null) {
         setState("failed")
+
         return
       }
       onSolved(
@@ -103,7 +106,9 @@ export function HumanCheck({
         <span
           aria-hidden
           className={`flex size-5 shrink-0 items-center justify-center rounded-sm border ${
-            done ? "border-foreground bg-foreground text-background" : "border-border"
+            done
+              ? "border-foreground bg-foreground text-background"
+              : "border-border"
           }`}
         >
           {done ? (

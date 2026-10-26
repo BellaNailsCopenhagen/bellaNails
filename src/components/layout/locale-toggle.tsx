@@ -33,6 +33,7 @@ function Toggle({
     <div className={cn("flex items-center gap-1", className)}>
       {routing.locales.map((locale) => {
         const isActive = locale === active
+
         return (
           <Link
             key={locale}
@@ -60,6 +61,7 @@ function ToggleWithQuery({ className }: { className?: string }) {
   // details already typed. `usePathname()` is pathname-only, so carry the
   // search string too or switching language restarts the booking.
   const search = useSearchParams().toString()
+
   return <Toggle className={className} search={search} />
 }
 

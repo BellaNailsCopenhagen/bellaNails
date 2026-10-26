@@ -89,15 +89,26 @@ export async function uploadMedia(
     body: JSON.stringify({ contentType: storedType }),
   }).catch(() => null)
 
-  if (!signRes) return { ok: false, reason: "failed" }
-  if (signRes.status === 503) return { ok: false, reason: "not_configured" }
-  if (signRes.status === 400) return { ok: false, reason: "unsupported" }
-  if (signRes.status === 429) return { ok: false, reason: "rate_limited" }
-  if (!signRes.ok) return { ok: false, reason: "failed" }
-
-  const { bucket, key, token, image } = (await signRes.json()) as SignedUploadTarget & {
-    image: ImagePolicy
+  if (!signRes) {
+    return { ok: false, reason: "failed" }
   }
+  if (signRes.status === 503) {
+    return { ok: false, reason: "not_configured" }
+  }
+  if (signRes.status === 400) {
+    return { ok: false, reason: "unsupported" }
+  }
+  if (signRes.status === 429) {
+    return { ok: false, reason: "rate_limited" }
+  }
+  if (!signRes.ok) {
+    return { ok: false, reason: "failed" }
+  }
+
+  const { bucket, key, token, image } =
+    (await signRes.json()) as SignedUploadTarget & {
+      image: ImagePolicy
+    }
 
   // The image policy is applied HERE, not by each uploader. Three of the four
   // call sites had skipped it and were shipping camera originals — a 6240x4160,
@@ -116,6 +127,9 @@ export async function uploadMedia(
 
   // A bucket size/MIME limit rejects here — the server-enforced backstop behind
   // the client-side gate, so a hand-built request can't slip a 200 MB file in.
-  if (error) return { ok: false, reason: "failed" }
+  if (error) {
+    return { ok: false, reason: "failed" }
+  }
+
   return { ok: true, key }
 }

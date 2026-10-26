@@ -46,5 +46,6 @@ export function alternatesFor(
     languages[supported] = localeUrl(supported, path)
   }
   languages["x-default"] = localeUrl(routing.defaultLocale, path)
+
   return { canonical: localeUrl(locale, path), languages }
 }

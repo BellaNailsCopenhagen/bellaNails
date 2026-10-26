@@ -22,7 +22,10 @@ export async function insertTestimonialRequest(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -35,6 +38,7 @@ export async function getTestimonial(
     .select("*")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -44,6 +48,7 @@ export async function updateTestimonial(
   values: Update<"testimonials">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("testimonials").update(values).eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -64,6 +69,7 @@ export async function claimTestimonial(
     .eq("id", id)
     .eq("status", "requested")
     .select("id")
+
   return { ok: (data?.length ?? 0) > 0 }
 }
 
@@ -84,6 +90,7 @@ export async function listVisibleTestimonials(
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("submitted_at", { ascending: false })
     .limit(limit)
+
   return data ?? []
 }
 
@@ -102,7 +109,10 @@ export async function listWrittenTestimonials(
     .not("submitted_at", "is", null)
     .order("submitted_at", { ascending: false })
     .limit(limit)
-  if (error) throw new Error(`testimonials: ${error.message}`)
+  if (error) {
+    throw new Error(`testimonials: ${error.message}`)
+  }
+
   return data ?? []
 }
 
@@ -117,7 +127,10 @@ export async function listOpenTestimonialRequests(
     .eq("status", "requested")
     .order("requested_at", { ascending: true })
     .limit(limit)
-  if (error) throw new Error(`testimonials: ${error.message}`)
+  if (error) {
+    throw new Error(`testimonials: ${error.message}`)
+  }
+
   return data ?? []
 }
 
@@ -133,7 +146,10 @@ export async function listTestimonialsForClient(
     .order("requested_at", { ascending: false })
   // A client's own words carry their withdraw/erase controls — silently
   // returning [] would make a data right disappear.
-  if (error) throw new Error(`testimonials: ${error.message}`)
+  if (error) {
+    throw new Error(`testimonials: ${error.message}`)
+  }
+
   return data ?? []
 }
 
@@ -146,5 +162,6 @@ export async function deleteTestimonialsForClient(
     .from("testimonials")
     .delete()
     .eq("client_id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

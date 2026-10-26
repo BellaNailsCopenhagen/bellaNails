@@ -24,17 +24,26 @@ const DEFAULT_COUNTRY_CODE = "45"
  * full i18n. Used to normalise the booking contact phone number.
  */
 export function toE164(raw: string | undefined | null): string | null {
-  if (!raw) return null
+  if (!raw) {
+    return null
+  }
   const trimmed = raw.trim()
   const hasPlus = trimmed.startsWith("+")
   let digits = trimmed.replace(/\D/g, "")
-  if (!digits) return null
+  if (!digits) {
+    return null
+  }
   // "00" = international prefix (e.g. 0045…), same intent as a leading "+".
-  if (!hasPlus && digits.startsWith("00")) digits = digits.slice(2)
+  if (!hasPlus && digits.startsWith("00")) {
+    digits = digits.slice(2)
+  }
   // Exactly 8 digits = a Danish local number — even with a stray "+", since no
   // real international number is only 8 digits including its country code.
-  else if (digits.length === 8) digits = `${DEFAULT_COUNTRY_CODE}${digits}`
+  else if (digits.length === 8) {
+    digits = `${DEFAULT_COUNTRY_CODE}${digits}`
+  }
   const candidate = `+${digits}`
+
   return /^\+\d{8,15}$/.test(candidate) ? candidate : null
 }
 
@@ -72,17 +81,24 @@ export function sanitizeContactText(
   maxLength: number,
   { allowNewlines = false }: { allowNewlines?: boolean } = {},
 ): string | null {
-  if (!value) return null
+  if (!value) {
+    return null
+  }
   const kept: string[] = []
   for (const ch of value) {
     const code = ch.codePointAt(0) ?? 0
     const isControl = code < 0x20 || code === DEL
     const keep = allowNewlines && (code === TAB || code === LINE_FEED)
-    if (isControl && !keep) continue
+    if (isControl && !keep) {
+      continue
+    }
     kept.push(ch)
   }
   const cleaned = kept.join("").trim()
-  if (!cleaned) return null
+  if (!cleaned) {
+    return null
+  }
+
   // Cap by code point (kept holds whole code points) so a surrogate pair at the
   // boundary isn't split into a lone surrogate.
   return [...cleaned].slice(0, maxLength).join("")
@@ -103,12 +119,23 @@ export function bookingFlowQuery(input: {
     service: input.serviceId,
     step: input.step,
   })
-  if (input.addonIds.length) query.set("addons", input.addonIds.join(","))
+  if (input.addonIds.length) {
+    query.set("addons", input.addonIds.join(","))
+  }
   const { name, email, phone, notes } = input.contact ?? {}
-  if (name) query.set("name", name)
-  if (email) query.set("email", email)
-  if (phone) query.set("phone", phone)
-  if (notes) query.set("notes", notes)
+  if (name) {
+    query.set("name", name)
+  }
+  if (email) {
+    query.set("email", email)
+  }
+  if (phone) {
+    query.set("phone", phone)
+  }
+  if (notes) {
+    query.set("notes", notes)
+  }
+
   return query
 }
 
@@ -128,6 +155,7 @@ export function isCompleteContact(
   { requireEmail = false }: { requireEmail?: boolean } = {},
 ): boolean {
   const phone = contact.phone?.trim()
+
   return (
     (contact.name?.trim().length ?? 0) >= 2 &&
     (!phone || PHONE_PATTERN.test(phone)) &&

@@ -18,7 +18,10 @@ export async function listAcceptancesForClient(
     .select("id, kind, version, context, reference_id, accepted_at")
     .eq("client_id", clientId)
     .order("accepted_at", { ascending: false })
-  if (error) return []
+  if (error) {
+    return []
+  }
+
   return data ?? []
 }
 
@@ -45,5 +48,6 @@ export async function recordAcceptance(
   const { error } = await db
     .from("terms_acceptances")
     .upsert(values, { onConflict, ignoreDuplicates: true })
+
   return { ok: !error }
 }

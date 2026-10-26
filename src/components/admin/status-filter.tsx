@@ -36,7 +36,9 @@ export function StatusFilter({
   onToggle: (state: BookingState, checked: boolean) => void
 }) {
   const all = selected.size === ALL_BOOKING_STATES.length
-  const label = all ? "All statuses" : `${selected.size} of ${ALL_BOOKING_STATES.length}`
+  const label = all
+    ? "All statuses"
+    : `${selected.size} of ${ALL_BOOKING_STATES.length}`
 
   return (
     <DropdownMenu>

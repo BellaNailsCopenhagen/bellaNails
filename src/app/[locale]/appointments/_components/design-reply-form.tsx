@@ -53,14 +53,18 @@ export function DesignReplyForm({
 
   const onFile = async (files: FileList | null) => {
     const key = await take(files)
-    if (key) setPhotoKey(key)
+    if (key) {
+      setPhotoKey(key)
+    }
   }
 
   // Already uploaded, so removing it has to reach the bucket too — otherwise a
   // photo the client took back sits in storage until the orphan sweep runs.
   // Refused mid-send: `addDesignRef` may be inserting the row for this very key.
   const dropPhoto = () => {
-    if (sending) return
+    if (sending) {
+      return
+    }
     if (photoKey) {
       discardUploadedRef(photoKey).catch(() => {
         /* the orphan sweep is the backstop */
@@ -71,12 +75,15 @@ export function DesignReplyForm({
 
   const send = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!body.trim() || sending || uploading) return
+    if (!body.trim() || sending || uploading) {
+      return
+    }
     setSending(true)
     try {
       const sent = await addDesignMessage(requestId, body)
       if (!sent.ok) {
         toast.error(sent.error || t("replyFailed"))
+
         return
       }
       // The message is in. A photo that fails now is worth a warning, not a
@@ -86,8 +93,11 @@ export function DesignReplyForm({
       // to retry.
       if (photoKey) {
         const attached = await addDesignRef(requestId, photoKey)
-        if (attached.ok) setPhotoKey(null)
-        else toast.warning(attached.error || t("replyPhotoFailed"))
+        if (attached.ok) {
+          setPhotoKey(null)
+        } else {
+          toast.warning(attached.error || t("replyPhotoFailed"))
+        }
       }
       setBody("")
       router.refresh()
@@ -108,7 +118,9 @@ export function DesignReplyForm({
       </label>
       <Textarea
         id={`reply-${requestId}`}
-        aria-describedby={photoKey && !body.trim() ? `reply-hint-${requestId}` : undefined}
+        aria-describedby={
+          photoKey && !body.trim() ? `reply-hint-${requestId}` : undefined
+        }
         rows={3}
         maxLength={MAX_MESSAGE_LENGTH}
         value={body}

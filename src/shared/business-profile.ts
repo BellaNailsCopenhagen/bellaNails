@@ -102,7 +102,10 @@ export function mapsUrlFor(profile: {
     .filter(Boolean)
     .join(", ")
   // No address, no link — a search for "" lands the visitor nowhere useful.
-  if (!query) return null
+  if (!query) {
+    return null
+  }
+
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
@@ -135,7 +138,9 @@ export function normalizeSocialUrl(
   raw: string | null | undefined,
 ): string | null {
   const value = raw?.trim()
-  if (!value) return null
+  if (!value) {
+    return null
+  }
 
   const { host, handlePrefix } = SOCIAL[field]
   const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(value)
@@ -147,9 +152,14 @@ export function normalizeSocialUrl(
 
   try {
     const url = new URL(candidate)
-    if (url.protocol !== "https:" && url.protocol !== "http:") return null
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return null
+    }
     // A path-less host is a handle that lost its way ("instagram.com").
-    if (url.pathname === "/" && !url.search) return null
+    if (url.pathname === "/" && !url.search) {
+      return null
+    }
+
     return url.toString()
   } catch {
     return null

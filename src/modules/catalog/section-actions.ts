@@ -40,13 +40,18 @@ export async function addSection(
   input: SectionInput,
 ): Promise<SectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const sortOrder = await nextSortOrder(db, serviceId)
   const saved = await insertSection(db, serviceId, sortOrder, toRow(input))
-  if (!saved.ok) return { ok: false, error: "Couldn’t add the section." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t add the section." }
+  }
 
   revalidatePath(routes.admin.service(serviceId))
+
   return { ok: true }
 }
 
@@ -55,23 +60,33 @@ export async function updateSection(
   input: SectionInput,
 ): Promise<SectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await updateSectionRow(db, sectionId, toRow(input))
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the section." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the section." }
+  }
 
   revalidatePath(routes.admin.service(saved.serviceId))
+
   return { ok: true }
 }
 
 export async function deleteSection(sectionId: string): Promise<SectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const removed = await deleteSectionRow(db, sectionId)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove the section." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove the section." }
+  }
 
   revalidatePath(routes.admin.service(removed.serviceId))
+
   return { ok: true }
 }
 
@@ -81,10 +96,14 @@ export async function moveSection(
   direction: "up" | "down",
 ): Promise<SectionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const section = await getSectionPosition(db, sectionId)
-  if (!section) return { ok: false, error: "Section not found." }
+  if (!section) {
+    return { ok: false, error: "Section not found." }
+  }
 
   const neighbor = await getAdjacentSection(
     db,
@@ -92,13 +111,20 @@ export async function moveSection(
     section.sort_order,
     direction,
   )
-  if (!neighbor) return { ok: true } // already at the edge
+  if (!neighbor) {
+    return { ok: true }
+  } // already at the edge
 
   const first = await setSectionSortOrder(db, section.id, neighbor.sort_order)
-  if (!first.ok) return { ok: false, error: "Couldn’t reorder." }
+  if (!first.ok) {
+    return { ok: false, error: "Couldn’t reorder." }
+  }
   const second = await setSectionSortOrder(db, neighbor.id, section.sort_order)
-  if (!second.ok) return { ok: false, error: "Couldn’t reorder." }
+  if (!second.ok) {
+    return { ok: false, error: "Couldn’t reorder." }
+  }
 
   revalidatePath(routes.admin.service(section.service_id))
+
   return { ok: true }
 }

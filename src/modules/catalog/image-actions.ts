@@ -27,8 +27,12 @@ export type PublishedImage =
 
 async function publish(
   storageKey: string,
-): Promise<{ ok: true; url: string; key: string } | { ok: false; error: string }> {
-  if (!storageKey) return { ok: false, error: "No file uploaded." }
+): Promise<
+  { ok: true; url: string; key: string } | { ok: false; error: string }
+> {
+  if (!storageKey) {
+    return { ok: false, error: "No file uploaded." }
+  }
   const published = await publishToPublic(storageKey)
   if (!published.ok) {
     return {
@@ -39,6 +43,7 @@ async function publish(
           : "Couldn’t publish the image.",
     }
   }
+
   return { ok: true, url: published.data.url, key: published.data.key }
 }
 
@@ -48,10 +53,14 @@ export async function publishStudioAsset(
   storageKey: string,
 ): Promise<PublishedImage> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const published = await publish(storageKey)
-  if (!published.ok) return published
+  if (!published.ok) {
+    return published
+  }
 
   const asset = await insertAsset(db, {
     url: published.url,
@@ -62,10 +71,12 @@ export async function publishStudioAsset(
     // Nothing points at the copy now, and it is world-readable — take it back
     // out and keep the staging file so she can retry.
     await deleteObject(published.key)
+
     return { ok: false, error: "Couldn’t save the image." }
   }
 
   await discardStaging(storageKey)
+
   return { ok: true, assetId: asset.id, url: published.url }
 }
 
@@ -76,12 +87,17 @@ export async function publishStudioImageUrl(
   storageKey: string,
 ): Promise<PublishedImage> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const published = await publish(storageKey)
-  if (!published.ok) return published
+  if (!published.ok) {
+    return published
+  }
 
   await discardStaging(storageKey)
+
   return { ok: true, assetId: null, url: published.url }
 }
 

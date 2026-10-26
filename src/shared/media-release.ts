@@ -189,7 +189,8 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     purposes: {
       website: {
         label: "Our website",
-        description: "In the gallery on our website, so new clients can see our work.",
+        description:
+          "In the gallery on our website, so new clients can see our work.",
       },
       social: {
         label: "Social media",
@@ -207,11 +208,13 @@ export const MEDIA_RELEASE_COPY: Record<"da" | "en", ReleaseCopy> = {
     granted: "Thank you — your choices are saved.",
     declined: "Noted — we won't use your recordings.",
     errors: {
-      invalid_link: "That link isn't valid any more — ask the studio for a new one.",
+      invalid_link:
+        "That link isn't valid any more — ask the studio for a new one.",
       not_found: "We can't find that appointment.",
       save_failed: "Couldn't save your choice — please try again.",
       update_failed: "Couldn't save that change — please try again.",
-      already_decided: "That has already been answered. You can change it in My Space.",
+      already_decided:
+        "That has already been answered. You can change it in My Space.",
       unauthorized: "Please sign in to change this.",
       unknown: "That didn't go through — please try again in a moment.",
     },
@@ -279,6 +282,7 @@ export function fillReleasePurposes(
   states: ReleasePurposeState[],
 ): ReleasePurposeState[] {
   const byPurpose = new Map(states.map((s) => [s.purpose, s.status]))
+
   return RELEASE_PURPOSES.map((purpose) => ({
     purpose,
     status: byPurpose.get(purpose) ?? "none",
@@ -304,6 +308,7 @@ export function groupReleasesByBooking(
     })
     map.set(r.booking_id, list)
   }
+
   return map
 }
 
@@ -344,6 +349,7 @@ export function releaseErrorCopy(
   code: string | undefined,
 ): string {
   const { errors } = pickReleaseCopy(locale)
+
   return code && code in errors
     ? errors[code as keyof typeof errors]
     : errors.unknown

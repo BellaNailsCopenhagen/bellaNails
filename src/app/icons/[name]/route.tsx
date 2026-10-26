@@ -25,6 +25,9 @@ export async function GET(
 ) {
   const { name } = await params
   const icon = ICONS[name]
-  if (!icon) return new Response("Not found", { status: 404 })
+  if (!icon) {
+    return new Response("Not found", { status: 404 })
+  }
+
   return renderAppIcon(icon.size, { maskable: icon.maskable })
 }

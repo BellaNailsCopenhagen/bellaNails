@@ -53,8 +53,11 @@ export function AssetUsageManager({
 
   const toggle = (surface: string) => {
     const existing = usageBySurface.get(surface)
-    if (existing) run(() => removeAssetUsage(existing.id))
-    else run(() => placeMedia(mediaId, purpose, surface))
+    if (existing) {
+      run(() => removeAssetUsage(existing.id))
+    } else {
+      run(() => placeMedia(mediaId, purpose, surface))
+    }
   }
 
   const someUsage = usageBySurface.get("some")
@@ -65,7 +68,10 @@ export function AssetUsageManager({
         {surfaces.map((surface) => {
           const active = usageBySurface.has(surface)
           // A retired surface can only be turned OFF — never back on.
-          const retired = !surfacesForPurpose(purpose).includes(surface as never)
+          const retired = !surfacesForPurpose(purpose).includes(
+            surface as never,
+          )
+
           return (
             <button
               key={surface}
@@ -80,7 +86,8 @@ export function AssetUsageManager({
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
-              {SURFACE_LABELS[surface as keyof typeof SURFACE_LABELS] ?? surface}
+              {SURFACE_LABELS[surface as keyof typeof SURFACE_LABELS] ??
+                surface}
             </button>
           )
         })}

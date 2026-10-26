@@ -36,6 +36,7 @@ export function ReviewsManager({
       })
       if (!result.ok) {
         toast.error(result.error || "Couldn’t save.")
+
         return
       }
       toast.success("Review added")
@@ -48,8 +49,11 @@ export function ReviewsManager({
   const remove = (id: string) =>
     startTransition(async () => {
       const result = await deleteReview(id)
-      if (!result.ok) toast.error(result.error || "Couldn’t remove.")
-      else router.refresh()
+      if (!result.ok) {
+        toast.error(result.error || "Couldn’t remove.")
+      } else {
+        router.refresh()
+      }
     })
 
   return (

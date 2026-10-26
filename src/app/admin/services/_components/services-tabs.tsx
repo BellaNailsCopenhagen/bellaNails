@@ -52,7 +52,11 @@ export function ServicesTabs({
           tabs={[
             { value: "services", label: "Services", count: servicesCount },
             { value: "addons", label: "Add-ons", count: addonsCount },
-            { value: "categories", label: "Categories", count: categoriesCount },
+            {
+              value: "categories",
+              label: "Categories",
+              count: categoriesCount,
+            },
           ]}
           active={tab}
           onChange={setTab}

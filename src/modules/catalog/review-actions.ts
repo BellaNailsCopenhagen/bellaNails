@@ -17,10 +17,14 @@ export async function addReview(
   input: { authorName: string; body: string; rating: number | null },
 ): Promise<ReviewResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const body = input.body.trim()
-  if (body.length < 2) return { ok: false, error: "Review text is required." }
+  if (body.length < 2) {
+    return { ok: false, error: "Review text is required." }
+  }
   const rating =
     input.rating && input.rating >= 1 && input.rating <= 5 ? input.rating : null
 
@@ -30,19 +34,27 @@ export async function addReview(
     body,
     rating,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the review." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the review." }
+  }
 
   revalidatePath(routes.admin.service(serviceId))
+
   return { ok: true }
 }
 
 export async function deleteReview(reviewId: string): Promise<ReviewResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const removed = await deleteReviewRow(db, reviewId)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove the review." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove the review." }
+  }
 
   revalidatePath(routes.admin.service(removed.serviceId))
+
   return { ok: true }
 }

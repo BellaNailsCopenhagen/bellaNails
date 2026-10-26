@@ -12,6 +12,7 @@ export function addMonths(
   delta: number,
 ): { year: number; month: number } {
   const total = year * 12 + (month - 1) + delta
+
   return { year: Math.floor(total / 12), month: (total % 12) + 1 }
 }
 
@@ -31,8 +32,15 @@ export function buildMonthGrid(year: number, month: number): (number | null)[] {
   const leading = (firstDayNumber + 3) % 7 // Monday-based weekday of the 1st
 
   const cells: (number | null)[] = []
-  for (let i = 0; i < leading; i++) cells.push(null)
-  for (let d = 0; d < daysInMonth; d++) cells.push(firstDayNumber + d)
-  while (cells.length % 7 !== 0) cells.push(null)
+  for (let i = 0; i < leading; i++) {
+    cells.push(null)
+  }
+  for (let d = 0; d < daysInMonth; d++) {
+    cells.push(firstDayNumber + d)
+  }
+  while (cells.length % 7 !== 0) {
+    cells.push(null)
+  }
+
   return cells
 }

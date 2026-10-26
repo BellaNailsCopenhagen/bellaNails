@@ -33,9 +33,7 @@ export type MenuCategoryRow = Pick<
 // ---------------------------------------------------------------- reads
 
 /** Every category including archived — the admin catalog's grouping. */
-export async function listAdminCategories(
-  db: Db,
-): Promise<AdminCategoryRow[]> {
+export async function listAdminCategories(db: Db): Promise<AdminCategoryRow[]> {
   const { data, error } = await db
     .from("categories")
     .select(
@@ -43,15 +41,16 @@ export async function listAdminCategories(
     )
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
 /** Active categories with their active services embedded, both in display
     order. Callers filter out categories left with nothing bookable. */
-export async function listMenuCategories(
-  db: Db,
-): Promise<MenuCategoryRow[]> {
+export async function listMenuCategories(db: Db): Promise<MenuCategoryRow[]> {
   const { data, error } = await db
     .from("categories")
     .select(
@@ -64,36 +63,39 @@ export async function listMenuCategories(
   if (error) {
     throw new Error(`Failed to load the service menu: ${error.message}`)
   }
+
   return (data ?? []) as MenuCategoryRow[]
 }
 
 export type CategoryName = Pick<Row<"categories">, "id" | "name_en" | "name_dk">
 
 /** Active names in both languages — the uniqueness check compares in JS. */
-export async function listActiveCategoryNames(
-  db: Db,
-): Promise<CategoryName[]> {
+export async function listActiveCategoryNames(db: Db): Promise<CategoryName[]> {
   const { data, error } = await db
     .from("categories")
     .select("id, name_en, name_dk")
     .is("archived_at", null)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
 /** The next free slot at the end of the menu, or null if it can't be read —
     an unordered category sorts last anyway (NULLS LAST), which is where a new
     one belongs. Never guess 0: that would put it first. */
-export async function nextCategorySortOrder(
-  db: Db,
-): Promise<number | null> {
+export async function nextCategorySortOrder(db: Db): Promise<number | null> {
   const { data, error } = await db
     .from("categories")
     .select("sort_order")
     .order("sort_order", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle()
-  if (error) return null
+  if (error) {
+    return null
+  }
+
   return (data?.sort_order ?? -1) + 1
 }
 
@@ -108,7 +110,10 @@ export async function insertCategory(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -125,6 +130,7 @@ export async function updateCategory(
     .eq("id", id)
     .select("id")
     .maybeSingle()
+
   return { ok: !error && Boolean(data) }
 }
 
@@ -140,6 +146,7 @@ export async function setCategoryArchived(
     .eq("id", id)
     .select("id")
     .maybeSingle()
+
   return { ok: !error && Boolean(data) }
 }
 
@@ -156,5 +163,6 @@ export async function setCategoryOrder(
       db.from("categories").update({ sort_order: index }).eq("id", id),
     ),
   )
+
   return { ok: results.every((result) => !result.error) }
 }

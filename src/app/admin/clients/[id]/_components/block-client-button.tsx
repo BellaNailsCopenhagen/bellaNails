@@ -82,11 +82,16 @@ export function BlockClientButton({
 
   const confirm = () =>
     run(async () => {
-      const result = await blockIdentity({ kind: "email", value: email, reason })
+      const result = await blockIdentity({
+        kind: "email",
+        value: email,
+        reason,
+      })
       if (result.ok) {
         setReason("")
         setOpen(false)
       }
+
       return result
     })
 
@@ -94,7 +99,9 @@ export function BlockClientButton({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger

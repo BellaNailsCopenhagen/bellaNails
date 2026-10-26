@@ -87,7 +87,9 @@ export function HubAppointmentCard({
           </p>
           <p className="font-functional text-xs text-muted-foreground">
             {when ? `${when} · ` : ""}
-            {appointment.ref ? `#${appointment.ref}` : "not linked to an appointment"}
+            {appointment.ref
+              ? `#${appointment.ref}`
+              : "not linked to an appointment"}
             {" · "}
             {photos.length === 1 ? "1 photo" : `${photos.length} photos`}
           </p>
@@ -128,6 +130,7 @@ export function HubAppointmentCard({
 
           {RELEASE_PURPOSES.map((purpose) => {
             const answer = releases[purpose] ?? "none"
+
             return (
               <div
                 key={purpose}
@@ -137,7 +140,10 @@ export function HubAppointmentCard({
                   {PURPOSE_LABEL[purpose]}
                 </span>
                 <div className="flex items-center gap-2">
-                  <Badge variant={ANSWER_VARIANT[answer] ?? "outline"} size="xs">
+                  <Badge
+                    variant={ANSWER_VARIANT[answer] ?? "outline"}
+                    size="xs"
+                  >
                     {ANSWER_LABEL[answer] ?? answer}
                   </Badge>
                   {/* Teaching is asked for on the emailed permission page and

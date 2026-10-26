@@ -101,6 +101,7 @@ function computeMonth(params: {
   const { bookings, startDay, endDay, now, bufferMins } = params
   const inMonth = bookings.filter((booking) => {
     const day = studioDayNumber(Date.parse(booking.start_time))
+
     return day >= startDay && day < endDay
   })
   // Two different questions, so two different sets — an override earns money
@@ -132,6 +133,7 @@ function monthCapacity(
   minutesIntoToday: number,
 ): number {
   const days = Array.from({ length: endDay - startDay }, (_, i) => startDay + i)
+
   return capacityMins(schedule, days, upToDay, minutesIntoToday)
 }
 
@@ -156,7 +158,9 @@ export async function getStudioInsights(
 ): Promise<StudioInsights> {
   try {
     const db = await requireOwner()
-    if (!db) return EMPTY_INSIGHTS
+    if (!db) {
+      return EMPTY_INSIGHTS
+    }
     const base = studioYearMonth(now)
     const first = addMonths(base.year, base.month, -(monthCount - 1))
     const currentKey = monthKey(base.year, base.month)
@@ -173,8 +177,11 @@ export async function getStudioInsights(
     // A closed month needs working out when nothing is stored for it, or when
     // its money was marked stale. The month in progress always does.
     const needsWork = (key: number) => {
-      if (key === currentKey) return true
+      if (key === currentKey) {
+        return true
+      }
       const row = snapshots.get(key)
+
       return !row || row.stale
     }
     const needed = new Set(
@@ -233,7 +240,13 @@ export async function getStudioInsights(
         continue
       }
 
-      const totals = computeMonth({ bookings, startDay, endDay, bufferMins, now })
+      const totals = computeMonth({
+        bookings,
+        startDay,
+        endDay,
+        bufferMins,
+        now,
+      })
 
       if (inProgress) {
         // The one month whose hours we can still see truthfully. Displayed
@@ -297,6 +310,7 @@ export async function getStudioInsights(
     }
   } catch (error) {
     console.error("[insights] read failed", error)
+
     return { ...EMPTY_INSIGHTS, loadError: true }
   }
 }
@@ -304,5 +318,6 @@ export async function getStudioInsights(
 /** The month a booking's start falls in — what an edit has to invalidate. */
 export function monthKeyOf(startIso: string): number {
   const { year, month } = studioYearMonth(Date.parse(startIso))
+
   return monthKey(year, month)
 }

@@ -1,4 +1,7 @@
-import { ACTIVE_BOOKING_STATUSES, BOOKING_STATUS } from "@/shared/booking-status"
+import {
+  ACTIVE_BOOKING_STATUSES,
+  BOOKING_STATUS,
+} from "@/shared/booking-status"
 
 import type { Db, Insert, Row } from "./client"
 
@@ -51,6 +54,7 @@ export async function getBookingForManage(
     .select("status, start_time, end_time, client_id, selected_addons")
     .eq("id", id)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -69,7 +73,10 @@ export async function getBookingRecap(
     .select("status, start_time, end_time, selected_addons")
     .eq("id", id)
     .maybeSingle()
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? null
 }
 
@@ -85,11 +92,14 @@ export async function listBookingLabelsByIds(
   ids: string[],
 ): Promise<BookingLabelRow[]> {
   const unique = [...new Set(ids.filter(Boolean))]
-  if (unique.length === 0) return []
+  if (unique.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("bookings")
     .select("id, status, start_time, selected_addons")
     .in("id", unique)
+
   return data ?? []
 }
 
@@ -104,7 +114,10 @@ export async function listBookingLabelsForClient(
     .select("id, status, start_time, selected_addons")
     .eq("client_id", clientId)
     .order("start_time", { ascending: false })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -129,6 +142,7 @@ export async function getBookingOwner(
     .select("id, client_id, selected_addons, start_time, end_time, status")
     .eq("id", bookingId)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -143,7 +157,10 @@ export async function listBookingsForClient(
     .select(BOOKING_COLUMNS)
     .eq("client_id", clientId)
     .order("start_time", { ascending: false })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -162,7 +179,10 @@ export async function listUpcomingBookingsForClient(
     .gt("end_time", nowIso)
     .order("start_time", { ascending: true })
     .limit(limit)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -177,7 +197,10 @@ export async function listActiveBookingsFrom(
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .gte("end_time", nowIso)
     .order("start_time", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -196,6 +219,7 @@ export async function getCurrentBooking(
     .order("start_time", { ascending: false })
     .limit(1)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -212,6 +236,7 @@ export async function getNextBooking(
     .order("start_time", { ascending: true })
     .limit(1)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -228,7 +253,10 @@ export async function countActiveUpcomingBookingsForClient(
     .eq("client_id", clientId)
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .gte("end_time", nowIso)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return count ?? 0
 }
 
@@ -246,7 +274,10 @@ export async function listActiveBookingsStartingBetween(
     .gte("start_time", startIso)
     .lt("start_time", endIso)
     .order("start_time", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -260,7 +291,10 @@ export async function listBookingsFrom(
     .select(BOOKING_COLUMNS)
     .gte("end_time", nowIso)
     .order("start_time", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -288,13 +322,16 @@ export async function listBookingsBetween(
       .lt("start_time", toIso)
       .order("start_time", { ascending: true })
       .range(from, from + PAGE - 1)
-    if (error) throw new Error(error.message)
+    if (error) {
+      throw new Error(error.message)
+    }
     const page = data ?? []
     all.push(...page)
-    if (page.length < PAGE) return all
+    if (page.length < PAGE) {
+      return all
+    }
   }
 }
-
 
 /** Finished bookings, newest first — admin agenda "past". */
 export async function listBookingsBefore(
@@ -308,7 +345,10 @@ export async function listBookingsBefore(
     .lt("end_time", nowIso)
     .order("start_time", { ascending: false })
     .limit(limit)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -332,7 +372,10 @@ export async function listActiveBookingSpansBetween(
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .lt("start_time", endIso)
     .gt("end_time", startIso)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -343,7 +386,10 @@ export async function listBookingSpans(db: Db): Promise<BookingSpan[]> {
     .from("bookings")
     .select("client_id, start_time, end_time")
     .order("start_time", { ascending: false })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -353,19 +399,24 @@ export async function countNoShowsByClient(
   clientIds: (string | null | undefined)[],
 ): Promise<Record<string, number>> {
   const ids = [...new Set(clientIds.filter((id): id is string => Boolean(id)))]
-  if (ids.length === 0) return {}
+  if (ids.length === 0) {
+    return {}
+  }
 
   const { data, error } = await db
     .from("bookings")
     .select("client_id")
     .in("client_id", ids)
     .not("no_show_at", "is", null)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
 
   const counts: Record<string, number> = {}
   for (const { client_id } of data ?? []) {
     counts[client_id] = (counts[client_id] ?? 0) + 1
   }
+
   return counts
 }
 
@@ -381,6 +432,7 @@ export async function countActiveBookingsForService(
     .filter("selected_addons->>serviceId", "eq", serviceId)
     .in("status", [...ACTIVE_BOOKING_STATUSES])
     .is("no_show_at", null)
+
   return count ?? 0
 }
 
@@ -415,6 +467,7 @@ export async function insertBooking(
       message: error.message,
     }
   }
+
   return { ok: true, id: data.id }
 }
 
@@ -429,8 +482,13 @@ export async function cancelBookingById(
     .update({ status: BOOKING_STATUS.cancelled })
     .eq("id", id)
     .select("id")
-  if (error) return { ok: false, message: error.message }
-  return data.length > 0 ? { ok: true } : { ok: false, message: "no rows updated" }
+  if (error) {
+    return { ok: false, message: error.message }
+  }
+
+  return data.length > 0
+    ? { ok: true }
+    : { ok: false, message: "no rows updated" }
 }
 
 /** Move one booking to a new window (status → rescheduled). Guards the overlap
@@ -465,6 +523,7 @@ export async function rescheduleBookingById(
   if (data.length === 0) {
     return { ok: false, reason: "error", message: "no rows updated" }
   }
+
   return { ok: true }
 }
 
@@ -486,8 +545,13 @@ export async function setBookingIncomeOverride(
     .update({ income_override_cents: cents })
     .eq("id", id)
     .select("id")
-  if (error) return { ok: false, message: error.message }
-  if (!(data ?? []).length) return { ok: false, message: "not_found" }
+  if (error) {
+    return { ok: false, message: error.message }
+  }
+  if (!(data ?? []).length) {
+    return { ok: false, message: "not_found" }
+  }
+
   return { ok: true }
 }
 
@@ -501,6 +565,7 @@ export async function setBookingNoShowAt(
     .from("bookings")
     .update({ no_show_at: at })
     .eq("id", id)
+
   return { ok: !error }
 }
 
@@ -513,5 +578,6 @@ export async function clearClientNotes(
     .from("bookings")
     .update({ client_notes: null })
     .eq("client_id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

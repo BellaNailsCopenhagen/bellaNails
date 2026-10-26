@@ -21,12 +21,11 @@ import { routes } from "@/shared/routes"
  */
 
 export type ConsentActionResult =
-  | { ok: true; note?: string }
-  | { ok: false; error: string }
-
+  { ok: true; note?: string } | { ok: false; error: string }
 
 async function callerId(): Promise<string | null> {
   const user = await getCurrentUser()
+
   return user?.id ?? null
 }
 
@@ -35,11 +34,15 @@ export async function decideDataConsent(
   decision: "granted" | "declined",
 ): Promise<ConsentActionResult> {
   const userId = await callerId()
-  if (!userId) return { ok: false, error: "unauthorized" }
+  if (!userId) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   const consent = await findDataConsent(supabase, userId, purpose)
-  if (!consent) return { ok: false, error: "not_found" }
+  if (!consent) {
+    return { ok: false, error: "not_found" }
+  }
 
   // `withdrawn_at` is NOT cleared on a re-grant: it records that the client once
   // took their permission back, and the accountability story depends on it
@@ -53,6 +56,7 @@ export async function decideDataConsent(
       : { declined_at: now, granted_at: null }
   await updateDataConsent(supabase, consent.id, { status: decision, ...stamp })
   revalidatePath(routes.admin.client(userId))
+
   return { ok: true }
 }
 
@@ -73,7 +77,9 @@ export async function withdrawDataConsent(
   purpose: DataConsentPurpose,
 ): Promise<ConsentActionResult> {
   const userId = await callerId()
-  if (!userId) return { ok: false, error: "unauthorized" }
+  if (!userId) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   await withdrawDataConsentFor(supabase, userId, purpose)
@@ -86,5 +92,6 @@ export async function withdrawDataConsent(
 
   revalidatePath(routes.admin.client(userId))
   revalidatePublicSurfaces()
+
   return { ok: true }
 }

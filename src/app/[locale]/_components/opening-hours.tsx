@@ -35,14 +35,19 @@ export function OpeningHours({
 }) {
   // Nothing recurring on the books → say nothing. Seven "Closed" rows tell
   // nobody anything, and the "by appointment" note carries it instead.
-  if (!hasOpeningHours(schedule)) return null
+  if (!hasOpeningHours(schedule)) {
+    return null
+  }
 
   const names = weekdayNames(locale)
 
   return (
-    <dl className={`grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 ${className ?? ""}`}>
+    <dl
+      className={`grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 ${className ?? ""}`}
+    >
       {weeklyOpeningDays(schedule).map((day) => {
         const closed = day.ranges.length === 0
+
         return (
           // The row is `display: contents`, which generates no box — so opacity
           // has to sit on the CELLS, not here. It dims rather than recolours
@@ -78,5 +83,6 @@ function weekdayNames(locale: string): string[] {
       locale,
     )
   }
+
   return names
 }

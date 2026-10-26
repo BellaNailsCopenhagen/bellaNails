@@ -56,8 +56,12 @@ export function groupIntoAgenda(
   for (const booking of bookings) {
     const day = studioDayNumber(startMs(booking))
     const week = studioWeekStartDayNumber(day)
-    if (week < minWeekStart) minWeekStart = week
-    if (week > maxWeekStart) maxWeekStart = week
+    if (week < minWeekStart) {
+      minWeekStart = week
+    }
+    if (week > maxWeekStart) {
+      maxWeekStart = week
+    }
     const days = byWeek.get(week) ?? new Map<number, DisplayBooking[]>()
     const list = days.get(day) ?? []
     list.push(booking)
@@ -73,7 +77,9 @@ export function groupIntoAgenda(
   const weeks: AgendaWeek[] = []
   for (let week = minWeekStart; week <= maxWeekStart; week += 7) {
     const days = byWeek.get(week)
-    if (!days && week > horizonEnd) continue
+    if (!days && week > horizonEnd) {
+      continue
+    }
     const agendaDays: AgendaDay[] = days
       ? [...days.entries()]
           .sort(([a], [b]) => a - b)
@@ -145,6 +151,7 @@ export type BookingMonth = {
     comparable month key. */
 export function studioMonthKey(ms: number): number {
   const { year, month } = studioYearMonth(ms)
+
   return year * 12 + (month - 1)
 }
 
@@ -171,6 +178,7 @@ export function groupBookingsByMonth(
     .map(([monthKey, list]) => {
       const year = Math.floor(monthKey / 12)
       const month = (monthKey % 12) + 1
+
       return {
         monthKey,
         ms: dayNumberToMs(Date.UTC(year, month - 1, 1) / 86_400_000),
