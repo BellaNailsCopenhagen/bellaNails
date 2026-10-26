@@ -42,6 +42,65 @@ const eslintConfig = defineConfig([
     ".claude/**",
   ]),
 
+  // ------------------------------------------------------------- style
+  {
+    // Style rules applied to every source file.
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    rules: {
+      // Braces around every if / else / for / while / do-while body — a
+      // single-line `if (x) return` still needs `{ }`, so an edit can't
+      // silently swallow a following statement.
+      curly: ["error", "all"],
+      // A blank line before `return` keeps the exit point of a function
+      // visually separated from the logic that leads to it.
+      "padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: "*", next: "return" },
+      ],
+      // Unused locals, params, and imports are dead weight. Cross-file
+      // "unused export" detection isn't per-file ESLint can do — pair this
+      // with `tsc --noUnusedLocals` or a dedicated tool for that.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          vars: "all",
+          args: "after-used",
+          ignoreRestSiblings: true,
+          caughtErrors: "none",
+        },
+      ],
+      // A broken expression keeps its operator at the end of the line so the
+      // next operand always starts on a new line — matches the existing
+      // `a &&\n  b` / `a +\n  b` / `a ??\n  b` style throughout src/. Ternary
+      // `?`/`:` stay at line start ("before") so each branch expression opens
+      // its own line.
+      "operator-linebreak": [
+        "error",
+        "after",
+        { overrides: { "?": "before", ":": "before" } },
+      ],
+    },
+  },
+
+  // --------------------------------------------------- no default export
+  {
+    // Named exports only outside the App Router. Route files (page, layout,
+    // loading, error, not-found, opengraph-image) require `export default`
+    // by Next.js convention, so src/app/ is excluded — everything else must
+    // use named exports so every binding is grep-able.
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    ignores: ["src/app/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "ExportDefaultDeclaration",
+          message: "Default exports are banned — use a named export instead.",
+        },
+      ],
+    },
+  },
+
   // ---------------------------------------------------------------- db
   {
     // Rule 1: only the data layer may query a table.
