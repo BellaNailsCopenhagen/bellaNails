@@ -103,6 +103,19 @@ export type TestimonialSubmission = {
   body: string
 }
 
+/** A testimonial as the admin sees it -- used in the curation list. */
+export type AdminTestimonial = {
+  id: string
+  clientId: string
+  state: TestimonialState
+  visible: boolean
+  authorName: string | null
+  occupation: string | null
+  body: string | null
+  requestedAt: string
+  submittedAt: string | null
+}
+
 export type TestimonialValidation =
   | { ok: true; value: TestimonialSubmission }
   | {
