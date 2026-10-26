@@ -19,9 +19,8 @@ export type SignedToken = {
 }
 
 function secret(): string {
-  const key =
-    process.env.BOOKING_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!key) throw new Error("no BOOKING_TOKEN_SECRET / SUPABASE_SERVICE_ROLE_KEY")
+  const key = process.env.BOOKING_TOKEN_SECRET
+  if (!key) throw new Error("no BOOKING_TOKEN_SECRET — set it to a long random string (e.g., openssl rand -hex 32)")
   return key
 }
 
