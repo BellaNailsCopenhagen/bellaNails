@@ -51,8 +51,12 @@ export function localBusinessSchema(input: {
   schedule: Schedule
   /** The neighbourhoods the plan targets, in the studio's own words. */
   areaServed: string[]
+  /** Customer-facing phone number for schema.org LocalBusiness. Omitted if not set. */
+  telephone?: string
+  /** Geo coordinates [lat, lng] for schema.org LocalBusiness. Omitted if not set. */
+  geo?: [number, number]
 }): LocalBusinessSchema {
-  const { profile } = input
+  const { profile, telephone, geo } = input
 
   const openingHoursSpecification = weeklyOpeningDays(input.schedule).flatMap(
     (day) =>
@@ -93,6 +97,12 @@ export function localBusinessSchema(input: {
   }
   if (profile.contactEmail) schema.email = profile.contactEmail
   if (input.areaServed.length) schema.areaServed = input.areaServed
+
+  // Optional fields -- only emit when explicitly set, to avoid claiming
+  // things that aren't set yet (e.g. a made-up phone number in structured
+  // data is worse than a missing one -- Google shows it).
+  if (telephone) schema.telephone = telephone
+  if (geo) schema.geo = { "@type": "GeoCoordinates", latitude: geo[0], longitude: geo[1] }
   if (sameAs.length) schema.sameAs = sameAs
   if (openingHoursSpecification.length) {
     schema.openingHoursSpecification = openingHoursSpecification
