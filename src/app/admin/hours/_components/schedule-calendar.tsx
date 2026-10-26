@@ -56,8 +56,10 @@ const HEADER_H = "h-10"
 function axisHours(axisStart: number, axisEnd: number) {
   const first = Math.ceil(axisStart / 60)
   const last = Math.floor(axisEnd / 60)
+
   return Array.from({ length: Math.max(0, last - first + 1) }, (_, i) => {
     const hour = first + i
+
     return {
       hour,
       /** Position down the column, 0–100. */
@@ -103,9 +105,13 @@ function TimeAxis({
 }
 
 function blockClass(kind: ScheduleKind): string {
-  if (kind === "standard") return "bg-primary/85 text-primary-foreground"
-  if (kind === "outside")
+  if (kind === "standard") {
+    return "bg-primary/85 text-primary-foreground"
+  }
+  if (kind === "outside") {
     return "border border-dashed border-primary/60 bg-primary/15 text-foreground"
+  }
+
   return "border border-border text-muted-foreground"
 }
 
@@ -136,6 +142,7 @@ function useRulesForDay(schedule: Schedule) {
         byDate.set(r.onDate, list)
       }
     }
+
     return (dayNumber: number): ScheduleRule[] =>
       [
         ...(byWeekday.get(weekdayIndexForDayNumber(dayNumber)) ?? []),
@@ -174,7 +181,9 @@ function DayColumn({
   const pickAtPosition = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
     const box = e.currentTarget.getBoundingClientRect()
-    if (box.height === 0) return onPick(dayNumber)
+    if (box.height === 0) {
+      return onPick(dayNumber)
+    }
     const minutes = axisStart + ((e.clientY - box.top) / box.height) * axisSpan
     const snapped = Math.round(minutes / 15) * 15
     const clamped = Math.min(
@@ -183,6 +192,7 @@ function DayColumn({
     )
     onPick(dayNumber, toClock(clamped))
   }
+
   return (
     // Whole column adds for the day; blocks stop propagation to edit instead.
     <div
@@ -193,7 +203,9 @@ function DayColumn({
       onKeyDown={activateOnKey(() => onPick(dayNumber))}
       className="min-w-0 cursor-pointer rounded-sm"
     >
-      <div className={`mb-1 flex ${HEADER_H} items-center justify-between gap-1 px-1`}>
+      <div
+        className={`mb-1 flex ${HEADER_H} items-center justify-between gap-1 px-1`}
+      >
         <span className="min-w-0">
           <span className="block font-functional text-[10px] uppercase tracking-widest-lux text-muted-foreground">
             {WEEKDAYS[weekday].label.slice(0, 3)}
@@ -240,36 +252,41 @@ function DayColumn({
         {/* No-work renders LAST (on top): it wins the hierarchy, so its hatch must
             overlay any work block it covers — the gaps keep the overlap visible. */}
         {[...rules]
-          .sort((a, b) => Number(a.kind === "no_work") - Number(b.kind === "no_work"))
-          .map((rule) => {
-          const top = ((toMinutes(rule.start) - axisStart) / axisSpan) * 100
-          const height = ((toMinutes(rule.end) - toMinutes(rule.start)) / axisSpan) * 100
-          return (
-            <button
-              key={rule.id}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit(rule)
-              }}
-              style={{
-                top: `${top}%`,
-                height: `${Math.max(height, 6)}%`,
-                ...(rule.kind === "no_work" ? HATCH : {}),
-              }}
-              className={`absolute inset-x-0.5 overflow-hidden rounded-[3px] px-1 py-0.5 text-left ${blockClass(rule.kind)}`}
-            >
-              <span className="block truncate font-functional text-[10px] leading-tight">
-                {rule.start}–{rule.end}
-              </span>
-              {rule.label ? (
-                <span className="block truncate text-[9px] opacity-80">
-                  {rule.label}
-                </span>
-              ) : null}
-            </button>
+          .sort(
+            (a, b) =>
+              Number(a.kind === "no_work") - Number(b.kind === "no_work"),
           )
-        })}
+          .map((rule) => {
+            const top = ((toMinutes(rule.start) - axisStart) / axisSpan) * 100
+            const height =
+              ((toMinutes(rule.end) - toMinutes(rule.start)) / axisSpan) * 100
+
+            return (
+              <button
+                key={rule.id}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(rule)
+                }}
+                style={{
+                  top: `${top}%`,
+                  height: `${Math.max(height, 6)}%`,
+                  ...(rule.kind === "no_work" ? HATCH : {}),
+                }}
+                className={`absolute inset-x-0.5 overflow-hidden rounded-[3px] px-1 py-0.5 text-left ${blockClass(rule.kind)}`}
+              >
+                <span className="block truncate font-functional text-[10px] leading-tight">
+                  {rule.start}–{rule.end}
+                </span>
+                {rule.label ? (
+                  <span className="block truncate text-[9px] opacity-80">
+                    {rule.label}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
         {/* The clock, on today only. On a screen used to decide what is still
             bookable, "where are we now" is half the question. */}
         {isToday && nowPct !== null ? (
@@ -302,6 +319,7 @@ function MonthCell({
   onEdit: (rule: ScheduleRule) => void
 }) {
   const iso = isoForDayNumber(dayNumber)
+
   return (
     // Whole cell adds for the day; chips stop propagation to edit instead.
     <div
@@ -367,6 +385,7 @@ export function ScheduleCalendar({
   const [clock, setClock] = useState(now)
   useEffect(() => {
     const tick = setInterval(() => setClock(Date.now()), 60_000)
+
     return () => clearInterval(tick)
   }, [])
 
@@ -386,7 +405,9 @@ export function ScheduleCalendar({
   const monthIndex = todayY * 12 + (todayM - 1) + monthOffset
   const year = Math.floor(monthIndex / 12)
   const month0 = monthIndex % 12
-  const firstDN = dayNumberForIso(`${year}-${String(month0 + 1).padStart(2, "0")}-01`)
+  const firstDN = dayNumberForIso(
+    `${year}-${String(month0 + 1).padStart(2, "0")}-01`,
+  )
   const gridStart = firstDN - weekdayIndexForDayNumber(firstDN)
   const monthCells = Array.from({ length: 42 }, (_, i) => gridStart + i)
 
@@ -429,9 +450,7 @@ export function ScheduleCalendar({
       ? setWeekOffset((o) => Math.max(0, o - 1))
       : setMonthOffset((o) => Math.max(0, o - 1))
   const goNext = () =>
-    view === "week"
-      ? setWeekOffset((o) => o + 1)
-      : setMonthOffset((o) => o + 1)
+    view === "week" ? setWeekOffset((o) => o + 1) : setMonthOffset((o) => o + 1)
 
   return (
     <div className="space-y-3">

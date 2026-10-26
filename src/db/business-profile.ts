@@ -23,7 +23,8 @@ export class BusinessProfileReadError extends Error {
 const MISSING_TABLE = new Set(["42P01", "PGRST205"])
 
 export const isMissingTable = (error: unknown): boolean =>
-  error instanceof BusinessProfileReadError && MISSING_TABLE.has(error.code ?? "")
+  error instanceof BusinessProfileReadError &&
+  MISSING_TABLE.has(error.code ?? "")
 
 /**
  * The row, or null when there simply isn't one yet.
@@ -40,7 +41,10 @@ export async function getBusinessProfileRow(
     .from("business_profile")
     .select("*")
     .maybeSingle()
-  if (error) throw new BusinessProfileReadError(error.message, error.code)
+  if (error) {
+    throw new BusinessProfileReadError(error.message, error.code)
+  }
+
   return data ?? null
 }
 
@@ -65,5 +69,6 @@ export async function upsertBusinessProfile(
       { id: true, ...values, updated_at: new Date().toISOString() },
       { onConflict: "id" },
     )
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

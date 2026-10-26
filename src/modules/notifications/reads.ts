@@ -22,14 +22,22 @@ export type OwnerNotification = {
 
 export async function getUnreadNotificationCount(): Promise<number> {
   const db = await requireOwner()
-  if (!db) return 0
+  if (!db) {
+    return 0
+  }
+
   return countUnread(db)
 }
 
-export async function getNotifications(limit = 50): Promise<OwnerNotification[]> {
+export async function getNotifications(
+  limit = 50,
+): Promise<OwnerNotification[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
   const data = await listNotifications(db, limit)
+
   return data.map((n) => ({
     id: n.id,
     kind: n.kind,

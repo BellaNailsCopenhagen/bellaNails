@@ -46,8 +46,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "hours" })
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -69,7 +72,9 @@ export default async function HoursPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale: requested } = await params
-  if (!hasLocale(routing.locales, requested)) notFound()
+  if (!hasLocale(routing.locales, requested)) {
+    notFound()
+  }
   setRequestLocale(requested)
 
   const [t, locale, schedule, profile] = await Promise.all([

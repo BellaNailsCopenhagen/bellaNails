@@ -94,7 +94,9 @@ export default async function AdminHomePage({
  * the message that just arrived is the one at the top.
  */
 function DesignMessages({ queue }: { queue: DesignQueue }) {
-  if (!queue.needsAnswer.length && !queue.awaitingClient.length) return null
+  if (!queue.needsAnswer.length && !queue.awaitingClient.length) {
+    return null
+  }
 
   return (
     <section className="space-y-6">
@@ -125,7 +127,9 @@ function ThreadGroup({
   threads: DesignRequestView[]
   contacts: Record<string, ClientContact>
 }) {
-  if (!threads.length) return null
+  if (!threads.length) {
+    return null
+  }
 
   return (
     <div className="space-y-3">

@@ -20,7 +20,10 @@ async function fetchRecap(id: string, locale: string): Promise<BookingRecap> {
   const res = await fetch(
     `/api/bookings/${encodeURIComponent(id)}?locale=${locale}`,
   )
-  if (!res.ok) throw new Error(`recap not ready (${res.status})`)
+  if (!res.ok) {
+    throw new Error(`recap not ready (${res.status})`)
+  }
+
   return (await res.json()) as BookingRecap
 }
 
@@ -40,7 +43,8 @@ export function ConfirmationRecap({ id }: { id: string }) {
     queryFn: () => fetchRecap(id, locale),
     retry: RETRY_DELAYS_MS.length,
     retryDelay: (attemptIndex) =>
-      RETRY_DELAYS_MS[attemptIndex] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1],
+      RETRY_DELAYS_MS[attemptIndex] ??
+      RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1],
     // "always": offline must fail into the email fallback, not sit paused
     // on the loading card forever (default networkMode never errors offline).
     networkMode: "always",

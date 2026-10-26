@@ -28,8 +28,8 @@ export default async function AdminGalleryPage() {
         <Eyebrow>Studio</Eyebrow>
         <H2>Studio gallery</H2>
         <BodySm className="text-xs">
-          Your own work, on the gallery page and the home page. Client photos live
-          in Client photos, where their permission is asked and kept.
+          Your own work, on the gallery page and the home page. Client photos
+          live in Client photos, where their permission is asked and kept.
         </BodySm>
       </div>
 

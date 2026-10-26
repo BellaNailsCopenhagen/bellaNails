@@ -6,7 +6,10 @@ import { ErrorState } from "@/components/ui/error-state"
 import { InsightsBoard } from "@/app/admin/insights/_components/insights-board"
 import { getStudioInsights } from "@/modules/studio/insights"
 
-export const metadata: Metadata = { title: "Insights", robots: { index: false } }
+export const metadata: Metadata = {
+  title: "Insights",
+  robots: { index: false },
+}
 export const dynamic = "force-dynamic"
 
 /**

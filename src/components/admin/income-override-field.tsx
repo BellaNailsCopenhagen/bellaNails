@@ -45,10 +45,16 @@ export function IncomeOverrideField({
       // unreadable input has to fail rather than fall through to it — "1.2o0"
       // used to wipe an amount she had set and say "Back to the booked price".
       if (kroner === null) {
-        return { ok: false as const, error: "That doesn’t look like an amount." }
+        return {
+          ok: false as const,
+          error: "That doesn’t look like an amount.",
+        }
       }
       const result = await setAppointmentIncome(bookingId, kroner * 100)
-      if (result.ok) setOpen(false)
+      if (result.ok) {
+        setOpen(false)
+      }
+
       return result
     })
 
@@ -59,6 +65,7 @@ export function IncomeOverrideField({
         setValue("")
         setOpen(false)
       }
+
       return result
     })
 

@@ -3,7 +3,11 @@ import {
   listAcceptancesForClient,
   recordAcceptance,
 } from "@/db/terms-acceptances"
-import { getCurrentTerms, isTermsKind, type TermsKind } from "@/modules/terms/terms"
+import {
+  getCurrentTerms,
+  isTermsKind,
+  type TermsKind,
+} from "@/modules/terms/terms"
 
 type Client = Db
 
@@ -33,7 +37,9 @@ export async function recordTermsAcceptance(
 ): Promise<void> {
   try {
     const current = await getCurrentTerms(params.kind, supabase)
-    if (!current) return // nothing published to accept (or table not applied yet)
+    if (!current) {
+      return
+    } // nothing published to accept (or table not applied yet)
     await recordAcceptance(
       supabase,
       {
@@ -57,6 +63,7 @@ export async function getTermsAcceptances(
   clientId: string,
 ): Promise<TermsAcceptance[]> {
   const data = await listAcceptancesForClient(supabase, clientId)
+
   return data.map((row) => ({
     id: row.id,
     kind: isTermsKind(row.kind) ? row.kind : "service",

@@ -10,7 +10,9 @@ import type { AdminService } from "@/modules/catalog"
     so they stay out of the way but remain reachable (to restore/inspect). */
 export function ArchivedServices({ services }: { services: AdminService[] }) {
   const [open, setOpen] = useState(false)
-  if (services.length === 0) return null
+  if (services.length === 0) {
+    return null
+  }
 
   return (
     <section className="space-y-2">

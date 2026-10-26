@@ -38,7 +38,9 @@ export function SignOutControl() {
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger

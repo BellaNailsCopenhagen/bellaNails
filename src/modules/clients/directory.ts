@@ -34,10 +34,14 @@ export async function getClientDirectory(
       "[admin-clients] read failed",
       error instanceof Error ? error.message : error,
     )
+
     return { clients: [], loadError: true }
   }
 
-  const byClient = new Map<string, { visits: number; lastVisitMs: number | null }>()
+  const byClient = new Map<
+    string,
+    { visits: number; lastVisitMs: number | null }
+  >()
   for (const row of rows) {
     const agg = byClient.get(row.client_id) ?? { visits: 0, lastVisitMs: null }
     agg.visits += 1
@@ -55,5 +59,6 @@ export async function getClientDirectory(
     contact: contacts[id],
     ...agg,
   }))
+
   return { clients, loadError: false }
 }

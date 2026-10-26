@@ -4,7 +4,10 @@ import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { useRouter } from "@/i18n/navigation"
-import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
+import {
+  SlotPicker,
+  type SlotPickerOutcome,
+} from "@/components/booking/slot-picker"
 import { rescheduleBooking } from "@/modules/booking/actions"
 import type { Slot } from "@/shared/booking-slots"
 import { routes } from "@/config/routes"
@@ -32,13 +35,17 @@ export function RescheduleSlotStep({
     if (!result.ok) {
       return {
         ok: false,
-        error: result.error === "within_policy" ? t("within24h") : t("rescheduleFailed"),
+        error:
+          result.error === "within_policy"
+            ? t("within24h")
+            : t("rescheduleFailed"),
       }
     }
     toast.success(t("rescheduleDone"))
     router.replace(routes.appointments)
     // Bust the client cache — /appointments was likely just visited.
     router.refresh()
+
     return { ok: true }
   }
 

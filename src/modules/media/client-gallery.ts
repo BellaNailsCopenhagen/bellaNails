@@ -16,11 +16,7 @@ import { signedViewUrl, storageConfigured } from "@/platform/storage/supabase"
 
 // Reused for data consents too — "none" is the UI default for an un-requested one.
 export type ConsentStatus =
-  | "none"
-  | "requested"
-  | "granted"
-  | "declined"
-  | "withdrawn"
+  "none" | "requested" | "granted" | "declined" | "withdrawn"
 
 /** One place a photo of this client is actually shown, and under which
     permission. `purpose` is the release the studio published it under; `surface`
@@ -67,12 +63,16 @@ export async function getClientMedia(
   }
   const usedByMedia = new Map<string, ClientMediaUse[]>()
   for (const asset of assets) {
-    if (!asset.client_media_id) continue
+    if (!asset.client_media_id) {
+      continue
+    }
     const uses = (surfacesByAsset.get(asset.id) ?? []).map((surface) => ({
       surface,
       purpose: asset.purpose ?? "website",
     }))
-    if (!uses.length) continue
+    if (!uses.length) {
+      continue
+    }
     usedByMedia.set(asset.client_media_id, [
       ...(usedByMedia.get(asset.client_media_id) ?? []),
       ...uses,
@@ -82,13 +82,17 @@ export async function getClientMedia(
   // Private objects have no public URL — resolve a short-lived presigned GET for
   // display. Degrades to the stored locator when storage isn't configured.
   const configured = storageConfigured()
+
   return Promise.all(
     media.map(async (m) => {
       let url = m.url
       if (configured && m.storage_key) {
         const signed = await signedViewUrl(m.storage_key)
-        if (signed.ok) url = signed.data.url
+        if (signed.ok) {
+          url = signed.data.url
+        }
       }
+
       return {
         id: m.id,
         kind: m.kind,
@@ -110,6 +114,7 @@ export async function getClientDataConsents(
   clientId: string,
 ): Promise<DataConsentItem[]> {
   const data = await listDataConsents(supabase, clientId)
+
   return data.map((c) => ({
     purpose: c.purpose,
     status: c.status as ConsentStatus,

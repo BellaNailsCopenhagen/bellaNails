@@ -53,14 +53,20 @@ async function unpublishBookingMedia(
   bookingId: string,
   purpose: ReleasePurpose,
 ): Promise<boolean> {
-  if (purpose === "education") return false
+  if (purpose === "education") {
+    return false
+  }
 
   const media = await listMediaForBookings(supabase, [bookingId])
   const mediaIds = media.map((m) => m.id)
-  if (mediaIds.length === 0) return false
+  if (mediaIds.length === 0) {
+    return false
+  }
 
   const assets = await listAssetsForMediaByPurpose(supabase, mediaIds, purpose)
-  if (assets.length === 0) return false
+  if (assets.length === 0) {
+    return false
+  }
 
   if (purpose === "social") {
     // External posts can't be auto-removed — keep the copy, flag it so the hub
@@ -70,6 +76,7 @@ async function unpublishBookingMedia(
       assets.map((a) => a.id),
       new Date().toISOString(),
     )
+
     return true
   }
 
@@ -84,7 +91,8 @@ async function unpublishBookingMedia(
   // the artist can finish the job.
   let stranded = false
   for (const asset of assets) {
-    const storageKey = asset.storage_key ?? (await getAssetStorageKey(supabase, asset.id))
+    const storageKey =
+      asset.storage_key ?? (await getAssetStorageKey(supabase, asset.id))
     if (storageKey) {
       const removed = await deleteObject(storageKey)
       if (!removed.ok) {
@@ -100,6 +108,7 @@ async function unpublishBookingMedia(
     await deleteGalleryItemsForAsset(supabase, asset.id)
     await deleteAsset(supabase, asset.id)
   }
+
   return stranded
 }
 
@@ -131,6 +140,7 @@ async function applyDecision(
         }
       : { declined_at: now, granted_at: null }
   await updateRelease(supabase, releaseId, { status: decision, ...stamp })
+
   return flaggedSocial
 }
 
@@ -141,7 +151,9 @@ export async function decideMediaRelease(
   decision: "granted" | "declined",
 ): Promise<ReleaseActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   const release = await findRelease(supabase, bookingId, purpose)
@@ -150,7 +162,9 @@ export async function decideMediaRelease(
   }
   // Only a pending request is answerable here — a granted one is retracted via
   // withdraw, and a stale replay must never flip a withdrawn/declined row back.
-  if (release.status !== "requested") return { ok: true }
+  if (release.status !== "requested") {
+    return { ok: true }
+  }
 
   const flaggedSocial = await applyDecision(
     supabase,
@@ -171,6 +185,7 @@ export async function decideMediaRelease(
       })
     }
   }
+
   return { ok: true }
 }
 
@@ -189,7 +204,9 @@ export async function restoreMediaRelease(
   purpose: ReleasePurpose,
 ): Promise<ReleaseActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   const release = await findRelease(supabase, bookingId, purpose)
@@ -208,13 +225,18 @@ export async function restoreMediaRelease(
     declined_at: null,
     consent_version: MEDIA_RELEASE_CONSENT_VERSION,
   })
-  if (!saved.ok) return { ok: false, error: "update_failed" }
+  if (!saved.ok) {
+    return { ok: false, error: "update_failed" }
+  }
 
   // A `social` withdrawal keeps the asset and only flags it, so without this the
   // hub still reads "taken down?" and its one control deletes media the client
   // has just re-permitted.
   const media = await listMediaForBookings(supabase, [bookingId])
-  await clearAssetsTakedown(supabase, media.map((m) => m.id))
+  await clearAssetsTakedown(
+    supabase,
+    media.map((m) => m.id),
+  )
 
   await notifyOwner(supabase, {
     kind: "media_consent_restored",
@@ -224,6 +246,7 @@ export async function restoreMediaRelease(
   // No public surface changed — withdrawal deleted the copy, and re-placing it
   // is a separate, explicit step.
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true }
 }
 
@@ -242,7 +265,9 @@ export async function offerMediaRelease(
   purpose: ReleasePurpose,
 ): Promise<ReleaseActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   const booking = await getBookingOwner(supabase, bookingId)
@@ -262,7 +287,9 @@ export async function offerMediaRelease(
   // The unique (booking_id, purpose) is the guard, so a request that landed
   // between the page render and this tap loses the race rather than being
   // overwritten with a grant the client was never shown.
-  if (!saved.ok) return { ok: false, error: "already_decided" }
+  if (!saved.ok) {
+    return { ok: false, error: "already_decided" }
+  }
 
   // The artist has to be told: nothing prompted this, so nobody is watching for
   // it, and permission she never asked for is worth nothing unless she knows.
@@ -273,6 +300,7 @@ export async function offerMediaRelease(
   })
   revalidatePath(routes.admin.client(user.id))
   revalidatePath(routes.admin.assets)
+
   return { ok: true }
 }
 
@@ -282,7 +310,9 @@ export async function withdrawMediaRelease(
   purpose: ReleasePurpose,
 ): Promise<ReleaseActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   const release = await findRelease(supabase, bookingId, purpose)
@@ -304,6 +334,7 @@ export async function withdrawMediaRelease(
   revalidatePath(routes.admin.client(user.id))
   revalidatePath(routes.admin.assets)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -317,12 +348,18 @@ export async function preApproveRelease(
   purposes: ReleasePurpose[],
 ): Promise<ReleaseActionResult> {
   const bookingId = verifyBookingToken(token)
-  if (!bookingId) return { ok: false, error: "invalid_link" }
-  if (purposes.length === 0) return { ok: true }
+  if (!bookingId) {
+    return { ok: false, error: "invalid_link" }
+  }
+  if (purposes.length === 0) {
+    return { ok: true }
+  }
 
   const supabase = createSupabaseServiceRoleClient()
   const booking = await getBookingOwner(supabase, bookingId)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
 
   // Never resurrect a purpose the client already declined or withdrew — grant
   // only undecided ones (absent or still requested). A replayed confirmation
@@ -334,7 +371,9 @@ export async function preApproveRelease(
       .map((r) => r.purpose),
   )
   const toGrant = purposes.filter((p) => !blocked.has(p))
-  if (toGrant.length === 0) return { ok: true }
+  if (toGrant.length === 0) {
+    return { ok: true }
+  }
 
   const now = new Date().toISOString()
   const saved = await upsertReleases(
@@ -351,9 +390,12 @@ export async function preApproveRelease(
       consent_version: MEDIA_RELEASE_CONSENT_VERSION,
     })),
   )
-  if (!saved.ok) return { ok: false, error: "save_failed" }
+  if (!saved.ok) {
+    return { ok: false, error: "save_failed" }
+  }
 
   revalidatePath(routes.admin.client(booking.client_id))
+
   return { ok: true }
 }
 
@@ -365,7 +407,9 @@ export async function respondToReleaseToken(
   decisions: { purpose: ReleasePurpose; decision: "granted" | "declined" }[],
 ): Promise<ReleaseActionResult> {
   const bookingId = verifyBookingToken(token)
-  if (!bookingId) return { ok: false, error: "invalid_link" }
+  if (!bookingId) {
+    return { ok: false, error: "invalid_link" }
+  }
   const supabase = createSupabaseServiceRoleClient()
 
   let clientId: string | null = null
@@ -375,10 +419,16 @@ export async function respondToReleaseToken(
     const release = await findRelease(supabase, bookingId, purpose)
     // Only a still-pending request is answerable — ignore anything already
     // decided so a replayed/forwarded link can't re-grant a withdrawn release.
-    if (!release || release.status !== "requested") continue
+    if (!release || release.status !== "requested") {
+      continue
+    }
     clientId = release.client_id
-    if (decision === "declined") declined = true
-    if (await applyDecision(supabase, release.id, bookingId, purpose, decision)) {
+    if (decision === "declined") {
+      declined = true
+    }
+    if (
+      await applyDecision(supabase, release.id, bookingId, purpose, decision)
+    ) {
       flaggedSocial = true
     }
   }
@@ -388,10 +438,13 @@ export async function respondToReleaseToken(
   if (clientId) {
     revalidatePath(routes.admin.client(clientId))
     revalidatePath(routes.admin.assets)
-    if (declined) revalidatePublicSurfaces()
+    if (declined) {
+      revalidatePublicSurfaces()
+    }
     if (flaggedSocial) {
       await notifyOwner(supabase, { kind: "media_consent_withdrawn", clientId })
     }
   }
+
   return { ok: true }
 }

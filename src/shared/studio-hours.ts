@@ -38,6 +38,7 @@ export function weekdayIndexForDayNumber(dayNumber: number): number {
 // ── Range arithmetic (pure, "HH:MM" in / out) ────────────────────────────────
 export const toMinutes = (clock: string): number => {
   const [hours, mins] = clock.split(":").map(Number)
+
   return hours * 60 + mins
 }
 export const toClock = (minutes: number): string =>
@@ -53,9 +54,13 @@ export function unionRanges(ranges: TimeRange[]): TimeRange[] {
   const merged: [number, number][] = []
   for (const [start, end] of sorted) {
     const last = merged[merged.length - 1]
-    if (last && start <= last[1]) last[1] = Math.max(last[1], end)
-    else merged.push([start, end])
+    if (last && start <= last[1]) {
+      last[1] = Math.max(last[1], end)
+    } else {
+      merged.push([start, end])
+    }
   }
+
   return merged.map(([start, end]) => [toClock(start), toClock(end)])
 }
 
@@ -76,11 +81,16 @@ export function subtractRanges(
         next.push([start, end]) // no overlap — keep as is
         continue
       }
-      if (blockStart > start) next.push([start, blockStart]) // part before the block
-      if (blockEnd < end) next.push([blockEnd, end]) // part after the block
+      if (blockStart > start) {
+        next.push([start, blockStart])
+      } // part before the block
+      if (blockEnd < end) {
+        next.push([blockEnd, end])
+      } // part after the block
     }
     remaining = next
   }
+
   return remaining
     .filter(([start, end]) => end > start)
     .map(([start, end]) => [toClock(start), toClock(end)])

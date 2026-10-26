@@ -19,12 +19,21 @@ const adminNewQuery = (q?: {
   service?: string
   addons?: string[]
 }): string => {
-  if (!q) return ""
+  if (!q) {
+    return ""
+  }
   const p = new URLSearchParams()
-  if (q.client) p.set("client", q.client)
-  if (q.service) p.set("service", q.service)
-  if (q.addons?.length) p.set("addons", q.addons.join(","))
+  if (q.client) {
+    p.set("client", q.client)
+  }
+  if (q.service) {
+    p.set("service", q.service)
+  }
+  if (q.addons?.length) {
+    p.set("addons", q.addons.join(","))
+  }
   const s = p.toString()
+
   return s ? `?${s}` : ""
 }
 
@@ -56,8 +65,11 @@ export const routes = {
     services: "/admin/services",
     service: (id: string) => `/admin/services/${id}`,
     reschedule: (id: string) => `/admin/reschedule/${id}`,
-    newBooking: (q?: { client?: string; service?: string; addons?: string[] }) =>
-      `/admin/new${adminNewQuery(q)}`,
+    newBooking: (q?: {
+      client?: string
+      service?: string
+      addons?: string[]
+    }) => `/admin/new${adminNewQuery(q)}`,
   },
   // Locale-prefixed public paths — only what revalidatePath needs (in-app
   // navigation uses next-intl's typed Link/redirect instead).

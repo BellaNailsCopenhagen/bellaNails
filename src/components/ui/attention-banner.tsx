@@ -53,8 +53,13 @@ export function AttentionBanner({
       </Link>
     )
   }
+
   return (
-    <button type="button" onClick={onClick} className={`${shell} ${className ?? ""}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${shell} ${className ?? ""}`}
+    >
       {body}
     </button>
   )

@@ -21,10 +21,14 @@ export async function getOwnerOfferSlots(
   override = false,
 ): Promise<Slot[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
 
   const offer = await getOffer(db, offerId)
-  if (!offer || offer.duration_mins <= 0) return []
+  if (!offer || offer.duration_mins <= 0) {
+    return []
+  }
 
   return override
     ? getOverrideSlotsForDuration(offer.duration_mins, db)

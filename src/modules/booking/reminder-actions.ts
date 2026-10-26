@@ -16,8 +16,7 @@ import { routes } from "@/shared/routes"
 import { dayNumberToMs, studioDayNumber } from "@/shared/studio-time"
 
 type SendRemindersResult =
-  | { ok: true; note: string }
-  | { ok: false; error: string }
+  { ok: true; note: string } | { ok: false; error: string }
 
 /**
  * The admin "Send reminders" button — email every client with a booking on the
@@ -28,7 +27,9 @@ type SendRemindersResult =
  */
 export async function sendReminders(): Promise<SendRemindersResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   // `dayNumberToMs` is NOON-UTC (DST-safe), NOT a day boundary — so query a
   // generous UTC superset (today→+3 days) and filter to tomorrow's studio-day
@@ -41,7 +42,11 @@ export async function sendReminders(): Promise<SendRemindersResult> {
 
   let candidates
   try {
-    candidates = await listActiveBookingsStartingBetween(db, windowStart, windowEnd)
+    candidates = await listActiveBookingsStartingBetween(
+      db,
+      windowStart,
+      windowEnd,
+    )
   } catch {
     return { ok: false, error: "Couldn't load tomorrow's bookings." }
   }
@@ -65,7 +70,10 @@ export async function sendReminders(): Promise<SendRemindersResult> {
       fetchClientContacts(bookings.map((b) => b.client_id)),
     ])
   } catch {
-    return { ok: false, error: "Couldn't check which reminders already went out." }
+    return {
+      ok: false,
+      error: "Couldn't check which reminders already went out.",
+    }
   }
   // Key on (booking, its appointment time) so a booking rescheduled INTO tomorrow
   // (its old reminder was for a different time) still gets a fresh reminder.
@@ -116,9 +124,13 @@ export async function sendReminders(): Promise<SendRemindersResult> {
       error: res.error,
       reminderFor: b.start_time,
     })
-    if (res.ok) sent++
-    else if (res.skipped) skipped++
-    else failed++
+    if (res.ok) {
+      sent++
+    } else if (res.skipped) {
+      skipped++
+    } else {
+      failed++
+    }
   }
 
   revalidatePath(routes.admin.home)
@@ -132,5 +144,6 @@ export async function sendReminders(): Promise<SendRemindersResult> {
     sent > 0
       ? `Sent ${sent} reminder${sent === 1 ? "" : "s"}${tail ? ` · ${tail}` : ""}.`
       : `No new reminders sent${tail ? ` · ${tail}` : ""}.`
+
   return { ok: true, note }
 }

@@ -3,7 +3,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/shared/cn"
-import { addMonths, buildMonthGrid, monthStartDayNumber } from "@/shared/month-grid"
+import {
+  addMonths,
+  buildMonthGrid,
+  monthStartDayNumber,
+} from "@/shared/month-grid"
 import type { BookingState } from "@/shared/booking-policy"
 import {
   dayNumberToMs,
@@ -105,7 +109,9 @@ export function CalendarView({
 
       <div className="grid grid-cols-7 gap-1">
         {cells.map((dayNumber, index) => {
-          if (dayNumber === null) return <div key={index} aria-hidden />
+          if (dayNumber === null) {
+            return <div key={index} aria-hidden />
+          }
 
           const counts = dayCounts.get(dayNumber) ?? {}
           const total = dayTotal(counts)
@@ -127,7 +133,9 @@ export function CalendarView({
               className={cn(
                 "flex aspect-square flex-col items-center justify-center gap-0.5 rounded-sm border font-functional text-sm transition-colors",
                 isToday ? "border-foreground" : "border-transparent",
-                has ? "bg-muted/60 text-foreground" : "text-muted-foreground/50",
+                has
+                  ? "bg-muted/60 text-foreground"
+                  : "text-muted-foreground/50",
                 has && interactive && "cursor-pointer hover:bg-muted",
               )}
             >
@@ -136,7 +144,10 @@ export function CalendarView({
                 <span className="flex items-center justify-center gap-0.5">
                   {STATE_MARKERS.map(([state, dotClass, textClass]) => {
                     const n = counts[state] ?? 0
-                    if (n === 0) return null
+                    if (n === 0) {
+                      return null
+                    }
+
                     return n === 1 ? (
                       <span
                         key={state}
@@ -146,7 +157,10 @@ export function CalendarView({
                     ) : (
                       <span
                         key={state}
-                        className={cn("text-[0.5625rem] leading-none", textClass)}
+                        className={cn(
+                          "text-[0.5625rem] leading-none",
+                          textClass,
+                        )}
                       >
                         {n}
                       </span>

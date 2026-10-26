@@ -16,7 +16,10 @@ import {
   getOverrideSlotsForDuration,
   getSlotsForDuration,
 } from "@/modules/booking/availability"
-import { manageUrlFor, verifyBookingToken } from "@/modules/booking/manage-token"
+import {
+  manageUrlFor,
+  verifyBookingToken,
+} from "@/modules/booking/manage-token"
 import { fetchClientContacts } from "@/modules/clients"
 import { markInsightsMonthStale } from "@/db/insights-months"
 import { requireOwner } from "@/modules/identity/require-owner"
@@ -42,10 +45,7 @@ import {
   metaOf,
   bookedDurationMins,
 } from "@/shared/booking-policy"
-import {
-  BOOKING_STATUS,
-  isActiveBookingStatus,
-} from "@/shared/booking-status"
+import { BOOKING_STATUS, isActiveBookingStatus } from "@/shared/booking-status"
 import { routes, revalidatePatterns } from "@/shared/routes"
 
 /**
@@ -57,8 +57,7 @@ import { routes, revalidatePatterns } from "@/shared/routes"
  * actions re-check the role via requireOwner.
  */
 
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Admin surfaces that render a booking's manage buttons — all revalidated
     together after an owner mutation so none is left showing stale state. */
@@ -86,7 +85,9 @@ async function emailManagedBooking(
     const contact = (await fetchClientContacts([booking.client_id]))[
       booking.client_id
     ]
-    if (!contact?.email) return
+    if (!contact?.email) {
+      return
+    }
 
     const meta = metaOf(booking)
     // Emails follow the client's saved language preference.
@@ -136,12 +137,19 @@ function rescheduleWindow(
   newStart: string,
   newEnd: string,
 ): { startIso: string; endIso: string; previousStartIso: string } {
-  return { previousStartIso: booking.start_time, startIso: newStart, endIso: newEnd }
+  return {
+    previousStartIso: booking.start_time,
+    startIso: newStart,
+    endIso: newEnd,
+  }
 }
 
 type CancelResult =
   | { ok: true }
-  | { ok: false; error: "unauthorized" | "not_found" | "within_policy" | "failed" }
+  | {
+      ok: false
+      error: "unauthorized" | "not_found" | "within_policy" | "failed"
+    }
 
 /**
  * Cancel a booking in-app: ownership is proven by the RLS read + write (the
@@ -150,17 +158,24 @@ type CancelResult =
  */
 export async function cancelBooking(id: string): Promise<CancelResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
-  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!UUID.test(id)) {
+    return { ok: false, error: "not_found" }
+  }
 
   const supabase = await createAuthedSupabaseServerClient()
   const booking = await getBookingForManage(supabase, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
 
   if (booking.status === BOOKING_STATUS.cancelled) {
     // Already cancelled out-of-band — refresh the stale card that offered
     // the button.
     revalidatePath(revalidatePatterns.publicAppointments, "page")
+
     return { ok: true }
   }
   if (!canManageBooking(booking, Date.now())) {
@@ -169,7 +184,9 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
 
   // Ownership proven by the authed read above; the write needs service-role.
   const result = await cancelBookingById(createSupabaseServiceRoleClient(), id)
-  if (!result.ok) return { ok: false, error: "failed" }
+  if (!result.ok) {
+    return { ok: false, error: "failed" }
+  }
 
   await emailManagedBooking(
     id,
@@ -179,12 +196,12 @@ export async function cancelBooking(id: string): Promise<CancelResult> {
     "client",
   )
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true }
 }
 
 type OwnerCancelResult =
-  | { ok: true }
-  | { ok: false; error: "unauthorized" | "not_found" | "failed" }
+  { ok: true } | { ok: false; error: "unauthorized" | "not_found" | "failed" }
 
 /**
  * Cancel any booking on the studio's behalf. Unlike the client action there is
@@ -194,19 +211,28 @@ export async function cancelBookingAsOwner(
   id: string,
 ): Promise<OwnerCancelResult> {
   const service = await requireOwner()
-  if (!service) return { ok: false, error: "unauthorized" }
-  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+  if (!service) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!UUID.test(id)) {
+    return { ok: false, error: "not_found" }
+  }
 
   const booking = await getBookingForManage(service, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
 
   if (booking.status === BOOKING_STATUS.cancelled) {
     revalidateAdminBookingViews()
+
     return { ok: true }
   }
 
   const result = await cancelBookingById(service, id)
-  if (!result.ok) return { ok: false, error: "failed" }
+  if (!result.ok) {
+    return { ok: false, error: "failed" }
+  }
 
   await emailManagedBooking(
     id,
@@ -216,6 +242,7 @@ export async function cancelBookingAsOwner(
     "studio",
   )
   revalidateAdminBookingViews()
+
   return { ok: true }
 }
 
@@ -241,11 +268,18 @@ export async function getOwnerOverrideSlotsForBooking(
   bookingId: string,
 ): Promise<Slot[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
   const booking = await getBookingForManage(db, bookingId)
-  if (!booking) return []
+  if (!booking) {
+    return []
+  }
   const mins = bookedDurationMins(booking)
-  if (!(mins > 0)) return []
+  if (!(mins > 0)) {
+    return []
+  }
+
   return getOverrideSlotsForDuration(mins, db)
 }
 
@@ -260,18 +294,25 @@ async function resolveNewSlotEnd(
   ignoreLeadTime: boolean,
 ): Promise<string | null> {
   const startMs = new Date(newStart).getTime()
-  if (!Number.isFinite(startMs)) return null
+  if (!Number.isFinite(startMs)) {
+    return null
+  }
 
   // Validate AND size the move from the as-booked footprint, so a since-changed
   // catalog duration can't stretch an existing booking — and a booking with no
   // catalog service (a one-time offer) can still be moved.
   const bookedMins = bookedDurationMins(booking)
-  if (!(bookedMins > 0)) return null
+  if (!(bookedMins > 0)) {
+    return null
+  }
 
   const slots = await getSlotsForDuration(bookedMins, undefined, {
     ignoreLeadTime,
   })
-  if (!slots.some((s) => new Date(s.start).getTime() === startMs)) return null
+  if (!slots.some((s) => new Date(s.start).getTime() === startMs)) {
+    return null
+  }
+
   return new Date(startMs + bookedMins * 60_000).toISOString()
 }
 
@@ -285,17 +326,21 @@ function overrideRescheduleEnd(
   newStart: string,
 ): string | null {
   const startMs = new Date(newStart).getTime()
-  if (!Number.isFinite(startMs)) return null
+  if (!Number.isFinite(startMs)) {
+    return null
+  }
   const bookedMins = bookedDurationMins(booking)
-  if (!(bookedMins > 0)) return null
+  if (!(bookedMins > 0)) {
+    return null
+  }
+
   return new Date(startMs + bookedMins * 60_000).toISOString()
 }
 
 // The applied move carries the new `end` so the reschedule email + .ics get the
 // correct window without re-deriving it.
 type ApplyResult =
-  | { ok: true; end: string }
-  | { ok: false; error: "unavailable" | "failed" }
+  { ok: true; end: string } | { ok: false; error: "unavailable" | "failed" }
 
 // `writeDb` is service-role in both paths (ownership is already proven by the
 // caller's read); `ignoreLeadTime` lets the owner path reach near-term slots,
@@ -310,12 +355,18 @@ async function applyReschedule(
   const end = opts.ignoreLimits
     ? overrideRescheduleEnd(booking, newStart)
     : await resolveNewSlotEnd(booking, newStart, opts.ignoreLeadTime)
-  if (!end) return { ok: false, error: "unavailable" }
+  if (!end) {
+    return { ok: false, error: "unavailable" }
+  }
 
   const result = await rescheduleBookingById(writeDb, id, newStart, end)
   if (!result.ok) {
-    return { ok: false, error: result.reason === "overlap" ? "unavailable" : "failed" }
+    return {
+      ok: false,
+      error: result.reason === "overlap" ? "unavailable" : "failed",
+    }
   }
+
   return { ok: true, end }
 }
 
@@ -329,12 +380,18 @@ export async function rescheduleBooking(
   newStart: string,
 ): Promise<RescheduleResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "unauthorized" }
-  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+  if (!user) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!UUID.test(id)) {
+    return { ok: false, error: "not_found" }
+  }
 
   const supabase = await createAuthedSupabaseServerClient()
   const booking = await getBookingForManage(supabase, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
   if (!canManageBooking(booking, Date.now())) {
     return { ok: false, error: "within_policy" }
   }
@@ -347,7 +404,9 @@ export async function rescheduleBooking(
     newStart,
     { ignoreLeadTime: false },
   )
-  if (!applied.ok) return applied
+  if (!applied.ok) {
+    return applied
+  }
 
   await emailManagedBooking(
     id,
@@ -357,6 +416,7 @@ export async function rescheduleBooking(
     "client",
   )
   revalidatePath(revalidatePatterns.publicAppointments, "page")
+
   return { ok: true }
 }
 
@@ -370,8 +430,12 @@ export async function rescheduleBookingAsOwner(
   opts?: { ignoreLimits?: boolean },
 ): Promise<RescheduleResult> {
   const service = await requireOwner()
-  if (!service) return { ok: false, error: "unauthorized" }
-  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+  if (!service) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!UUID.test(id)) {
+    return { ok: false, error: "not_found" }
+  }
 
   const booking = await getBookingForManage(service, id)
   if (!booking || !isActiveBookingStatus(booking.status)) {
@@ -384,7 +448,9 @@ export async function rescheduleBookingAsOwner(
     ignoreLeadTime: true,
     ignoreLimits: opts?.ignoreLimits,
   })
-  if (!applied.ok) return applied
+  if (!applied.ok) {
+    return applied
+  }
 
   await emailManagedBooking(
     id,
@@ -394,6 +460,7 @@ export async function rescheduleBookingAsOwner(
     "studio",
   )
   revalidateAdminBookingViews()
+
   return { ok: true }
 }
 
@@ -402,15 +469,22 @@ export async function rescheduleBookingAsOwner(
 // email); the write is service-role, still gated by the same 24 h policy. Public
 // booking rules apply — a guest is no more privileged than the public flow.
 
-export async function cancelBookingByToken(token: string): Promise<CancelResult> {
+export async function cancelBookingByToken(
+  token: string,
+): Promise<CancelResult> {
   const id = verifyBookingToken(token)
-  if (!id) return { ok: false, error: "not_found" }
+  if (!id) {
+    return { ok: false, error: "not_found" }
+  }
 
   const service = createSupabaseServiceRoleClient()
   const booking = await getBookingForManage(service, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
   if (booking.status === BOOKING_STATUS.cancelled) {
     revalidatePath(revalidatePatterns.publicManage, "page")
+
     return { ok: true }
   }
   if (!canManageBooking(booking, Date.now())) {
@@ -418,7 +492,9 @@ export async function cancelBookingByToken(token: string): Promise<CancelResult>
   }
 
   const result = await cancelBookingById(service, id)
-  if (!result.ok) return { ok: false, error: "failed" }
+  if (!result.ok) {
+    return { ok: false, error: "failed" }
+  }
 
   await emailManagedBooking(
     id,
@@ -428,6 +504,7 @@ export async function cancelBookingByToken(token: string): Promise<CancelResult>
     "client",
   )
   revalidatePath(revalidatePatterns.publicManage, "page")
+
   return { ok: true }
 }
 
@@ -436,11 +513,15 @@ export async function rescheduleBookingByToken(
   newStart: string,
 ): Promise<RescheduleResult> {
   const id = verifyBookingToken(token)
-  if (!id) return { ok: false, error: "not_found" }
+  if (!id) {
+    return { ok: false, error: "not_found" }
+  }
 
   const service = createSupabaseServiceRoleClient()
   const booking = await getBookingForManage(service, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
   if (!canManageBooking(booking, Date.now())) {
     return { ok: false, error: "within_policy" }
   }
@@ -448,7 +529,9 @@ export async function rescheduleBookingByToken(
   const applied = await applyReschedule(service, id, booking, newStart, {
     ignoreLeadTime: false,
   })
-  if (!applied.ok) return applied
+  if (!applied.ok) {
+    return applied
+  }
 
   await emailManagedBooking(
     id,
@@ -458,6 +541,7 @@ export async function rescheduleBookingByToken(
     "client",
   )
   revalidatePath(revalidatePatterns.publicManage, "page")
+
   return { ok: true }
 }
 
@@ -475,11 +559,17 @@ export async function setBookingNoShow(
   noShow: boolean,
 ): Promise<NoShowResult> {
   const service = await requireOwner()
-  if (!service) return { ok: false, error: "unauthorized" }
-  if (!UUID.test(id)) return { ok: false, error: "not_found" }
+  if (!service) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!UUID.test(id)) {
+    return { ok: false, error: "not_found" }
+  }
 
   const booking = await getBookingForManage(service, id)
-  if (!booking) return { ok: false, error: "not_found" }
+  if (!booking) {
+    return { ok: false, error: "not_found" }
+  }
   if (noShow && !canMarkNoShow(booking, Date.now())) {
     return { ok: false, error: "ineligible" }
   }
@@ -489,7 +579,9 @@ export async function setBookingNoShow(
     id,
     noShow ? new Date().toISOString() : null,
   )
-  if (!result.ok) return { ok: false, error: "failed" }
+  if (!result.ok) {
+    return { ok: false, error: "failed" }
+  }
 
   // A no-show earns nothing (shared/insights.ts), so marking one changes that
   // month's income — and a closed month is served from a kept row that would
@@ -499,5 +591,6 @@ export async function setBookingNoShow(
 
   revalidateAdminBookingViews()
   revalidatePath(routes.admin.insights)
+
   return { ok: true }
 }

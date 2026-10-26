@@ -10,7 +10,10 @@ export async function listAllIncompatiblePairs(db: Db): Promise<AddonPair[]> {
   const { data, error } = await db
     .from("addon_incompatibilities")
     .select("addon_id_a, addon_id_b")
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return (data ?? []).map((p) => [p.addon_id_a, p.addon_id_b])
 }
 
@@ -21,13 +24,18 @@ export async function listIncompatiblePairsAmong(
   db: Db,
   addonIds: string[],
 ): Promise<AddonPair[]> {
-  if (addonIds.length < 2) return []
+  if (addonIds.length < 2) {
+    return []
+  }
   const { data, error } = await db
     .from("addon_incompatibilities")
     .select("addon_id_a, addon_id_b")
     .in("addon_id_a", addonIds)
     .in("addon_id_b", addonIds)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return (data ?? []).map((pair) => [pair.addon_id_a, pair.addon_id_b])
 }
 
@@ -38,7 +46,11 @@ export async function addIncompatiblePair(
 ): Promise<{ ok: boolean }> {
   const { error } = await db
     .from("addon_incompatibilities")
-    .upsert({ addon_id_a: a, addon_id_b: b }, { onConflict: "addon_id_a,addon_id_b" })
+    .upsert(
+      { addon_id_a: a, addon_id_b: b },
+      { onConflict: "addon_id_a,addon_id_b" },
+    )
+
   return { ok: !error }
 }
 
@@ -54,5 +66,6 @@ export async function removeIncompatiblePair(
     .or(
       `and(addon_id_a.eq.${a},addon_id_b.eq.${b}),and(addon_id_a.eq.${b},addon_id_b.eq.${a})`,
     )
+
   return { ok: !error }
 }

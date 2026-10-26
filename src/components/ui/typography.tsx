@@ -85,6 +85,7 @@ function Typography({ as, variant, className, ...props }: TypographyProps) {
   // element lookup and the generated classes.
   const resolved = variant ?? "body"
   const Comp = as ?? defaultElement[resolved]
+
   return (
     <Comp
       data-slot="typography"

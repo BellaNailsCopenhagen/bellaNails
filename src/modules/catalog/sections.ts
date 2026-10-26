@@ -24,7 +24,9 @@ export async function getServiceSections(
   db: Db = createSupabaseServerClient(),
 ): Promise<ServiceSection[]> {
   const data = await listSectionsForService(db, serviceId)
-  if (!data.length) return []
+  if (!data.length) {
+    return []
+  }
 
   const assetIds = data
     .map((row) => row.asset_id)
@@ -55,5 +57,6 @@ export async function getConsentedAssets(
   db: Db = createSupabaseServerClient(),
 ): Promise<PickableAsset[]> {
   const assets = await listWebsiteAssets(db)
+
   return assets.map((a) => ({ id: a.id, url: a.url }))
 }

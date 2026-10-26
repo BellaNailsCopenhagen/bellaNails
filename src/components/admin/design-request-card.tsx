@@ -41,7 +41,6 @@ const TOPIC_LABEL: Record<string, string> = {
   other: "Something else",
 }
 
-
 /**
  * One design request, and the whole life of its offer — draft, sent, booked.
  * The offer deliberately has no page of its own: everything the artist does
@@ -73,7 +72,10 @@ export function DesignRequestCard({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <BodySm className="text-base text-foreground">{clientName}</BodySm>
-            <Badge variant={request.topic === "repair" ? "warning" : "outline"} size="xs">
+            <Badge
+              variant={request.topic === "repair" ? "warning" : "outline"}
+              size="xs"
+            >
               {TOPIC_LABEL[request.topic] ?? request.topic}
             </Badge>
             {/* The client had the last word — this one is on her. */}
@@ -99,12 +101,20 @@ export function DesignRequestCard({
         </div>
         <div className="flex items-center gap-3">
           {contact?.email ? (
-            <a href={`mailto:${contact.email}`} aria-label="Email" title={contact.email}>
+            <a
+              href={`mailto:${contact.email}`}
+              aria-label="Email"
+              title={contact.email}
+            >
               <Mail className="size-4 text-muted-foreground hover:text-foreground" />
             </a>
           ) : null}
           {contact?.phone ? (
-            <a href={telHref(contact.phone)} aria-label="Call" title={contact.phone}>
+            <a
+              href={telHref(contact.phone)}
+              aria-label="Call"
+              title={contact.phone}
+            >
               <Phone className="size-4 text-muted-foreground hover:text-foreground" />
             </a>
           ) : null}
@@ -135,7 +145,9 @@ export function DesignRequestCard({
             <span className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground">
               {message.author === "artist" ? "You" : clientName}
             </span>
-            <p className="mt-0.5 whitespace-pre-wrap text-foreground">{message.body}</p>
+            <p className="mt-0.5 whitespace-pre-wrap text-foreground">
+              {message.body}
+            </p>
           </li>
         ))}
       </ul>
@@ -148,7 +160,11 @@ export function DesignRequestCard({
             {formatPrice(offer.priceCents, ADMIN_LOCALE)}
           </BodySm>
           <BodySm className="text-xs text-muted-foreground">
-            Holds until {formatStudioDayMonthYear(Date.parse(offer.expiresAt), ADMIN_LOCALE)}
+            Holds until{" "}
+            {formatStudioDayMonthYear(
+              Date.parse(offer.expiresAt),
+              ADMIN_LOCALE,
+            )}
           </BodySm>
           {/* Taking-away actions left, going-forward actions right, primary
               last — the three used to sit shoulder to shoulder, one tap apart. */}
@@ -186,7 +202,8 @@ export function DesignRequestCard({
         <div className="space-y-3 border-t border-border pt-3">
           {lapsed ? (
             <BodySm className="text-xs text-muted-foreground">
-              The previous offer {request.offer?.state === "used" ? "was booked" : "lapsed"}.
+              The previous offer{" "}
+              {request.offer?.state === "used" ? "was booked" : "lapsed"}.
             </BodySm>
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
@@ -245,6 +262,7 @@ export function DesignRequestCard({
                     setReply("")
                     setReplyOpen(false)
                   }
+
                   return result
                 })
               }
@@ -301,7 +319,9 @@ function OfferForm({
 
   return (
     <div className="space-y-5 pt-4">
-      <BodySm className="text-xs text-muted-foreground">For {clientName}</BodySm>
+      <BodySm className="text-xs text-muted-foreground">
+        For {clientName}
+      </BodySm>
 
       <div className="space-y-2">
         <label className="font-functional text-xs uppercase tracking-widest-lux text-muted-foreground">
@@ -400,7 +420,10 @@ function OfferForm({
               artistNote: note || undefined,
               holdDays: days,
             })
-            if (result.ok) onDone()
+            if (result.ok) {
+              onDone()
+            }
+
             return result
           })
         }
@@ -445,8 +468,11 @@ function BookOfferPicker({
 
   const confirm = async (start: string) => {
     const result = await bookOfferAsOwner({ offerId, start, ignoreLimits })
-    if (!result.ok) return { ok: false as const, error: result.error }
+    if (!result.ok) {
+      return { ok: false as const, error: result.error }
+    }
     onBooked()
+
     return { ok: true as const }
   }
 
@@ -458,7 +484,9 @@ function BookOfferPicker({
           checked={ignoreLimits}
           onChange={(e) => {
             setIgnoreLimits(e.target.checked)
-            if (e.target.checked && overrideSlots === null) loadOverride()
+            if (e.target.checked && overrideSlots === null) {
+              loadOverride()
+            }
           }}
           className="size-4"
         />

@@ -54,6 +54,7 @@ const ALLOWED: Record<string, string> = {
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = path.join(dir, entry)
+
     return statSync(full).isDirectory()
       ? walk(full)
       : full.endsWith(".ts") && !full.endsWith(".test.ts")
@@ -75,23 +76,32 @@ function exportedFunctions(source: string): { name: string; body: string }[] {
       body: next ? rest.slice(0, next.index) : rest,
     })
   }
+
   return out
 }
 
 test("every remote-callable action establishes its caller", () => {
   const files = walk("src/modules").filter((f) => {
     const s = readFileSync(f, "utf8")
+
     return s.startsWith('"use server"') && s.includes("Supabase")
   })
-  assert.ok(files.length >= 10, `expected the action surface, found ${files.length}`)
+  assert.ok(
+    files.length >= 10,
+    `expected the action surface, found ${files.length}`,
+  )
 
   const ungated: string[] = []
   for (const file of files) {
     const source = readFileSync(file, "utf8")
     for (const { name, body } of exportedFunctions(source)) {
       const key = `${path.basename(file)}:${name}`
-      if (key in ALLOWED) continue
-      if (!GATES.some((gate) => body.includes(gate))) ungated.push(key)
+      if (key in ALLOWED) {
+        continue
+      }
+      if (!GATES.some((gate) => body.includes(gate))) {
+        ungated.push(key)
+      }
     }
   }
   assert.deepEqual(
@@ -117,7 +127,13 @@ test("the helpers that skip a gate are server-only, so nothing can call them", (
     "src/modules/media/erasure.ts",
   ]) {
     const source = readFileSync(file, "utf8")
-    assert.ok(source.includes('import "server-only"'), `${file} lost server-only`)
-    assert.ok(!source.startsWith('"use server"'), `${file} became an action file`)
+    assert.ok(
+      source.includes('import "server-only"'),
+      `${file} lost server-only`,
+    )
+    assert.ok(
+      !source.startsWith('"use server"'),
+      `${file} became an action file`,
+    )
   }
 })

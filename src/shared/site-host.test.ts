@@ -30,5 +30,8 @@ test("a lookalike host does not pass", () => {
   // Why the check parses the hostname instead of calling endsWith on the URL.
   assert.equal(isIndexableOrigin("https://bellanails.dk.evil.example"), false)
   assert.equal(isIndexableOrigin("https://notbellanails.dk"), false)
-  assert.equal(isIndexableOrigin("https://evil.example/?x=bellanails.dk"), false)
+  assert.equal(
+    isIndexableOrigin("https://evil.example/?x=bellanails.dk"),
+    false,
+  )
 })

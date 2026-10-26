@@ -100,29 +100,42 @@ function toOfferView(offer: OfferRow, now: number): DesignOfferView {
 
 /** Sign every private ref in one pass; a ref that won't sign is dropped rather
     than rendered as a broken image. */
-async function signRefs(rows: DesignRefRow[]): Promise<Map<string, DesignRefView[]>> {
+async function signRefs(
+  rows: DesignRefRow[],
+): Promise<Map<string, DesignRefView[]>> {
   const byRequest = new Map<string, DesignRefView[]>()
-  if (!storageConfigured()) return byRequest
+  if (!storageConfigured()) {
+    return byRequest
+  }
 
   const signed = await Promise.all(
     rows.map(async (row) => {
       const result = await signedViewUrl(row.storage_key)
+
       return result.ok
-        ? { requestId: row.request_id, view: { id: row.id, url: result.data.url } }
+        ? {
+            requestId: row.request_id,
+            view: { id: row.id, url: result.data.url },
+          }
         : null
     }),
   )
   for (const item of signed) {
-    if (!item) continue
+    if (!item) {
+      continue
+    }
     byRequest.set(item.requestId, [
       ...(byRequest.get(item.requestId) ?? []),
       item.view,
     ])
   }
+
   return byRequest
 }
 
-function groupMessages(rows: DesignMessageRow[]): Map<string, DesignMessageView[]> {
+function groupMessages(
+  rows: DesignMessageRow[],
+): Map<string, DesignMessageView[]> {
   const byRequest = new Map<string, DesignMessageView[]>()
   for (const row of rows) {
     byRequest.set(row.request_id, [
@@ -135,6 +148,7 @@ function groupMessages(rows: DesignMessageRow[]): Map<string, DesignMessageView[
       },
     ])
   }
+
   return byRequest
 }
 
@@ -147,7 +161,12 @@ function lastActivityOf(
   row: DesignRequestRow,
   messages: DesignMessageView[],
 ): string {
-  const candidates = [row.created_at, row.last_artist_reply_at, messages.at(-1)?.createdAt]
+  const candidates = [
+    row.created_at,
+    row.last_artist_reply_at,
+    messages.at(-1)?.createdAt,
+  ]
+
   return candidates.reduce<string>(
     (latest, at) => (at && Date.parse(at) > Date.parse(latest) ? at : latest),
     row.created_at,
@@ -160,7 +179,9 @@ async function composeRequests(
   rows: DesignRequestRow[],
   now: number,
 ): Promise<DesignRequestView[]> {
-  if (!rows.length) return []
+  if (!rows.length) {
+    return []
+  }
   const ids = rows.map((r) => r.id)
   const [messages, refs, offers] = await Promise.all([
     listDesignMessagesForRequests(db, ids),
@@ -178,6 +199,7 @@ async function composeRequests(
   return rows.map((row) => {
     const offer = offerBy.get(row.id)
     const messages = messagesBy.get(row.id) ?? []
+
     return {
       id: row.id,
       clientId: row.client_id,
@@ -223,12 +245,20 @@ export type DesignQueue = {
 export async function getOpenDesignRequests(
   now: number = Date.now(),
 ): Promise<DesignQueue> {
-  const empty: DesignQueue = { needsAnswer: [], awaitingClient: [], contacts: {} }
+  const empty: DesignQueue = {
+    needsAnswer: [],
+    awaitingClient: [],
+    contacts: {},
+  }
   const db = await requireOwner()
-  if (!db) return empty
+  if (!db) {
+    return empty
+  }
   try {
     const rows = await listActionableDesignRequests(db)
-    if (!rows.length) return empty
+    if (!rows.length) {
+      return empty
+    }
     const [requests, contacts] = await Promise.all([
       composeRequests(db, rows, now),
       fetchClientContacts(rows.map((r) => r.client_id)),
@@ -236,6 +266,7 @@ export async function getOpenDesignRequests(
     const sorted = requests.sort(
       (a, b) => Date.parse(b.lastActivityAt) - Date.parse(a.lastActivityAt),
     )
+
     return {
       needsAnswer: sorted.filter(needsAnswer),
       awaitingClient: sorted.filter((r) => !needsAnswer(r)),
@@ -243,6 +274,7 @@ export async function getOpenDesignRequests(
     }
   } catch (error) {
     console.error("[design] queue load failed", errorMessage(error))
+
     return empty
   }
 }
@@ -254,7 +286,10 @@ const needsAnswer = (request: DesignRequestView): boolean =>
 /** Badge count for the command centre. */
 export async function getOpenDesignRequestCount(): Promise<number> {
   const db = await requireOwner()
-  if (!db) return 0
+  if (!db) {
+    return 0
+  }
+
   return countActionableDesignRequests(db).catch(() => 0)
 }
 
@@ -269,7 +304,9 @@ export async function getMyDesignRequests(now: number = Date.now()): Promise<{
 }> {
   const empty = { requests: [], offerTokens: {} }
   const user = await getCurrentUser()
-  if (!user) return empty
+  if (!user) {
+    return empty
+  }
   try {
     const db = await createAuthedSupabaseServerClient()
     const requests = await composeRequests(
@@ -283,9 +320,11 @@ export async function getMyDesignRequests(now: number = Date.now()): Promise<{
         offerTokens[request.offer.id] = signOfferToken(request.offer.id)
       }
     }
+
     return { requests, offerTokens }
   } catch (error) {
     console.error("[design] my requests load failed", errorMessage(error))
+
     return empty
   }
 }
@@ -314,13 +353,20 @@ export async function getOfferByToken(
   now: number = Date.now(),
 ): Promise<OfferPageData | null> {
   const offerId = verifyOfferToken(token)
-  if (!offerId) return null
+  if (!offerId) {
+    return null
+  }
 
   const db = createSupabaseServiceRoleClient()
   const offer = await getOffer(db, offerId).catch(() => null)
-  if (!offer) return null
+  if (!offer) {
+    return null
+  }
 
-  const refsBy = await signRefs(await listDesignRefsForRequests(db, [offer.request_id]))
+  const refsBy = await signRefs(
+    await listDesignRefsForRequests(db, [offer.request_id]),
+  )
+
   return {
     offerId: offer.id,
     clientId: offer.client_id,

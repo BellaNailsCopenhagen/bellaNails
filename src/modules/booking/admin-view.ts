@@ -25,11 +25,14 @@ function groupNotes(
   const map = new Map<string, NoteView[]>()
   for (const row of rows) {
     const k = key(row)
-    if (!k) continue
+    if (!k) {
+      continue
+    }
     const list = map.get(k) ?? []
     list.push(toNoteView(row))
     map.set(k, list)
   }
+
   return map
 }
 
@@ -69,6 +72,7 @@ export async function resolveAdminBookings(
         `[${context}] no-show reputation failed`,
         error instanceof Error ? error.message : error,
       )
+
       return {}
     }),
     listReleasesForBookings(supabase, bookingIds).catch(() => []),

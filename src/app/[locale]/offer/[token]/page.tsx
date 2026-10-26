@@ -23,8 +23,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "offer" })
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -45,7 +48,9 @@ export default async function OfferPage({
   params: Promise<{ locale: string; token: string }>
 }) {
   const { locale, token } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const t = await getTranslations({ locale, namespace: "offer" })
@@ -117,7 +122,10 @@ export default async function OfferPage({
 
           <BodySm className="text-xs text-muted-foreground">
             {t("holdsUntil", {
-              date: formatStudioDayMonthYear(Date.parse(offer.expiresAt), locale),
+              date: formatStudioDayMonthYear(
+                Date.parse(offer.expiresAt),
+                locale,
+              ),
             })}
           </BodySm>
         </div>

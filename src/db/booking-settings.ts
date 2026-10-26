@@ -12,5 +12,6 @@ export async function getBookingSettings(
     .select("*")
     .eq("id", true)
     .maybeSingle()
+
   return data ?? null
 }

@@ -58,6 +58,7 @@ const hex = (buffer: ArrayBuffer): string =>
 /** Hex SHA-256 — the one hash both sides compute. */
 export async function sha256Hex(value: string): Promise<string> {
   const data = new TextEncoder().encode(value)
+
   return hex(await crypto.subtle.digest("SHA-256", data))
 }
 
@@ -73,10 +74,15 @@ export async function solveHumanChallenge(
 ): Promise<number | null> {
   const ceiling = Math.min(challenge.maxNumber, HUMAN_CHECK_MAX_NUMBER)
   for (let n = 0; n <= ceiling; n += 1) {
-    if ((await sha256Hex(challenge.salt + n)) === challenge.challenge) return n
+    if ((await sha256Hex(challenge.salt + n)) === challenge.challenge) {
+      return n
+    }
     // Every 1000 tries: report progress and let the browser breathe.
-    if (onProgress && n % 1000 === 0) await onProgress(n / ceiling)
+    if (onProgress && n % 1000 === 0) {
+      await onProgress(n / ceiling)
+    }
   }
+
   return null
 }
 
@@ -89,7 +95,9 @@ export function encodeHumanProof(proof: HumanProof): string {
 export function decodeHumanProof(encoded: string): HumanProof | null {
   try {
     const parsed: unknown = JSON.parse(atob(encoded))
-    if (!parsed || typeof parsed !== "object") return null
+    if (!parsed || typeof parsed !== "object") {
+      return null
+    }
     const p = parsed as Record<string, unknown>
     if (
       typeof p.algorithm !== "string" ||
@@ -101,6 +109,7 @@ export function decodeHumanProof(encoded: string): HumanProof | null {
     ) {
       return null
     }
+
     return {
       algorithm: p.algorithm,
       challenge: p.challenge,
@@ -118,5 +127,6 @@ export function decodeHumanProof(encoded: string): HumanProof | null {
 export function expiryFromSalt(salt: string): number | null {
   const raw = new URLSearchParams(salt.split("?")[1] ?? "").get("expires")
   const ms = raw ? Number(raw) : NaN
+
   return Number.isFinite(ms) ? ms : null
 }

@@ -1,7 +1,12 @@
 import "server-only"
 
 import { STUDIO_NAME } from "@/config/studio"
-import { buttonHtml, greetOf, para, shell } from "@/modules/notifications/email-layout"
+import {
+  buttonHtml,
+  greetOf,
+  para,
+  shell,
+} from "@/modules/notifications/email-layout"
 import { mailFrom } from "@/modules/notifications/sender"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 

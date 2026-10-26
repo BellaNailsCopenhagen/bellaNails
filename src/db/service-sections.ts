@@ -23,6 +23,7 @@ export async function listSectionsForService(
     .select("id, sort_order, title_en, title_dk, body_en, body_dk, asset_id")
     .eq("service_id", serviceId)
     .order("sort_order", { ascending: true })
+
   return data ?? []
 }
 
@@ -38,6 +39,7 @@ export async function nextSortOrder(
     .order("sort_order", { ascending: false })
     .limit(1)
     .maybeSingle()
+
   return (data?.sort_order ?? -1) + 1
 }
 
@@ -58,6 +60,7 @@ export async function insertSection(
   const { error } = await db
     .from("service_sections")
     .insert({ service_id: serviceId, sort_order: sortOrder, ...fields })
+
   return { ok: !error }
 }
 
@@ -73,7 +76,10 @@ export async function updateSection(
     .eq("id", sectionId)
     .select("service_id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, serviceId: data.service_id }
 }
 
@@ -87,7 +93,10 @@ export async function deleteSection(
     .eq("id", sectionId)
     .select("service_id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, serviceId: data.service_id }
 }
 
@@ -105,6 +114,7 @@ export async function getSectionPosition(
     .select("id, service_id, sort_order")
     .eq("id", sectionId)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -132,6 +142,7 @@ export async function getAdjacentSection(
           .order("sort_order", { ascending: true })
           .limit(1)
           .maybeSingle()
+
   return data ?? null
 }
 
@@ -144,6 +155,7 @@ export async function setSectionSortOrder(
     .from("service_sections")
     .update({ sort_order: sortOrder })
     .eq("id", sectionId)
+
   return { ok: !error }
 }
 
@@ -159,6 +171,9 @@ export async function countSectionsUsingAsset(
     .from("service_sections")
     .select("id", { count: "exact", head: true })
     .eq("asset_id", assetId)
-  if (error) throw new Error(`Failed to count sections: ${error.message}`)
+  if (error) {
+    throw new Error(`Failed to count sections: ${error.message}`)
+  }
+
   return count ?? 0
 }

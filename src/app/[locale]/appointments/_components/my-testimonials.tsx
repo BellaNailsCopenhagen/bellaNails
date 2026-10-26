@@ -10,7 +10,9 @@ import type { MyTestimonial } from "@/modules/testimonials"
     that is the unit permission was given in. */
 export async function MyTestimonials({ items }: { items: MyTestimonial[] }) {
   const t = await getTranslations("testimonialForm")
-  if (!items.length) return null
+  if (!items.length) {
+    return null
+  }
 
   return (
     <section className="space-y-6">

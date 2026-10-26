@@ -29,6 +29,7 @@ export function DownloadMyDataButton() {
         a.remove()
         URL.revokeObjectURL(url)
       }
+
       return res
     })
 

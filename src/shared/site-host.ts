@@ -25,6 +25,7 @@ export const PRODUCTION_HOST = "bellanails.dk"
 export function isIndexableOrigin(url: string): boolean {
   try {
     const { hostname } = new URL(url)
+
     return hostname === PRODUCTION_HOST || hostname === `www.${PRODUCTION_HOST}`
   } catch {
     return false

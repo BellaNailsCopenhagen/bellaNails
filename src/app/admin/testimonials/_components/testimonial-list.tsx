@@ -114,7 +114,10 @@ function WrittenCard({
   const closedNote = CLOSED_NOTE[item.state]
 
   return (
-    <TintedCard id={`testimonial-${item.id}`} className="scroll-mt-24 space-y-3">
+    <TintedCard
+      id={`testimonial-${item.id}`}
+      className="scroll-mt-24 space-y-3"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-0.5">
           <BodySm className="text-base text-foreground">
@@ -145,7 +148,9 @@ function WrittenCard({
 
       <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3">
         {closedNote ? (
-          <BodySm className="text-xs text-muted-foreground">{closedNote}</BodySm>
+          <BodySm className="text-xs text-muted-foreground">
+            {closedNote}
+          </BodySm>
         ) : (
           <>
             <label className="flex items-center gap-2">

@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache"
 
-import { getBusinessProfileRow, upsertBusinessProfile } from "@/db/business-profile"
+import {
+  getBusinessProfileRow,
+  upsertBusinessProfile,
+} from "@/db/business-profile"
 import type { Db } from "@/db/client"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
@@ -21,16 +24,16 @@ export type ProfileResult = { ok: true } | { ok: false; error: string }
  * two of these become an email envelope and three become links on a public
  * page, so the form is convenience, not the boundary.
  */
-export async function saveBusinessProfile(
-  input: BusinessProfileInput,
-): Promise<
+export async function saveBusinessProfile(input: BusinessProfileInput): Promise<
   /** `saved` is what was STORED — a handle comes back as a full URL, so the
       form can show her what it actually did rather than what she typed. */
   | { ok: true; note: string; saved: BusinessProfileInput }
   | { ok: false; error: string }
 > {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // Empty clears the field, which means "fall back to the built-in address" —
   // so only a NON-empty value has to look like an address.
@@ -63,6 +66,7 @@ export async function saveBusinessProfile(
     // upsert, so a single column the database is missing fails the whole form —
     // and "Couldn't save that" on an address change tells nobody that.
     console.error("[business] profile save failed:", saved.message)
+
     return { ok: false, error: "Couldn’t save that." }
   }
 
@@ -70,6 +74,7 @@ export async function saveBusinessProfile(
   // The footer is in the public layout, so this is the whole prerendered site —
   // /services and the rest carry the address too, not just the home page.
   revalidatePublicShell()
+
   return {
     ok: true,
     // `note` is what makes useActionRunner toast — without it a save that
@@ -113,7 +118,9 @@ async function swapProfileAsset(
   failure: string,
 ): Promise<ProfileResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
   // Confines this to the owner's own upload area — a crafted key must not be
   // able to nominate an arbitrary object for publication.
   if (!privateKey.startsWith(PRIVATE_PREFIX)) {
@@ -128,14 +135,18 @@ async function swapProfileAsset(
   if (!published.ok) {
     // The staging upload is ours and now useless.
     await cleanUp([privateKey])
+
     return { ok: false, error: failure }
   }
 
-  const saved = await upsertBusinessProfile(db, { [column]: published.data.key })
+  const saved = await upsertBusinessProfile(db, {
+    [column]: published.data.key,
+  })
   if (!saved.ok) {
     // The row still points at the old one, so the copy just published is an
     // orphan — and a publicly readable one. Take both staging objects with it.
     await cleanUp([published.data.key, privateKey])
+
     return { ok: false, error: failure }
   }
 
@@ -144,6 +155,7 @@ async function swapProfileAsset(
   await cleanUp([privateKey, previous])
 
   revalidateProfile()
+
   return { ok: true }
 }
 
@@ -152,14 +164,19 @@ async function clearProfileAsset(
   column: "map_image_key" | "hero_asset_key",
 ): Promise<ProfileResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const previous = await previousKey(db, column)
   const saved = await upsertBusinessProfile(db, { [column]: null })
-  if (!saved.ok) return { ok: false, error: "Couldn’t remove it." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t remove it." }
+  }
 
   await cleanUp([previous])
   revalidateProfile()
+
   return { ok: true }
 }
 
@@ -167,7 +184,11 @@ async function clearProfileAsset(
 export async function setBusinessMapImage(
   privateKey: string,
 ): Promise<ProfileResult> {
-  return swapProfileAsset("map_image_key", privateKey, "Couldn’t save the picture.")
+  return swapProfileAsset(
+    "map_image_key",
+    privateKey,
+    "Couldn’t save the picture.",
+  )
 }
 
 /** Remove the uploaded picture and fall back to the shipped illustration. */
@@ -186,7 +207,11 @@ export async function clearBusinessMapImage(): Promise<ProfileResult> {
 export async function setHeroBackground(
   privateKey: string,
 ): Promise<ProfileResult> {
-  return swapProfileAsset("hero_asset_key", privateKey, "Couldn’t save the background.")
+  return swapProfileAsset(
+    "hero_asset_key",
+    privateKey,
+    "Couldn’t save the background.",
+  )
 }
 
 /** Remove it and fall back to the photo shipped with the app. */
@@ -212,6 +237,7 @@ async function previousKey(
       `[business] couldn't read the current ${column} — the object it points at will be stranded:`,
       error instanceof Error ? error.message : error,
     )
+
     return null
   }
 }
@@ -221,7 +247,9 @@ async function previousKey(
     buckets have no sweep, so this is the only record. */
 async function cleanUp(keys: (string | null | undefined)[]): Promise<void> {
   for (const key of keys) {
-    if (!key) continue
+    if (!key) {
+      continue
+    }
     const removed = await deleteObject(key)
     if (!removed.ok) {
       console.error("[business] orphaned profile object", key, removed.error)

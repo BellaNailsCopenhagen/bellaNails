@@ -40,7 +40,9 @@ export function FilterPill({
           : "border-border text-muted-foreground hover:text-foreground",
       )}
     >
-      <Icon className={cn("size-3.5", active && fillWhenActive && "fill-current")} />
+      <Icon
+        className={cn("size-3.5", active && fillWhenActive && "fill-current")}
+      />
       {children}
     </button>
   )

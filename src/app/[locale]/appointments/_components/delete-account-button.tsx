@@ -22,6 +22,7 @@ export function DeleteAccountButton() {
           await signOut()
           window.location.assign("/")
         }
+
         return result
       }}
       trigger={

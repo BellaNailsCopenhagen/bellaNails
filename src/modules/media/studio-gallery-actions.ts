@@ -42,8 +42,12 @@ export async function addGalleryItem(input: {
   slot: number | null
 }): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
-  if (!input.assetId) return { ok: false, error: "Upload an image first." }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!input.assetId) {
+    return { ok: false, error: "Upload an image first." }
+  }
   if (input.slot !== null && !isGallerySlot(input.slot)) {
     return { ok: false, error: "That isn’t a home-page position." }
   }
@@ -68,13 +72,17 @@ export async function addGalleryItem(input: {
     // Put the displaced image back — it lost its position for an add that never
     // happened, and nothing else would ever restore it.
     if (displaced?.displacedId && input.slot !== null) {
-      await updateGalleryItem(db, displaced.displacedId, { sort_order: input.slot })
+      await updateGalleryItem(db, displaced.displacedId, {
+        sort_order: input.slot,
+      })
     }
+
     return { ok: false, error: "Couldn’t add it." }
   }
 
   revalidatePath(routes.admin.gallery)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -91,8 +99,13 @@ export async function discardStudioAsset(
   assetId: string,
 ): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
-  if (assetId) await retireAssetIfUnused(db, assetId)
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (assetId) {
+    await retireAssetIfUnused(db, assetId)
+  }
+
   return { ok: true }
 }
 
@@ -101,7 +114,9 @@ export async function setGalleryItemSlot(
   slot: number | null,
 ): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
   if (slot !== null && !isGallerySlot(slot)) {
     return { ok: false, error: "That isn’t a home-page position." }
   }
@@ -118,11 +133,13 @@ export async function setGalleryItemSlot(
     if (displaced?.displacedId && slot !== null) {
       await updateGalleryItem(db, displaced.displacedId, { sort_order: slot })
     }
+
     return { ok: false, error: "Couldn’t move it." }
   }
 
   revalidatePath(routes.admin.gallery)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -132,16 +149,21 @@ export async function renameGalleryItem(
   titleDa: string,
 ): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await updateGalleryItem(db, id, {
     title_en: titleEn.trim() || null,
     title_dk: titleDa.trim() || null,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the caption." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the caption." }
+  }
 
   revalidatePath(routes.admin.gallery)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -153,18 +175,25 @@ export async function replaceGalleryImage(
   assetId: string,
 ): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
-  if (!assetId) return { ok: false, error: "Upload an image first." }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!assetId) {
+    return { ok: false, error: "Upload an image first." }
+  }
 
   const previous = await getGalleryItemAsset(db, id)
   const saved = await updateGalleryItem(db, id, { primary_asset_id: assetId })
-  if (!saved.ok) return { ok: false, error: "Couldn’t replace it." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t replace it." }
+  }
   if (previous && previous !== assetId) {
     await retireAssetIfUnused(db, previous)
   }
 
   revalidatePath(routes.admin.gallery)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -180,17 +209,24 @@ export async function removeGalleryItem(
   id: string,
 ): Promise<GalleryAdminResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const assetId = await getGalleryItemAsset(db, id)
   const removed = await deleteGalleryItem(db, id)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove it." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove it." }
+  }
 
   // The row is gone, so the item no longer holds the asset — retire asks the
   // other tables and deletes the file only if nothing else shows it.
-  if (assetId) await retireAssetIfUnused(db, assetId)
+  if (assetId) {
+    await retireAssetIfUnused(db, assetId)
+  }
 
   revalidatePath(routes.admin.gallery)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }

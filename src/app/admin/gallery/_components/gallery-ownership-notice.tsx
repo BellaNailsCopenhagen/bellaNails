@@ -20,10 +20,10 @@ export function GalleryOwnershipNotice() {
         These images are yours to stand behind
       </p>
       <BodySm className="max-w-prose text-xs text-muted-foreground">
-        Nothing here is covered by the permission flow the rest of the site uses.
-        There is no client, no appointment and no consent recorded against these
-        pictures — so if one is ever questioned, the answer rests on you, not on
-        anything the app can show.
+        Nothing here is covered by the permission flow the rest of the site
+        uses. There is no client, no appointment and no consent recorded against
+        these pictures — so if one is ever questioned, the answer rests on you,
+        not on anything the app can show.
       </BodySm>
       <ul className="ml-4 list-disc space-y-1 font-functional text-xs text-muted-foreground">
         <li>
@@ -31,8 +31,8 @@ export function GalleryOwnershipNotice() {
           to. A picture found online is not yours to publish.
         </li>
         <li>
-          If a person can be recognised — a face, a tattoo, a piece of jewellery —
-          you need their permission, and this page does not record it.
+          If a person can be recognised — a face, a tattoo, a piece of jewellery
+          — you need their permission, and this page does not record it.
         </li>
         <li>
           <strong className="font-medium text-foreground">

@@ -9,7 +9,10 @@ const token = signedToken("offer")
 export const signOfferToken = token.sign
 export const verifyOfferToken = token.verify
 
-export function offerUrlFor(locale: string, offerId: string): string | undefined {
+export function offerUrlFor(
+  locale: string,
+  offerId: string,
+): string | undefined {
   try {
     return tokenUrl(`/${locale}${offerPath(token.sign(offerId))}`)
   } catch {

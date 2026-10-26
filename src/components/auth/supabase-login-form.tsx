@@ -26,10 +26,17 @@ function messageOf(error: unknown, fallback: string): string {
     message?: unknown
     status?: unknown
   }
-  if (typeof status === "number" && status >= 500) return fallback
-  if (typeof message !== "string") return fallback
+  if (typeof status === "number" && status >= 500) {
+    return fallback
+  }
+  if (typeof message !== "string") {
+    return fallback
+  }
   const text = message.trim()
-  if (!text || text.startsWith("{") || text.startsWith("[")) return fallback
+  if (!text || text.startsWith("{") || text.startsWith("[")) {
+    return fallback
+  }
+
   return text
 }
 
@@ -46,14 +53,18 @@ async function attempt(
 ): Promise<string | null> {
   try {
     const { error } = await run()
-    if (!error) return null
+    if (!error) {
+      return null
+    }
     // AuthRetryableFetchError carries an empty message and logs as "{}" — the
     // name + HTTP status are the only parts that say what actually happened.
     const { name, status } = error as { name?: string; status?: number }
     console.error("[login]", fallback, { name, status, error })
+
     return messageOf(error, fallback)
   } catch (thrown) {
     console.error("[login] auth call threw", thrown)
+
     return fallback
   }
 }
@@ -99,13 +110,13 @@ export function SupabaseLoginForm({
   const send = async () => {
     setPending(true)
     setError(null)
-    const failure = await attempt(
-      () => sendEmailOtp(email),
-      t("sendFailed"),
-    )
+    const failure = await attempt(() => sendEmailOtp(email), t("sendFailed"))
     setPending(false)
-    if (failure) setError(failure)
-    else setStep("otp")
+    if (failure) {
+      setError(failure)
+    } else {
+      setStep("otp")
+    }
   }
 
   const verify = async () => {

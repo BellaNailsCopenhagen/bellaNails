@@ -41,6 +41,7 @@ function rangesForWeekday(schedule: Schedule, weekday: number): TimeRange[] {
   const off = unionRanges(
     recurring.filter((r) => r.kind === "no_work").map((r) => [r.start, r.end]),
   )
+
   return off.length ? subtractRanges(standard, off) : standard
 }
 
@@ -92,8 +93,13 @@ export function upcomingExceptions(
       continue
     }
     const actual = dayRanges(schedule, dayNumber, "standard").ranges
-    const usual = rangesForWeekday(schedule, weekdayIndexForDayNumber(dayNumber))
-    if (sameRanges(actual, usual)) continue
+    const usual = rangesForWeekday(
+      schedule,
+      weekdayIndexForDayNumber(dayNumber),
+    )
+    if (sameRanges(actual, usual)) {
+      continue
+    }
 
     exceptions.push({
       onDate: isoForDayNumber(dayNumber),
@@ -101,12 +107,15 @@ export function upcomingExceptions(
       ranges: actual,
       // Her note, from whichever dated rule carries one.
       label:
-        schedule.find(
-          (rule) =>
-            rule.onDate === isoForDayNumber(dayNumber) && rule.label?.trim(),
-        )?.label?.trim() ?? null,
+        schedule
+          .find(
+            (rule) =>
+              rule.onDate === isoForDayNumber(dayNumber) && rule.label?.trim(),
+          )
+          ?.label?.trim() ?? null,
     })
   }
+
   return exceptions
 }
 

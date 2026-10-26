@@ -22,9 +22,12 @@ export function useActionRunner(fallbackError = "Something went wrong.") {
         const result = await action()
         if (!result.ok) {
           toast.error(result.error || fallbackError)
+
           return
         }
-        if (result.note) toast.success(result.note)
+        if (result.note) {
+          toast.success(result.note)
+        }
         router.refresh()
       } catch {
         toast.error(fallbackError)

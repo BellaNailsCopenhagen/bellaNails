@@ -4,7 +4,10 @@ import { test } from "node:test"
 import { safeInternalPath } from "./safe-next"
 
 test("keeps an internal path, query and all", () => {
-  assert.equal(safeInternalPath("/da/book?service=abc&step=confirm", "/da"), "/da/book?service=abc&step=confirm")
+  assert.equal(
+    safeInternalPath("/da/book?service=abc&step=confirm", "/da"),
+    "/da/book?service=abc&step=confirm",
+  )
 })
 
 test("rejects the escapes a startsWith('//') guard misses", () => {

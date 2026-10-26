@@ -24,6 +24,7 @@ export async function mailFrom(
   const profile = await getBusinessProfile()
   const chosen =
     kind === "booking" ? profile.bookingFromEmail : profile.contactEmail
+
   return {
     // The envelope — unlike the displayed address — may fall back to the SMTP
     // account, because an unsendable `from` fails the whole message.

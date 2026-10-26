@@ -45,6 +45,7 @@ export function CloseRequestButton({
         setReason("")
         setOpen(false)
       }
+
       return result
     })
 
@@ -52,7 +53,9 @@ export function CloseRequestButton({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger

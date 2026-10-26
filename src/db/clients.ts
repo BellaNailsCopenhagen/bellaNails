@@ -25,11 +25,16 @@ export async function listClientContacts(
   db: Db,
   ids: string[],
 ): Promise<ClientContactRow[]> {
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("clients")
-    .select("id, name, email, phone, auth_user_id, anonymized_at, communication_locale")
+    .select(
+      "id, name, email, phone, auth_user_id, anonymized_at, communication_locale",
+    )
     .in("id", ids)
+
   return data ?? []
 }
 
@@ -43,6 +48,7 @@ export async function getClientProfile(
     .select("name, phone, email")
     .eq("id", clientId)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -56,6 +62,7 @@ export async function findClientByAuthUser(
     .select("id, name, phone")
     .eq("auth_user_id", authUserId)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -69,6 +76,7 @@ export async function findClientIdByAuthUser(
     .select("id")
     .eq("auth_user_id", authUserId)
     .maybeSingle()
+
   return data?.id ?? null
 }
 
@@ -81,6 +89,7 @@ export async function findClientByEmail(
     .select("id, name, phone")
     .eq("email", email)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -93,6 +102,7 @@ export async function findClientIdByEmail(
     .select("id")
     .eq("email", email)
     .maybeSingle()
+
   return data?.id ?? null
 }
 
@@ -101,7 +111,10 @@ export async function getClientErasureState(
   db: Db,
   clientId: string,
 ): Promise<
-  | { ok: true; row: Pick<Row<"clients">, "id" | "auth_user_id" | "anonymized_at"> | null }
+  | {
+      ok: true
+      row: Pick<Row<"clients">, "id" | "auth_user_id" | "anonymized_at"> | null
+    }
   | { ok: false; message: string }
 > {
   const { data, error } = await db
@@ -109,7 +122,10 @@ export async function getClientErasureState(
     .select("id, auth_user_id, anonymized_at")
     .eq("id", clientId)
     .maybeSingle()
-  if (error) return { ok: false, message: error.message }
+  if (error) {
+    return { ok: false, message: error.message }
+  }
+
   return { ok: true, row: data ?? null }
 }
 
@@ -126,8 +142,10 @@ export async function insertClient(
     .single()
   // Return the PG error code (no PII) so callers can log it without the message,
   // which can echo the email on a unique-violation (Key (email)=(…)).
-  if (error || !data)
+  if (error || !data) {
     return { ok: false, message: error?.message ?? "no row", code: error?.code }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -137,6 +155,7 @@ export async function updateClientContact(
   patch: { name?: string; phone?: string },
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("clients").update(patch).eq("id", clientId)
+
   return { ok: !error }
 }
 
@@ -151,6 +170,7 @@ export async function updateClientCommunicationLocale(
     .from("clients")
     .update({ communication_locale: locale })
     .eq("id", clientId)
+
   return { ok: !error }
 }
 
@@ -164,6 +184,7 @@ export async function updateClientProfile(
     .from("clients")
     .update({ ...values, updated_at: new Date().toISOString() })
     .eq("id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -183,5 +204,6 @@ export async function anonymizeClientRow(
       anonymized_at: new Date().toISOString(),
     })
     .eq("id", clientId)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

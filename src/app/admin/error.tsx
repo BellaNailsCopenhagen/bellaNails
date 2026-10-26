@@ -9,7 +9,12 @@ import { ErrorState } from "@/components/ui/error-state"
  * app-root global-error and loses the shell. This renders inside AdminShell,
  * so the header + tab bar stay put while a single screen recovers.
  */
-export default function AdminError({ reset }: { error: Error; reset: () => void }) {
+export default function AdminError({
+  reset,
+}: {
+  error: Error
+  reset: () => void
+}) {
   return (
     <div className="py-8">
       <ErrorState

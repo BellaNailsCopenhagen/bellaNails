@@ -55,9 +55,7 @@ const fits = (
  * real caller overrode with a `requireOwner()` one — so the default was gated
  * in practice and a bypass waiting for the first caller who forgot.
  */
-export async function getScheduleSnapshot(
-  db: Db,
-): Promise<ScheduleSnapshot> {
+export async function getScheduleSnapshot(db: Db): Promise<ScheduleSnapshot> {
   return { schedule: await getSchedule(db) }
 }
 
@@ -77,7 +75,9 @@ export async function getScheduleConflicts(
     getScheduleSnapshot(db),
     listActiveBookingsFrom(db, new Date().toISOString()).catch(() => []),
   ])
-  if (!bookings.length) return []
+  if (!bookings.length) {
+    return []
+  }
 
   const flagged: {
     bookingId: string
@@ -100,6 +100,7 @@ export async function getScheduleConflicts(
       v = standardDay(schedule, day)
       cache.set(day, v)
     }
+
     return v
   }
 
@@ -112,8 +113,17 @@ export async function getScheduleConflicts(
     // (it was already an intentional out-of-hours booking). Only the ones this
     // edit newly pushed out of bounds are conflicts.
     const afterStd = dayStd(afterCache, after.schedule, day)
-    if (fits(afterStd.effective, startMs, endMs, day)) continue
-    if (!fits(dayStd(beforeCache, before.schedule, day).effective, startMs, endMs, day)) {
+    if (fits(afterStd.effective, startMs, endMs, day)) {
+      continue
+    }
+    if (
+      !fits(
+        dayStd(beforeCache, before.schedule, day).effective,
+        startMs,
+        endMs,
+        day,
+      )
+    ) {
       continue
     }
 
@@ -134,11 +144,14 @@ export async function getScheduleConflicts(
       reason,
     })
   }
-  if (!flagged.length) return []
+  if (!flagged.length) {
+    return []
+  }
 
-  const contacts = await fetchClientContacts(flagged.map((f) => f.clientId)).catch(
-    (): Record<string, ClientContact> => ({}),
-  )
+  const contacts = await fetchClientContacts(
+    flagged.map((f) => f.clientId),
+  ).catch((): Record<string, ClientContact> => ({}))
+
   return flagged.map((f) => ({
     bookingId: f.bookingId,
     start: f.start,

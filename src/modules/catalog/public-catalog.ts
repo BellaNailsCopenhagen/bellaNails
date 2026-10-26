@@ -44,6 +44,7 @@ export async function getServiceMenu(
   db: Db = createSupabaseServerClient(),
 ): Promise<MenuCategory[]> {
   const categories = await listMenuCategories(db)
+
   return categories.filter((category) => category.services.length > 0)
 }
 
@@ -63,7 +64,10 @@ export async function getPublicService(
   db: Db = createSupabaseServerClient(),
 ): Promise<PublicService | null> {
   const data = await getPublicServiceRow(db, id)
-  if (!data) return null
+  if (!data) {
+    return null
+  }
+
   return {
     id: data.id,
     nameEn: data.name_en,
@@ -103,10 +107,14 @@ export async function getServiceWithAddons(
   serviceId: string,
   db: Db = createSupabaseServerClient(),
 ): Promise<ServiceWithAddons | null> {
-  if (!UUID_PATTERN.test(serviceId)) return null
+  if (!UUID_PATTERN.test(serviceId)) {
+    return null
+  }
 
   const data = await getBookableService(db, serviceId)
-  if (!data) return null
+  if (!data) {
+    return null
+  }
 
   // Sort by price here — nested order isn't available through the double embed.
   const { service_addons, ...service } = data

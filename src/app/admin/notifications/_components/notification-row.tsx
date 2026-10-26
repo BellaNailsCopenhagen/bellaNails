@@ -29,44 +29,49 @@ const PURPOSE_LABEL: Record<string, string> = {
 
 /** What happened, and what it wants — one entry per kind so a booking request
     can never inherit the consent-withdrawal copy. `warn` = act by hand. */
-const COPY: Record<
-  string,
-  { line: string; helper?: string; warn?: boolean }
-> = {
-  shared_image_deleted: {
-    line: "deleted a photo they had shared",
-    helper: "Fully removed — check any showcases or social posts that used it.",
-    warn: true,
-  },
-  booking_request: {
-    line: "sent a booking request",
-    helper: "Awaiting your review — approve or decline it.",
-  },
-  design_request: {
-    line: "wrote in about a design",
-    helper: "Waiting on you — read it and make an offer.",
-  },
-  design_reply: {
-    line: "wrote back on a design",
-    helper: "Waiting on you — read it and answer.",
-  },
-  testimonial_submitted: {
-    line: "wrote you a few words",
-    helper: "Read it, and switch it on if you'd like it on the home page.",
-  },
-  media_consent_offered: {
-    line: "offered a set you hadn't asked about",
-    helper: "Permission is granted — pick the shots and place them in the hub.",
-  },
-  media_consent_restored: {
-    line: "allowed publishing again",
-    // Withdrawal deleted the public copy, so permission alone changes nothing
-    // on the site until it is placed again.
-    helper: "You can publish from this appointment again — re-place it in the hub.",
-  },
-}
+const COPY: Record<string, { line: string; helper?: string; warn?: boolean }> =
+  {
+    shared_image_deleted: {
+      line: "deleted a photo they had shared",
+      helper:
+        "Fully removed — check any showcases or social posts that used it.",
+      warn: true,
+    },
+    booking_request: {
+      line: "sent a booking request",
+      helper: "Awaiting your review — approve or decline it.",
+    },
+    design_request: {
+      line: "wrote in about a design",
+      helper: "Waiting on you — read it and make an offer.",
+    },
+    design_reply: {
+      line: "wrote back on a design",
+      helper: "Waiting on you — read it and answer.",
+    },
+    testimonial_submitted: {
+      line: "wrote you a few words",
+      helper: "Read it, and switch it on if you'd like it on the home page.",
+    },
+    media_consent_offered: {
+      line: "offered a set you hadn't asked about",
+      helper:
+        "Permission is granted — pick the shots and place them in the hub.",
+    },
+    media_consent_restored: {
+      line: "allowed publishing again",
+      // Withdrawal deleted the public copy, so permission alone changes nothing
+      // on the site until it is placed again.
+      helper:
+        "You can publish from this appointment again — re-place it in the hub.",
+    },
+  }
 
-function copyFor(n: OwnerNotification): { line: string; helper?: string; warn?: boolean } {
+function copyFor(n: OwnerNotification): {
+  line: string
+  helper?: string
+  warn?: boolean
+} {
   // The two consent kinds read their purpose out of the row, so they can't be
   // plain table entries.
   const where = PURPOSE_LABEL[n.purpose ?? ""] ?? "publishing"
@@ -74,7 +79,8 @@ function copyFor(n: OwnerNotification): { line: string; helper?: string; warn?: 
     return n.purpose === "social"
       ? {
           line: `withdrew ${where} permission for a photo`,
-          helper: "Remove it from your social posts — the website copy is already gone.",
+          helper:
+            "Remove it from your social posts — the website copy is already gone.",
           warn: true,
         }
       : {
@@ -96,6 +102,7 @@ function copyFor(n: OwnerNotification): { line: string; helper?: string; warn?: 
   if (n.kind === "media_consent_offered") {
     return { ...COPY.media_consent_offered, line: `offered you ${where}` }
   }
+
   return COPY[n.kind] ?? { line: "sent an update" }
 }
 
@@ -126,6 +133,7 @@ function hrefFor(n: OwnerNotification): string {
     return routes.admin.assetHighlight(n.clientMediaId)
   }
   const focused = n.targetId ? FOCUS[n.kind]?.(n.targetId) : undefined
+
   return focused ?? FALLBACK[n.kind] ?? routes.admin.client(n.clientId)
 }
 
@@ -163,7 +171,9 @@ export function NotificationRow({
   // Read-then-navigate, so the badge is already right when the page it opens
   // renders. An unread that won't mark still opens — the alert is the point.
   const open = (e: React.MouseEvent) => {
-    if (opensElsewhere(e) || !unread) return
+    if (opensElsewhere(e) || !unread) {
+      return
+    }
     e.preventDefault()
     startNavigation(async () => {
       await setNotificationRead(n.id, true).catch(() => null)
@@ -191,7 +201,10 @@ export function NotificationRow({
           </BodySm>
         ) : null}
         <p className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-          {formatStudioDayMonthYear(new Date(n.createdAt).getTime(), ADMIN_LOCALE)}
+          {formatStudioDayMonthYear(
+            new Date(n.createdAt).getTime(),
+            ADMIN_LOCALE,
+          )}
         </p>
       </Link>
 

@@ -6,12 +6,8 @@ import { getBusinessProfile } from "@/modules/business/profile"
 import { BookingsContent } from "@/app/[locale]/appointments/_components/bookings-content"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { BodySm } from "@/components/ui/typography"
-import {
-  getMyBookings,
-} from "@/modules/booking"
-import {
-  type DisplayBooking,
-} from "@/shared/booking-view"
+import { getMyBookings } from "@/modules/booking"
+import { type DisplayBooking } from "@/shared/booking-view"
 import { isActiveBookingStatus } from "@/shared/booking-status"
 import type { ClientMediaItem } from "@/modules/media/client-gallery"
 
@@ -43,7 +39,9 @@ export async function MyBookings({
   // The client's own photos, grouped by booking (passed from the page).
   const photosByBooking: Record<string, ClientMediaItem[]> = {}
   for (const item of media) {
-    if (!item.bookingId) continue
+    if (!item.bookingId) {
+      continue
+    }
     ;(photosByBooking[item.bookingId] ??= []).push(item)
   }
 

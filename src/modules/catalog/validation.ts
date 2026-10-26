@@ -11,7 +11,10 @@ import { listActiveServiceNames, type CatalogName } from "@/db/services"
     a free ADD-ON is ordinary (a bundled extra at no charge), which is why its
     duration may be zero too. See `serviceCents` for the service rule. */
 export function krToCents(kr: number): number | null {
-  if (!Number.isFinite(kr) || kr < 0) return null
+  if (!Number.isFinite(kr) || kr < 0) {
+    return null
+  }
+
   return Math.round(kr * 100)
 }
 
@@ -30,6 +33,7 @@ export function krToCents(kr: number): number | null {
  */
 export function serviceCents(kr: number): number | null {
   const cents = krToCents(kr)
+
   return cents !== null && cents > 0 ? cents : null
 }
 
@@ -54,6 +58,7 @@ export async function nameTaken(
 ): Promise<boolean> {
   const rows: CatalogName[] = await NAME_READERS[table](db)
   const wanted = new Set([nameEn.toLowerCase(), nameDk.toLowerCase()])
+
   return rows.some(
     (r) =>
       r.id !== excludeId &&

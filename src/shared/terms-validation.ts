@@ -48,7 +48,9 @@ export function termsProblem(input: TermsFields): TermsProblem | null {
   }
   for (const field of ["bodyEn", "bodyDk"] as const) {
     const body = input[field].trim()
-    if (!body) return { field, message: `The ${LABEL[field]} is empty.` }
+    if (!body) {
+      return { field, message: `The ${LABEL[field]} is empty.` }
+    }
     if (body.length < TERMS_MIN_BODY) {
       return {
         field,
@@ -56,6 +58,7 @@ export function termsProblem(input: TermsFields): TermsProblem | null {
       }
     }
   }
+
   return null
 }
 

@@ -8,7 +8,10 @@ import { toNoteView, type NoteView } from "@/shared/notes"
     Owner-gated; degrades to []. */
 export async function getClientNotes(clientId: string): Promise<NoteView[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
   const rows = await listClientLevelNotes(db, [clientId]).catch(() => [])
+
   return rows.map(toNoteView)
 }

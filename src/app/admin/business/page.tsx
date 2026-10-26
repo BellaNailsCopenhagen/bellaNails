@@ -29,8 +29,8 @@ export default async function AdminBusinessPage() {
         <Eyebrow>Studio</Eyebrow>
         <H2>Business</H2>
         <BodySm className="text-xs">
-          Your address, your email addresses and your social accounts. These show
-          on the website and in the emails clients receive.
+          Your address, your email addresses and your social accounts. These
+          show on the website and in the emails clients receive.
         </BodySm>
       </div>
 

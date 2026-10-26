@@ -1,8 +1,5 @@
 import type { Db } from "@/db/client"
-import {
-  getFeatureFlagEnabled,
-  listEnabledFlags,
-} from "@/db/feature-flags"
+import { getFeatureFlagEnabled, listEnabledFlags } from "@/db/feature-flags"
 import { listScheduleRules, type ScheduleRuleRow } from "@/db/schedule-rules"
 import { createSupabaseServerClient } from "@/platform/supabase/server"
 import {
@@ -36,8 +33,10 @@ export async function getSchedule(
       "[schedule] read failed",
       error instanceof Error ? error.message : error,
     )
+
     return []
   })
+
   return rows.map(toRule)
 }
 
@@ -50,6 +49,7 @@ export async function getFeatureFlags(
   const enabled = await listEnabledFlags(db).catch(
     (): Record<string, boolean> => ({}),
   )
+
   return FEATURE_FLAG_DEFS.map((def) => ({
     ...def,
     enabled: enabled[def.key] ?? false,

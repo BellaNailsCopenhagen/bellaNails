@@ -5,10 +5,7 @@ import { STUDIO_NAME } from "@/config/studio"
 import { mailFrom } from "@/modules/notifications/sender"
 import { sendEmail, type EmailResult } from "@/platform/email/client"
 import { esc, FONT } from "@/modules/notifications/email-layout"
-import {
-  pickReleaseCopy,
-  type ReleasePurpose,
-} from "@/shared/media-release"
+import { pickReleaseCopy, type ReleasePurpose } from "@/shared/media-release"
 
 /**
  * The media-release request email — asks the client to approve using their
@@ -27,8 +24,6 @@ export type ReleaseEmailDetail = {
   approveUrl: string
 }
 
-
-
 export async function sendMediaReleaseRequestEmail(
   d: ReleaseEmailDetail,
 ): Promise<EmailResult> {
@@ -44,10 +39,15 @@ export async function sendMediaReleaseRequestEmail(
         : "Hej,"
     const cta = isEn ? "Review & respond" : "Se og svar"
     const items = d.purposes
-      .map((p) => `<li>${esc(copy.purposes[p].label)} — ${esc(copy.purposes[p].description)}</li>`)
+      .map(
+        (p) =>
+          `<li>${esc(copy.purposes[p].label)} — ${esc(copy.purposes[p].description)}</li>`,
+      )
       .join("")
     const itemsText = d.purposes
-      .map((p) => `- ${copy.purposes[p].label}: ${copy.purposes[p].description}`)
+      .map(
+        (p) => `- ${copy.purposes[p].label}: ${copy.purposes[p].description}`,
+      )
       .join("\n")
 
     const html = `<div style="background:${BRAND.background};margin:0;padding:32px 16px;">
@@ -100,6 +100,10 @@ export async function sendMediaReleaseRequestEmail(
       "[release-email] failed —",
       error instanceof Error ? error.message : error,
     )
-    return { ok: false, error: error instanceof Error ? error.name : "send_error" }
+
+    return {
+      ok: false,
+      error: error instanceof Error ? error.name : "send_error",
+    }
   }
 }

@@ -15,8 +15,14 @@ import { kindForType } from "@/shared/media-policy"
 import { useActionRunner } from "@/hooks/use-action-runner"
 import { uploadMedia } from "@/platform/storage/browser"
 import type { HubAppointment } from "@/modules/media/asset-hub"
-import type { ConsentStatus, DataConsentItem } from "@/modules/media/client-gallery"
-import { addClientMedia, requestDataConsent } from "@/modules/media/owner-media-actions"
+import type {
+  ConsentStatus,
+  DataConsentItem,
+} from "@/modules/media/client-gallery"
+import {
+  addClientMedia,
+  requestDataConsent,
+} from "@/modules/media/owner-media-actions"
 
 const subLabel =
   "font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground"
@@ -25,9 +31,16 @@ const canRequest = (status: ConsentStatus) =>
   status === "none" || status === "declined" || status === "withdrawn"
 
 function consentVariant(status: ConsentStatus) {
-  if (status === "granted") return "success" as const
-  if (status === "declined") return "destructive" as const
-  if (status === "requested") return "warning" as const
+  if (status === "granted") {
+    return "success" as const
+  }
+  if (status === "declined") {
+    return "destructive" as const
+  }
+  if (status === "requested") {
+    return "warning" as const
+  }
+
   return "outline" as const
 }
 
@@ -64,7 +77,9 @@ export function ClientMediaGallery({
   // Owner upload: images or a demo video, no crop (decision 9).
   const onFile = async (files: FileList | null) => {
     const file = files?.[0]
-    if (!file) return
+    if (!file) {
+      return
+    }
     setUploading(true)
     try {
       const up = await uploadMedia(file, file.type)
@@ -78,6 +93,7 @@ export function ClientMediaGallery({
                 ? "That image couldn’t be read."
                 : "Upload failed.",
         )
+
         return
       }
 
@@ -98,7 +114,9 @@ export function ClientMediaGallery({
       }
     } finally {
       setUploading(false)
-      if (inputRef.current) inputRef.current.value = ""
+      if (inputRef.current) {
+        inputRef.current.value = ""
+      }
     }
   }
 
@@ -231,8 +249,12 @@ export function ClientDataConsent({
       <ul className="space-y-2">
         {DATA_PURPOSES.map(({ purpose, label }) => {
           const status = dataStatus(purpose)
+
           return (
-            <li key={purpose} className="flex items-center justify-between gap-3">
+            <li
+              key={purpose}
+              className="flex items-center justify-between gap-3"
+            >
               <span className="flex items-center gap-2 font-functional text-sm text-foreground">
                 {label}
                 <Badge variant={consentVariant(status)} size="xs">

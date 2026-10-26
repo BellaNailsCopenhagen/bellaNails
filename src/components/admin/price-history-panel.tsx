@@ -25,14 +25,19 @@ export function PriceHistoryPanel({
   useEffect(() => {
     let active = true
     getPriceHistory(entityType, entityId).then((data) => {
-      if (active) setEntries(data)
+      if (active) {
+        setEntries(data)
+      }
     })
+
     return () => {
       active = false
     }
   }, [entityType, entityId])
 
-  if (!entries?.length) return null
+  if (!entries?.length) {
+    return null
+  }
 
   return (
     <div className="space-y-1.5">
@@ -45,7 +50,11 @@ export function PriceHistoryPanel({
             key={`${entry.changedAt}-${index}`}
             className="flex items-baseline justify-between gap-3 font-functional text-xs"
           >
-            <span className={index === 0 ? "text-foreground" : "text-muted-foreground"}>
+            <span
+              className={
+                index === 0 ? "text-foreground" : "text-muted-foreground"
+              }
+            >
               {formatPrice(entry.priceCents)}
             </span>
             <span className="text-muted-foreground">

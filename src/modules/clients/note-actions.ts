@@ -27,41 +27,63 @@ export async function addNote(input: {
   body: string
 }): Promise<NoteResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
   const body = input.body.trim()
-  if (!body) return { ok: false, error: "Write something first." }
+  if (!body) {
+    return { ok: false, error: "Write something first." }
+  }
 
   const saved = await insertNote(supabase, {
     client_id: input.clientId,
     booking_id: input.bookingId,
     body,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the note." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the note." }
+  }
 
   revalidateNoteSurfaces()
+
   return { ok: true }
 }
 
-export async function updateNote(id: string, body: string): Promise<NoteResult> {
+export async function updateNote(
+  id: string,
+  body: string,
+): Promise<NoteResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
   const trimmed = body.trim()
-  if (!trimmed) return { ok: false, error: "Write something first." }
+  if (!trimmed) {
+    return { ok: false, error: "Write something first." }
+  }
 
   const saved = await updateNoteBody(supabase, id, trimmed)
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the note." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the note." }
+  }
 
   revalidateNoteSurfaces()
+
   return { ok: true }
 }
 
 export async function deleteNote(id: string): Promise<NoteResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const removed = await deleteNoteRow(supabase, id)
-  if (!removed.ok) return { ok: false, error: "Couldn’t remove the note." }
+  if (!removed.ok) {
+    return { ok: false, error: "Couldn’t remove the note." }
+  }
 
   revalidateNoteSurfaces()
+
   return { ok: true }
 }

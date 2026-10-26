@@ -32,11 +32,17 @@ test("a name is still required, and two characters is the floor", () => {
 test("email is required only when the sign-in gate is off", () => {
   assert.equal(isCompleteContact(named, { requireEmail: true }), false)
   assert.equal(
-    isCompleteContact({ ...named, email: "anna@example.dk" }, { requireEmail: true }),
+    isCompleteContact(
+      { ...named, email: "anna@example.dk" },
+      { requireEmail: true },
+    ),
     true,
   )
   assert.equal(
-    isCompleteContact({ ...named, email: "not-an-email" }, { requireEmail: true }),
+    isCompleteContact(
+      { ...named, email: "not-an-email" },
+      { requireEmail: true },
+    ),
     false,
   )
   // With the gate ON the session supplies it, so its absence is fine.

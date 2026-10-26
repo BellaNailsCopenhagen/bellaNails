@@ -58,8 +58,13 @@ export function isDesignThreadUnread(
   seenAt: string | null,
   lastArtistReplyAt: string | null,
 ): boolean {
-  if (!lastArtistReplyAt) return false
-  if (!seenAt) return true
+  if (!lastArtistReplyAt) {
+    return false
+  }
+  if (!seenAt) {
+    return true
+  }
+
   return Date.parse(lastArtistReplyAt) > Date.parse(seenAt)
 }
 

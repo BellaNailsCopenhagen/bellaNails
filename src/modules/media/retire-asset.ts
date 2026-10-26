@@ -36,10 +36,16 @@ export async function retireAssetIfUnused(
   } catch (error) {
     // We could not establish that nothing shows it, which is not the same as
     // establishing that something does — but it is the only safe reading.
-    console.error(`[asset] keeping ${assetId} — couldn't verify it is unused:`, error)
+    console.error(
+      `[asset] keeping ${assetId} — couldn't verify it is unused:`,
+      error,
+    )
+
     return { deleted: false }
   }
-  if (shownSomewhere) return { deleted: false }
+  if (shownSomewhere) {
+    return { deleted: false }
+  }
 
   // File first, row second: the row is the only thing that still points at the
   // object, so dropping it while the file survives leaves a public photo with
@@ -52,6 +58,7 @@ export async function retireAssetIfUnused(
         `[asset] public file for ${assetId} kept — delete failed:`,
         gone.error,
       )
+
       return { deleted: false }
     }
   }
@@ -61,7 +68,9 @@ export async function retireAssetIfUnused(
   const removed = await deleteAsset(db, assetId)
   if (!removed.ok) {
     console.error(`[asset] row ${assetId} survived its deleted file — dead URL`)
+
     return { deleted: false }
   }
+
   return { deleted: true }
 }

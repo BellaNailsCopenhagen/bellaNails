@@ -20,8 +20,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "ask" })
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -46,7 +49,9 @@ export default async function AskPage({
   searchParams: Promise<{ topic?: string; booking?: string; service?: string }>
 }) {
   const [{ locale }, query] = await Promise.all([params, searchParams])
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const [t, user] = await Promise.all([

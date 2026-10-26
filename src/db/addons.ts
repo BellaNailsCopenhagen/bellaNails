@@ -15,7 +15,10 @@ export async function listAllAddons(db: Db): Promise<AddonRow[]> {
     .from("addons")
     .select(ADDON_COLUMNS)
     .order("name_en", { ascending: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return (data ?? []) as AddonRow[]
 }
 
@@ -24,11 +27,14 @@ export async function listAddonNames(
   db: Db,
   ids: string[],
 ): Promise<Pick<Row<"addons">, "id" | "name_en" | "name_dk">[]> {
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("addons")
     .select("id, name_en, name_dk")
     .in("id", ids)
+
   return data ?? []
 }
 
@@ -38,6 +44,7 @@ export async function listActiveAddonNames(db: Db): Promise<CatalogName[]> {
     .from("addons")
     .select("id, name_en, name_dk")
     .is("archived_at", null)
+
   return data ?? []
 }
 
@@ -51,6 +58,7 @@ export async function getAddonPrice(
     .select("extra_price_cents")
     .eq("id", id)
     .maybeSingle()
+
   return data?.extra_price_cents ?? null
 }
 
@@ -70,7 +78,10 @@ export async function insertAddon(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -80,6 +91,7 @@ export async function updateAddon(
   values: Partial<AddonFields>,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("addons").update(values).eq("id", id)
+
   return { ok: !error }
 }
 
@@ -93,5 +105,6 @@ export async function setAddonArchived(
     .from("addons")
     .update({ archived_at: at })
     .eq("id", id)
+
   return { ok: !error }
 }

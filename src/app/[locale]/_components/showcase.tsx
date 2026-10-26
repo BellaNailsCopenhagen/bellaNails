@@ -16,7 +16,9 @@ export async function Showcase() {
     getPublicAssetsBySurface("showcase", SHOWCASE_LIMIT),
   ])
 
-  if (!assets.length) return null
+  if (!assets.length) {
+    return null
+  }
 
   return (
     <ClientWorkSection

@@ -16,6 +16,7 @@ export async function getServiceReviews(
   db: Db = createSupabaseServerClient(),
 ): Promise<Review[]> {
   const rows = await listReviewsForService(db, serviceId)
+
   return rows.map((r) => ({
     id: r.id,
     authorName: r.author_name,

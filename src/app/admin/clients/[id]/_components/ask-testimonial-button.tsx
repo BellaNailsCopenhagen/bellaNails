@@ -22,7 +22,10 @@ export function AskTestimonialButton({ clientId }: { clientId: string }) {
       onClick={() =>
         run(async () => {
           const result = await requestTestimonial({ clientId })
-          if (!result.ok) return { ok: false, error: result.error }
+          if (!result.ok) {
+            return { ok: false, error: result.error }
+          }
+
           return {
             ok: true,
             note: result.emailed

@@ -24,10 +24,15 @@ import {
 import { requireOwner } from "@/modules/identity/require-owner"
 import { revalidatePublicSurfaces } from "@/modules/revalidate"
 import { deleteObject, publishToPublic } from "@/platform/storage/supabase"
-import { isPublicSurface, isAssetSurface, surfacesForPurpose } from "@/shared/asset-surfaces"
+import {
+  isPublicSurface,
+  isAssetSurface,
+  surfacesForPurpose,
+} from "@/shared/asset-surfaces"
 import { routes } from "@/shared/routes"
 
-export type AssetHubResult = { ok: true; note?: string } | { ok: false; error: string }
+export type AssetHubResult =
+  { ok: true; note?: string } | { ok: false; error: string }
 
 type ServiceClient = Awaited<ReturnType<typeof requireOwner>>
 
@@ -48,15 +53,28 @@ async function publishOne(
   | { ok: true; assetId?: string; created?: boolean; note?: string }
   | { ok: false; error: string }
 > {
-  if (!media.booking_id) return { ok: false, error: "Image isn’t linked to a booking." }
+  if (!media.booking_id) {
+    return { ok: false, error: "Image isn’t linked to a booking." }
+  }
   if (!(await isBookingReleased(supabase, media.booking_id, purpose))) {
-    return { ok: false, error: "The client hasn’t released this booking for that use." }
+    return {
+      ok: false,
+      error: "The client hasn’t released this booking for that use.",
+    }
   }
   // Idempotent — one public copy per (original, purpose). A repeat/racy call
   // reuses the existing copy instead of leaking a duplicate object + row.
-  const existing = await listAssetsForMediaByPurpose(supabase, [media.id], purpose)
-  if (existing.length) return { ok: true, assetId: existing[0].id, created: false }
-  if (!media.storage_key) return { ok: false, error: "Image file is missing." }
+  const existing = await listAssetsForMediaByPurpose(
+    supabase,
+    [media.id],
+    purpose,
+  )
+  if (existing.length) {
+    return { ok: true, assetId: existing[0].id, created: false }
+  }
+  if (!media.storage_key) {
+    return { ok: false, error: "Image file is missing." }
+  }
 
   const published = await publishToPublic(media.storage_key)
   if (!published.ok) {
@@ -76,6 +94,7 @@ async function publishOne(
     client_media_id: media.id,
     purpose,
   })
+
   return asset.ok
     ? { ok: true, assetId: asset.id, created: true }
     : { ok: false, error: "Couldn’t save the copy." }
@@ -93,20 +112,33 @@ export async function placeMedia(
   surface: string,
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!isAssetSurface(surface)) return { ok: false, error: "Unknown use-case." }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!isAssetSurface(surface)) {
+    return { ok: false, error: "Unknown use-case." }
+  }
   // Never trust the card's gating: the surface has to be one this consent covers.
   if (!surfacesForPurpose(purpose).includes(surface)) {
-    return { ok: false, error: "That use-case isn’t covered by the client’s consent." }
+    return {
+      ok: false,
+      error: "That use-case isn’t covered by the client’s consent.",
+    }
   }
 
   const [media] = await listMediaForPublish(supabase, [mediaId])
-  if (!media) return { ok: false, error: "not_found" }
+  if (!media) {
+    return { ok: false, error: "not_found" }
+  }
 
   const published = await publishOne(supabase, media, purpose)
-  if (!published.ok) return published
+  if (!published.ok) {
+    return published
+  }
   // Storage not configured — publishOne reports it and there is nothing to place.
-  if (!published.assetId) return { ok: true, note: published.note }
+  if (!published.assetId) {
+    return { ok: true, note: published.note }
+  }
 
   const placed = await placeAsset(supabase, published.assetId, surface, null)
   if (!placed.ok) {
@@ -116,17 +148,22 @@ export async function placeMedia(
     // item, neither of which is an `asset_usages` row.
     if (published.created) {
       const key = await getAssetStorageKey(supabase, published.assetId)
-      if (key) await deleteObject(key)
+      if (key) {
+        await deleteObject(key)
+      }
       await deleteAsset(supabase, published.assetId)
     }
+
     return { ok: false, error: "Couldn’t save the use-case." }
   }
 
   revalidatePath(routes.admin.assets)
-  if (isPublicSurface(surface)) revalidatePublicSurfaces()
+  if (isPublicSurface(surface)) {
+    revalidatePublicSurfaces()
+  }
+
   return { ok: true, note: published.note }
 }
-
 
 /**
  * Bulk "add to website gallery" — for each selected original whose booking is
@@ -138,8 +175,12 @@ export async function bulkAddToGallery(
   mediaIds: string[],
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
-  if (!mediaIds.length) return { ok: true }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (!mediaIds.length) {
+    return { ok: true }
+  }
 
   const media = await listMediaForPublish(supabase, mediaIds)
   const releasedBookings = new Set(
@@ -178,6 +219,7 @@ export async function bulkAddToGallery(
 
   revalidatePath(routes.admin.assets)
   revalidatePublicSurfaces()
+
   return {
     ok: true,
     note: skipped
@@ -191,9 +233,13 @@ export async function bulkAddToGallery(
  * external platform — now erase the kept public copy for real. Keyed on the asset
  * (which carries `needs_takedown_at` since the media_consents refactor).
  */
-export async function confirmTakedown(assetId: string): Promise<AssetHubResult> {
+export async function confirmTakedown(
+  assetId: string,
+): Promise<AssetHubResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // Unconditional, unlike retireAssetIfUnused: consent is gone, so the copy goes
   // even if a service section or a gallery item still shows it. Those losing
@@ -208,10 +254,15 @@ export async function confirmTakedown(assetId: string): Promise<AssetHubResult> 
   if (storageKey) {
     const gone = await deleteObject(storageKey)
     if (!gone.ok) {
-      console.error(`[takedown] file for asset ${assetId} not deleted:`, gone.error)
+      console.error(
+        `[takedown] file for asset ${assetId} not deleted:`,
+        gone.error,
+      )
+
       return {
         ok: false,
-        error: "Couldn’t delete the file — the photo is still public. Try again.",
+        error:
+          "Couldn’t delete the file — the photo is still public. Try again.",
       }
     }
   }
@@ -221,6 +272,7 @@ export async function confirmTakedown(assetId: string): Promise<AssetHubResult> 
 
   revalidatePath(routes.admin.assets)
   revalidatePublicSurfaces()
+
   return { ok: true }
 }
 
@@ -231,16 +283,21 @@ export async function setMediaFavorite(
   favorite: boolean,
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await setMediaFavoritedAt(
     supabase,
     mediaId,
     favorite ? new Date().toISOString() : null,
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t update." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update." }
+  }
 
   revalidatePath(routes.admin.assets)
+
   return { ok: true }
 }
 
@@ -253,15 +310,20 @@ export async function setMediaSetAside(
   setAside: boolean,
 ): Promise<AssetHubResult> {
   const supabase = await requireOwner()
-  if (!supabase) return { ok: false, error: "unauthorized" }
+  if (!supabase) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await setMediaDismissedAt(
     supabase,
     mediaId,
     setAside ? new Date().toISOString() : null,
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t update." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update." }
+  }
 
   revalidatePath(routes.admin.assets)
+
   return { ok: true }
 }

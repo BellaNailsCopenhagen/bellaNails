@@ -1,6 +1,9 @@
 "use client"
 
-import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
+import {
+  SlotPicker,
+  type SlotPickerOutcome,
+} from "@/components/booking/slot-picker"
 import { OVERRIDE_WINDOW_LABEL, type Slot } from "@/shared/booking-slots"
 import { ADMIN_LOCALE } from "@/config/admin"
 
@@ -8,7 +11,12 @@ import { ADMIN_LOCALE } from "@/config/admin"
  * Step 4 — the in-house picker (owner slots, no 24 h lead time). onConfirm owns
  * the createBookingAsOwner call + navigation; the picker just surfaces failure.
  */
-export function TimeStep({ slots, maxAdvanceDays, onConfirm, override }: {
+export function TimeStep({
+  slots,
+  maxAdvanceDays,
+  onConfirm,
+  override,
+}: {
   slots: Slot[]
   maxAdvanceDays: number
   onConfirm: (start: string) => Promise<SlotPickerOutcome>

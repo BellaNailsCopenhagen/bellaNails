@@ -44,7 +44,6 @@ export type DisplayBooking = {
 /** One attached image, already resolved to a viewable URL. */
 export type BookingThumb = { id: string; url: string; kind: string }
 
-
 export function toDisplayBooking(
   row: BookingRow,
   catalog: BookingCatalog,
@@ -71,8 +70,12 @@ export function toDisplayBooking(
       )
     : (meta.addonIds ?? []).flatMap((id) => {
         const addon = addonById.get(id)
+
         return addon
-          ? [pickLocalized(locale, addon.name_en, addon.name_dk) ?? addon.name_en]
+          ? [
+              pickLocalized(locale, addon.name_en, addon.name_dk) ??
+                addon.name_en,
+            ]
           : []
       })
 

@@ -169,7 +169,7 @@ export function TermsEditor({
             </FieldLabel>
             <Textarea
               id={`${kind}-body-en`}
-                aria-required="true"
+              aria-required="true"
               value={bodyEn}
               onChange={(e) => setBodyEn(e.target.value)}
               className="min-h-48"
@@ -181,7 +181,7 @@ export function TermsEditor({
             </FieldLabel>
             <Textarea
               id={`${kind}-body-da`}
-                aria-required="true"
+              aria-required="true"
               value={bodyDk}
               onChange={(e) => setBodyDk(e.target.value)}
               className="min-h-48"
@@ -213,7 +213,10 @@ export function TermsEditor({
 
       {/* Read-only: a past version is what somebody agreed to, so it cannot be
           edited here. Publishing a correction means a new version. */}
-      <Sheet open={reading !== null} onOpenChange={(o) => !o && setReading(null)}>
+      <Sheet
+        open={reading !== null}
+        onOpenChange={(o) => !o && setReading(null)}
+      >
         <SheetContent className="space-y-6">
           <div className="flex items-start justify-between gap-4">
             <SheetTitle>

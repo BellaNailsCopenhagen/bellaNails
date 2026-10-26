@@ -24,10 +24,7 @@ import type { DisplayBooking } from "@/shared/booking-view"
 import { RELEASE_PURPOSES } from "@/shared/media-release"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
 import { routes } from "@/shared/routes"
-import {
-  formatStudioDayMonth,
-  formatStudioTime,
-} from "@/shared/studio-time"
+import { formatStudioDayMonth, formatStudioTime } from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 // Keep only digits and a leading "+", so odd separators (dots, spaces, 00…)
@@ -80,9 +77,7 @@ export function QueueBookingCard({
   const isRepeatNoShow = clientNoShowCount >= NO_SHOW_ALERT_THRESHOLD
   // `client_id` is the client's stable key — links to their profile + booking
   // history. Route is /admin/clients/[id].
-  const clientHref = row.client_id
-    ? routes.admin.client(row.client_id)
-    : null
+  const clientHref = row.client_id ? routes.admin.client(row.client_id) : null
   const isNoShow = Boolean(row.no_show_at)
   const canToggleNoShow = noShowEligible
   // Future-only, and gone once the booking is a no-show.

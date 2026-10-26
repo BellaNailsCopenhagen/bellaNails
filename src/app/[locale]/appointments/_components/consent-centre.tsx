@@ -56,9 +56,13 @@ export function ConsentCentre({
   const byPurpose = new Map(dataConsents.map((c) => [c.purpose, c.status]))
   // Only what the studio has actually asked about: unlike a media release, the
   // client has nothing to offer here on their own initiative.
-  const asked = DATA_CONSENT_PURPOSES.filter((purpose) => byPurpose.has(purpose))
+  const asked = DATA_CONSENT_PURPOSES.filter((purpose) =>
+    byPurpose.has(purpose),
+  )
 
-  if (!asked.length) return null
+  if (!asked.length) {
+    return null
+  }
 
   return (
     <section className="space-y-4">
@@ -70,6 +74,7 @@ export function ConsentCentre({
       <div className="space-y-3">
         {asked.map((purpose) => {
           const status = byPurpose.get(purpose)
+
           return (
             <TintedCard
               key={purpose}
@@ -113,14 +118,18 @@ export function ConsentCentre({
                     variant="ghost"
                     size="sm"
                     disabled={pending}
-                    onClick={() => act(() => decideDataConsent(purpose, "declined"))}
+                    onClick={() =>
+                      act(() => decideDataConsent(purpose, "declined"))
+                    }
                   >
                     {t("consentDecline")}
                   </Button>
                   <Button
                     size="sm"
                     disabled={pending}
-                    onClick={() => act(() => decideDataConsent(purpose, "granted"))}
+                    onClick={() =>
+                      act(() => decideDataConsent(purpose, "granted"))
+                    }
                   >
                     {t("consentAllow")}
                   </Button>
@@ -131,10 +140,14 @@ export function ConsentCentre({
                 <button
                   type="button"
                   disabled={pending}
-                  onClick={() => act(() => decideDataConsent(purpose, "granted"))}
+                  onClick={() =>
+                    act(() => decideDataConsent(purpose, "granted"))
+                  }
                   className={restoreLink}
                 >
-                  {status === "withdrawn" ? t("consentAllowAgain") : t("consentAllow")}
+                  {status === "withdrawn"
+                    ? t("consentAllowAgain")
+                    : t("consentAllow")}
                 </button>
               )}
             </TintedCard>

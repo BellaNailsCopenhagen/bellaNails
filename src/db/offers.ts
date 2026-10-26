@@ -15,12 +15,20 @@ export async function insertOffer(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false, message: error?.message ?? "no row" }
+  if (error || !data) {
+    return { ok: false, message: error?.message ?? "no row" }
+  }
+
   return { ok: true, id: data.id }
 }
 
 export async function getOffer(db: Db, id: string): Promise<OfferRow | null> {
-  const { data } = await db.from("offers").select("*").eq("id", id).maybeSingle()
+  const { data } = await db
+    .from("offers")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle()
+
   return data ?? null
 }
 
@@ -36,6 +44,7 @@ export async function getLiveOfferForRequest(
     .is("closed_at", null)
     .is("booking_id", null)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -44,13 +53,16 @@ export async function listLiveOffersForRequests(
   db: Db,
   requestIds: string[],
 ): Promise<OfferRow[]> {
-  if (!requestIds.length) return []
+  if (!requestIds.length) {
+    return []
+  }
   const { data } = await db
     .from("offers")
     .select("*")
     .in("request_id", requestIds)
     .is("closed_at", null)
     .is("booking_id", null)
+
   return data ?? []
 }
 
@@ -60,6 +72,7 @@ export async function updateOffer(
   values: Update<"offers">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("offers").update(values).eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -73,6 +86,7 @@ export async function listOffersForClient(
     .select("*")
     .eq("client_id", clientId)
     .order("created_at", { ascending: false })
+
   return data ?? []
 }
 
@@ -92,6 +106,7 @@ export async function listExpiredLiveOffers(
     // re-reading the same page forever.
     .order("expires_at", { ascending: true })
     .limit(limit)
+
   return data ?? []
 }
 
@@ -112,5 +127,6 @@ export async function claimOfferForBooking(
     .is("booking_id", null)
     .is("closed_at", null)
     .select("id")
+
   return (data?.length ?? 0) > 0
 }

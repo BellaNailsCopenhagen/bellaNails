@@ -22,6 +22,7 @@ export function clientSearchText(parts: {
     .join(" ")
     .toLowerCase()
   const phone = parts.phone ? digitsOf(parts.phone) : ""
+
   return phone ? `${text} ${phone}` : text
 }
 
@@ -32,8 +33,13 @@ export function clientSearchText(parts: {
  */
 export function matchesClientSearch(search: string, query: string): boolean {
   const q = query.trim().toLowerCase()
-  if (!q) return true
-  if (search.includes(q)) return true
+  if (!q) {
+    return true
+  }
+  if (search.includes(q)) {
+    return true
+  }
   const digits = digitsOf(query)
+
   return digits.length >= 3 && search.includes(digits)
 }

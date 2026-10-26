@@ -43,6 +43,7 @@ export function studioDayNumber(ms: number): number {
   const parts = STUDIO_DAY_FORMAT.formatToParts(new Date(ms))
   const get = (type: "year" | "month" | "day") =>
     Number(parts.find((part) => part.type === type)?.value)
+
   return Date.UTC(get("year"), get("month") - 1, get("day")) / 86_400_000
 }
 
@@ -110,6 +111,7 @@ export function studioYearMonth(ms: number): { year: number; month: number } {
   const parts = STUDIO_DAY_FORMAT.formatToParts(new Date(ms))
   const get = (type: "year" | "month") =>
     Number(parts.find((part) => part.type === type)?.value)
+
   return { year: get("year"), month: get("month") }
 }
 
@@ -139,7 +141,9 @@ export function formatCountdown(
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
 
   const diffMins = Math.round((target - now) / 60_000)
-  if (Math.abs(diffMins) < 60) return rtf.format(diffMins, "minute")
+  if (Math.abs(diffMins) < 60) {
+    return rtf.format(diffMins, "minute")
+  }
   if (Math.abs(diffMins) < 24 * 60) {
     return rtf.format(Math.round(diffMins / 60), "hour")
   }
@@ -167,6 +171,7 @@ export function studioInputValue(iso: string): string {
   const parts = STUDIO_WALL_FORMAT.formatToParts(new Date(iso))
   const get = (type: string) =>
     parts.find((part) => part.type === type)?.value ?? "00"
+
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`
 }
 
@@ -176,17 +181,23 @@ export function studioInputValue(iso: string): string {
 export function studioInputToIso(value: string): string | null {
   // Some browsers append seconds to a datetime-local value — accept + ignore them.
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2})?$/.exec(value)
-  if (!m) return null
+  if (!m) {
+    return null
+  }
   const [, y, mo, d, hh, mm] = m
   const dayNumber = studioDayNumberForDate(Number(y), Number(mo), Number(d))
   const ms = studioWallTimeToInstant(dayNumber, `${hh}:${mm}`)
+
   return Number.isFinite(ms) ? new Date(ms).toISOString() : null
 }
 
 /** UTC instant (ms) for a wall-clock "HH:MM" on a studio day-number —
     DST-correct: the zone offset is computed AT the target instant, so a slot
     generated across a DST boundary lands on the right absolute time. */
-export function studioWallTimeToInstant(dayNumber: number, hhmm: string): number {
+export function studioWallTimeToInstant(
+  dayNumber: number,
+  hhmm: string,
+): number {
   const date = new Date(dayNumber * 86_400_000)
   const [hour, minute] = hhmm.split(":").map(Number)
   // The desired wall time read as if it were UTC…
@@ -209,5 +220,6 @@ export function studioWallTimeToInstant(dayNumber: number, hhmm: string): number
     get("minute"),
     get("second"),
   )
+
   return asUtc - (shown - asUtc)
 }

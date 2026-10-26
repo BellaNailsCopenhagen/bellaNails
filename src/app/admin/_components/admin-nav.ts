@@ -39,6 +39,9 @@ export const adminTabs: AdminTab[] = [
 /** Is `tab` the active one for the current pathname? /admin matches exactly;
     the others match their subtree so nested pages keep the tab lit. */
 export function isTabActive(tab: AdminTab, pathname: string): boolean {
-  if (tab.href === routes.admin.home) return pathname === routes.admin.home
+  if (tab.href === routes.admin.home) {
+    return pathname === routes.admin.home
+  }
+
   return pathname === tab.href || pathname.startsWith(`${tab.href}/`)
 }

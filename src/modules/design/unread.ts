@@ -15,6 +15,7 @@ export async function unreadStudioReplyCount(
   clientId: string,
 ): Promise<number> {
   const markers = await listDesignReplyMarkersForClient(db, clientId)
+
   return markers.filter((m) =>
     isDesignThreadUnread(m.client_seen_at, m.last_artist_reply_at),
   ).length

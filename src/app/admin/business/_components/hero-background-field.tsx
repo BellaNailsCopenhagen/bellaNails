@@ -70,15 +70,23 @@ export function HeroBackgroundField({ current }: { current: HeroBackground }) {
       // `take()` normally clears this on its way out. Returning before it means
       // doing so here, or picking the same path again fires no change event and
       // the button looks dead.
-      if (inputRef.current) inputRef.current.value = ""
+      if (inputRef.current) {
+        inputRef.current.value = ""
+      }
+
       return
     }
 
     const key = await take(files)
-    if (!key) return
+    if (!key) {
+      return
+    }
     run(async () => {
       const result = await setHeroBackground(key)
-      if (result.ok) toast.success("Hero background updated")
+      if (result.ok) {
+        toast.success("Hero background updated")
+      }
+
       return result
     })
   }
@@ -127,8 +135,8 @@ export function HeroBackgroundField({ current }: { current: HeroBackground }) {
         <strong>
           {HERO_GUIDANCE.width} × {HERO_GUIDANCE.height}
         </strong>{" "}
-        and is scaled down to {PORTFOLIO_IMAGE.maxDim}px. A film should be short —
-        about {HERO_GUIDANCE.seconds} seconds, and no longer than{" "}
+        and is scaled down to {PORTFOLIO_IMAGE.maxDim}px. A film should be short
+        — about {HERO_GUIDANCE.seconds} seconds, and no longer than{" "}
         {VIDEO.maxSeconds}. It is shrunk to {VIDEO.maxDim}px and re-encoded here
         in your browser, which takes about as long as the film itself, so upload
         it straight off the camera and let it do the work. It has no sound: the

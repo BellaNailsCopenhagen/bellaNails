@@ -21,6 +21,7 @@ export async function createSupabaseSessionServerClient(): Promise<
   SupabaseClient<Database>
 > {
   const cookieStore = await cookies()
+
   return createServerClient<Database>(
     assertEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, "NEXT_PUBLIC_SUPABASE_URL"),
     assertEnv(

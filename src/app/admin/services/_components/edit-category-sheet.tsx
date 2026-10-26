@@ -13,7 +13,11 @@ import { BodySm } from "@/components/ui/typography"
 import { ImagePicker, type PickedImage } from "@/components/admin/image-picker"
 import { publishStudioImageUrl } from "@/modules/catalog/image-actions"
 import { saveCategory } from "@/modules/catalog/category-actions"
-import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
+import {
+  FieldLabel,
+  fieldLabel,
+  RequiredLegend,
+} from "@/components/admin/field-label"
 
 export type EditableCategory = {
   id: string
@@ -67,6 +71,7 @@ export function EditCategorySheet({
             ? "Not allowed."
             : result.error || "Couldn’t save.",
         )
+
         return
       }
       toast.success("Category saved")
@@ -90,7 +95,9 @@ export function EditCategorySheet({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="space-y-6">
           <div className="flex items-start justify-between gap-4">
-            <SheetTitle>{category ? "Edit category" : "New category"}</SheetTitle>
+            <SheetTitle>
+              {category ? "Edit category" : "New category"}
+            </SheetTitle>
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -105,13 +112,21 @@ export function EditCategorySheet({
               <FieldLabel htmlFor="category-en" required>
                 Name · EN
               </FieldLabel>
-              <Input id="category-en" value={nameEn} onValueChange={setNameEn} />
+              <Input
+                id="category-en"
+                value={nameEn}
+                onValueChange={setNameEn}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="category-da" className={fieldLabel}>
                 Name · DA
               </Label>
-              <Input id="category-da" value={nameDa} onValueChange={setNameDa} />
+              <Input
+                id="category-da"
+                value={nameDa}
+                onValueChange={setNameDa}
+              />
             </div>
           </div>
 
@@ -159,7 +174,6 @@ export function EditCategorySheet({
           ) : null}
 
           <RequiredLegend />
-
 
           <div className="flex justify-end">
             <Button size="sm" disabled={pending} onClick={save}>

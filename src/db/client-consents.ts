@@ -14,7 +14,10 @@ export async function listDataConsents(
     .from("client_consents")
     .select("purpose, status")
     .eq("client_id", clientId)
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -29,6 +32,7 @@ export async function findDataConsent(
     .eq("client_id", clientId)
     .eq("purpose", purpose)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -42,6 +46,7 @@ export async function countRequestedFor(
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId)
     .eq("status", "requested")
+
   return count ?? 0
 }
 
@@ -54,6 +59,7 @@ export async function updateDataConsent(
     .from("client_consents")
     .update(values)
     .eq("id", consentId)
+
   return { ok: !error }
 }
 
@@ -67,6 +73,7 @@ export async function withdrawDataConsentFor(
     .update({ status: "withdrawn", withdrawn_at: new Date().toISOString() })
     .eq("client_id", clientId)
     .eq("purpose", purpose)
+
   return { ok: !error }
 }
 
@@ -77,5 +84,6 @@ export async function upsertDataConsent(
   const { error } = await db
     .from("client_consents")
     .upsert(values, { onConflict: "client_id,purpose" })
+
   return { ok: !error }
 }

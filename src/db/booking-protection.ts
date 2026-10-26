@@ -12,6 +12,7 @@ export async function getBookingProtection(
   db: Db,
 ): Promise<BookingProtectionRow | null> {
   const { data } = await db.from("booking_protection").select("*").maybeSingle()
+
   return data ?? null
 }
 
@@ -19,9 +20,12 @@ export async function upsertBookingProtection(
   db: Db,
   values: { access_level?: string; human_check?: boolean },
 ): Promise<{ ok: boolean; message?: string }> {
-  const { error } = await db.from("booking_protection").upsert(
-    { id: true, ...values, updated_at: new Date().toISOString() },
-    { onConflict: "id" },
-  )
+  const { error } = await db
+    .from("booking_protection")
+    .upsert(
+      { id: true, ...values, updated_at: new Date().toISOString() },
+      { onConflict: "id" },
+    )
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

@@ -31,6 +31,7 @@ export function BookingRequestActions({
 }) {
   const { pending, run } = useActionRunner()
   const { reviewLink } = useDeploymentCapabilities()
+
   return (
     <>
       {canMedia ? (
@@ -38,10 +39,14 @@ export function BookingRequestActions({
           variant="outline"
           size="sm"
           disabled={pending}
-          onClick={() => run(() => requestMediaRelease(bookingId, [...RELEASE_PURPOSES]))}
+          onClick={() =>
+            run(() => requestMediaRelease(bookingId, [...RELEASE_PURPOSES]))
+          }
         >
           <Camera className="size-3.5" />
-          {mediaAlreadyRequested ? "Request media use again" : "Request media use"}
+          {mediaAlreadyRequested
+            ? "Request media use again"
+            : "Request media use"}
         </Button>
       ) : null}
       {canReview ? (

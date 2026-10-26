@@ -14,8 +14,15 @@ import {
   type CategoryOption,
 } from "@/components/admin/category-select"
 import { PriceHistoryPanel } from "@/components/admin/price-history-panel"
-import { archiveService, updateService } from "@/modules/catalog/service-actions"
-import { FieldLabel, fieldLabel, RequiredLegend } from "@/components/admin/field-label"
+import {
+  archiveService,
+  updateService,
+} from "@/modules/catalog/service-actions"
+import {
+  FieldLabel,
+  fieldLabel,
+  RequiredLegend,
+} from "@/components/admin/field-label"
 import { parseKroner } from "@/shared/money"
 
 const DURATION_STEP = 15
@@ -45,8 +52,12 @@ export function EditServiceSheet({
 
   const [nameEn, setNameEn] = useState(service.name_en)
   const [nameDa, setNameDa] = useState(service.name_dk)
-  const [descriptionEn, setDescriptionEn] = useState(service.description_en ?? "")
-  const [descriptionDa, setDescriptionDa] = useState(service.description_dk ?? "")
+  const [descriptionEn, setDescriptionEn] = useState(
+    service.description_en ?? "",
+  )
+  const [descriptionDa, setDescriptionDa] = useState(
+    service.description_dk ?? "",
+  )
   const [priceKr, setPriceKr] = useState(String(service.base_price_cents / 100))
   const [durationMins, setDurationMins] = useState(service.base_duration_mins)
   const [categoryId, setCategoryId] = useState(service.category_id ?? "")
@@ -60,7 +71,9 @@ export function EditServiceSheet({
   const priceOk = price !== null && price > 0
 
   const save = () => {
-    if (price === null || price <= 0) return
+    if (price === null || price <= 0) {
+      return
+    }
     startTransition(async () => {
       const result = await updateService(service.id, {
         nameEn,
@@ -130,11 +143,7 @@ export function EditServiceSheet({
               <Label htmlFor="name-da" className={fieldLabel}>
                 Name · DA
               </Label>
-              <Input
-                id="name-da"
-                value={nameDa}
-                onValueChange={setNameDa}
-              />
+              <Input id="name-da" value={nameDa} onValueChange={setNameDa} />
             </div>
           </div>
 
@@ -164,7 +173,9 @@ export function EditServiceSheet({
                   type="button"
                   aria-label="Less time"
                   onClick={() =>
-                    setDurationMins((d) => Math.max(DURATION_STEP, d - DURATION_STEP))
+                    setDurationMins((d) =>
+                      Math.max(DURATION_STEP, d - DURATION_STEP),
+                    )
                   }
                   className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
                 >

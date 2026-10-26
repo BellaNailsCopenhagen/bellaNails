@@ -33,24 +33,31 @@ export function useCurrentUser(): {
       currentUserId = u?.id ?? null
       if (!u) {
         setClientId(null)
+
         return
       }
       setTimeout(async () => {
         const id = await findClientIdByAuthUser(supabase, u.id)
         // Drop a resolution the user has since changed away from.
-        if (active && currentUserId === u.id) setClientId(id)
+        if (active && currentUserId === u.id) {
+          setClientId(id)
+        }
       }, 0)
     }
 
     supabase.auth.getUser().then(({ data }) => {
-      if (!active) return
+      if (!active) {
+        return
+      }
       setUser(data.user)
       loadClient(data.user)
       setLoading(false)
     })
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!active) return
+      if (!active) {
+        return
+      }
       const u = session?.user ?? null
       setUser(u)
       loadClient(u)

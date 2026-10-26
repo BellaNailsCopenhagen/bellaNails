@@ -24,7 +24,10 @@ export function ServiceRow({ service }: { service: AdminService }) {
             {service.base_duration_mins} min
           </p>
         </div>
-        <PriceTag cents={service.base_price_cents} className="shrink-0 text-base" />
+        <PriceTag
+          cents={service.base_price_cents}
+          className="shrink-0 text-base"
+        />
       </Link>
     </li>
   )

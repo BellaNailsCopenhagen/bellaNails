@@ -17,6 +17,7 @@ function TintedCard({
   as?: React.ElementType
 }) {
   const Comp = as ?? "div"
+
   return (
     <Comp
       className={cn(

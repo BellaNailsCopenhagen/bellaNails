@@ -50,10 +50,14 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
   // Every client's private photos, with freshly signed URLs. The sharpest read
   // in the app to leave ungated.
   const supabase = await requireOwner()
-  if (!supabase) return []
+  if (!supabase) {
+    return []
+  }
 
   const media = await listHubMedia(supabase, clientId)
-  if (!media.length) return []
+  if (!media.length) {
+    return []
+  }
 
   const releaseRows = await listReleasesForBookings(
     supabase,
@@ -88,7 +92,9 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
 
   const publishedByMedia = new Map<string, HubPublished[]>()
   for (const a of assets) {
-    if (!a.client_media_id) continue
+    if (!a.client_media_id) {
+      continue
+    }
     const list = publishedByMedia.get(a.client_media_id) ?? []
     list.push({
       assetId: a.id,
@@ -106,16 +112,21 @@ export async function getHubAssets(clientId?: string): Promise<HubAsset[]> {
       let url = m.url
       if (configured && m.storage_key) {
         const signed = await signedViewUrl(m.storage_key)
-        if (signed.ok) url = signed.data.url
+        if (signed.ok) {
+          url = signed.data.url
+        }
       }
+
       return [m.id, url]
     }),
   )
   const urlByMedia = new Map(urlEntries)
 
   return media.map((m) => {
-    const releases = (m.booking_id && releasesByBooking.get(m.booking_id)) || blank()
+    const releases =
+      (m.booking_id && releasesByBooking.get(m.booking_id)) || blank()
     const published = publishedByMedia.get(m.id) ?? []
+
     return {
       mediaId: m.id,
       clientId: m.client_id,
@@ -165,7 +176,9 @@ export async function getHubAppointments(
   clientId?: string,
 ): Promise<HubAppointment[]> {
   const assets = await getHubAssets(clientId)
-  if (!assets.length) return []
+  if (!assets.length) {
+    return []
+  }
 
   // Photos with no appointment are still someone's — keyed per client, or two
   // people's orphans would share one card under whichever name came first.
@@ -173,12 +186,17 @@ export async function getHubAppointments(
   for (const asset of assets) {
     const key = asset.bookingId ?? `unlinked:${asset.clientId}`
     const group = byBooking.get(key)
-    if (group) group.push(asset)
-    else byBooking.set(key, [asset])
+    if (group) {
+      group.push(asset)
+    } else {
+      byBooking.set(key, [asset])
+    }
   }
 
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
   const labels = await listBookingLabelsByIds(
     db,
     [...byBooking.keys()].filter((key) => !key.startsWith("unlinked:")),
@@ -193,6 +211,7 @@ export async function getHubAppointments(
       // Every photo of one appointment shares its releases; the appointment's
       // state reads them together with what any of its photos has published.
       const releases = photos[0].releases
+
       return {
         key,
         bookingId,

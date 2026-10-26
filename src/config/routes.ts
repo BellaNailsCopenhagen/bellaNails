@@ -153,10 +153,18 @@ export type FooterColumn = {
 export function footerNavFor(profile: BusinessProfile): FooterColumn[] {
   const social: FooterNavLink[] = []
   if (profile.instagramUrl) {
-    social.push({ href: profile.instagramUrl, labelKey: "instagram", external: true })
+    social.push({
+      href: profile.instagramUrl,
+      labelKey: "instagram",
+      external: true,
+    })
   }
   if (profile.facebookUrl) {
-    social.push({ href: profile.facebookUrl, labelKey: "facebook", external: true })
+    social.push({
+      href: profile.facebookUrl,
+      labelKey: "facebook",
+      external: true,
+    })
   }
   if (profile.tiktokUrl) {
     social.push({ href: profile.tiktokUrl, labelKey: "tiktok", external: true })
@@ -183,7 +191,9 @@ export function footerNavFor(profile: BusinessProfile): FooterColumn[] {
         { href: routes.privacy, labelKey: "privacy" },
       ],
     },
-    ...(social.length ? [{ headingKey: "follow" as const, links: social }] : []),
+    ...(social.length
+      ? [{ headingKey: "follow" as const, links: social }]
+      : []),
     // No address configured → no Help column. `mailto:` with nothing after it
     // opens a blank compose window, which is worse than no link.
     ...(profile.contactEmail

@@ -20,6 +20,7 @@ import { oneLineAddress } from "@/shared/business-profile"
  */
 async function BookingNotFound() {
   const t = await getTranslations("confirmation")
+
   return (
     <Section>
       <Container className="max-w-4xl">
@@ -58,7 +59,9 @@ async function BookingNotFound() {
  * have had to carry through the URL to get here.
  */
 export async function Confirmation({ id }: { id: string | null }) {
-  if (!id) return <BookingNotFound />
+  if (!id) {
+    return <BookingNotFound />
+  }
 
   const [t, profile] = await Promise.all([
     getTranslations("confirmation"),
@@ -109,9 +112,7 @@ export async function Confirmation({ id }: { id: string | null }) {
                 </div>
                 <Button
                   nativeButton={false}
-                  render={
-                    <Link href={routes.signIn} />
-                  }
+                  render={<Link href={routes.signIn} />}
                 >
                   {t("accountTitle")}
                 </Button>

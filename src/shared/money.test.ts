@@ -51,6 +51,7 @@ test("a Danish-grouped price becomes the right cents, not a hundredth of it", ()
   // parseKroner now; this pins the conversion the whole way to cents.
   const cents = (typed: string) => {
     const kr = parseKroner(typed)
+
     return kr === null ? null : Math.round(kr * 100)
   }
   assert.equal(cents("1.200"), 120_000) // 1.200 kr — was 120 (1,20 kr)

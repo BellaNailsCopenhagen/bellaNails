@@ -9,7 +9,10 @@ import {
   type EditableCategory,
 } from "@/app/admin/services/_components/edit-category-sheet"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import { archiveCategory, moveCategory } from "@/modules/catalog/category-actions"
+import {
+  archiveCategory,
+  moveCategory,
+} from "@/modules/catalog/category-actions"
 
 export type ManageableCategory = EditableCategory & {
   archived_at: string | null
@@ -56,6 +59,7 @@ export function CategoriesTab({
       <ul className="space-y-3">
         {categories.map((category, index) => {
           const archived = Boolean(category.archived_at)
+
           return (
             <li
               key={category.id}
@@ -117,10 +121,12 @@ export function CategoriesTab({
                   onClick={() => {
                     if (archived) {
                       run(() => archiveCategory(category.id, false))
+
                       return
                     }
                     if (confirming !== category.id) {
                       setConfirming(category.id)
+
                       return
                     }
                     setConfirming(null)

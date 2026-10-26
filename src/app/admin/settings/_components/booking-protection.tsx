@@ -63,7 +63,10 @@ export function BookingProtectionSettings({
     setLevel(next)
     run(async () => {
       const result = await setBookingAccessLevel(next)
-      if (!result.ok) setLevel(previous)
+      if (!result.ok) {
+        setLevel(previous)
+      }
+
       return result
     })
   }
@@ -72,7 +75,10 @@ export function BookingProtectionSettings({
     setHumanCheck(next)
     run(async () => {
       const result = await setBookingHumanCheck(next)
-      if (!result.ok) setHumanCheck(!next)
+      if (!result.ok) {
+        setHumanCheck(!next)
+      }
+
       return result
     })
   }
@@ -92,6 +98,7 @@ export function BookingProtectionSettings({
         {BOOKING_ACCESS_LEVELS.map((option) => {
           const copy = LEVEL_COPY[option]
           const available = isSelectableLevel(option)
+
           return (
             <li
               key={option}

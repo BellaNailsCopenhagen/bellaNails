@@ -14,11 +14,16 @@ export async function fetchClientContacts(
   clientIds: (string | null | undefined)[],
 ): Promise<Record<string, ClientContact>> {
   const ids = [...new Set(clientIds.filter((id): id is string => Boolean(id)))]
-  if (ids.length === 0) return {}
+  if (ids.length === 0) {
+    return {}
+  }
 
   const contacts: Record<string, ClientContact> = {}
   try {
-    const data = await listClientContacts(createSupabaseServiceRoleClient(), ids)
+    const data = await listClientContacts(
+      createSupabaseServiceRoleClient(),
+      ids,
+    )
     for (const c of data) {
       // Anonymized clients expose nothing (GDPR erasure).
       if (c.anonymized_at) {
@@ -51,5 +56,6 @@ export async function fetchClientContacts(
       error instanceof Error ? error.message : error,
     )
   }
+
   return contacts
 }

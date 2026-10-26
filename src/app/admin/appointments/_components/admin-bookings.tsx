@@ -19,13 +19,8 @@ import {
   groupBookingsByWeek,
   studioMonthKey,
 } from "@/shared/booking-agenda"
-import {
-  type DisplayBooking,
-} from "@/shared/booking-view"
-import {
-  bookingState,
-  type BookingState,
-} from "@/shared/booking-policy"
+import { type DisplayBooking } from "@/shared/booking-view"
+import { bookingState, type BookingState } from "@/shared/booking-policy"
 import type { ClientContact } from "@/shared/contact"
 import {
   dayNumberToMs,
@@ -62,9 +57,16 @@ const startMs = (b: DisplayBooking) => new Date(b.row.start_time).getTime()
 const endMs = (b: DisplayBooking) => new Date(b.row.end_time).getTime()
 
 function weekLabel(offset: number, weekStartDay: number): string {
-  if (offset === 0) return "Current week"
-  if (offset === 1) return "Next week"
-  if (offset === -1) return "Last week"
+  if (offset === 0) {
+    return "Current week"
+  }
+  if (offset === 1) {
+    return "Next week"
+  }
+  if (offset === -1) {
+    return "Last week"
+  }
+
   return `Week of ${formatStudioDayMonthYear(dayNumberToMs(weekStartDay), ADMIN_LOCALE)}`
 }
 
@@ -87,6 +89,7 @@ function buildSections(
 
   if (mode === "monthly") {
     const currentMonth = studioMonthKey(now)
+
     return groupBookingsByMonth(bookings, "desc").map((m) => ({
       key: `m${m.monthKey}`,
       label: formatStudioMonthYear(m.ms, ADMIN_LOCALE),
@@ -106,8 +109,11 @@ function buildSections(
       continue
     }
     const week = studioWeekStartDayNumber(studioDayNumber(startMs(booking)))
-    if (week > currentWeekStart) future.push(booking)
-    else currentWeek.push(booking)
+    if (week > currentWeekStart) {
+      future.push(booking)
+    } else {
+      currentWeek.push(booking)
+    }
   }
   future.sort((a, b) => startMs(a) - startMs(b))
   currentWeek.sort((a, b) => startMs(a) - startMs(b))
@@ -205,6 +211,7 @@ export function AdminBookings({
       selectedDay == null
         ? byStatus
         : byStatus.filter((b) => studioDayNumber(startMs(b)) === selectedDay)
+
     return buildSections(mode, filtered, now)
   }, [mode, byStatus, selectedDay, now])
 
@@ -219,14 +226,19 @@ export function AdminBookings({
       perState[state] = (perState[state] ?? 0) + 1
       counts.set(day, perState)
     }
+
     return counts
   }, [byStatus, now])
 
   const toggleState = (state: BookingState, checked: boolean) =>
     setStates((prev) => {
       const next = new Set(prev)
-      if (checked) next.add(state)
-      else next.delete(state)
+      if (checked) {
+        next.add(state)
+      } else {
+        next.delete(state)
+      }
+
       return next
     })
 
@@ -243,8 +255,12 @@ export function AdminBookings({
   const toggle = (key: string) =>
     setOverrides((prev) => {
       const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+
       return next
     })
 
@@ -299,6 +315,7 @@ export function AdminBookings({
         <div>
           {sections.map((section, index) => {
             const open = isOpen(section)
+
             return (
               <section key={section.key}>
                 {/* Full-bleed hairline divider — a plain div (the Separator

@@ -13,9 +13,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  cancelBooking,
-} from "@/modules/booking/actions"
+import { cancelBooking } from "@/modules/booking/actions"
 
 /**
  * CancelBookingButton — in-app cancel behind a confirm dialog. The server
@@ -60,7 +58,9 @@ export function CancelBookingButton({
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        if (!pending) setOpen(next)
+        if (!pending) {
+          setOpen(next)
+        }
       }}
     >
       <AlertDialogTrigger

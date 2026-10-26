@@ -1,6 +1,9 @@
 import { Eyebrow, BodySm } from "@/components/ui/typography"
 import type { CommunicationView } from "@/modules/notifications"
-import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
+import {
+  formatStudioDayMonthYear,
+  formatStudioTime,
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 const KIND_LABEL: Record<CommunicationView["kind"], string> = {
@@ -29,7 +32,11 @@ const STATUS_LABEL: Record<CommunicationView["status"], string> = {
  * The client's transactional-message log (admin-only), newest first — what was
  * sent, when, how it was triggered, and whether it reached them.
  */
-export function ClientCommunications({ comms }: { comms: CommunicationView[] }) {
+export function ClientCommunications({
+  comms,
+}: {
+  comms: CommunicationView[]
+}) {
   return (
     <section className="space-y-3">
       <Eyebrow as="h3">Communications</Eyebrow>

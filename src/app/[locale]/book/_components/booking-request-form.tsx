@@ -70,14 +70,22 @@ export function BookingRequestForm({
       humanProof: humanProof ?? undefined,
     })
     // Leave the booking flow for a dedicated confirmation — not a lingering card.
-    if (res.ok) router.replace(routes.requestSent)
+    if (res.ok) {
+      router.replace(routes.requestSent)
+    }
     // A proof is single-use, so a second send needs a fresh tick.
-    else if (res.code === "human") onProofSpent()
+    else if (res.code === "human") {
+      onProofSpent()
+    }
     // Only reachable on a lapsed session (the gate is two steps back) — send
     // them to sign in and straight back to where they were.
     else if (res.code === "auth") {
-      router.push({ pathname: routes.signIn, query: { next: signInReturnPath } })
+      router.push({
+        pathname: routes.signIn,
+        query: { next: signInReturnPath },
+      })
     }
+
     return res
   }
 
@@ -128,7 +136,9 @@ export function BookingRequestForm({
             onClick={() =>
               startTransition(async () => {
                 const res = await sendRequest(fixedStart)
-                if (!res.ok) toast.error(res.error || copy("genericError"))
+                if (!res.ok) {
+                  toast.error(res.error || copy("genericError"))
+                }
               })
             }
           >
@@ -142,6 +152,7 @@ export function BookingRequestForm({
           locale={locale}
           onConfirm={async (start) => {
             const res = await sendRequest(start)
+
             return res.ok ? { ok: true } : { ok: false, error: res.error }
           }}
           labels={slotLabels}

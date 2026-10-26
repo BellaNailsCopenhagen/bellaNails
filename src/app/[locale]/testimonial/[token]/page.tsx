@@ -19,8 +19,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "testimonialForm" })
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -43,7 +46,9 @@ export default async function TestimonialPage({
   params: Promise<{ locale: string; token: string }>
 }) {
   const { locale, token } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const t = await getTranslations({ locale, namespace: "testimonialForm" })
@@ -63,6 +68,7 @@ export default async function TestimonialPage({
     // "Used" is only true if they actually wrote something; a studio-withdrawn
     // invitation must not thank them for words they never sent.
     const closed = invite.status === "declined" && !invite.answered
+
     return (
       <Shell
         lead={t(closed ? "closedTitle" : "usedTitle")}

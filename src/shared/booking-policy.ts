@@ -25,7 +25,8 @@ export type BookingMeta = {
   serviceNameDk?: string | null
   serviceDescriptionEn?: string | null
   serviceDescriptionDk?: string | null
-  addonSnapshots?: { id: string; nameEn: string; nameDk: string | null }[] | null
+  addonSnapshots?:
+    { id: string; nameEn: string; nameDk: string | null }[] | null
 }
 
 export const metaOf = (row: { selected_addons: unknown }) =>
@@ -38,12 +39,15 @@ export function localizedBookingNames(
   locale: string,
 ): { serviceName: string; addonNames: string[] } {
   const isEn = locale === "en"
+
   return {
     serviceName:
-      (isEn ? meta.serviceNameEn : meta.serviceNameDk ?? meta.serviceNameEn) ??
+      (isEn
+        ? meta.serviceNameEn
+        : (meta.serviceNameDk ?? meta.serviceNameEn)) ??
       (isEn ? "Treatment" : "Behandling"),
     addonNames: (meta.addonSnapshots ?? []).map((a) =>
-      isEn ? a.nameEn : a.nameDk ?? a.nameEn,
+      isEn ? a.nameEn : (a.nameDk ?? a.nameEn),
     ),
   }
 }
@@ -61,9 +65,13 @@ export function bookedDurationMins(booking: {
   selected_addons: unknown
 }): number {
   const mins = metaOf(booking).totalDurationMins
-  if (typeof mins === "number" && mins > 0) return mins
+  if (typeof mins === "number" && mins > 0) {
+    return mins
+  }
   const span =
-    new Date(booking.end_time).getTime() - new Date(booking.start_time).getTime()
+    new Date(booking.end_time).getTime() -
+    new Date(booking.start_time).getTime()
+
   return span > 0 ? Math.round(span / 60_000) : 0
 }
 
@@ -167,9 +175,16 @@ export function requestTimeProblem(
   now: number,
 ): RequestTimeProblem | null {
   const startMs = new Date(startIso).getTime()
-  if (!Number.isFinite(startMs)) return "invalid"
-  if (startMs < now) return "past"
-  if (startMs > now + REQUEST_HORIZON_DAYS * 24 * 60 * 60 * 1000) return "tooFar"
+  if (!Number.isFinite(startMs)) {
+    return "invalid"
+  }
+  if (startMs < now) {
+    return "past"
+  }
+  if (startMs > now + REQUEST_HORIZON_DAYS * 24 * 60 * 60 * 1000) {
+    return "tooFar"
+  }
+
   return null
 }
 
@@ -188,7 +203,12 @@ export function bookingState(
   row: { status: string; no_show_at: string | null; end_time: string },
   now: number,
 ): BookingState {
-  if (row.no_show_at) return "no-show"
-  if (row.status === BOOKING_STATUS.cancelled) return "cancelled"
+  if (row.no_show_at) {
+    return "no-show"
+  }
+  if (row.status === BOOKING_STATUS.cancelled) {
+    return "cancelled"
+  }
+
   return new Date(row.end_time).getTime() >= now ? "open" : "completed"
 }

@@ -39,7 +39,6 @@ const KIND_LABEL: Record<string, string> = {
   over_limit: "Over the 2-booking limit",
 }
 
-
 export function AdminRequestCard({
   request,
   contact,
@@ -66,8 +65,10 @@ export function AdminRequestCard({
     if (res.ok) {
       setAdjustOpen(false)
       router.refresh()
+
       return { ok: true as const }
     }
+
     return { ok: false as const, error: res.error }
   }
 
@@ -123,13 +124,19 @@ export function AdminRequestCard({
       {contact?.phone || contact?.email ? (
         <div className="flex flex-wrap items-center gap-4">
           {contact?.phone ? (
-            <a href={telHref(contact.phone)} className={cardActionNeutral("gap-1 text-[0.625rem]")}>
+            <a
+              href={telHref(contact.phone)}
+              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+            >
               <Phone className="size-3" />
               Call
             </a>
           ) : null}
           {contact?.email ? (
-            <a href={`mailto:${contact.email}`} className={cardActionNeutral("gap-1 text-[0.625rem]")}>
+            <a
+              href={`mailto:${contact.email}`}
+              className={cardActionNeutral("gap-1 text-[0.625rem]")}
+            >
               <Mail className="size-3" />
               Email
             </a>
@@ -153,7 +160,9 @@ export function AdminRequestCard({
           <p className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
             Client note
           </p>
-          <p className="font-functional text-sm text-foreground">{request.message}</p>
+          <p className="font-functional text-sm text-foreground">
+            {request.message}
+          </p>
         </div>
       ) : null}
 
@@ -168,7 +177,12 @@ export function AdminRequestCard({
         </Button>
         <div className="flex flex-wrap items-center gap-2">
           {request.serviceId ? (
-            <Button variant="outline" size="sm" disabled={pending} onClick={openAdjust}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pending}
+              onClick={openAdjust}
+            >
               Adjust time
             </Button>
           ) : null}
@@ -190,8 +204,8 @@ export function AdminRequestCard({
         <SheetContent className="flex max-h-[90vh] flex-col gap-4">
           <SheetTitle>Adjust time — {clientName}</SheetTitle>
           <BodySm className="text-xs text-muted-foreground">
-            Pick an available studio time — or ignore hours to pick any free slot.
-            Either way accepts the request and confirms the client.
+            Pick an available studio time — or ignore hours to pick any free
+            slot. Either way accepts the request and confirms the client.
           </BodySm>
           <label className="flex items-center gap-2">
             <input
@@ -227,7 +241,9 @@ export function AdminRequestCard({
       <AlertDialog
         open={rejectOpen}
         onOpenChange={(next) => {
-          if (!pending) setRejectOpen(next)
+          if (!pending) {
+            setRejectOpen(next)
+          }
         }}
       >
         <AlertDialogContent>
@@ -261,7 +277,10 @@ export function AdminRequestCard({
               onClick={() =>
                 run(async () => {
                   const res = await rejectBookingRequest(request.id, reason)
-                  if (res.ok) setRejectOpen(false)
+                  if (res.ok) {
+                    setRejectOpen(false)
+                  }
+
                   return res
                 })
               }

@@ -12,14 +12,16 @@ const handleI18nRouting = createMiddleware(routing)
 
 // Signed-in-only client route: /appointments (My Space — bookings, gallery,
 // requests, and account settings).
-const isProtectedPath = (p: string) =>
-  /^\/(da|en)\/appointments(\/|$)/.test(p)
+const isProtectedPath = (p: string) => /^\/(da|en)\/appointments(\/|$)/.test(p)
 
 // Carry the refreshed Supabase session cookies onto a redirect/rewrite response
 // (they were set on `sessionResponse` by the client below, but that object may
 // not be the one we return).
 function withCookies(to: NextResponse, from: NextResponse): NextResponse {
-  for (const cookie of from.cookies.getAll()) to.cookies.set(cookie)
+  for (const cookie of from.cookies.getAll()) {
+    to.cookies.set(cookie)
+  }
+
   return to
 }
 
@@ -61,6 +63,7 @@ export default async function proxy(request: NextRequest) {
     if (!user) {
       const url = new URL("/login", request.url)
       url.searchParams.set("next", pathname)
+
       return withCookies(NextResponse.redirect(url), sessionResponse)
     }
     if (!isOwnerUser(user)) {
@@ -69,6 +72,7 @@ export default async function proxy(request: NextRequest) {
         sessionResponse,
       )
     }
+
     return sessionResponse
   }
 
@@ -78,6 +82,7 @@ export default async function proxy(request: NextRequest) {
     const locale = hasLocale(routing.locales, seg) ? seg : routing.defaultLocale
     const url = new URL(`/${locale}/login`, request.url)
     url.searchParams.set("next", pathname)
+
     return withCookies(NextResponse.redirect(url), sessionResponse)
   }
 

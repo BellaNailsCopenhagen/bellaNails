@@ -1,7 +1,10 @@
 import "server-only"
 
 import { listAllAddons, type AddonRow } from "@/db/addons"
-import { listAllIncompatiblePairs, listIncompatiblePairsAmong } from "@/db/addon-incompatibilities"
+import {
+  listAllIncompatiblePairs,
+  listIncompatiblePairsAmong,
+} from "@/db/addon-incompatibilities"
 import { countActiveBookingsForService } from "@/db/bookings"
 import { listAdminCategories, type AdminCategoryRow } from "@/db/categories"
 import {
@@ -31,7 +34,9 @@ export type AdminCatalog = {
 
 export async function getAdminCatalog(): Promise<AdminCatalog> {
   const db = await requireOwner()
-  if (!db) return { categories: [], uncategorized: [] }
+  if (!db) {
+    return { categories: [], uncategorized: [] }
+  }
   const [categoryRows, services] = await Promise.all([
     listAdminCategories(db),
     listAdminServices(db),
@@ -55,18 +60,21 @@ export async function getAdminCatalog(): Promise<AdminCatalog> {
     ...category,
     services: byCategory.get(category.id) ?? [],
   }))
+
   return { categories, uncategorized }
 }
 
 /** Every add-on (standalone, reusable) — for the Add-ons tab + service picker. */
 export async function getAllAddons(): Promise<AdminAddon[]> {
   const db = await requireOwner()
+
   return db ? listAllAddons(db) : []
 }
 
 /** All incompatible add-on pairs (global). */
 export async function getAllIncompatibilities(): Promise<[string, string][]> {
   const db = await requireOwner()
+
   return db ? listAllIncompatiblePairs(db) : []
 }
 
@@ -89,10 +97,14 @@ export async function getServiceDetail(
   id: string,
 ): Promise<ServiceDetail | null> {
   const db = await requireOwner()
-  if (!db) return null
+  if (!db) {
+    return null
+  }
 
   const service = await getAdminService(db, id)
-  if (!service) return null
+  if (!service) {
+    return null
+  }
 
   const [validBookings, categories, incompatiblePairs] = await Promise.all([
     countActiveBookingsForService(db, id),
@@ -104,8 +116,9 @@ export async function getServiceDetail(
   ])
 
   const category =
-    categories.find(({ id: categoryId }) => categoryId === service.category_id) ??
-    null
+    categories.find(
+      ({ id: categoryId }) => categoryId === service.category_id,
+    ) ?? null
 
   return { service, category, categories, incompatiblePairs, validBookings }
 }

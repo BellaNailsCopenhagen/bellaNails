@@ -27,8 +27,12 @@ export function formatPrice(
  */
 export function parseKroner(input: string): number | null {
   const raw = input.trim().replace(/\s/g, "")
-  if (!raw) return null
-  if (!/^[0-9.,]+$/.test(raw)) return null
+  if (!raw) {
+    return null
+  }
+  if (!/^[0-9.,]+$/.test(raw)) {
+    return null
+  }
 
   const lastSeparator = Math.max(raw.lastIndexOf(","), raw.lastIndexOf("."))
   const decimals = lastSeparator === -1 ? 0 : raw.length - lastSeparator - 1
@@ -39,7 +43,10 @@ export function parseKroner(input: string): number | null {
     : raw.replace(/[.,]/g, "")
 
   const value = Number(digits)
-  if (!Number.isFinite(value) || value < 0) return null
+  if (!Number.isFinite(value) || value < 0) {
+    return null
+  }
+
   // Round to øre — a third decimal is a typo, not a price.
   return Math.round(value * 100) / 100
 }

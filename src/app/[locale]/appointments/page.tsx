@@ -32,8 +32,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "bookings" })
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -53,7 +56,10 @@ const TAB_KEYS = [
 /** `?tab=` → a tab. `requests` was the one tab that is now two; it lands on
     Permissions, which is where the banners that used it were pointing. */
 function tabFromParam(value: string | null): MySpaceTabKey {
-  if (value === "requests") return "permissions"
+  if (value === "requests") {
+    return "permissions"
+  }
+
   return (TAB_KEYS as readonly string[]).includes(value ?? "")
     ? (value as MySpaceTabKey)
     : "bookings"
@@ -68,7 +74,9 @@ export default async function BookingsPage({
   searchParams,
 }: PageProps<"/[locale]/appointments">) {
   const [{ locale }, query] = await Promise.all([params, searchParams])
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: "bookings" })
 
@@ -121,9 +129,7 @@ export default async function BookingsPage({
             defaultFocusBookingId={singleParam(query.focus) ?? null}
             galleryCount={space.media.length}
             askCount={askCount}
-            permissionCount={
-              space.requestCount + (testimonialInvite ? 1 : 0)
-            }
+            permissionCount={space.requestCount + (testimonialInvite ? 1 : 0)}
             unreadReplies={unreadReplies}
             bookings={
               <MyBookings

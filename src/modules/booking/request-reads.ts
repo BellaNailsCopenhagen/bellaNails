@@ -29,15 +29,23 @@ export async function getPendingRequests(): Promise<{
   contacts: Record<string, ClientContact>
 }> {
   const db = await requireOwner()
-  if (!db) return { requests: [], contacts: {} }
+  if (!db) {
+    return { requests: [], contacts: {} }
+  }
 
   const rows = await listPendingBookingRequests(db).catch(() => [])
-  if (!rows.length) return { requests: [], contacts: {} }
+  if (!rows.length) {
+    return { requests: [], contacts: {} }
+  }
 
   const contacts = await fetchClientContacts(rows.map((r) => r.client_id))
   const requests = rows.map((r) => {
     const meta = metaOf(r)
-    const { serviceName, addonNames } = localizedBookingNames(meta, ADMIN_LOCALE)
+    const { serviceName, addonNames } = localizedBookingNames(
+      meta,
+      ADMIN_LOCALE,
+    )
+
     return {
       id: r.id,
       clientId: r.client_id,
@@ -52,5 +60,6 @@ export async function getPendingRequests(): Promise<{
       createdAt: r.created_at,
     }
   })
+
   return { requests, contacts }
 }

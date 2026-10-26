@@ -10,12 +10,15 @@ export async function listNotesForBookings(
   db: Db,
   bookingIds: string[],
 ): Promise<NoteRow[]> {
-  if (!bookingIds.length) return []
+  if (!bookingIds.length) {
+    return []
+  }
   const { data } = await db
     .from("notes")
     .select("*")
     .in("booking_id", bookingIds)
     .order("created_at", { ascending: true })
+
   return data ?? []
 }
 
@@ -24,13 +27,16 @@ export async function listClientLevelNotes(
   db: Db,
   clientIds: string[],
 ): Promise<NoteRow[]> {
-  if (!clientIds.length) return []
+  if (!clientIds.length) {
+    return []
+  }
   const { data } = await db
     .from("notes")
     .select("*")
     .in("client_id", clientIds)
     .is("booking_id", null)
     .order("created_at", { ascending: true })
+
   return data ?? []
 }
 
@@ -49,6 +55,7 @@ export async function insertNote(
     .insert(values)
     .select("id")
     .single()
+
   return { ok: !error, id: data?.id }
 }
 
@@ -61,11 +68,13 @@ export async function updateNoteBody(
     .from("notes")
     .update({ body, updated_at: new Date().toISOString() })
     .eq("id", id)
+
   return { ok: !error }
 }
 
 export async function deleteNote(db: Db, id: string): Promise<{ ok: boolean }> {
   const { error } = await db.from("notes").delete().eq("id", id)
+
   return { ok: !error }
 }
 
@@ -75,5 +84,6 @@ export async function deleteNotesForClient(
   clientId: string,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("notes").delete().eq("client_id", clientId)
+
   return { ok: !error }
 }

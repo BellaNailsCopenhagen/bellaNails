@@ -14,8 +14,14 @@ test("a fresh offer with time left is live", () => {
 
 test("expiry is exclusive at the boundary", () => {
   // Exactly at the deadline counts as expired — no half-second grace.
-  assert.equal(offerState({ expires_at: new Date(NOW).toISOString() }, NOW), "expired")
-  assert.equal(offerState({ expires_at: new Date(NOW + 1).toISOString() }, NOW), "live")
+  assert.equal(
+    offerState({ expires_at: new Date(NOW).toISOString() }, NOW),
+    "expired",
+  )
+  assert.equal(
+    offerState({ expires_at: new Date(NOW + 1).toISOString() }, NOW),
+    "live",
+  )
 })
 
 test("withdrawn wins over every other state", () => {
@@ -33,9 +39,15 @@ test("a closed offer reads as expired, and withdrawal keeps its own message", ()
   // The expiry sweep sets closed_at only; a withdrawal sets both. That is what
   // lets one immutable column drive the one-live-offer index while the client
   // still sees the right reason.
-  assert.equal(offerState({ expires_at: future, closed_at: past }, NOW), "expired")
   assert.equal(
-    offerState({ expires_at: future, closed_at: past, withdrawn_at: past }, NOW),
+    offerState({ expires_at: future, closed_at: past }, NOW),
+    "expired",
+  )
+  assert.equal(
+    offerState(
+      { expires_at: future, closed_at: past, withdrawn_at: past },
+      NOW,
+    ),
     "withdrawn",
   )
 })

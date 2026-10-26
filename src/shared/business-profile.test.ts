@@ -48,7 +48,10 @@ test("nothing, or nothing usable, is null", () => {
   assert.equal(normalizeSocialUrl("instagramUrl", ""), null)
   assert.equal(normalizeSocialUrl("instagramUrl", null), null)
   // A host with no path is a handle that lost its way.
-  assert.equal(normalizeSocialUrl("instagramUrl", "https://instagram.com"), null)
+  assert.equal(
+    normalizeSocialUrl("instagramUrl", "https://instagram.com"),
+    null,
+  )
 })
 
 test("a non-http scheme is refused, not rendered", () => {

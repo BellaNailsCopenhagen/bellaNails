@@ -9,7 +9,10 @@ export async function listEnabledFlags(
 ): Promise<Record<string, boolean>> {
   const { data } = await db.from("feature_flags").select("key, enabled")
   const map: Record<string, boolean> = {}
-  for (const row of data ?? []) map[row.key] = row.enabled
+  for (const row of data ?? []) {
+    map[row.key] = row.enabled
+  }
+
   return map
 }
 
@@ -22,6 +25,7 @@ export async function getFeatureFlagEnabled(
     .select("enabled")
     .eq("key", key)
     .maybeSingle()
+
   return data?.enabled ?? false
 }
 
@@ -36,5 +40,6 @@ export async function upsertFeatureFlag(
       { key, enabled, updated_at: new Date().toISOString() },
       { onConflict: "key" },
     )
+
   return { ok: !error }
 }

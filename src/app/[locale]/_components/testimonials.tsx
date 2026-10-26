@@ -21,7 +21,9 @@ export async function Testimonials() {
     getPublishedTestimonials(),
   ])
 
-  if (!shouldShowTestimonials(items.length)) return null
+  if (!shouldShowTestimonials(items.length)) {
+    return null
+  }
 
   const shape = shouldScrollTestimonials(items.length)
     ? {

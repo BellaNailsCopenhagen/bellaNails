@@ -24,11 +24,14 @@ export async function listAssetsByIds(
   db: Db,
   ids: string[],
 ): Promise<PublicAssetRow[]> {
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("assets")
     .select("id, url, media_type")
     .in("id", ids)
+
   return data ?? []
 }
 
@@ -40,6 +43,7 @@ export async function listWebsiteAssets(
     .from("assets")
     .select("id, url")
     .eq("purpose", "website")
+
   return data ?? []
 }
 
@@ -48,8 +52,11 @@ export async function listAssetUrlsByIds(
   db: Db,
   ids: string[],
 ): Promise<Pick<Row<"assets">, "id" | "url">[]> {
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db.from("assets").select("id, url").in("id", ids)
+
   return data ?? []
 }
 
@@ -61,12 +68,15 @@ export async function listWebsiteAssetsForMedia(
   mediaIds: string[],
 ): Promise<MediaAssetRow[]> {
   const ids = [...new Set(mediaIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("assets")
     .select("id, url, media_type, client_media_id, purpose")
     .eq("purpose", "website")
     .in("client_media_id", ids)
+
   return data ?? []
 }
 
@@ -78,12 +88,15 @@ export async function listAssetsForMediaByPurpose(
   purpose: "website" | "social",
 ): Promise<AssetInfoRow[]> {
   const ids = [...new Set(mediaIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("assets")
     .select("id, client_media_id, purpose, storage_key, needs_takedown_at")
     .eq("purpose", purpose)
     .in("client_media_id", ids)
+
   return data ?? []
 }
 
@@ -93,11 +106,14 @@ export async function listAssetsForMedia(
   mediaIds: string[],
 ): Promise<AssetInfoRow[]> {
   const ids = [...new Set(mediaIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("assets")
     .select("id, client_media_id, purpose, storage_key, needs_takedown_at")
     .in("client_media_id", ids)
+
   return data ?? []
 }
 
@@ -112,6 +128,7 @@ export async function hasPublishedAssetForMedia(
     .select("id")
     .eq("client_media_id", mediaId)
     .limit(1)
+
   return Boolean(data?.length)
 }
 
@@ -126,6 +143,7 @@ export async function getAssetPurpose(
     .select("purpose")
     .eq("id", id)
     .maybeSingle()
+
   return data?.purpose ?? null
 }
 
@@ -139,6 +157,7 @@ export async function getAssetStorageKey(
     .select("storage_key")
     .eq("id", id)
     .maybeSingle()
+
   return data?.storage_key ?? null
 }
 
@@ -159,7 +178,10 @@ export async function insertAsset(
     .insert(values)
     .select("id")
     .single()
-  if (error || !data) return { ok: false }
+  if (error || !data) {
+    return { ok: false }
+  }
+
   return { ok: true, id: data.id }
 }
 
@@ -170,11 +192,14 @@ export async function flagAssetsTakedown(
   ids: string[],
   atIso: string,
 ): Promise<{ ok: boolean }> {
-  if (ids.length === 0) return { ok: true }
+  if (ids.length === 0) {
+    return { ok: true }
+  }
   const { error } = await db
     .from("assets")
     .update({ needs_takedown_at: atIso })
     .in("id", ids)
+
   return { ok: !error }
 }
 
@@ -183,11 +208,14 @@ export async function clearAssetsTakedown(
   db: Db,
   mediaIds: string[],
 ): Promise<{ ok: boolean }> {
-  if (mediaIds.length === 0) return { ok: true }
+  if (mediaIds.length === 0) {
+    return { ok: true }
+  }
   const { error } = await db
     .from("assets")
     .update({ needs_takedown_at: null })
     .in("client_media_id", mediaIds)
+
   return { ok: !error }
 }
 
@@ -198,5 +226,6 @@ export async function deleteAsset(
   id: string,
 ): Promise<{ ok: boolean }> {
   const { error } = await db.from("assets").delete().eq("id", id)
+
   return { ok: !error }
 }

@@ -8,7 +8,11 @@ import {
   setServiceArchived,
   updateService as updateServiceRow,
 } from "@/db/services"
-import { listPriceHistory, recordPricePoint, type PricePoint } from "@/db/price-history"
+import {
+  listPriceHistory,
+  recordPricePoint,
+  type PricePoint,
+} from "@/db/price-history"
 import { requireOwner } from "@/modules/identity/require-owner"
 import { routes } from "@/shared/routes"
 
@@ -43,8 +47,11 @@ export async function getServiceAddonsForOwner(
   serviceId: string,
 ): Promise<OwnerServiceAddons> {
   const db = await requireOwner()
-  if (!db) return { addons: [], incompatiblePairs: [] }
+  if (!db) {
+    return { addons: [], incompatiblePairs: [] }
+  }
   const data = await getServiceWithAddons(serviceId, db)
+
   return data
     ? { addons: data.addons, incompatiblePairs: data.incompatiblePairs }
     : { addons: [], incompatiblePairs: [] }
@@ -56,7 +63,10 @@ export async function getPriceHistory(
   entityId: string,
 ): Promise<PricePoint[]> {
   const db = await requireOwner()
-  if (!db) return []
+  if (!db) {
+    return []
+  }
+
   return listPriceHistory(db, entityType, entityId)
 }
 
@@ -66,10 +76,14 @@ export async function createService(
   input: ServiceCreateInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const nameEn = input.nameEn.trim()
-  if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  if (nameEn.length < 2) {
+    return { ok: false, error: "Name is required." }
+  }
   const nameDk = input.nameDa.trim() || nameEn
   const cents = serviceCents(input.priceKr)
   if (cents === null) {
@@ -89,10 +103,13 @@ export async function createService(
     base_duration_mins: input.durationMins,
     category_id: input.categoryId,
   })
-  if (!created.ok) return { ok: false, error: "Couldn’t create the service." }
+  if (!created.ok) {
+    return { ok: false, error: "Couldn’t create the service." }
+  }
 
   await recordPricePoint(db, "service", created.id, cents)
   revalidateService(created.id)
+
   return { ok: true, id: created.id }
 }
 
@@ -101,10 +118,14 @@ export async function updateService(
   input: ServiceEditInput,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const nameEn = input.nameEn.trim()
-  if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  if (nameEn.length < 2) {
+    return { ok: false, error: "Name is required." }
+  }
   const nameDk = input.nameDa.trim() || nameEn
   const cents = serviceCents(input.priceKr)
   if (cents === null) {
@@ -118,7 +139,9 @@ export async function updateService(
   }
 
   const current = await getServicePricing(db, id)
-  if (!current) return { ok: false, error: "Service not found." }
+  if (!current) {
+    return { ok: false, error: "Service not found." }
+  }
 
   const saved = await updateServiceRow(db, id, {
     name_en: nameEn,
@@ -129,13 +152,16 @@ export async function updateService(
     base_duration_mins: input.durationMins,
     category_id: input.categoryId,
   })
-  if (!saved.ok) return { ok: false, error: "Couldn’t save the service." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save the service." }
+  }
 
   if (current.base_price_cents !== cents) {
     await recordPricePoint(db, "service", id, cents)
   }
 
   revalidateService(id)
+
   return { ok: true }
 }
 
@@ -144,17 +170,22 @@ export async function archiveService(
   archived: boolean,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await setServiceArchived(
     db,
     id,
     archived ? new Date().toISOString() : null,
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t update the service." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update the service." }
+  }
 
   // Archived services are filtered out of every public read, so they can no
   // longer be booked — no external calendar to hide.
   revalidateService(id)
+
   return { ok: true }
 }

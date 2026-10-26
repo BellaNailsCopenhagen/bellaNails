@@ -38,10 +38,14 @@ export async function saveCategory(
   input: CategoryInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const nameEn = input.nameEn.trim()
-  if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  if (nameEn.length < 2) {
+    return { ok: false, error: "Name is required." }
+  }
   const nameDk = input.nameDa.trim() || nameEn
 
   const taken = await categoryNameTaken(db, nameEn, nameDk, categoryId)
@@ -62,8 +66,11 @@ export async function saveCategory(
 
   if (categoryId) {
     const saved = await updateCategoryRow(db, categoryId, fields)
-    if (!saved.ok) return { ok: false, error: "Couldn’t save the category." }
+    if (!saved.ok) {
+      return { ok: false, error: "Couldn’t save the category." }
+    }
     revalidateCatalogSurfaces()
+
     return { ok: true, id: categoryId }
   }
 
@@ -71,8 +78,11 @@ export async function saveCategory(
     ...fields,
     sort_order: await nextCategorySortOrder(db),
   })
-  if (!created.ok) return { ok: false, error: "Couldn’t create the category." }
+  if (!created.ok) {
+    return { ok: false, error: "Couldn’t create the category." }
+  }
   revalidateCatalogSurfaces()
+
   return { ok: true, id: created.id }
 }
 
@@ -83,14 +93,18 @@ export async function archiveCategory(
   archived: boolean,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   // Restoring rejoins the active set, where names must still be unique.
   if (!archived) {
     const current = (await listAdminCategories(db)).find(
       (category) => category.id === categoryId,
     )
-    if (!current) return { ok: false, error: "Category not found." }
+    if (!current) {
+      return { ok: false, error: "Category not found." }
+    }
     const taken = await categoryNameTaken(
       db,
       current.name_en,
@@ -113,9 +127,12 @@ export async function archiveCategory(
     categoryId,
     archived ? new Date().toISOString() : null,
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t update the category." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update the category." }
+  }
 
   revalidateCatalogSurfaces()
+
   return { ok: true }
 }
 
@@ -126,23 +143,34 @@ export async function moveCategory(
   direction: "up" | "down",
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const ids = (await listAdminCategories(db)).map((category) => category.id)
   const from = ids.indexOf(categoryId)
-  if (from === -1) return { ok: false, error: "Category not found." }
+  if (from === -1) {
+    return { ok: false, error: "Category not found." }
+  }
 
   const to = direction === "up" ? from - 1 : from + 1
-  if (to < 0 || to >= ids.length) return { ok: true } // already at the edge
+  if (to < 0 || to >= ids.length) {
+    return { ok: true } // already at the edge
+  }
   ;[ids[from], ids[to]] = [ids[to], ids[from]]
 
   const saved = await setCategoryOrder(db, ids)
   // The renumber isn't atomic, so a failure may have moved some rows already.
   if (!saved.ok) {
     revalidateCatalogSurfaces()
-    return { ok: false, error: "Couldn’t finish reordering — reload to see the current order." }
+
+    return {
+      ok: false,
+      error: "Couldn’t finish reordering — reload to see the current order.",
+    }
   }
 
   revalidateCatalogSurfaces()
+
   return { ok: true }
 }

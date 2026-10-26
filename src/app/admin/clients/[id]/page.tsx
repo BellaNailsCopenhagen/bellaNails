@@ -1,7 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarPlus, ChevronLeft, Mail, Phone, TriangleAlert } from "lucide-react"
+import {
+  CalendarPlus,
+  ChevronLeft,
+  Mail,
+  Phone,
+  TriangleAlert,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Eyebrow, H2, BodySm } from "@/components/ui/typography"
@@ -61,20 +67,23 @@ export default async function AdminClientPage({
   const { bookings, contacts, noShowCounts, photosByBooking } =
     await getClientBookingHistory(id)
   // The roster is "clients who have booked" — an id with no bookings isn't one.
-  if (!bookings.length) notFound()
+  if (!bookings.length) {
+    notFound()
+  }
 
   const contact = contacts[id]
   const clientName = contactDisplayName(contact)
   const noShowCount = noShowCounts[id] ?? 0
 
   // Media + consent tables may not be migrated yet — degrade to empty.
-  const [hubAppointments, privacy, comms, clientNotes, emailBlock] = await Promise.all([
-    getHubAppointments(id).catch(() => []),
-    getClientPrivacyRecord(id),
-    getClientCommunications(id),
-    getClientNotes(id),
-    getEmailBlock(contact?.email),
-  ])
+  const [hubAppointments, privacy, comms, clientNotes, emailBlock] =
+    await Promise.all([
+      getHubAppointments(id).catch(() => []),
+      getClientPrivacyRecord(id),
+      getClientCommunications(id),
+      getClientNotes(id),
+      getEmailBlock(contact?.email),
+    ])
   const { dataConsents, terms: termsAcceptances } = privacy
 
   // Booking picker for owner uploads: only sessions that have started (past or
@@ -93,9 +102,8 @@ export default async function AdminClientPage({
   // Default to an ongoing session (started, not yet ended), else the most recent
   // attachable one.
   const defaultBookingId =
-    attachableBookings.find(
-      (b) => new Date(b.row.end_time).getTime() >= now,
-    )?.row.id ??
+    attachableBookings.find((b) => new Date(b.row.end_time).getTime() >= now)
+      ?.row.id ??
     attachableBookings[0]?.row.id ??
     null
 
@@ -132,12 +140,18 @@ export default async function AdminClientPage({
 
         {/* Reach the client, and a reputation flag if they're a repeat no-show. */}
         <div className="flex flex-wrap items-center gap-4">
-          <Link href={routes.admin.newBooking({ client: id })} className={cardActionNeutral("gap-1")}>
+          <Link
+            href={routes.admin.newBooking({ client: id })}
+            className={cardActionNeutral("gap-1")}
+          >
             <CalendarPlus className="size-3.5" />
             New booking
           </Link>
           {contact?.phone ? (
-            <a href={telHref(contact.phone)} className={cardActionNeutral("gap-1")}>
+            <a
+              href={telHref(contact.phone)}
+              className={cardActionNeutral("gap-1")}
+            >
               <Phone className="size-3.5" />
               Call
             </a>

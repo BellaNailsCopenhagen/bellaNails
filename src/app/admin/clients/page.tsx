@@ -22,6 +22,7 @@ export const dynamic = "force-dynamic"
 
 function toRosterEntry(entry: DirectoryEntry): ClientRosterEntry {
   const { contact } = entry
+
   return {
     id: entry.id,
     name: contactDisplayName(contact),
@@ -64,9 +65,7 @@ export default async function AdminClientsPage() {
           <ChevronLeft className="size-3.5" />
           Queue
         </Link>
-        <H2>
-          Clients{clients.length ? ` · ${clients.length}` : ""}
-        </H2>
+        <H2>Clients{clients.length ? ` · ${clients.length}` : ""}</H2>
       </div>
 
       {loadError ? (

@@ -11,10 +11,7 @@ import { PriceTag } from "@/components/ui/price-tag"
 import { SectionHeading } from "@/components/ui/section-heading"
 import { TintedCard } from "@/components/ui/tinted-card"
 import { Caption, H3 } from "@/components/ui/typography"
-import {
-  toDisplayBooking,
-  type DisplayBooking,
-} from "@/shared/booking-view"
+import { toDisplayBooking, type DisplayBooking } from "@/shared/booking-view"
 import { listUpcomingBookingsForClient } from "@/db/bookings"
 import { getServiceNameCatalog } from "@/db/services"
 import type { Db } from "@/db/client"
@@ -43,9 +40,12 @@ async function fetchNextAppointment(
     new Date().toISOString(),
     1,
   )
-  if (!row) return null
+  if (!row) {
+    return null
+  }
 
   const catalog = await getServiceNameCatalog(db, [metaOf(row).serviceId])
+
   return toDisplayBooking(row, catalog, locale)
 }
 
@@ -56,8 +56,10 @@ function useMinuteNow(): number {
   const [now, setNow] = React.useState(Date.now())
   React.useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 60_000)
+
     return () => clearInterval(id)
   }, [])
+
   return now
 }
 
@@ -79,7 +81,9 @@ export function NextAppointment() {
     enabled: Boolean(clientId),
   })
 
-  if (!clientId || !next) return null
+  if (!clientId || !next) {
+    return null
+  }
 
   return (
     // Section-level divider (same device as FindUs) between this personal
@@ -110,7 +114,10 @@ export function NextAppointment() {
               <Caption className="text-[10px] tracking-widest-lux">
                 {formatCountdown(next.row.start_time, locale, now)}
               </Caption>
-              <PriceTag cents={next.row.total_price_cents} className="text-lg" />
+              <PriceTag
+                cents={next.row.total_price_cents}
+                className="text-lg"
+              />
             </div>
           </div>
         </TintedCard>

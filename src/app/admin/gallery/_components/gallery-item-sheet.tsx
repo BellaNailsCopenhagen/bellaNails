@@ -72,7 +72,9 @@ export function GalleryItemSheet({
     () => () => {
       const keep = savedRef.current ? keptAssetRef.current : item?.assetId
       for (const assetId of publishedHere.current) {
-        if (assetId !== keep) void discardStudioAsset(assetId)
+        if (assetId !== keep) {
+          void discardStudioAsset(assetId)
+        }
       }
     },
     [item?.assetId],
@@ -85,7 +87,9 @@ export function GalleryItemSheet({
 
   const create = () =>
     run(async () => {
-      if (!image?.assetId) return { ok: false, error: "Upload an image first." }
+      if (!image?.assetId) {
+        return { ok: false, error: "Upload an image first." }
+      }
       const result = await addGalleryItem({
         assetId: image.assetId,
         titleEn,
@@ -97,6 +101,7 @@ export function GalleryItemSheet({
         keptAssetRef.current = image.assetId
         close()
       }
+
       return result.ok ? { ...result, note: "Added to the gallery" } : result
     })
 
@@ -105,23 +110,32 @@ export function GalleryItemSheet({
   // position off whoever held it.
   const save = () =>
     run(async () => {
-      if (!item) return { ok: false, error: "not_found" }
+      if (!item) {
+        return { ok: false, error: "not_found" }
+      }
       if (image?.assetId && image.assetId !== item.assetId) {
         const swapped = await replaceGalleryImage(item.id, image.assetId)
-        if (!swapped.ok) return swapped
+        if (!swapped.ok) {
+          return swapped
+        }
         keptAssetRef.current = image.assetId
       }
       if (titleEn !== item.captionEn || titleDa !== item.captionDa) {
         const renamed = await renameGalleryItem(item.id, titleEn, titleDa)
-        if (!renamed.ok) return renamed
+        if (!renamed.ok) {
+          return renamed
+        }
       }
       if (slot !== item.slot) {
         const moved = await setGalleryItemSlot(item.id, slot)
-        if (!moved.ok) return moved
+        if (!moved.ok) {
+          return moved
+        }
       }
       savedRef.current = true
       keptAssetRef.current ??= item.assetId
       close()
+
       return { ok: true as const, note: "Saved" }
     })
 
@@ -203,9 +217,9 @@ export function GalleryItemSheet({
             ))}
           </div>
           <BodySm className="text-xs text-muted-foreground">
-            Position 1 is the large image; 2&ndash;5 are the small ones beside it.
-            Each position holds one image, so choosing a taken one moves the other
-            out. Not featured still shows on the gallery page.
+            Position 1 is the large image; 2&ndash;5 are the small ones beside
+            it. Each position holds one image, so choosing a taken one moves the
+            other out. Not featured still shows on the gallery page.
           </BodySm>
         </div>
 
@@ -214,7 +228,10 @@ export function GalleryItemSheet({
             <ConfirmActionButton
               action={async () => {
                 const result = await removeGalleryItem(item.id)
-                if (result.ok) close()
+                if (result.ok) {
+                  close()
+                }
+
                 return result
               }}
               labels={{

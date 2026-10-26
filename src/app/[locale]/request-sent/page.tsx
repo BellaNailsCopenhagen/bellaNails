@@ -16,7 +16,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
+
   return {
     title: locale === "en" ? "Request sent" : "Anmodning sendt",
     // Personal post-request page — never in a search index.
@@ -36,7 +39,9 @@ export default async function RequestSentPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
   const isEn = locale === "en"
 
@@ -54,7 +59,10 @@ export default async function RequestSentPage({
           }
         />
         <div className="flex flex-wrap gap-3">
-          <Button nativeButton={false} render={<Link href={routes.appointments} />}>
+          <Button
+            nativeButton={false}
+            render={<Link href={routes.appointments} />}
+          >
             {isEn ? "View my appointments" : "Se Mit rum"}
           </Button>
           <Button

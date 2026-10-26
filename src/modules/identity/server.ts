@@ -18,6 +18,7 @@ export const getAuthUser = cache(async (): Promise<User | null> => {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
   return user
 })
 
@@ -29,14 +30,19 @@ export const getAuthUser = cache(async (): Promise<User | null> => {
  */
 export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
   const user = await getAuthUser()
-  if (!user) return null
+  if (!user) {
+    return null
+  }
   const client = await findClientByAuthUser(
     createSupabaseServiceRoleClient(),
     user.id,
   )
   // The login trigger should always link a clients row; if not, id falls back to
   // the auth uid (client-own queries then return empty) — log the anomaly.
-  if (!client) console.warn("[identity] no clients row for auth user", user.id)
+  if (!client) {
+    console.warn("[identity] no clients row for auth user", user.id)
+  }
+
   return {
     id: client?.id ?? user.id,
     isOwner: isOwnerUser(user),

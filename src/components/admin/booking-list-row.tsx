@@ -7,14 +7,13 @@ import { cn } from "@/shared/cn"
 import { Badge } from "@/components/ui/badge"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import {
-  type DisplayBooking,
-} from "@/shared/booking-view"
-import {
-  canMarkNoShow,
-} from "@/shared/booking-policy"
+import { type DisplayBooking } from "@/shared/booking-view"
+import { canMarkNoShow } from "@/shared/booking-policy"
 import { contactDisplayName, type ClientContact } from "@/shared/contact"
-import { formatStudioDayMonthYear, formatStudioTime } from "@/shared/studio-time"
+import {
+  formatStudioDayMonthYear,
+  formatStudioTime,
+} from "@/shared/studio-time"
 import { ADMIN_LOCALE } from "@/config/admin"
 
 type StatusBadge = {
@@ -29,13 +28,20 @@ function statusBadge(
   status: string,
   noShow: boolean,
 ): StatusBadge | null {
-  if (status === BOOKING_STATUS.cancelled)
+  if (status === BOOKING_STATUS.cancelled) {
     return { label: "Cancelled", variant: "destructive" }
+  }
   // A no-show is more specific than "completed" — surface it in the summary.
-  if (noShow) return { label: "No-show", variant: "destructive" }
-  if (!upcoming) return { label: "Completed", variant: "success" }
-  if (status === BOOKING_STATUS.rescheduled)
+  if (noShow) {
+    return { label: "No-show", variant: "destructive" }
+  }
+  if (!upcoming) {
+    return { label: "Completed", variant: "success" }
+  }
+  if (status === BOOKING_STATUS.rescheduled) {
     return { label: "Rescheduled", variant: "warning" }
+  }
+
   return null
 }
 

@@ -46,13 +46,18 @@ export function sanitizeSelectedAddonIds(
   const valid = new Set(addons.map((addon) => addon.id))
   const kept: string[] = []
   for (const id of requestedIds) {
-    if (!valid.has(id) || kept.includes(id)) continue
+    if (!valid.has(id) || kept.includes(id)) {
+      continue
+    }
     const clashes = incompatiblePairs.some(
       ([a, b]) =>
         (a === id && kept.includes(b)) || (b === id && kept.includes(a)),
     )
-    if (!clashes) kept.push(id)
+    if (!clashes) {
+      kept.push(id)
+    }
   }
+
   return kept
 }
 

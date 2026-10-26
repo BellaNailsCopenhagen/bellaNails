@@ -33,5 +33,6 @@ export async function toDisplayBookings(
       error instanceof Error ? error.message : error,
     )
   }
+
   return rows.map((row) => toDisplayBooking(row, catalog, locale))
 }

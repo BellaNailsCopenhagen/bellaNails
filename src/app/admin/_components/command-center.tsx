@@ -50,7 +50,11 @@ export function CommandCenter({
       ? formatStudioTime(iso, ADMIN_LOCALE)
       : `${formatStudioDate(iso, ADMIN_LOCALE)}, ${formatStudioTime(iso, ADMIN_LOCALE)}`
 
-  const heading = current ? "In progress" : next ? "Up next" : "Nothing scheduled"
+  const heading = current
+    ? "In progress"
+    : next
+      ? "Up next"
+      : "Nothing scheduled"
   const subline = current
     ? `${contactDisplayName(contacts[current.row.client_id])} · until ${whenLabel(current.row.end_time)}`
     : next
@@ -60,7 +64,9 @@ export function CommandCenter({
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <Eyebrow>{formatStudioDate(new Date(now).toISOString(), ADMIN_LOCALE)}</Eyebrow>
+        <Eyebrow>
+          {formatStudioDate(new Date(now).toISOString(), ADMIN_LOCALE)}
+        </Eyebrow>
         <H2>{heading}</H2>
         <BodySm className="text-xs">{subline}</BodySm>
       </div>

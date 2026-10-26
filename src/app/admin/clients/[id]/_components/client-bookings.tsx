@@ -16,9 +16,7 @@ import {
 } from "@/components/admin/status-filter"
 import { QueueBookingCard } from "@/components/admin/queue-booking-card"
 import { BookingListRow } from "@/components/admin/booking-list-row"
-import {
-  type DisplayBooking,
-} from "@/shared/booking-view"
+import { type DisplayBooking } from "@/shared/booking-view"
 import {
   bookingState,
   canMarkNoShow,
@@ -80,8 +78,12 @@ export function ClientBookings({
   const toggleState = (state: BookingState, checked: boolean) =>
     setSelected((prev) => {
       const next = new Set(prev)
-      if (checked) next.add(state)
-      else next.delete(state)
+      if (checked) {
+        next.add(state)
+      } else {
+        next.delete(state)
+      }
+
       return next
     })
 
@@ -95,6 +97,7 @@ export function ClientBookings({
       .filter((b) => endMs(b) < now)
       .sort((a, b) => startMs(b) - startMs(a))
     const next = up.find((b) => bookingState(b.row, now) === "open")
+
     return { next, upcoming: up.filter((b) => b !== next), past }
   }, [bookings, now])
 
@@ -110,12 +113,15 @@ export function ClientBookings({
     const counts = new Map<number, DayStateCounts>()
     for (const booking of bookings) {
       const state = bookingState(booking.row, now)
-      if (!selected.has(state)) continue
+      if (!selected.has(state)) {
+        continue
+      }
       const day = studioDayNumber(startMs(booking))
       const perState = counts.get(day) ?? {}
       perState[state] = (perState[state] ?? 0) + 1
       counts.set(day, perState)
     }
+
     return counts
   }, [bookings, selected, now])
 
@@ -175,7 +181,10 @@ export function ClientBookings({
           {focusedDay !== null ? (
             <div className="flex items-center justify-between gap-3">
               <Eyebrow as="span">
-                {formatStudioDayMonthYear(dayNumberToMs(focusedDay), ADMIN_LOCALE)}
+                {formatStudioDayMonthYear(
+                  dayNumberToMs(focusedDay),
+                  ADMIN_LOCALE,
+                )}
               </Eyebrow>
               <button
                 type="button"

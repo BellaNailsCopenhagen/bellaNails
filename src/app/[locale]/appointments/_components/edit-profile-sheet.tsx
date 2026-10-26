@@ -47,7 +47,10 @@ export function EditProfileSheet({
         name: nameValue,
         phone: phoneValue,
       })
-      if (result.ok) setOpen(false)
+      if (result.ok) {
+        setOpen(false)
+      }
+
       return result.ok ? { ...result, note: t("saved") } : result
     })
 

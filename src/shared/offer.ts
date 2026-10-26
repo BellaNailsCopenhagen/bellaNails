@@ -31,9 +31,16 @@ export type OfferLifecycle = {
 /** Checked in lifecycle order: an explicit end beats a deadline, and a used
     offer reads as used even after its expiry passes. */
 export function offerState(offer: OfferLifecycle, now: number): OfferState {
-  if (offer.withdrawn_at) return "withdrawn"
-  if (offer.booking_id) return "used"
-  if (offer.closed_at) return "expired"
+  if (offer.withdrawn_at) {
+    return "withdrawn"
+  }
+  if (offer.booking_id) {
+    return "used"
+  }
+  if (offer.closed_at) {
+    return "expired"
+  }
+
   return new Date(offer.expires_at).getTime() <= now ? "expired" : "live"
 }
 

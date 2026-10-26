@@ -12,7 +12,10 @@ import type { CategoryGroup, ServiceOption } from "./types"
  * Step 2 — pick one service, grouped by category (menu order). Selecting a
  * service triggers its add-ons load in the parent.
  */
-export function ServiceStep({ categories, onSelect }: {
+export function ServiceStep({
+  categories,
+  onSelect,
+}: {
   categories: CategoryGroup[]
   onSelect: (service: ServiceOption) => void
 }) {

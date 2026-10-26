@@ -4,7 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import { SlotPicker, type SlotPickerOutcome } from "@/components/booking/slot-picker"
+import {
+  SlotPicker,
+  type SlotPickerOutcome,
+} from "@/components/booking/slot-picker"
 import { BodySm } from "@/components/ui/typography"
 import { rescheduleBookingAsOwner } from "@/modules/booking/actions"
 import { getOwnerOverrideSlotsForBooking } from "@/modules/booking/actions"
@@ -50,6 +53,7 @@ export function AdminRescheduleSlotStep({
     toast.success("Appointment moved")
     router.replace(routes.admin.home)
     router.refresh()
+
     return { ok: true }
   }
 

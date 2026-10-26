@@ -6,12 +6,8 @@ import { BookingPhotos } from "@/app/[locale]/appointments/_components/booking-p
 import { PriceTag } from "@/components/ui/price-tag"
 import { BodySm, Caption } from "@/components/ui/typography"
 import { BOOKING_STATUS } from "@/shared/booking-status"
-import {
-  type DisplayBooking,
-} from "@/shared/booking-view"
-import {
-  metaOf,
-} from "@/shared/booking-policy"
+import { type DisplayBooking } from "@/shared/booking-view"
+import { metaOf } from "@/shared/booking-policy"
 import type { ClientMediaItem } from "@/modules/media/client-gallery"
 import { formatStudioDate } from "@/shared/studio-time"
 import { routes } from "@/config/routes"

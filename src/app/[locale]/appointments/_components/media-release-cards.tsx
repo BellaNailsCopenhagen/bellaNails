@@ -59,6 +59,7 @@ export function MediaReleaseCards({
   const run: typeof runRaw = (action) =>
     runRaw(async () => {
       const result = await action()
+
       return result.ok
         ? result
         : { ...result, error: releaseErrorCopy(locale, result.error) }
@@ -86,6 +87,7 @@ export function MediaReleaseCards({
             const when = card.startIso
               ? formatStudioDate(card.startIso, locale)
               : ""
+
             return (
               <TintedCard
                 key={card.bookingId}
@@ -172,14 +174,18 @@ function PurposeControl({
             variant="ghost"
             size="sm"
             disabled={pending}
-            onClick={() => run(() => decideMediaRelease(bookingId, purpose, "declined"))}
+            onClick={() =>
+              run(() => decideMediaRelease(bookingId, purpose, "declined"))
+            }
           >
             {copy.decline}
           </Button>
           <Button
             size="sm"
             disabled={pending}
-            onClick={() => run(() => decideMediaRelease(bookingId, purpose, "granted"))}
+            onClick={() =>
+              run(() => decideMediaRelease(bookingId, purpose, "granted"))
+            }
           >
             {copy.allow}
           </Button>

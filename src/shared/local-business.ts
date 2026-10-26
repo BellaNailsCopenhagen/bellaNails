@@ -30,7 +30,10 @@ function splitPostTown(line: string): {
   addressLocality?: string
 } {
   const match = line.trim().match(/^(\d{4})\s+(.+)$/)
-  if (!match) return line.trim() ? { addressLocality: line.trim() } : {}
+  if (!match) {
+    return line.trim() ? { addressLocality: line.trim() } : {}
+  }
+
   return { postalCode: match[1], addressLocality: match[2] }
 }
 
@@ -95,15 +98,29 @@ export function localBusinessSchema(input: {
       addressCountry: "DK",
     }
   }
-  if (profile.contactEmail) schema.email = profile.contactEmail
-  if (input.areaServed.length) schema.areaServed = input.areaServed
+  if (profile.contactEmail) {
+    schema.email = profile.contactEmail
+  }
+  if (input.areaServed.length) {
+    schema.areaServed = input.areaServed
+  }
 
   // Optional fields -- only emit when explicitly set, to avoid claiming
   // things that aren't set yet (e.g. a made-up phone number in structured
   // data is worse than a missing one -- Google shows it).
-  if (telephone) schema.telephone = telephone
-  if (geo) schema.geo = { "@type": "GeoCoordinates", latitude: geo[0], longitude: geo[1] }
-  if (sameAs.length) schema.sameAs = sameAs
+  if (telephone) {
+    schema.telephone = telephone
+  }
+  if (geo) {
+    schema.geo = {
+      "@type": "GeoCoordinates",
+      latitude: geo[0],
+      longitude: geo[1],
+    }
+  }
+  if (sameAs.length) {
+    schema.sameAs = sameAs
+  }
   if (openingHoursSpecification.length) {
     schema.openingHoursSpecification = openingHoursSpecification
   }

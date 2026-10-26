@@ -40,7 +40,9 @@ export function HeroVideo({ src }: { src: string }) {
 
   useEffect(() => {
     const element = video.current
-    if (!element) return
+    if (!element) {
+      return
+    }
 
     // Read the state off the ELEMENT rather than tracking it alongside: iOS Low
     // Power Mode and a browser's own data-saving both pause a video without
@@ -65,7 +67,9 @@ export function HeroVideo({ src }: { src: string }) {
 
   const toggle = () => {
     const element = video.current
-    if (!element) return
+    if (!element) {
+      return
+    }
     if (element.paused) {
       element.preload = "auto"
       void element.play().catch(() => {})

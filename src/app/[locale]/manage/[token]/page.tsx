@@ -14,10 +14,7 @@ import {
   getMaxAdvanceDays,
   verifyBookingToken,
 } from "@/modules/booking"
-import {
-  bookedDurationMins,
-  canManageBooking,
-} from "@/shared/booking-policy"
+import { bookedDurationMins, canManageBooking } from "@/shared/booking-policy"
 import { formatStudioDate, formatStudioTime } from "@/shared/studio-time"
 
 export async function generateMetadata({
@@ -26,10 +23,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "bookings" })
+
   // A tokenized personal link — never in a search index.
-  return { title: t("manageMetaTitle"), robots: { index: false, follow: false } }
+  return {
+    title: t("manageMetaTitle"),
+    robots: { index: false, follow: false },
+  }
 }
 
 export const dynamic = "force-dynamic"
@@ -46,14 +49,20 @@ export default async function ManagePage({
   params: Promise<{ locale: string; token: string }>
 }) {
   const { locale, token } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
 
   const id = verifyBookingToken(token)
-  if (!id) notFound()
+  if (!id) {
+    notFound()
+  }
 
   const booking = await getBookingForSignedToken(id)
-  if (!booking) notFound()
+  if (!booking) {
+    notFound()
+  }
 
   const [t, maxAdvanceDays] = await Promise.all([
     getTranslations({ locale, namespace: "bookings" }),
@@ -79,8 +88,9 @@ export default async function ManagePage({
           intro={t("manageIntro")}
         />
         <BodySm className="pb-8">
-          {t("rescheduleCurrent")}: {formatStudioDate(booking.start_time, locale)}{" "}
-          · {formatStudioTime(booking.start_time, locale)}
+          {t("rescheduleCurrent")}:{" "}
+          {formatStudioDate(booking.start_time, locale)} ·{" "}
+          {formatStudioTime(booking.start_time, locale)}
         </BodySm>
         <ManageBooking
           token={token}

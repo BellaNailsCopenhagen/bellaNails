@@ -60,9 +60,14 @@ export function ConfirmationRelease({
     run(async () => {
       const chosen = RELEASE_PURPOSES.filter((p) => checked[p])
       const result = await preApproveRelease(token, chosen)
-      if (result.ok) setSaved(true)
+      if (result.ok) {
+        setSaved(true)
+      }
+
       // The action answers with a code; saying it out loud is our job.
-      return result.ok ? result : { ...result, error: releaseErrorCopy(locale, result.error) }
+      return result.ok
+        ? result
+        : { ...result, error: releaseErrorCopy(locale, result.error) }
     })
 
   return (
@@ -84,6 +89,7 @@ export function ConfirmationRelease({
       <div className="max-w-md space-y-3">
         {RELEASE_PURPOSES.map((purpose) => {
           const p = purpose as ReleasePurpose
+
           return (
             <TintedCard key={purpose} className="flex items-start gap-3 p-4">
               <Checkbox

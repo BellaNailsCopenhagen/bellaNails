@@ -19,10 +19,14 @@ export async function discardUploadedRef(
   storageKey: string,
 ): Promise<{ ok: boolean }> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false }
+  if (!user) {
+    return { ok: false }
+  }
   // Confines the delete to the reference area — the artist's private originals
   // live under a different prefix and are never reachable from this action.
-  if (!storageKey.startsWith("refs/")) return { ok: false }
+  if (!storageKey.startsWith("refs/")) {
+    return { ok: false }
+  }
 
   // Fails closed on BOTH answers we can't act on: an attached key belongs to a
   // thread that renders it, and an unanswerable query might be either.
@@ -30,12 +34,15 @@ export async function discardUploadedRef(
   const found = await findDesignRefByKey(db, storageKey).catch(() => ({
     ok: false as const,
   }))
-  if (!found.ok || found.row) return { ok: false }
+  if (!found.ok || found.row) {
+    return { ok: false }
+  }
 
   const removed = await deleteObject(storageKey)
   if (!removed.ok) {
     // The weekly orphan sweep is the backstop; log so it is not silent.
     console.error("[design] discard left an orphan object:", removed.error)
   }
+
   return { ok: removed.ok }
 }

@@ -8,9 +8,7 @@ import {
   cardActionDestructive,
   cardActionNeutral,
 } from "@/components/admin/card-action"
-import {
-  setBookingNoShow,
-} from "@/modules/booking/actions"
+import { setBookingNoShow } from "@/modules/booking/actions"
 
 /**
  * Toggle the studio-side no-show marker. Reversible, so it fires directly (no

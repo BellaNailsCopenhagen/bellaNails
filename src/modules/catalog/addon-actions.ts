@@ -38,13 +38,19 @@ export async function saveAddon(
   input: AddonEditInput,
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const nameEn = input.nameEn.trim()
-  if (nameEn.length < 2) return { ok: false, error: "Name is required." }
+  if (nameEn.length < 2) {
+    return { ok: false, error: "Name is required." }
+  }
   const nameDk = input.nameDa.trim() || nameEn
   const cents = krToCents(input.priceKr)
-  if (cents === null) return { ok: false, error: "Price is invalid." }
+  if (cents === null) {
+    return { ok: false, error: "Price is invalid." }
+  }
   if (!Number.isInteger(input.durationMins) || input.durationMins < 0) {
     return { ok: false, error: "Duration is invalid." }
   }
@@ -62,18 +68,24 @@ export async function saveAddon(
   if (addonId) {
     const priorPrice = await getAddonPrice(db, addonId)
     const saved = await updateAddon(db, addonId, fields)
-    if (!saved.ok) return { ok: false, error: "Couldn’t save the add-on." }
+    if (!saved.ok) {
+      return { ok: false, error: "Couldn’t save the add-on." }
+    }
     if (priorPrice !== null && priorPrice !== cents) {
       await recordPricePoint(db, "addon", addonId, cents)
     }
     revalidatePath(routes.admin.services)
+
     return { ok: true, id: addonId }
   }
 
   const created = await insertAddon(db, fields)
-  if (!created.ok) return { ok: false, error: "Couldn’t save the add-on." }
+  if (!created.ok) {
+    return { ok: false, error: "Couldn’t save the add-on." }
+  }
   await recordPricePoint(db, "addon", created.id, cents)
   revalidatePath(routes.admin.services)
+
   return { ok: true, id: created.id }
 }
 
@@ -83,16 +95,21 @@ export async function archiveAddon(
   archived: boolean,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const saved = await setAddonArchived(
     db,
     addonId,
     archived ? new Date().toISOString() : null,
   )
-  if (!saved.ok) return { ok: false, error: "Couldn’t update the add-on." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t update the add-on." }
+  }
 
   revalidatePath(routes.admin.services)
+
   return { ok: true }
 }
 
@@ -102,12 +119,17 @@ export async function linkAddon(
   addonId: string,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const linked = await linkAddonToService(db, serviceId, addonId)
-  if (!linked.ok) return { ok: false, error: "Couldn’t link the add-on." }
+  if (!linked.ok) {
+    return { ok: false, error: "Couldn’t link the add-on." }
+  }
 
   revalidateService(serviceId)
+
   return { ok: true }
 }
 
@@ -116,12 +138,17 @@ export async function unlinkAddon(
   addonId: string,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
 
   const unlinked = await unlinkAddonFromService(db, serviceId, addonId)
-  if (!unlinked.ok) return { ok: false, error: "Couldn’t unlink the add-on." }
+  if (!unlinked.ok) {
+    return { ok: false, error: "Couldn’t unlink the add-on." }
+  }
 
   revalidateService(serviceId)
+
   return { ok: true }
 }
 
@@ -133,8 +160,12 @@ export async function setAddonCompatibility(
   incompatible: boolean,
 ): Promise<ServiceActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "unauthorized" }
-  if (addonA === addonB) return { ok: false, error: "Pick two add-ons." }
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
+  if (addonA === addonB) {
+    return { ok: false, error: "Pick two add-ons." }
+  }
 
   // Pairs are stored once, in sorted order.
   const [a, b] = [addonA, addonB].sort()
@@ -142,8 +173,11 @@ export async function setAddonCompatibility(
   const saved = incompatible
     ? await addIncompatiblePair(db, a, b)
     : await removeIncompatiblePair(db, a, b)
-  if (!saved.ok) return { ok: false, error: "Couldn’t save compatibility." }
+  if (!saved.ok) {
+    return { ok: false, error: "Couldn’t save compatibility." }
+  }
 
   revalidatePath(routes.admin.services)
+
   return { ok: true }
 }

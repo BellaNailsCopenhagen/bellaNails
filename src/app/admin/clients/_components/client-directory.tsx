@@ -30,7 +30,10 @@ export type ClientRosterEntry = {
 
 function caption(entry: ClientRosterEntry): string {
   const bookings = `${entry.count} booking${entry.count === 1 ? "" : "s"}`
-  if (entry.lastVisitMs === null) return `${bookings} · upcoming`
+  if (entry.lastVisitMs === null) {
+    return `${bookings} · upcoming`
+  }
+
   return `${bookings} · last ${formatStudioDayMonthYear(entry.lastVisitMs, ADMIN_LOCALE)}`
 }
 
@@ -38,6 +41,7 @@ function ClientRows({ clients }: { clients: ClientRosterEntry[] }) {
   if (!clients.length) {
     return <BodySm className="py-2">None.</BodySm>
   }
+
   return (
     <ul className="border-t border-border">
       {clients.map((client) => (
@@ -73,8 +77,10 @@ type ClientTab = "active" | "booking-only" | "blocked"
 
 const TAB_HELP: Record<ClientTab, string> = {
   active: "Signed into their own account — fine to contact outside a booking.",
-  "booking-only": "Account created from a booking — contact for appointment matters only.",
-  blocked: "Refused at the booking form. Block someone from their own page, or add one by hand below.",
+  "booking-only":
+    "Account created from a booking — contact for appointment matters only.",
+  blocked:
+    "Refused at the booking form. Block someone from their own page, or add one by hand below.",
 }
 
 export function ClientDirectory({
@@ -89,6 +95,7 @@ export function ClientDirectory({
 
   const { activated, bookingOnly } = useMemo(() => {
     const matches = clients.filter((c) => matchesClientSearch(c.search, query))
+
     return {
       activated: matches.filter((c) => c.activated),
       bookingOnly: matches.filter((c) => !c.activated),

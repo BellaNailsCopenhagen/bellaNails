@@ -41,11 +41,16 @@ export async function ensureUser({
   const existing = await findClientByEmail(supabase, normalizedEmail)
   if (existing) {
     const patch: { name?: string; phone?: string } = {}
-    if (!existing.name && name) patch.name = name
-    if (phone && phone !== existing.phone) patch.phone = phone
+    if (!existing.name && name) {
+      patch.name = name
+    }
+    if (phone && phone !== existing.phone) {
+      patch.phone = phone
+    }
     if (Object.keys(patch).length) {
       await updateClientContact(supabase, existing.id, patch)
     }
+
     return existing.id
   }
 
@@ -54,11 +59,15 @@ export async function ensureUser({
     name: name ?? null,
     phone: phone ?? null,
   })
-  if (created.ok) return created.id
+  if (created.ok) {
+    return created.id
+  }
 
   // create-then-find race: a concurrent login/booking inserted it first.
   const raced = await findClientIdByEmail(supabase, normalizedEmail)
-  if (raced) return raced
+  if (raced) {
+    return raced
+  }
   // Log the PG error CODE only — the raw message can echo the email (PII).
   console.error("[ensureUser] client insert failed", { code: created.code })
   throw new Error("ensureUser: could not create client")

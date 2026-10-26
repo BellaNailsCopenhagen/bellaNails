@@ -11,10 +11,13 @@ const RING = ["ring-2", "ring-foreground", "ring-offset-2"] as const
  */
 export function flashHighlight(elementId: string): (() => void) | undefined {
   const el = document.getElementById(elementId)
-  if (!el) return undefined
+  if (!el) {
+    return undefined
+  }
   el.scrollIntoView({ behavior: "smooth", block: "center" })
   el.classList.add(...RING)
   const timer = setTimeout(() => el.classList.remove(...RING), 2200)
+
   return () => clearTimeout(timer)
 }
 
@@ -31,7 +34,10 @@ export function flashHighlight(elementId: string): (() => void) | undefined {
  */
 export function HighlightTarget({ elementId }: { elementId: string | null }) {
   useEffect(() => {
-    if (!elementId) return
+    if (!elementId) {
+      return
+    }
+
     return flashHighlight(elementId)
   }, [elementId])
 

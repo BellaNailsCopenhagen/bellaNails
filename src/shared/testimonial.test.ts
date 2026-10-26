@@ -77,7 +77,11 @@ test("occupation is optional and trimmed away when blank", () => {
 })
 
 test("values come back trimmed, so what was checked is what gets stored", () => {
-  const r = validateTestimonial({ authorName: "  Mia  ", body: `  ${"y".repeat(30)}  `, consent: true })
+  const r = validateTestimonial({
+    authorName: "  Mia  ",
+    body: `  ${"y".repeat(30)}  `,
+    consent: true,
+  })
   assert.equal(r.ok, true)
   assert.equal(r.ok && r.value.authorName, "Mia")
   assert.equal(r.ok && r.value.body, "y".repeat(30))

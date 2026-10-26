@@ -27,17 +27,24 @@ export async function purgeMediaArtifacts(mediaId: string): Promise<boolean> {
   for (const asset of assets) {
     const gallery = await deleteGalleryItemsForAsset(supabase, asset.id)
     const assetRow = await deleteAsset(supabase, asset.id)
-    if (!gallery.ok || !assetRow.ok) clean = false
+    if (!gallery.ok || !assetRow.ok) {
+      clean = false
+    }
     if (asset.storage_key) {
       const res = await deleteObject(asset.storage_key)
-      if (!res.ok) clean = false
+      if (!res.ok) {
+        clean = false
+      }
     }
   }
 
   // The private original.
   if (originalKey) {
     const res = await deleteObject(originalKey)
-    if (!res.ok) clean = false
+    if (!res.ok) {
+      clean = false
+    }
   }
+
   return clean
 }

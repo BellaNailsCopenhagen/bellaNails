@@ -42,7 +42,8 @@ export type SlotPickerLabels = {
 const WEEKDAYS = 7
 // Monday-based weekday index of a studio day-number (epoch day 0 was a Thursday).
 const weekdayIndex = (dayNumber: number) => (dayNumber + 3) % WEEKDAYS
-const monthKey = (ym: { year: number; month: number }) => ym.year * 12 + ym.month
+const monthKey = (ym: { year: number; month: number }) =>
+  ym.year * 12 + ym.month
 
 /**
  * The in-house date + time picker shared by the /book confirm step and both
@@ -70,9 +71,13 @@ export function SlotPicker({
     for (const slot of slots) {
       const day = studioDayNumber(new Date(slot.start).getTime())
       const list = map.get(day)
-      if (list) list.push(slot)
-      else map.set(day, [slot])
+      if (list) {
+        list.push(slot)
+      } else {
+        map.set(day, [slot])
+      }
     }
+
     return map
   }, [slots])
 
@@ -112,7 +117,11 @@ export function SlotPicker({
   const shiftMonth = (delta: number) =>
     setView((v) => {
       const m = v.month - 1 + delta
-      return { year: v.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 + 1 }
+
+      return {
+        year: v.year + Math.floor(m / 12),
+        month: (((m % 12) + 12) % 12) + 1,
+      }
     })
 
   // The viewed month, laid out as leading blanks + each date.
@@ -133,12 +142,16 @@ export function SlotPicker({
   const currentSlots = selectedDay != null ? (byDay.get(selectedDay) ?? []) : []
 
   const confirm = () => {
-    if (!selectedSlot) return
+    if (!selectedSlot) {
+      return
+    }
     startTransition(async () => {
       setError(null)
       const result = await onConfirm(selectedSlot)
       // On success the caller navigates away; only failure returns here.
-      if (!result.ok) setError(result.error || labels.genericError)
+      if (!result.ok) {
+        setError(result.error || labels.genericError)
+      }
     })
   }
 
@@ -203,6 +216,7 @@ export function SlotPicker({
               const day = firstOfMonth + i
               const available = byDay.has(day)
               const isSelected = day === selectedDay
+
               return (
                 <button
                   key={day}
@@ -210,7 +224,10 @@ export function SlotPicker({
                   disabled={!available}
                   onClick={() => pickDay(day)}
                   aria-pressed={isSelected}
-                  aria-label={formatStudioDayMonthYear(dayNumberToMs(day), locale)}
+                  aria-label={formatStudioDayMonthYear(
+                    dayNumberToMs(day),
+                    locale,
+                  )}
                   className={cn(
                     "flex h-12 items-center justify-center rounded-sm font-functional text-sm transition-colors sm:h-14",
                     isSelected

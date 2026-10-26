@@ -13,9 +13,7 @@
 export const OWNER_ROLE = "owner"
 
 type WithAppMetadata =
-  | { app_metadata?: Record<string, unknown> | null }
-  | null
-  | undefined
+  { app_metadata?: Record<string, unknown> | null } | null | undefined
 
 export function isOwnerUser(user: WithAppMetadata): boolean {
   return user?.app_metadata?.role === OWNER_ROLE

@@ -25,11 +25,14 @@ export async function listReleasesForBookings(
   bookingIds: string[],
 ): Promise<ReleaseStateRow[]> {
   const ids = [...new Set(bookingIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("media_releases")
     .select("booking_id, purpose, status")
     .in("booking_id", ids)
+
   return data ?? []
 }
 
@@ -63,7 +66,10 @@ export async function listReleasesForClient(
   // Throws rather than degrades: an empty result here is indistinguishable from
   // "never asked", so a swallowed failure would tell a client their live
   // permission was never given — and drop every release from a GDPR export.
-  if (error) throw new Error(error.message)
+  if (error) {
+    throw new Error(error.message)
+  }
+
   return data ?? []
 }
 
@@ -80,6 +86,7 @@ export async function findRelease(
     .eq("booking_id", bookingId)
     .eq("purpose", purpose)
     .maybeSingle()
+
   return data ?? null
 }
 
@@ -91,13 +98,16 @@ export async function listGrantedReleaseBookings(
   purpose: ReleasePurpose,
 ): Promise<string[]> {
   const ids = [...new Set(bookingIds.filter(Boolean))]
-  if (ids.length === 0) return []
+  if (ids.length === 0) {
+    return []
+  }
   const { data } = await db
     .from("media_releases")
     .select("booking_id")
     .eq("purpose", purpose)
     .eq("status", "granted")
     .in("booking_id", ids)
+
   return [...new Set((data ?? []).map((r) => r.booking_id))]
 }
 
@@ -114,6 +124,7 @@ export async function isBookingReleased(
     .eq("purpose", purpose)
     .eq("status", "granted")
     .maybeSingle()
+
   return Boolean(data)
 }
 
@@ -127,6 +138,7 @@ export async function countRequestedReleasesForClient(
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId)
     .eq("status", "requested")
+
   return count ?? 0
 }
 
@@ -141,6 +153,7 @@ export async function upsertReleases(
   const { error } = await db
     .from("media_releases")
     .upsert(values, { onConflict: "booking_id,purpose" })
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -153,6 +166,7 @@ export async function insertRelease(
   value: ReleaseUpsert,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("media_releases").insert(value)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }
 
@@ -162,5 +176,6 @@ export async function updateRelease(
   values: Update<"media_releases">,
 ): Promise<{ ok: boolean; message?: string }> {
   const { error } = await db.from("media_releases").update(values).eq("id", id)
+
   return error ? { ok: false, message: error.message } : { ok: true }
 }

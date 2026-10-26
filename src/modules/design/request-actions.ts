@@ -95,15 +95,22 @@ export async function createDesignRequest(
   })
 
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: t("errSignIn") }
+  if (!user) {
+    return { ok: false, error: t("errSignIn") }
+  }
 
-  if (!isDesignTopic(input.topic)) return { ok: false, error: t("errTopic") }
+  if (!isDesignTopic(input.topic)) {
+    return { ok: false, error: t("errTopic") }
+  }
   const message = input.message.trim()
-  if (!message) return { ok: false, error: t("errMessage") }
+  if (!message) {
+    return { ok: false, error: t("errMessage") }
+  }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return { ok: false, error: t("errTooLong") }
   }
-  const preferredWindow = input.preferredWindow?.trim().slice(0, MAX_PREFERRED_WINDOW_LENGTH) || null
+  const preferredWindow =
+    input.preferredWindow?.trim().slice(0, MAX_PREFERRED_WINDOW_LENGTH) || null
 
   const refKeys = (input.refKeys ?? []).filter((k) => k.startsWith(REF_PREFIX))
   if (refKeys.length > MAX_REFS_PER_REQUEST) {
@@ -129,13 +136,16 @@ export async function createDesignRequest(
   let bookingId: string | null = null
   if (input.bookingId) {
     const booking = await getBookingOwner(db, input.bookingId).catch(() => null)
-    if (booking?.client_id === user.id) bookingId = input.bookingId
+    if (booking?.client_id === user.id) {
+      bookingId = input.bookingId
+    }
   }
 
   // `?service=` arrives from a link and lands in a uuid FK — drop it unless it
   // resolves, so a stale or crafted value can't fail every submit.
   const serviceId = input.serviceId
-    ? ((await getPublicServiceRow(db, input.serviceId).catch(() => null))?.id ?? null)
+    ? ((await getPublicServiceRow(db, input.serviceId).catch(() => null))?.id ??
+      null)
     : null
 
   const saved = await insertDesignRequest(db, {
@@ -145,7 +155,9 @@ export async function createDesignRequest(
     booking_id: bookingId,
     preferred_window: preferredWindow,
   })
-  if (!saved.ok) return { ok: false, error: t("errSend") }
+  if (!saved.ok) {
+    return { ok: false, error: t("errSend") }
+  }
 
   const wrote = await insertDesignMessage(db, {
     request_id: saved.id,
@@ -161,12 +173,17 @@ export async function createDesignRequest(
       // The blank row survives and still counts toward the open-request cap, so
       // three of these would lock the client out. Loud, and don't tell them to
       // just retry — that is exactly what fills the cap.
-      console.error(`[design] BLANK request ${saved.id} could not be rolled back:`, undone.message)
+      console.error(
+        `[design] BLANK request ${saved.id} could not be rolled back:`,
+        undone.message,
+      )
+
       return {
         ok: false,
         error: t("errSave"),
       }
     }
+
     return { ok: false, error: t("errSend") }
   }
 
@@ -182,8 +199,11 @@ export async function createDesignRequest(
     )
     // The message is the request; a lost photo must not lose it. Report what
     // actually attached, so the artist's alert never promises a photo the studio can't see.
-    if (refs.ok) attachedRefs = refKeys.length
-    else console.error("[design] refs not attached to", saved.id, refs.message)
+    if (refs.ok) {
+      attachedRefs = refKeys.length
+    } else {
+      console.error("[design] refs not attached to", saved.id, refs.message)
+    }
   }
 
   await notifyOwner(db, {
@@ -228,6 +248,7 @@ export async function createDesignRequest(
   }
 
   revalidatePath(routes.admin.home)
+
   return { ok: true, id: saved.id }
 }
 
@@ -237,7 +258,9 @@ export async function addDesignMessage(
   body: string,
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "Please sign in first." }
+  if (!user) {
+    return { ok: false, error: "Please sign in first." }
+  }
   // The open-request cap bounds REQUESTS; nothing bounded messages, and each one
   // also inserts an owner notification and grows an unpaginated admin card.
   if (
@@ -247,10 +270,15 @@ export async function addDesignMessage(
       MESSAGE_RULE,
     ))
   ) {
-    return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
+    return {
+      ok: false,
+      error: "That's a lot of messages at once — give the studio a moment.",
+    }
   }
   const message = body.trim()
-  if (!message) return { ok: false, error: "Write a message first." }
+  if (!message) {
+    return { ok: false, error: "Write a message first." }
+  }
   if (message.length > MAX_MESSAGE_LENGTH) {
     return { ok: false, error: "That message is too long." }
   }
@@ -264,7 +292,10 @@ export async function addDesignMessage(
   // is the boundary — otherwise a replay posts into a request the queue no
   // longer lists, and each one fires an owner notification.
   if (!isActionableDesignStatus(request.status)) {
-    return { ok: false, error: "That conversation is closed — start a new one." }
+    return {
+      ok: false,
+      error: "That conversation is closed — start a new one.",
+    }
   }
 
   const wrote = await insertDesignMessage(db, {
@@ -272,7 +303,9 @@ export async function addDesignMessage(
     author: "client",
     body: message,
   })
-  if (!wrote.ok) return { ok: false, error: "Couldn’t send that — please try again." }
+  if (!wrote.ok) {
+    return { ok: false, error: "Couldn’t send that — please try again." }
+  }
 
   await notifyOwner(db, {
     kind: "design_reply",
@@ -292,6 +325,7 @@ export async function addDesignMessage(
   })
 
   revalidatePath(routes.admin.home)
+
   return { ok: true }
 }
 
@@ -301,7 +335,9 @@ export async function addDesignRef(
   storageKey: string,
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "Please sign in first." }
+  if (!user) {
+    return { ok: false, error: "Please sign in first." }
+  }
   if (
     !(await takeDurableToken(
       createSupabaseServiceRoleClient(),
@@ -309,9 +345,14 @@ export async function addDesignRef(
       MESSAGE_RULE,
     ))
   ) {
-    return { ok: false, error: "That's a lot of messages at once — give the studio a moment." }
+    return {
+      ok: false,
+      error: "That's a lot of messages at once — give the studio a moment.",
+    }
   }
-  if (!storageKey.startsWith(REF_PREFIX)) return { ok: false, error: "Couldn’t attach that." }
+  if (!storageKey.startsWith(REF_PREFIX)) {
+    return { ok: false, error: "Couldn’t attach that." }
+  }
 
   const db = createSupabaseServiceRoleClient()
   const request = await getDesignRequest(db, requestId)
@@ -319,7 +360,10 @@ export async function addDesignRef(
     return { ok: false, error: "Not found." }
   }
   if (!isActionableDesignStatus(request.status)) {
-    return { ok: false, error: "That conversation is closed — start a new one." }
+    return {
+      ok: false,
+      error: "That conversation is closed — start a new one.",
+    }
   }
   const existing = await countDesignRefs(db, requestId)
   if (existing >= MAX_REFS_PER_REQUEST) {
@@ -329,6 +373,7 @@ export async function addDesignRef(
   const saved = await insertDesignRefs(db, [
     { request_id: requestId, client_id: user.id, storage_key: storageKey },
   ])
+
   return saved.ok ? { ok: true } : { ok: false, error: "Couldn’t attach that." }
 }
 
@@ -338,23 +383,33 @@ export async function replyToDesignRequest(
   body: string,
 ): Promise<DesignActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
   const message = body.trim()
-  if (!message) return { ok: false, error: "Write a reply first." }
+  if (!message) {
+    return { ok: false, error: "Write a reply first." }
+  }
 
   const request = await getDesignRequest(db, requestId)
-  if (!request) return { ok: false, error: "Request not found." }
+  if (!request) {
+    return { ok: false, error: "Request not found." }
+  }
 
   const wrote = await insertDesignMessage(db, {
     request_id: requestId,
     author: "artist",
     body: message,
   })
-  if (!wrote.ok) return { ok: false, error: "Couldn’t send the reply." }
+  if (!wrote.ok) {
+    return { ok: false, error: "Couldn’t send the reply." }
+  }
 
   await stampArtistReply(db, requestId)
 
-  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  const contact = (await fetchClientContacts([request.client_id]))[
+    request.client_id
+  ]
   if (contact?.email) {
     const res = await sendDesignReplyEmail({
       to: contact.email,
@@ -374,6 +429,7 @@ export async function replyToDesignRequest(
   }
 
   revalidatePath(routes.admin.home)
+
   return { ok: true }
 }
 
@@ -388,13 +444,19 @@ export async function declineDesignRequest(
   reason: string,
 ): Promise<DesignActionResult> {
   const db = await requireOwner()
-  if (!db) return { ok: false, error: "Not authorized." }
+  if (!db) {
+    return { ok: false, error: "Not authorized." }
+  }
 
   const trimmed = reason.trim().slice(0, MAX_MESSAGE_LENGTH)
-  if (!trimmed) return { ok: false, error: "Say why you're closing it." }
+  if (!trimmed) {
+    return { ok: false, error: "Say why you're closing it." }
+  }
 
   const request = await getDesignRequest(db, requestId)
-  if (!request) return { ok: false, error: "Request not found." }
+  if (!request) {
+    return { ok: false, error: "Request not found." }
+  }
 
   // Close any live offer first: the signed link outlives the request, so a
   // declined request with a live offer would still book a real appointment.
@@ -406,7 +468,10 @@ export async function declineDesignRequest(
       closed_at: now,
     })
     if (!pulled.ok) {
-      return { ok: false, error: "Couldn’t withdraw the open offer — try again." }
+      return {
+        ok: false,
+        error: "Couldn’t withdraw the open offer — try again.",
+      }
     }
   }
 
@@ -415,7 +480,9 @@ export async function declineDesignRequest(
     decline_reason: trimmed,
     closed_at: new Date().toISOString(),
   })
-  if (!closed.ok) return { ok: false, error: "Couldn’t close it — please try again." }
+  if (!closed.ok) {
+    return { ok: false, error: "Couldn’t close it — please try again." }
+  }
 
   // Same reason, in the thread — closing is the one message the client can't
   // ask a follow-up about, so it must be readable where the rest of it is.
@@ -424,10 +491,14 @@ export async function declineDesignRequest(
     author: "artist",
     body: trimmed,
   })
-  if (!posted.ok) console.error("[design] close reason not posted:", posted.message)
+  if (!posted.ok) {
+    console.error("[design] close reason not posted:", posted.message)
+  }
   await stampArtistReply(db, requestId)
 
-  const contact = (await fetchClientContacts([request.client_id]))[request.client_id]
+  const contact = (await fetchClientContacts([request.client_id]))[
+    request.client_id
+  ]
   if (contact?.email) {
     const res = await sendDesignRequestDeclinedEmail({
       to: contact.email,
@@ -447,6 +518,7 @@ export async function declineDesignRequest(
   }
 
   revalidatePath(routes.admin.home)
+
   return { ok: true }
 }
 
@@ -462,10 +534,15 @@ export async function markDesignThreadsSeen(
   seenAt: string,
 ): Promise<DesignActionResult> {
   const user = await getCurrentUser()
-  if (!user) return { ok: false, error: "Please sign in first." }
-  if (Number.isNaN(Date.parse(seenAt))) return { ok: false, error: "Bad timestamp." }
+  if (!user) {
+    return { ok: false, error: "Please sign in first." }
+  }
+  if (Number.isNaN(Date.parse(seenAt))) {
+    return { ok: false, error: "Bad timestamp." }
+  }
 
   const db = createSupabaseServiceRoleClient()
   const saved = await markDesignRequestsSeenForClient(db, user.id, seenAt)
+
   return saved.ok ? { ok: true } : { ok: false, error: "Couldn’t update that." }
 }

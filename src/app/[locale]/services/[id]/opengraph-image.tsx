@@ -41,66 +41,69 @@ export default async function ServiceOpenGraphImage({
     : null
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: BRAND.background,
+        color: BRAND.textPrimary,
+        padding: "0 80px",
+        textAlign: "center",
+      }}
+    >
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: BRAND.background,
-          color: BRAND.textPrimary,
-          padding: "0 80px",
-          textAlign: "center",
+          fontSize: 20,
+          letterSpacing: "0.35em",
+          color: BRAND.textSecondary,
+          marginBottom: 28,
         }}
       >
+        {copy.kicker}
+      </div>
+      <div style={{ fontSize: 40, letterSpacing: "0.18em", fontWeight: 600 }}>
+        BELLA NAILS
+      </div>
+      <div
+        style={{
+          width: 64,
+          height: 2,
+          backgroundColor: BRAND.divider,
+          marginTop: 36,
+          marginBottom: 36,
+        }}
+      />
+      {/* The service leads at display size — it is what was shared. */}
+      <div
+        style={{
+          fontSize: name && name.length > 26 ? 60 : 76,
+          lineHeight: 1.1,
+        }}
+      >
+        {name ?? (isDa ? "Behandlinger" : "Services")}
+      </div>
+      {service ? (
         <div
           style={{
-            fontSize: 20,
-            letterSpacing: "0.35em",
+            display: "flex",
+            gap: 20,
+            marginTop: 36,
+            fontSize: 30,
             color: BRAND.textSecondary,
-            marginBottom: 28,
           }}
         >
-          {copy.kicker}
+          <span>{formatPrice(service.basePriceCents, locale)}</span>
+          <span>·</span>
+          <span>
+            {service.baseDurationMins} {copy.mins}
+          </span>
         </div>
-        <div style={{ fontSize: 40, letterSpacing: "0.18em", fontWeight: 600 }}>
-          BELLA NAILS
-        </div>
-        <div
-          style={{
-            width: 64,
-            height: 2,
-            backgroundColor: BRAND.divider,
-            marginTop: 36,
-            marginBottom: 36,
-          }}
-        />
-        {/* The service leads at display size — it is what was shared. */}
-        <div style={{ fontSize: name && name.length > 26 ? 60 : 76, lineHeight: 1.1 }}>
-          {name ?? (isDa ? "Behandlinger" : "Services")}
-        </div>
-        {service ? (
-          <div
-            style={{
-              display: "flex",
-              gap: 20,
-              marginTop: 36,
-              fontSize: 30,
-              color: BRAND.textSecondary,
-            }}
-          >
-            <span>{formatPrice(service.basePriceCents, locale)}</span>
-            <span>·</span>
-            <span>
-              {service.baseDurationMins} {copy.mins}
-            </span>
-          </div>
-        ) : null}
-      </div>
-    ),
+      ) : null}
+    </div>,
     size,
   )
 }

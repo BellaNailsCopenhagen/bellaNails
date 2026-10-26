@@ -88,7 +88,9 @@ function GroupTitle({ children }: { children: React.ReactNode }) {
 
 export default function StyleguidePage() {
   // Dev-only reference — never reachable in production.
-  if (process.env.NODE_ENV === "production") notFound()
+  if (process.env.NODE_ENV === "production") {
+    notFound()
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-20 sm:py-28">

@@ -19,8 +19,11 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   const t = await getTranslations({ locale, namespace: "login" })
+
   return {
     title: t("metaTitle"),
     // Nothing to rank, and a signed-in-only destination beyond it.
@@ -42,11 +45,11 @@ export default async function LoginPage({
     error?: string
   }>
 }) {
-  const [{ locale }, { next: nextParam, redirect_url, email, error }] = await Promise.all([
-    params,
-    searchParams,
-  ])
-  if (!hasLocale(routing.locales, locale)) notFound()
+  const [{ locale }, { next: nextParam, redirect_url, email, error }] =
+    await Promise.all([params, searchParams])
+  if (!hasLocale(routing.locales, locale)) {
+    notFound()
+  }
   setRequestLocale(locale)
   const t = await getTranslations("login")
 

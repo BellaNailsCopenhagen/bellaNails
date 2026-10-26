@@ -21,7 +21,9 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createSupabaseSessionServerClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(new URL(dest, origin))
+    if (!error) {
+      return NextResponse.redirect(new URL(dest, origin))
+    }
   }
 
   // Report the failure in the language they were signing in from. `next` is
@@ -29,5 +31,6 @@ export async function GET(request: Request) {
   // locale; a bare "/login" would be locale-negotiated afresh and could answer
   // a Danish sign-in in English.
   const locale = resolveLocale(dest.split("/")[1])
+
   return NextResponse.redirect(new URL(`/${locale}/login?error=auth`, origin))
 }
