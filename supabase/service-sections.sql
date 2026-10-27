@@ -22,3 +22,7 @@ create index if not exists service_sections_service_idx
 alter table public.service_sections enable row level security;
 create policy "Public reads service sections"
   on public.service_sections for select to anon, authenticated using (true);
+
+GRANT SELECT ON TABLE public.service_sections TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.service_sections TO authenticated;
+GRANT ALL ON TABLE public.service_sections TO service_role;

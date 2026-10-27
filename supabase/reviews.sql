@@ -18,3 +18,7 @@ create index if not exists reviews_service_idx
 alter table public.reviews enable row level security;
 create policy "Public reads reviews"
   on public.reviews for select to anon, authenticated using (true);
+
+GRANT SELECT ON TABLE public.reviews TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.reviews TO authenticated;
+GRANT ALL ON TABLE public.reviews TO service_role;

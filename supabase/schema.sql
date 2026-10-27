@@ -2414,8 +2414,152 @@ GRANT SELECT(sort_order) ON TABLE public.testimonials TO anon;
 GRANT SELECT(submitted_at) ON TABLE public.testimonials TO anon;
 
 
---
---
+-- --------------------------------------------------------------------------
+-- DATA API GRANTS (Supabase change effective 2026-10-30)
+-- New tables in `public` no longer get automatic Data API access. Every table
+-- needs an explicit GRANT before supabase-js / PostgREST / GraphQL can reach it.
+-- RLS remains the row-level security boundary; these grants only open the API gate.
+-- --------------------------------------------------------------------------
+
+GRANT SELECT ON TABLE public.addon_incompatibilities TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.addon_incompatibilities TO authenticated;
+GRANT ALL ON TABLE public.addon_incompatibilities TO service_role;
+
+GRANT SELECT ON TABLE public.addons TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.addons TO authenticated;
+GRANT ALL ON TABLE public.addons TO service_role;
+
+GRANT SELECT ON TABLE public.asset_usages TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.asset_usages TO authenticated;
+GRANT ALL ON TABLE public.asset_usages TO service_role;
+
+GRANT SELECT ON TABLE public.assets TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.assets TO authenticated;
+GRANT ALL ON TABLE public.assets TO service_role;
+
+GRANT SELECT ON TABLE public.blocked_identities TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.blocked_identities TO authenticated;
+GRANT ALL ON TABLE public.blocked_identities TO service_role;
+
+GRANT SELECT ON TABLE public.booking_protection TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_protection TO authenticated;
+GRANT ALL ON TABLE public.booking_protection TO service_role;
+
+GRANT SELECT ON TABLE public.booking_requests TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_requests TO authenticated;
+GRANT ALL ON TABLE public.booking_requests TO service_role;
+
+GRANT SELECT ON TABLE public.booking_settings TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_settings TO authenticated;
+GRANT ALL ON TABLE public.booking_settings TO service_role;
+
+GRANT SELECT ON TABLE public.bookings TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.bookings TO authenticated;
+GRANT ALL ON TABLE public.bookings TO service_role;
+
+GRANT SELECT ON TABLE public.business_profile TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_profile TO authenticated;
+GRANT ALL ON TABLE public.business_profile TO service_role;
+
+GRANT SELECT ON TABLE public.categories TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.categories TO authenticated;
+GRANT ALL ON TABLE public.categories TO service_role;
+
+GRANT SELECT ON TABLE public.client_consents TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.client_consents TO authenticated;
+GRANT ALL ON TABLE public.client_consents TO service_role;
+
+GRANT SELECT ON TABLE public.client_media TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.client_media TO authenticated;
+GRANT ALL ON TABLE public.client_media TO service_role;
+
+GRANT SELECT ON TABLE public.clients TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.clients TO authenticated;
+GRANT ALL ON TABLE public.clients TO service_role;
+
+GRANT SELECT ON TABLE public.communications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.communications TO authenticated;
+GRANT ALL ON TABLE public.communications TO service_role;
+
+GRANT SELECT ON TABLE public.design_messages TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_messages TO authenticated;
+GRANT ALL ON TABLE public.design_messages TO service_role;
+
+GRANT SELECT ON TABLE public.design_refs TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_refs TO authenticated;
+GRANT ALL ON TABLE public.design_refs TO service_role;
+
+GRANT SELECT ON TABLE public.design_requests TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_requests TO authenticated;
+GRANT ALL ON TABLE public.design_requests TO service_role;
+
+GRANT SELECT ON TABLE public.feature_flags TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.feature_flags TO authenticated;
+GRANT ALL ON TABLE public.feature_flags TO service_role;
+
+GRANT SELECT ON TABLE public.gallery_items TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.gallery_items TO authenticated;
+GRANT ALL ON TABLE public.gallery_items TO service_role;
+
+GRANT SELECT ON TABLE public.insights_months TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.insights_months TO authenticated;
+GRANT ALL ON TABLE public.insights_months TO service_role;
+
+GRANT SELECT ON TABLE public.media_releases TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.media_releases TO authenticated;
+GRANT ALL ON TABLE public.media_releases TO service_role;
+
+GRANT SELECT ON TABLE public.notes TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.notes TO authenticated;
+GRANT ALL ON TABLE public.notes TO service_role;
+
+GRANT SELECT ON TABLE public.offers TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.offers TO authenticated;
+GRANT ALL ON TABLE public.offers TO service_role;
+
+GRANT SELECT ON TABLE public.owner_notifications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.owner_notifications TO authenticated;
+GRANT ALL ON TABLE public.owner_notifications TO service_role;
+
+GRANT SELECT ON TABLE public.price_history TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.price_history TO authenticated;
+GRANT ALL ON TABLE public.price_history TO service_role;
+
+GRANT SELECT ON TABLE public.rate_limits TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.rate_limits TO authenticated;
+GRANT ALL ON TABLE public.rate_limits TO service_role;
+
+GRANT SELECT ON TABLE public.reviews TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.reviews TO authenticated;
+GRANT ALL ON TABLE public.reviews TO service_role;
+
+GRANT SELECT ON TABLE public.schedule_rules TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.schedule_rules TO authenticated;
+GRANT ALL ON TABLE public.schedule_rules TO service_role;
+
+GRANT SELECT ON TABLE public.service_addons TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.service_addons TO authenticated;
+GRANT ALL ON TABLE public.service_addons TO service_role;
+
+GRANT SELECT ON TABLE public.service_sections TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.service_sections TO authenticated;
+GRANT ALL ON TABLE public.service_sections TO service_role;
+
+GRANT SELECT ON TABLE public.services TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.services TO authenticated;
+GRANT ALL ON TABLE public.services TO service_role;
+
+GRANT SELECT ON TABLE public.terms TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.terms TO authenticated;
+GRANT ALL ON TABLE public.terms TO service_role;
+
+GRANT SELECT ON TABLE public.terms_acceptances TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.terms_acceptances TO authenticated;
+GRANT ALL ON TABLE public.terms_acceptances TO service_role;
+
+GRANT SELECT ON TABLE public.testimonials TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.testimonials TO authenticated;
+GRANT ALL ON TABLE public.testimonials TO service_role;
 
 
 -- --------------------------------------------------------------------------

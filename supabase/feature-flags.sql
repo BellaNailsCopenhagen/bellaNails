@@ -16,6 +16,10 @@ create table if not exists public.feature_flags (
   updated_at  timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.feature_flags TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.feature_flags TO authenticated;
+GRANT ALL ON TABLE public.feature_flags TO service_role;
+
 -- Public read (the booking flow checks flags); writes are service-role (admin).
 alter table public.feature_flags enable row level security;
 drop policy if exists "Public reads feature flags" on public.feature_flags;

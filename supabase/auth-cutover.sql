@@ -31,6 +31,10 @@ create table if not exists public.clients (
   updated_at   timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.clients TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.clients TO authenticated;
+GRANT ALL ON TABLE public.clients TO service_role;
+
 alter table public.clients enable row level security;
 
 drop policy if exists "Owner reads all clients" on public.clients;

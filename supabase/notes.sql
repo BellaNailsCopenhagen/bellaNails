@@ -18,3 +18,7 @@ create index if not exists notes_booking_id_idx on public.notes (booking_id);
 -- denied entirely. The studio reads/writes via the service-role client (which
 -- bypasses RLS), so these notes never reach a client.
 alter table public.notes enable row level security;
+
+GRANT SELECT ON TABLE public.notes TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.notes TO authenticated;
+GRANT ALL ON TABLE public.notes TO service_role;

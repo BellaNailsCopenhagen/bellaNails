@@ -95,3 +95,15 @@ create policy "Owner reads all client_consents"
 create policy "Clients read own client_consents"
   on public.client_consents for select to authenticated
   using ((select auth.jwt() ->> 'sub') = clerk_user_id);
+
+GRANT SELECT ON TABLE public.client_media TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.client_media TO authenticated;
+GRANT ALL ON TABLE public.client_media TO service_role;
+
+GRANT SELECT ON TABLE public.media_consents TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.media_consents TO authenticated;
+GRANT ALL ON TABLE public.media_consents TO service_role;
+
+GRANT SELECT ON TABLE public.client_consents TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.client_consents TO authenticated;
+GRANT ALL ON TABLE public.client_consents TO service_role;

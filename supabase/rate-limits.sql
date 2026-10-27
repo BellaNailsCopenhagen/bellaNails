@@ -19,6 +19,10 @@ create table if not exists public.rate_limits (
   updated_at timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.rate_limits TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.rate_limits TO authenticated;
+GRANT ALL ON TABLE public.rate_limits TO service_role;
+
 -- Nobody reads this table through the API — every caller goes through the
 -- function below with the service-role client. No policies, so RLS denies all.
 alter table public.rate_limits enable row level security;

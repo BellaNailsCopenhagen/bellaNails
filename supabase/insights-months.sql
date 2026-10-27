@@ -34,6 +34,10 @@ create table if not exists public.insights_months (
   computed_at  timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.insights_months TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.insights_months TO authenticated;
+GRANT ALL ON TABLE public.insights_months TO service_role;
+
 alter table public.insights_months enable row level security;
 
 -- Studio-wide aggregate: amounts and minutes, no client, nothing identifying.

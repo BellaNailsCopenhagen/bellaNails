@@ -20,6 +20,10 @@ create table if not exists public.terms (
   unique (kind, version)
 );
 
+GRANT SELECT ON TABLE public.terms TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.terms TO authenticated;
+GRANT ALL ON TABLE public.terms TO service_role;
+
 -- Exactly one current version per kind (partial unique index).
 create unique index if not exists terms_one_current_per_kind
   on public.terms (kind) where is_current;
@@ -73,3 +77,7 @@ values
     true
   )
 on conflict (kind, version) do nothing;
+
+GRANT SELECT ON TABLE public.terms_acceptances TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.terms_acceptances TO authenticated;
+GRANT ALL ON TABLE public.terms_acceptances TO service_role;

@@ -81,3 +81,7 @@ begin
     where sd.closed;
   end if;
 end $$;
+
+GRANT SELECT ON TABLE public.schedule_rules TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.schedule_rules TO authenticated;
+GRANT ALL ON TABLE public.schedule_rules TO service_role;

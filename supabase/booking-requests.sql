@@ -30,6 +30,10 @@ create table public.booking_requests (
   decided_at timestamptz
 );
 
+GRANT SELECT ON TABLE public.booking_requests TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_requests TO authenticated;
+GRANT ALL ON TABLE public.booking_requests TO service_role;
+
 create index booking_requests_pending_idx
   on public.booking_requests (created_at) where status = 'pending';
 create index booking_requests_client_idx

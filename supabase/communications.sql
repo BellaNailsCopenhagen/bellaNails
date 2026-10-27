@@ -29,6 +29,10 @@ create table if not exists public.communications (
   created_at timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.communications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.communications TO authenticated;
+GRANT ALL ON TABLE public.communications TO service_role;
+
 create index if not exists communications_client_created_idx
   on public.communications (client_id, created_at desc);
 -- Reminder idempotency, enforced by the DB: at most ONE successful reminder per

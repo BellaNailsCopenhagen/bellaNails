@@ -161,3 +161,19 @@ begin
     alter publication supabase_realtime add table public.design_requests;
   end if;
 end $$;
+
+GRANT SELECT ON TABLE public.design_requests TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_requests TO authenticated;
+GRANT ALL ON TABLE public.design_requests TO service_role;
+
+GRANT SELECT ON TABLE public.design_messages TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_messages TO authenticated;
+GRANT ALL ON TABLE public.design_messages TO service_role;
+
+GRANT SELECT ON TABLE public.design_refs TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.design_refs TO authenticated;
+GRANT ALL ON TABLE public.design_refs TO service_role;
+
+GRANT SELECT ON TABLE public.offers TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.offers TO authenticated;
+GRANT ALL ON TABLE public.offers TO service_role;

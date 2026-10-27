@@ -80,6 +80,14 @@ alter table public.studio_hours enable row level security;
 create policy "Public reads studio hours"
   on public.studio_hours for select to anon, authenticated using (true);
 
+GRANT SELECT ON TABLE public.studio_hours TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.studio_hours TO authenticated;
+GRANT ALL ON TABLE public.studio_hours TO service_role;
+
 alter table public.studio_special_days enable row level security;
 create policy "Public reads studio special days"
   on public.studio_special_days for select to anon, authenticated using (true);
+
+GRANT SELECT ON TABLE public.studio_special_days TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.studio_special_days TO authenticated;
+GRANT ALL ON TABLE public.studio_special_days TO service_role;

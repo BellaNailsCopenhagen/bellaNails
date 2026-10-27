@@ -19,6 +19,11 @@ create table if not exists public.booking_settings (
     and min_lead_mins >= 0 and max_advance_days > 0
   )
 );
+
+GRANT SELECT ON TABLE public.booking_settings TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_settings TO authenticated;
+GRANT ALL ON TABLE public.booking_settings TO service_role;
+
 insert into public.booking_settings (id) values (true) on conflict (id) do nothing;
 
 alter table public.booking_settings enable row level security;

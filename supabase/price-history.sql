@@ -21,3 +21,7 @@ alter table public.price_history enable row level security;
 create policy "Owner reads price history"
   on public.price_history for select to authenticated
   using ((select auth.jwt() -> 'metadata' ->> 'role') = 'owner');
+
+GRANT SELECT ON TABLE public.price_history TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.price_history TO authenticated;
+GRANT ALL ON TABLE public.price_history TO service_role;

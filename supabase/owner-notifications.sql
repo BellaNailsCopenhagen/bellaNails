@@ -20,3 +20,7 @@ alter table public.owner_notifications enable row level security;
 create policy "Owner reads all notifications"
   on public.owner_notifications for select to authenticated
   using ((select auth.jwt() -> 'metadata' ->> 'role') = 'owner');
+
+GRANT SELECT ON TABLE public.owner_notifications TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.owner_notifications TO authenticated;
+GRANT ALL ON TABLE public.owner_notifications TO service_role;

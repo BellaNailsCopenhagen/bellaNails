@@ -44,6 +44,10 @@ create table if not exists public.business_profile (
   updated_at timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.business_profile TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.business_profile TO authenticated;
+GRANT ALL ON TABLE public.business_profile TO service_role;
+
 insert into public.business_profile (id) values (true) on conflict (id) do nothing;
 
 -- Read by the public site (footer, Find us) and by the email senders; written

@@ -23,3 +23,7 @@ create index if not exists asset_usages_surface_idx
 alter table public.asset_usages enable row level security;
 create policy "Public reads asset usages"
   on public.asset_usages for select to anon, authenticated using (true);
+
+GRANT SELECT ON TABLE public.asset_usages TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.asset_usages TO authenticated;
+GRANT ALL ON TABLE public.asset_usages TO service_role;

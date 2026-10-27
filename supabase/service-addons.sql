@@ -27,3 +27,7 @@ on conflict do nothing;
 alter table public.service_addons enable row level security;
 create policy "Public reads service addons"
   on public.service_addons for select to anon, authenticated using (true);
+
+GRANT SELECT ON TABLE public.service_addons TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.service_addons TO authenticated;
+GRANT ALL ON TABLE public.service_addons TO service_role;

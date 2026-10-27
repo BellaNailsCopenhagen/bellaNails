@@ -32,6 +32,10 @@ create table if not exists public.media_releases (
   unique (booking_id, purpose)
 );
 
+GRANT SELECT ON TABLE public.media_releases TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.media_releases TO authenticated;
+GRANT ALL ON TABLE public.media_releases TO service_role;
+
 create index if not exists media_releases_client_idx
   on public.media_releases (client_id);
 -- Granted-lookup: the publish gate + public gallery ask "is this booking cleared

@@ -25,6 +25,10 @@ create table if not exists public.booking_protection (
   updated_at timestamptz not null default now()
 );
 
+GRANT SELECT ON TABLE public.booking_protection TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.booking_protection TO authenticated;
+GRANT ALL ON TABLE public.booking_protection TO service_role;
+
 insert into public.booking_protection (id) values (true) on conflict (id) do nothing;
 
 -- Read by the PUBLIC booking flow (it decides what the form asks for), written
@@ -50,6 +54,10 @@ create table if not exists public.blocked_identities (
   created_at timestamptz not null default now(),
   unique (kind, value)
 );
+
+GRANT SELECT ON TABLE public.blocked_identities TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.blocked_identities TO authenticated;
+GRANT ALL ON TABLE public.blocked_identities TO service_role;
 
 create index if not exists blocked_identities_lookup_idx
   on public.blocked_identities (kind, value);

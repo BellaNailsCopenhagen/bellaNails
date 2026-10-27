@@ -46,6 +46,9 @@ create table if not exists public.testimonials (
   content_erased_at timestamptz
 );
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.testimonials TO authenticated;
+GRANT ALL ON TABLE public.testimonials TO service_role;
+
 -- The home section's read: visible + submitted, best order first.
 create index if not exists testimonials_visible_idx
   on public.testimonials (sort_order nulls last, submitted_at desc)
