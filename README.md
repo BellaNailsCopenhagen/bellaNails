@@ -1,7 +1,7 @@
 # Bella Nails
 
-Next.js nail-studio site: public booking (Cal.com), an owner-only `/admin` CRM,
-and GDPR-compliant client media. Stack: Clerk · Supabase · Cal.com EU · Stripe
+Next.js nail-studio site: public booking, an owner-only `/admin` CRM,
+and GDPR-compliant client media. Stack: Supabase 
 · Supabase Storage · Zoho · Vercel.
 
 ## Getting started
