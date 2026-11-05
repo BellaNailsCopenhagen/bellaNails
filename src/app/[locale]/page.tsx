@@ -40,7 +40,7 @@ export async function generateMetadata({
     alternates,
     // Canonical URL for the Open Graph card when the page is shared.
     // `alternatesFor` always returns a string canonical (built by localeUrl).
-    openGraph: { url: alternates!.canonical as string },
+    openGraph: { url: alternates?.canonical as string },
   }
 }
 
