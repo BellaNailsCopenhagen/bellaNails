@@ -21,11 +21,12 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: disallowedPaths,
-    },
+    rules: [
+      // LinkedIn fetches shared links to build their preview, so let its bot
+      // read the main page (everything else follows the same policy as *).
+      { userAgent: "LinkedInBot", allow: "/" },
+      { userAgent: "*", allow: "/", disallow: disallowedPaths },
+    ],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
   }

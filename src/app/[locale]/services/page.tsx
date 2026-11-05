@@ -19,10 +19,15 @@ export async function generateMetadata({
   }
   const t = await getTranslations({ locale, namespace: "serviceMenu" })
 
+  const alternates = alternatesFor(locale, routes.services)
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
-    alternates: alternatesFor(locale, routes.services),
+    alternates,
+    // Canonical URL for the Open Graph card when the page is shared.
+    // `alternatesFor` always returns a string canonical (built by localeUrl).
+    openGraph: { url: alternates!.canonical as string },
   }
 }
 
