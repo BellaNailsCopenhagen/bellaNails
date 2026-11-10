@@ -19,7 +19,6 @@ const days = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString()
 async function main() {
   const supabase = createSupabaseServiceRoleClient()
   const log = (table: string, n: number) => console.log(`  ✓ ${table}: ${n} row(s)`)
-  const err = (table: string, e: unknown) => console.error(`  ✗ ${table}: ${e instanceof Error ? e.message : e}`)
 
   // ── 1. Categories (no parents) ──────────────────────────────────────
   const cat1 = (await supabase.from("categories").insert({
@@ -119,7 +118,6 @@ async function main() {
   const statuses = ["confirmed", "completed", "cancelled", "completed", "confirmed", "requested"]
   const services = [svc1, svc2, svc3]
   const bookings = await Promise.all(clients.map(async (client, i) => {
-    const svc = services[i % 3]
     const [dur, price] = [[90, 65000], [60, 45000], [75, 55000]][i % 3]
     const start = days(i - 10)
     const end = new Date(Date.parse(start) + dur * 60000).toISOString()

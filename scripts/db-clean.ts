@@ -9,6 +9,9 @@
  */
 
 import { createSupabaseServiceRoleClient } from "@/platform/supabase/server"
+import type { Database } from "@/platform/supabase/types"
+
+type TableName = keyof Database["public"]["Tables"]
 
 // Child tables first, then parents, so FK constraints never block a delete.
 const TABLES = [
@@ -60,15 +63,17 @@ async function main() {
 
   for (const table of TABLES) {
     try {
-      const { error, count } = await (supabase.from(table as any).delete() as any)
+      const result = await supabase.from(table as TableName).delete()
+      const { error, count } = result
       if (error) {
-        console.error(`  ✗ ${table}: ${error.message}`)
+        console.error(`  ✗ ${table}: ${error instanceof Error ? error.message : String(error)}`)
         continue
       }
+
       total += count ?? 0
       console.log(`  ✓ ${table}: cleared`)
     } catch (err) {
-      console.error(`  ✗ ${table}: ${err instanceof Error ? err.message : err}`)
+      console.error(`  ✗ ${table}: ${err instanceof Error ? err.message : String(err)}`)
     }
   }
 

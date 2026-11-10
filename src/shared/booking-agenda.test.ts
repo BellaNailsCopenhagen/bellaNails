@@ -6,9 +6,6 @@ import {
   groupIntoAgenda,
   groupBookingsByWeek,
   groupBookingsByMonth,
-  type AgendaWeek,
-  type BookingWeek,
-  type BookingMonth,
 } from "./booking-agenda"
 import type { DisplayBooking } from "./booking-view"
 
@@ -78,7 +75,6 @@ test("groupBookingsByWeek desc orders most-recent first", () => {
 })
 
 test("groupBookingsByMonth groups by studio month", () => {
-  const now = monday("2026-07-06") // July
   const b1 = booking("b1", "2026-07-10T09:00:00Z") // July
   const b2 = booking("b2", "2026-08-05T09:00:00Z") // August
 
