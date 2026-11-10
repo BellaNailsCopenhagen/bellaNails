@@ -9,6 +9,9 @@
     "lint": "eslint",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "deploy:prod": "bash scripts/deploy.sh",
+    "db:setup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --conditions=react-server --import ./scripts/register-ts-paths.mjs ./scripts/db-setup.ts",
+    "db:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --conditions=react-server --import ./scripts/register-ts-paths.mjs ./scripts/db-clean.ts",
+    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --conditions=react-server --import ./scripts/register-ts-paths.mjs ./scripts/db-seed.ts",
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --conditions=react-server --import ./scripts/register-ts-paths.mjs --test \"src/**/*.test.ts\""
   },
   "dependencies": {

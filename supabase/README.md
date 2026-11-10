@@ -15,7 +15,7 @@ signup trigger on `auth.users`, and the Realtime publication.
 It is generated, not hand-written — every incremental migration was replayed
 against an empty Postgres in dependency order and the result dumped, then the
 dump was restored into a second empty database and the catalogs diffed (662
-objects, identical). See [docs/tasks/DATABASE.md](../docs/tasks/DATABASE.md).
+objects, identical). See [docs/archive/tasks/DATABASE.md](../docs/archive/tasks/DATABASE.md).
 
 Run it once, on an empty database. It is deliberately **not** idempotent — on a
 database that already has these tables it fails on the first `create table`
