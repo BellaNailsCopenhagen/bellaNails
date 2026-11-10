@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
-import { BodySm, Eyebrow } from "@/components/ui/typography"
+import { BodySm } from "@/components/ui/typography"
 import {
   EditCategorySheet,
   type EditableCategory,
@@ -13,6 +13,8 @@ import {
   archiveCategory,
   moveCategory,
 } from "@/modules/catalog/category-actions"
+import { cn } from "@/shared/cn"
+import { Button } from "@/components/ui/button"
 
 export type ManageableCategory = EditableCategory & {
   archived_at: string | null
@@ -20,9 +22,9 @@ export type ManageableCategory = EditableCategory & {
 }
 
 const moveButton =
-  "flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+  "flex size-6 shrink-0 items-center justify-center rounded-full hover:border border-transparent disabled:opacity-30"
 const linkButton =
-  "font-functional text-[0.625rem] uppercase tracking-widest-lux transition-colors"
+  "font-functional text-[0.625rem] uppercase tracking-widest-lux transition-colors hover:text-foreground"
 
 /**
  * The Categories tab: the public menu's top level. Order here IS the order the
@@ -38,6 +40,10 @@ export function CategoriesTab({
   // Archiving pulls a whole menu section — and its services — off the public
   // site, so it takes a second click that names the damage.
   const [confirming, setConfirming] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+
+  const active = categories.filter((c) => !c.archived_at)
+  const shown = showArchived ? categories : active
 
   if (categories.length === 0) {
     return (
@@ -48,16 +54,25 @@ export function CategoriesTab({
   }
 
   return (
-    <section className="space-y-2 pl-2">
-      <div className="flex items-center gap-2">
-        <Eyebrow as="h3">Menu order</Eyebrow>
-        <span className="font-functional text-[0.625rem] uppercase tracking-widest-lux text-muted-foreground">
-          {categories.length}
-        </span>
+    <section className="space-y-3 pl-2">
+      {/* Text helper — what you can do here */}
+      <p className="font-functional text-xs leading-relaxed text-muted-foreground">
+        The order here IS the order the menu numbers its sections, so the list
+        is reorderable. Use the buttons below to filter the view.
+      </p>
+
+      <div className="flex gap-2">
+        <Button
+          variant={"outline"}
+          size="sm"
+          onClick={() => setShowArchived(!showArchived)}
+        >
+          {showArchived ? " Only Active" : "Include Archived"}
+        </Button>
       </div>
 
       <ul className="space-y-3">
-        {categories.map((category, index) => {
+        {shown.map((category, index) => {
           const archived = Boolean(category.archived_at)
 
           return (
