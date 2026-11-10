@@ -2,7 +2,8 @@
 
 > The concrete wiring: every external service, the accounts/keys it needs, env vars, the
 > proposed folder layout, the DB DDL, and per-service gotchas. Companion to
-> [PROJECT_BIBLE.md](../PROJECT_BIBLE.md) and [PLAN.md](./PLAN.md).
+> [docs/archive/PROJECT_BIBLE.md](../archive/PROJECT_BIBLE.md) and
+> [docs/archive/PLAN.md](../archive/PLAN.md) (both historical snapshots).
 >
 > **Cost target: ~0 DKK** — every service below is on a free tier.
 
