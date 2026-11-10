@@ -13,8 +13,8 @@ import {
   archiveCategory,
   moveCategory,
 } from "@/modules/catalog/category-actions"
-import { cn } from "@/shared/cn"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 export type ManageableCategory = EditableCategory & {
   archived_at: string | null
@@ -76,90 +76,94 @@ export function CategoriesTab({
           const archived = Boolean(category.archived_at)
 
           return (
-            <li
-              key={category.id}
-              className="flex items-center justify-between gap-3"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex shrink-0 flex-col gap-1">
-                  <button
-                    type="button"
-                    aria-label={`Move ${category.name_en} up`}
-                    disabled={pending || index === 0}
-                    onClick={() => run(() => moveCategory(category.id, "up"))}
-                    className={moveButton}
-                  >
-                    <ChevronUp className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Move ${category.name_en} down`}
-                    disabled={pending || index === categories.length - 1}
-                    onClick={() => run(() => moveCategory(category.id, "down"))}
-                    className={moveButton}
-                  >
-                    <ChevronDown className="size-3.5" />
-                  </button>
+            <li key={category.id}>
+              <div
+                className="flex items-center justify-between gap-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <button
+                      type="button"
+                      aria-label={`Move ${category.name_en} up`}
+                      disabled={pending || index === 0}
+                      onClick={() => run(() => moveCategory(category.id, "up"))}
+                      className={moveButton}
+                    >
+                      <ChevronUp className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Move ${category.name_en} down`}
+                      disabled={pending || index === categories.length - 1}
+                      onClick={() =>
+                        run(() => moveCategory(category.id, "down"))
+                      }
+                      className={moveButton}
+                    >
+                      <ChevronDown className="size-3.5" />
+                    </button>
+                  </div>
+                  {category.image_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={category.image_url}
+                      alt=""
+                      className="size-10 shrink-0 rounded-sm border border-border object-cover"
+                    />
+                  ) : null}
+                  <div className="min-w-0">
+                    <p className="truncate font-functional text-sm text-foreground">
+                      {category.name_en}
+                      {archived ? " · archived" : ""}
+                    </p>
+                    <p className="font-functional text-xs text-muted-foreground">
+                      {category.name_dk} ·{" "}
+                      {category.serviceCount === 1
+                        ? "1 service"
+                        : `${category.serviceCount} services`}
+                    </p>
+                  </div>
                 </div>
-                {category.image_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={category.image_url}
-                    alt=""
-                    className="size-10 shrink-0 rounded-sm border border-border object-cover"
+
+                <div className="flex shrink-0 items-center gap-3">
+                  <EditCategorySheet
+                    category={category}
+                    triggerLabel="Edit"
+                    triggerVariant="ghost"
                   />
-                ) : null}
-                <div className="min-w-0">
-                  <p className="truncate font-functional text-sm text-foreground">
-                    {category.name_en}
-                    {archived ? " · archived" : ""}
-                  </p>
-                  <p className="font-functional text-xs text-muted-foreground">
-                    {category.name_dk} ·{" "}
-                    {category.serviceCount === 1
-                      ? "1 service"
-                      : `${category.serviceCount} services`}
-                  </p>
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onBlur={() => setConfirming(null)}
+                    onClick={() => {
+                      if (archived) {
+                        run(() => archiveCategory(category.id, false))
+
+                        return
+                      }
+                      if (confirming !== category.id) {
+                        setConfirming(category.id)
+
+                        return
+                      }
+                      setConfirming(null)
+                      run(() => archiveCategory(category.id, true))
+                    }}
+                    className={
+                      archived
+                        ? `${linkButton} text-muted-foreground hover:text-foreground`
+                        : `${linkButton} text-destructive/70 hover:text-destructive`
+                    }
+                  >
+                    {archived
+                      ? "Restore"
+                      : confirming === category.id
+                        ? `Confirm — hides ${category.serviceCount === 1 ? "1 service" : `${category.serviceCount} services`}`
+                        : "Archive"}
+                  </button>
                 </div>
               </div>
-
-              <div className="flex shrink-0 items-center gap-3">
-                <EditCategorySheet
-                  category={category}
-                  triggerLabel="Edit"
-                  triggerVariant="ghost"
-                />
-                <button
-                  type="button"
-                  disabled={pending}
-                  onBlur={() => setConfirming(null)}
-                  onClick={() => {
-                    if (archived) {
-                      run(() => archiveCategory(category.id, false))
-
-                      return
-                    }
-                    if (confirming !== category.id) {
-                      setConfirming(category.id)
-
-                      return
-                    }
-                    setConfirming(null)
-                    run(() => archiveCategory(category.id, true))
-                  }}
-                  className={
-                    archived
-                      ? `${linkButton} text-muted-foreground hover:text-foreground`
-                      : `${linkButton} text-destructive/70 hover:text-destructive`
-                  }
-                >
-                  {archived
-                    ? "Restore"
-                    : confirming === category.id
-                      ? `Confirm — hides ${category.serviceCount === 1 ? "1 service" : `${category.serviceCount} services`}`
-                      : "Archive"}
-                </button>
-              </div>
+              <Separator />
             </li>
           )
         })}
