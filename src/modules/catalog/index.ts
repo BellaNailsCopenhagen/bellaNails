@@ -64,7 +64,7 @@ export {
   setAddonCompatibility,
   unlinkAddon,
 } from "./addon-actions"
-export { archiveCategory, moveCategory, saveCategory } from "./category-actions"
+export { archiveCategory, moveCategory, saveCategory, updateCategoryOrder } from "./category-actions"
 export type {
   AddonEditInput,
   CategoryInput,

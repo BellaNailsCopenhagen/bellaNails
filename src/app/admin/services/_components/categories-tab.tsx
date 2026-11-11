@@ -9,10 +9,8 @@ import {
   type EditableCategory,
 } from "@/app/admin/services/_components/edit-category-sheet"
 import { useActionRunner } from "@/hooks/use-action-runner"
-import {
-  archiveCategory,
-  moveCategory,
-} from "@/modules/catalog/category-actions"
+import { archiveCategory } from "@/modules/catalog/category-actions"
+import { useCategoryReorder } from "@/hooks/use-category-reorder"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
@@ -23,6 +21,7 @@ export type ManageableCategory = EditableCategory & {
 
 const moveButton =
   "flex size-6 shrink-0 items-center justify-center rounded-full hover:border border-transparent disabled:opacity-30"
+
 const linkButton =
   "font-functional text-[0.625rem] uppercase tracking-widest-lux transition-colors hover:text-foreground"
 
@@ -32,20 +31,20 @@ const linkButton =
  * an archived category (and everything filed under it) drops off the menu.
  */
 export function CategoriesTab({
-  categories,
+  categories: initialCategories,
 }: {
   categories: ManageableCategory[]
 }) {
   const { pending, run } = useActionRunner()
-  // Archiving pulls a whole menu section — and its services — off the public
-  // site, so it takes a second click that names the damage.
+  const { categories: localCategories, handleMove } = useCategoryReorder(initialCategories)
+
   const [confirming, setConfirming] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
 
-  const active = categories.filter((c) => !c.archived_at)
-  const shown = showArchived ? categories : active
+  const active = localCategories.filter((c) => !c.archived_at)
+  const shown = showArchived ? localCategories : active
 
-  if (categories.length === 0) {
+  if (localCategories.length === 0) {
     return (
       <BodySm className="text-xs">
         No categories yet — create one to group your services.
@@ -55,7 +54,6 @@ export function CategoriesTab({
 
   return (
     <section className="space-y-3 pl-2">
-      {/* Text helper — what you can do here */}
       <p className="font-functional text-xs leading-relaxed text-muted-foreground">
         The order here IS the order the menu numbers its sections, so the list
         is reorderable. Use the buttons below to filter the view.
@@ -77,16 +75,14 @@ export function CategoriesTab({
 
           return (
             <li key={category.id}>
-              <div
-                className="flex items-center justify-between gap-3"
-              >
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex shrink-0 flex-col gap-1">
                     <button
                       type="button"
                       aria-label={`Move ${category.name_en} up`}
                       disabled={pending || index === 0}
-                      onClick={() => run(() => moveCategory(category.id, "up"))}
+                      onClick={() => handleMove(category.id, "up")}
                       className={moveButton}
                     >
                       <ChevronUp className="size-3.5" />
@@ -94,15 +90,14 @@ export function CategoriesTab({
                     <button
                       type="button"
                       aria-label={`Move ${category.name_en} down`}
-                      disabled={pending || index === categories.length - 1}
-                      onClick={() =>
-                        run(() => moveCategory(category.id, "down"))
-                      }
+                      disabled={pending || index === shown.length - 1}
+                      onClick={() => handleMove(category.id, "down")}
                       className={moveButton}
                     >
                       <ChevronDown className="size-3.5" />
                     </button>
                   </div>
+
                   {category.image_url ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -111,6 +106,7 @@ export function CategoriesTab({
                       className="size-10 shrink-0 rounded-sm border border-border object-cover"
                     />
                   ) : null}
+
                   <div className="min-w-0">
                     <p className="truncate font-functional text-sm text-foreground">
                       {category.name_en}

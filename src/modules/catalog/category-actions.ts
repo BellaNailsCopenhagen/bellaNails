@@ -174,3 +174,27 @@ export async function moveCategory(
 
   return { ok: true }
 }
+
+/** Update category sort order from an ordered array of IDs. */
+export async function updateCategoryOrder(
+  orderedIds: string[],
+): Promise<ServiceActionResult> {
+  const db = await requireOwner()
+  if (!db) {
+    return { ok: false, error: "unauthorized" }
+  }
+
+  const saved = await setCategoryOrder(db, orderedIds)
+  if (!saved.ok) {
+    revalidateCatalogSurfaces()
+
+    return {
+      ok: false,
+      error: "Couldn’t finish reordering — reload to see the current order.",
+    }
+  }
+
+  revalidateCatalogSurfaces()
+
+  return { ok: true }
+}
